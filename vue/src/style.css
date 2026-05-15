@@ -1,0 +1,29 @@
+@import "tailwindcss";
+:root {
+  --bg: #0A0815; --glass: rgba(255,255,255,0.03);
+  --gold: #D4A84B; --gold-dim: rgba(212,168,75,0.15);
+  --crimson: #C41E3A; --text: #F0EDE4; --muted: #8B8378;
+  --color-bazi-paper: #FAF8F3;
+  --color-bazi-blue: #2B3A42;
+  --color-bazi-red: var(--crimson);
+  --color-bazi-ink: #2B3A42;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.glass-panel{background:var(--glass);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid var(--gold-dim);border-radius:20px}
+.glass-card{background:rgba(255,255,255,0.025);backdrop-filter:blur(20px);border:1px solid rgba(212,168,75,0.08);border-radius:14px;transition:all .3s}
+.glass-card:hover{border-color:rgba(212,168,75,0.2);box-shadow:0 0 30px rgba(212,168,75,0.06)}
+.btn-gold{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#D4A84B,#B8860B);color:#0A0815;font-weight:600;padding:12px 32px;border:none;border-radius:8px;cursor:pointer;transition:all .3s;text-decoration:none;font-size:15px}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,75,.3)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--gold-dim);padding:10px 24px;border-radius:8px;cursor:pointer;transition:all .3s;font-size:14px}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.input-dark{background:rgba(255,255,255,0.04);border:1px solid rgba(212,168,75,0.12);color:var(--text);padding:12px 16px;border-radius:8px;width:100%;font-size:15px;outline:none;transition:all .3s}
+.input-dark:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,75,0.08)}
+.input-dark::placeholder{color:rgba(255,255,255,0.15)}
+select.input-dark{appearance:none;background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B8378'><path d='M6 8L1 3h10z'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.text-gold{color:var(--gold)}.text-muted{color:var(--muted)}
+.section-title{font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--gold-dim);letter-spacing:1px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeUp .6s ease both}
+.delay-1{animation-delay:.1s}.delay-2{animation-delay:.2s}.delay-3{animation-delay:.3s}.delay-4{animation-delay:.4s}
