@@ -105,6 +105,7 @@ async function loadZiWeiChart() {
     const chartValues = data
     chartValues.mingZhu = data.mingZhu || data.life_master
     chartValues.shenZhu = data.shenZhu || data.body_master
+    chartValues.wuxingJu = data.wuxingJu || data.five_bureau || data.fiveBureau || ''
     chartData.value = chartValues  // backend returns ZiWeiChart directly
     birthInfo.value = chart  // chart from /charts/:id has birth info
 
