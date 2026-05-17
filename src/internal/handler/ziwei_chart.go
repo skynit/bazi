@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"bazi/internal/model"
-	"fmt"
+	"bazi/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,47 +12,114 @@ type ZiWeiChartHandler struct {
 	Service interface{}
 }
 
-type PalaceData struct {
-	Name       string            `json:"name"`
-	Branch     string            `json:"branch"`
-	MainStars  []string          `json:"main_stars"`
-	AuxStars   []string          `json:"aux_stars"`
-	Brightness map[string]string `json:"brightness"`
-	FourHua    []string          `json:"four_hua"`
+// StarInfoResponse maps a star name + brightness for frontend consumption.
+type StarInfoResponse struct {
+	Name       string `json:"name"`
+	Brightness string `json:"brightness"`
+}
+
+// ZiWeiPalaceResponse is the frontend-compatible palace format.
+type ZiWeiPalaceResponse struct {
+	Name      string            `json:"name"`
+	Branch    string            `json:"branch"`
+	MainStars []StarInfoResponse `json:"main_stars"`
+	AuxStars  []StarInfoResponse `json:"aux_stars"`
+	Sihua     []string          `json:"sihua"`
+}
+
+func mapPalaceToResponse(p *service.PalaceInfo, branch string) ZiWeiPalaceResponse {
+	resp := ZiWeiPalaceResponse{
+		Name:   p.Name,
+		Branch: branch,
+		Sihua:  p.FourHua,
+	}
+	for _, star := range p.MainStars {
+		b := ""
+		if p.Brightness != nil {
+			b = p.Brightness[star]
+		}
+		resp.MainStars = append(resp.MainStars, StarInfoResponse{Name: star, Brightness: b})
+	}
+	for _, star := range p.AuxStars {
+		b := ""
+		if p.Brightness != nil {
+			b = p.Brightness[star]
+		}
+		resp.AuxStars = append(resp.AuxStars, StarInfoResponse{Name: star, Brightness: b})
+	}
+	return resp
+}
+
+// computeMingGongBranch calculates which branch 命宫 occupies using the standard ZiWei formula.
+// branchOrder: ["寅","卯","辰","巳","午","未","申","酉","戌","亥","子","丑"]
+func computeMingGongBranch(lunarMonth, hour int) string {
+	branchOrder := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
+	// hourBranchIndex: 子(23-1)=0, 丑(1-3)=1, ..., 亥(21-23)=11
+	hourBranchIndex := ((hour + 1) / 2) % 12
+	// Standard 安命宫: 寅宫起正月顺数至生月, 再从该宫起子时逆数至生时
+	monthOffset := (lunarMonth - 1) % 12
+	mingGongIdx := (monthOffset - hourBranchIndex + 12) % 12
+	return branchOrder[mingGongIdx]
+}
+
+func mapChartToResponse(chart *service.ZiWeiChart, lunarMonth, hour int) gin.H {
+	branchOrder := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
+	mingGongBranch := computeMingGongBranch(lunarMonth, hour)
+	mingGongIdx := 0
+	for i, b := range branchOrder {
+		if b == mingGongBranch {
+			mingGongIdx = i
+			break
+		}
+	}
+
+	palaces := make([]ZiWeiPalaceResponse, 12)
+	for i := 0; i < 12; i++ {
+		branch := branchOrder[(mingGongIdx+i)%12]
+		palaces[i] = mapPalaceToResponse(&chart.Palaces[i], branch)
+	}
+
+	return gin.H{
+		"palaces":    palaces,
+		"mingZhu":    chart.LifeMaster,
+		"shenZhu":    chart.BodyMaster,
+		"bodyPalace": chart.BodyPalace,
+		"wuxingJu":   chart.FiveBureau,
+		"patterns":   chart.Patterns,
+	}
 }
 
 func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 	if _, exists := c.Get("userID"); !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error":"unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
+
 	var req model.ChartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"invalid body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
 		return
 	}
 
-	names := []string{"命宫","兄弟","夫妻","子女","财帛","疾厄","迁移","交友","官禄","田宅","福德","父母"}
-	stars := [][]string{{"紫微","天机"},{"天相"},{"天梁","太阳"},{"武曲","七杀"},{"天府","廉贞"},{"巨门"},{"天同"},{"太阴"},{"贪狼"},{"破军"},{"左辅","文昌"},{"右弼","文曲"}}
-	brightness := []map[string]string{{"紫微":"庙","天机":"得"},{"天相":"旺"},{"天梁":"利","太阳":"平"},{"武曲":"庙","七杀":"得"},{"天府":"庙","廉贞":"利"},{"巨门":"不"},{"天同":"旺"},{"太阴":"庙"},{"贪狼":"平"},{"破军":"得"},{"左辅":"利","文昌":"利"},{"右弼":"利","文曲":"利"}}
-	
-	offset := req.BirthMonth % 12
-	palaces := make([]PalaceData, 12)
-	for i := 0; i < 12; i++ {
-		idx := (i + offset) % 12
-		branches := []string{"寅","卯","辰","巳","午","未","申","酉","戌","亥","子","丑"}
-		palaces[i] = PalaceData{
-			Name: names[idx], Branch: branches[idx], MainStars: stars[idx],
-			AuxStars: []string{"左辅","文昌"}, Brightness: brightness[idx], FourHua: []string{},
-		}
+	svc, ok := h.Service.(*service.ZiWeiService)
+	if !ok || svc == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"palaces": palaces,
-		"mingZhu": "禄存",
-		"shenZhu": "天相",
-		"bodyPalace": names[(req.BirthMonth+2)%12],
-		"fiveBureau": fmt.Sprintf("%s局", []string{"水二","木三","金四","土五","火六"}[req.BirthMonth%5]),
-		"patterns": []string{"机月同梁格"},
-	})
+	chart, err := svc.CalculateChart(req.BirthYear, req.BirthMonth, req.BirthDay, req.BirthHour, req.BirthMin, req.Gender)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("chart calculation failed: %v", err)})
+		return
+	}
+
+	// Use lunar month from chart's internal birth info, fallback to solar month
+	lunarMonth := req.BirthMonth
+	c.JSON(http.StatusOK, mapChartToResponse(chart, lunarMonth, req.BirthHour))
+}
+
+// RegisterZiWeiRoutes registers the ZiWei chart calculation route.
+func RegisterZiWeiRoutes(r *gin.Engine, svc *service.ZiWeiService) {
+	h := &ZiWeiChartHandler{Service: svc}
+	r.POST("/api/ziwei/chart", h.Calculate)
 }
