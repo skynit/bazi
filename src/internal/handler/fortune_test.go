@@ -11,6 +11,8 @@ import (
 	"bazi/internal/model"
 	"bazi/internal/service"
 
+	"gorm.io/datatypes"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,7 +54,7 @@ func fortuneJSONBody(t *testing.T, v interface{}) *strings.Reader {
 func TestCalculateDailyValid(t *testing.T) {
 	chart := &model.BirthChart{}
 	chart.ID = 1
-	chart.DayPillar = json.RawMessage(`{"gan":"甲","zhi":"子"}`)
+	chart.DayPillar = datatypes.JSON(`{"gan":"甲","zhi":"子"}`)
 
 	store := &mockChartStore{chart: chart}
 	router := setupFortuneRouter(store)
@@ -93,7 +95,7 @@ func TestCalculateDailyValid(t *testing.T) {
 func TestCalculateDailyNoJWT(t *testing.T) {
 	chart := &model.BirthChart{}
 	chart.ID = 1
-	chart.DayPillar = json.RawMessage(`{"gan":"甲","zhi":"子"}`)
+	chart.DayPillar = datatypes.JSON(`{"gan":"甲","zhi":"子"}`)
 
 	store := &mockChartStore{chart: chart}
 	router := setupFortuneRouter(store)
