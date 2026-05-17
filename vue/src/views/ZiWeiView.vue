@@ -85,6 +85,11 @@ async function loadZiWeiChart() {
     // First fetch the chart to get birth info
     const chartResp = await client.get(`/charts/${chartId}`)
     const chart = chartResp.data.chart || chartResp.data
+    if (!chart || !chart.birth_year) {
+      error.value = '未找到命盘数据，请先生成八字命盘后再查看紫微斗数。'
+      loading.value = false
+      return
+    }
     // Then calculate ziwei from birth info
     const resp = await client.post('/ziwei/chart', {
       birth_year: chart.birth_year,
@@ -112,7 +117,11 @@ async function loadZiWeiChart() {
       await loadOverlay(availableYears.value[0])
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || err.message || '加载命盘失败'
+    if (err.response?.status === 404) {
+      error.value = '该命盘不存在或已被删除，请重新创建。'
+    } else {
+      error.value = err.response?.data?.message || err.message || '加载命盘失败'
+    }
   } finally {
     loading.value = false
   }
@@ -296,13 +305,19 @@ function onYearChange(year: number) {
 
       <!-- ZiWei Chart -->
       <div class="chart-section" v-if="chartData">
-        <ZiWeiChart
-          :palaces="chartData.palaces"
-          :ming-zhu="chartData.mingZhu"
-          :shen-zhu="chartData.shenZhu"
-          :wuxing-ju="chartData.wuxingJu"
-          :patterns="chartData.patterns"
-        />
+        <div v-if="chartData.palaces && chartData.palaces.length > 0">
+          <ZiWeiChart
+            :palaces="chartData.palaces"
+            :ming-zhu="chartData.mingZhu"
+            :shen-zhu="chartData.shenZhu"
+            :wuxing-ju="chartData.wuxingJu"
+            :patterns="chartData.patterns"
+          />
+        </div>
+        <div v-else class="empty-hint py-8">
+          <span class="text-3xl">📋</span>
+          <p>暂无命盘数据，请稍后重试</p>
+        </div>
       </div>
 
       <!-- Overlay section -->
@@ -503,7 +518,7 @@ function onYearChange(year: number) {
 @reference "tailwindcss";
 .ziwei-page {
   @apply min-h-screen;
-  background-color: var(--color-bazi-paper);
+  background-color: var(--bg);
 }
 
 .loading-state {
@@ -531,8 +546,8 @@ function onYearChange(year: number) {
 /* Birth info bar */
 .birth-bar {
   @apply flex items-center justify-between flex-wrap gap-3 mb-6 p-4 rounded-lg;
-  background-color: #fff;
-  border: 1px solid rgba(43, 58, 66, 0.15);
+  background-color: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,75,0.08);
 }
 
 .birth-info-items {
@@ -573,13 +588,13 @@ function onYearChange(year: number) {
 /* Tabs */
 .tabs-section {
   @apply rounded-lg overflow-hidden;
-  background-color: #fff;
-  border: 1px solid rgba(43, 58, 66, 0.15);
+  background-color: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,168,75,0.08);
 }
 
 .tab-bar {
   @apply flex overflow-x-auto;
-  border-bottom: 2px solid var(--color-bazi-paper);
+  border-bottom: 2px solid rgba(255,255,255,0.06);
 }
 
 .tab-btn {
@@ -640,6 +655,7 @@ function onYearChange(year: number) {
   @apply rounded-md border p-3;
   background-color: var(--color-bazi-paper);
   border-color: rgba(43, 58, 66, 0.1);
+  background: rgba(255,255,255,0.03);
 }
 
 .period-header {
