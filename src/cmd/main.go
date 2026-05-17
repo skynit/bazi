@@ -54,7 +54,7 @@ func main() {
 	baziSvc := &service.BaziService{}
 	parser := &service.InputParser{}
 	engine := service.NewFortuneEngine()
-	ziweiSvc := &service.ZiWeiService{}
+	ziweiSvc := service.NewZiWeiService()
 
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {
