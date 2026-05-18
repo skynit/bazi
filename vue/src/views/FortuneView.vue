@@ -49,11 +49,18 @@ function todayStr(): string {
 }
 
 async function fetchFortune() {
-  const chartId = route.query.chart_id
+  let chartId = route.query.chart_id
   if (!chartId) {
-    error.value = '请提供 chart_id 参数'
-    loading.value = false
-    return
+    // Try to use saved chart from localStorage
+    const saved = localStorage.getItem('bazi_last_birth')
+    if (saved) {
+      try { chartId = JSON.parse(saved).chartId } catch {}
+    }
+    if (!chartId) {
+      error.value = '请先创建命盘'
+      loading.value = false
+      return
+    }
   }
 
   try {
@@ -77,14 +84,10 @@ onMounted(() => {
 <template>
   <div class="fortune-page">
     <!-- Loading -->
-    <div v-if="loading" class="state-box">
-      <el-skeleton animated>
-        <template #template>
-          <el-skeleton-item variant="rect" style="width: 100%; height: 100px; margin-bottom: 12px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 100px; margin-bottom: 12px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 100px; border-radius: 12px;" />
-        </template>
-      </el-skeleton>
+    <div v-if="loading" class="p-8 space-y-4">
+      <div class="skeleton h-6 w-64"></div>
+      <div class="skeleton h-48 rounded-xl"></div>
+      <div class="skeleton h-32 rounded-xl"></div>
     </div>
 
     <!-- Error -->
@@ -119,17 +122,17 @@ onMounted(() => {
 
       <!-- Analysis text -->
       <div v-if="fortune.analysis" class="mt-4 glass-card rounded-lg shadow p-6">
-        <h3 class="text-lg font-bold text-bazi-blue mb-4">运势详解</h3>
-        <p class="text-sm text-bazi-ink/80 leading-relaxed mb-4">{{ fortune.analysis.overall?.summary }}</p>
-        <p class="text-sm text-bazi-red font-medium">{{ fortune.analysis.overall?.key_tip }}</p>
+        <h3 class="text-lg font-bold text-white mb-4">运势详解</h3>
+        <p class="text-sm text-white/80 leading-relaxed mb-4">{{ fortune.analysis.overall?.summary }}</p>
+        <p class="text-sm text-white font-medium">{{ fortune.analysis.overall?.key_tip }}</p>
         <div class="grid grid-cols-5 gap-3 mt-4">
           <div v-for="c in fortune.analysis.categories" :key="c.name" class="text-center p-2  rounded">
-            <div class="text-xs text-bazi-blue/60">{{ c.name }}</div>
-            <div class="text-sm font-bold mt-1">{{ c.stars }}</div>
+            <div class="text-xs text-white/60">{{ c.name }}</div>
+            <div class="text-sm font-bold mt-1 text-white">{{ c.stars }}</div>
           </div>
         </div>
-        <h4 class="text-sm font-bold text-bazi-blue mt-6 mb-2">开运指南</h4>
-        <div class="text-xs text-bazi-ink/70 space-y-1">
+        <h4 class="text-sm font-bold text-white mt-6 mb-2">开运指南</h4>
+        <div class="text-xs text-white/70 space-y-1">
           <p>幸运色：{{ fortune.analysis.lucky_guide?.colors }}</p>
           <p>幸运数字：{{ fortune.analysis.lucky_guide?.numbers }}</p>
           <p>开运动作：{{ fortune.analysis.lucky_guide?.actions }}</p>
@@ -155,7 +158,7 @@ onMounted(() => {
 <style scoped>
 .fortune-page {
   min-height: 100vh;
-  background: #FAF8F3;
+  background: var(--bg);
 }
 
 .state-box {
@@ -165,6 +168,7 @@ onMounted(() => {
   justify-content: center;
   min-height: 60vh;
   gap: 1rem;
+  color: var(--text);
 }
 
 .state-box.error {
@@ -173,18 +177,19 @@ onMounted(() => {
 
 .state-text {
   font-size: 1rem;
-  color: var(--color-bazi-ink);
+  color: var(--text);
   margin: 0;
 }
 
 .back-link {
-  color: var(--color-bazi-red);
+  color: var(--gold);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
 .back-link:hover {
-  text-decoration: underline;
+  color: var(--gold);
+  opacity: 0.8;
 }
 </style>

@@ -95,16 +95,9 @@ onMounted(() => {
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="state-box">
-      <el-skeleton animated>
-        <template #template>
-          <el-skeleton-item variant="rect" style="width: 100%; height: 72px; margin-bottom: 10px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 72px; margin-bottom: 10px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 72px; margin-bottom: 10px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 72px; margin-bottom: 10px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 72px; border-radius: 12px;" />
-        </template>
-      </el-skeleton>
+    <div v-if="loading" class="p-8">
+      <div class="skeleton h-6 w-32 mb-4"></div>
+      <div class="skeleton h-20 rounded-xl mb-3" v-for="i in 3" :key="i"></div>
     </div>
 
     <!-- Error -->
@@ -164,14 +157,12 @@ onMounted(() => {
     </div>
 
     <!-- Empty -->
-    <div v-if="!loading && !error && charts.length === 0" class="state-box">
-      <el-empty description="暂无历史记录">
-        <template #default>
-          <router-link to="/chart/new">
-            <el-button type="primary">去排盘</el-button>
-          </router-link>
-        </template>
-      </el-empty>
+    <div v-if="!loading && !error && charts.length === 0" class="text-center py-20 text-muted">
+      <div class="text-4xl mb-4">📋</div>
+      <p class="mb-4">暂无历史记录</p>
+      <router-link to="/chart/new">
+        <el-button type="primary">去排盘</el-button>
+      </router-link>
     </div>
   </div>
 </template>

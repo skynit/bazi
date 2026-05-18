@@ -67,17 +67,11 @@ function goZiWei() { router.push(`/ziwei/${chartData.value.id}`) }
 
     <main class="max-w-3xl mx-auto px-4 py-8">
       <!-- Loading state -->
-      <div v-if="loading" class="text-center py-20 px-4">
-        <el-skeleton animated>
-          <template #template>
-            <div style="display: flex; gap: 12px;">
-              <el-skeleton-item variant="rect" style="flex: 1; height: 240px; border-radius: 12px;" />
-              <el-skeleton-item variant="rect" style="flex: 1; height: 240px; border-radius: 12px;" />
-              <el-skeleton-item variant="rect" style="flex: 1; height: 240px; border-radius: 12px;" />
-              <el-skeleton-item variant="rect" style="flex: 1; height: 240px; border-radius: 12px;" />
-            </div>
-          </template>
-        </el-skeleton>
+      <div v-if="loading" class="p-8">
+        <div class="skeleton h-8 w-48 mb-4"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="skeleton h-32 rounded-xl" v-for="i in 4" :key="i"></div>
+        </div>
       </div>
 
       <!-- Error state -->

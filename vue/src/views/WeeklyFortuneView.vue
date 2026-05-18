@@ -87,16 +87,11 @@ onMounted(() => {
 
 <template>
   <div class="weekly-page">
-    <!-- Loading / Error -->
-    <div v-if="loading" class="state-box">
-      <el-skeleton animated>
-        <template #template>
-          <el-skeleton-item variant="rect" style="width: 100%; height: 220px; margin-bottom: 16px; border-radius: 12px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 60px; margin-bottom: 8px; border-radius: 8px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 60px; margin-bottom: 8px; border-radius: 8px;" />
-          <el-skeleton-item variant="rect" style="width: 100%; height: 60px; border-radius: 8px;" />
-        </template>
-      </el-skeleton>
+    <!-- Loading -->
+    <div v-if="loading" class="p-8 space-y-4">
+      <div class="skeleton h-8 w-48 mx-auto mb-2"></div>
+      <div class="skeleton h-56 rounded-xl"></div>
+      <div class="skeleton h-14 rounded-lg" v-for="i in 4" :key="i"></div>
     </div>
     <div v-else-if="error" class="state-box">
       <el-result icon="error" title="加载失败" sub-title="请检查网络连接后重试">
