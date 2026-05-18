@@ -18,8 +18,10 @@ func setupZiWeiRouter() *gin.Engine {
 	middleware.InitJWT("test-secret")
 
 	r := gin.New()
+	api := r.Group("/api")
+	api.Use(middleware.AuthMiddleware())
 	svc := service.NewZiWeiService()
-	RegisterZiWeiRoutes(r, svc)
+	RegisterZiWeiRoutes(api, svc)
 	return r
 }
 
