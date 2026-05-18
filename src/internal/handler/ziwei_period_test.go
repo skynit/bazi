@@ -25,8 +25,10 @@ func setupZiWeiPeriodRouter(store ChartStore) *gin.Engine {
 	middleware.InitJWT("test-secret")
 
 	r := gin.New()
+	api := r.Group("/api")
+	api.Use(middleware.AuthMiddleware())
 	svc := service.NewZiWeiService()
-	RegisterZiWeiPeriodRoutes(r, svc, store)
+	RegisterZiWeiPeriodRoutes(api, svc, store)
 	return r
 }
 
