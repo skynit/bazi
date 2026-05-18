@@ -130,8 +130,8 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 }
 
 // RegisterZiWeiPeriodRoutes registers ZiWei period and overlay routes.
-func RegisterZiWeiPeriodRoutes(r *gin.Engine, svc *service.ZiWeiService, store ChartStore) {
+func RegisterZiWeiPeriodRoutes(r gin.IRouter, svc *service.ZiWeiService, store ChartStore) {
 	h := &ZiWeiPeriodHandler{Service: svc, Charts: store}
-	r.POST("/api/ziwei/period", h.Period)
-	r.POST("/api/ziwei/overlay", h.Overlay)
+	r.POST("/ziwei/period", h.Period)
+	r.POST("/ziwei/overlay", h.Overlay)
 }
