@@ -64,10 +64,13 @@ func TestZiWeiPeriodDayun(t *testing.T) {
 		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var dayun service.Dayun
-	if err := json.Unmarshal(w.Body.Bytes(), &dayun); err != nil {
+	var resp struct {
+		Periods service.Dayun `json:"periods"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
+	dayun := resp.Periods
 
 	if len(dayun) == 0 {
 		t.Fatal("expected non-empty dayun stages")
@@ -115,13 +118,15 @@ func TestZiWeiPeriodLiunian(t *testing.T) {
 		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var result service.ZiWeiChart
-	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+	var resp struct {
+		Periods []interface{} `json:"periods"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
 
-	if len(result.Palaces) != 12 {
-		t.Errorf("expected 12 palaces, got %d", len(result.Palaces))
+	if len(resp.Periods) == 0 {
+		t.Error("expected non-empty periods for liunian")
 	}
 }
 
