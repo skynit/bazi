@@ -58,27 +58,32 @@ func TestZiWeiChart_Success(t *testing.T) {
 		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var chart service.ZiWeiChart
-	if err := json.Unmarshal(w.Body.Bytes(), &chart); err != nil {
+	var resp struct {
+		Palaces []struct {
+			Name string `json:"name"`
+		} `json:"palaces"`
+		WuxingJu string `json:"wuxingJu"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to unmarshal response: %v", err)
 	}
 
-	if len(chart.Palaces) != 12 {
-		t.Errorf("expected 12 palaces, got %d", len(chart.Palaces))
+	if len(resp.Palaces) != 12 {
+		t.Errorf("expected 12 palaces, got %d", len(resp.Palaces))
 	}
 
-	for i, p := range chart.Palaces {
+	for i, p := range resp.Palaces {
 		if p.Name == "" {
 			t.Errorf("palace %d has empty name", i)
 		}
 	}
 
-	if chart.Palaces[0].Name != "命宮" {
-		t.Errorf("expected first palace to be 命宮, got %s", chart.Palaces[0].Name)
+	if len(resp.Palaces) > 0 && resp.Palaces[0].Name != "命宮" {
+		t.Errorf("expected first palace to be 命宮, got %s", resp.Palaces[0].Name)
 	}
 
-	if chart.FiveBureau == "" {
-		t.Error("FiveBureau is empty")
+	if resp.WuxingJu == "" {
+		t.Error("WuxingJu is empty")
 	}
 }
 
