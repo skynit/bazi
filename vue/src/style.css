@@ -1,8 +1,15 @@
 @import "tailwindcss";
+@theme {
+  --color-bazi-paper: #FAF8F3;
+  --color-bazi-blue: #2B3A42;
+  --color-bazi-red: #C41E3A;
+  --color-bazi-ink: #2B3A42;
+}
 :root {
   --bg: #0A0815; --glass: rgba(255,255,255,0.03);
   --gold: #D4A84B; --gold-dim: rgba(212,168,75,0.15);
   --crimson: #C41E3A; --text: #F0EDE4; --muted: #8B8378;
+  --grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   --color-bazi-paper: #FAF8F3;
   --color-bazi-blue: #2B3A42;
   --color-bazi-red: var(--crimson);
@@ -27,3 +34,29 @@ select.input-dark{appearance:none;background-image:url("data:image/svg+xml,<svg 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .animate-in{animation:fadeUp .6s ease both}
 .delay-1{animation-delay:.1s}.delay-2{animation-delay:.2s}.delay-3{animation-delay:.3s}.delay-4{animation-delay:.4s}
+@keyframes skeleton-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.8s ease-in-out infinite;border-radius:8px}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float { animation: float 4s ease-in-out infinite; }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: var(--grain);
+}

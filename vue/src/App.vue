@@ -13,16 +13,16 @@ const authStore = useAuthStore()
           <span class="text-xl font-bold tracking-widest" style="color:#F0EDE4">八字命理</span>
         </router-link>
         <nav class="flex items-center gap-5 text-sm" style="color:#8B8378">
-          <router-link to="/" class="hover:text-gold transition-colors" style="color:#8B8378">首页</router-link>
+          <router-link to="/" class="nav-link hover:text-gold transition-colors" style="color:#8B8378">首页</router-link>
           <template v-if="authStore.isLoggedIn()">
-            <router-link to="/history" class="hover:text-gold transition-colors" style="color:#8B8378">历史</router-link>
-            <router-link to="/fortune" class="hover:text-gold transition-colors" style="color:#8B8378">运势</router-link>
+            <router-link to="/history" class="nav-link hover:text-gold transition-colors" style="color:#8B8378">历史</router-link>
+            <router-link to="/fortune" class="nav-link hover:text-gold transition-colors" style="color:#8B8378">运势</router-link>
             <span style="color:rgba(255,255,255,0.08)">|</span>
             <span class="text-xs" style="color:rgba(255,255,255,0.25)">{{ authStore.user?.username }}</span>
             <button @click="authStore.logout();router.push('/')" class="hover:text-gold transition-colors cursor-pointer" style="color:#8B8378;background:none;border:none">退出</button>
           </template>
           <template v-else>
-            <router-link to="/login" class="hover:text-gold transition-colors" style="color:#8B8378">登录</router-link>
+            <router-link to="/login" class="nav-link hover:text-gold transition-colors" style="color:#8B8378">登录</router-link>
             <router-link to="/register" class="btn-gold text-sm px-4 py-1.5">注册</router-link>
           </template>
         </nav>
@@ -31,3 +31,28 @@ const authStore = useAuthStore()
     <main><router-view /></main>
   </div>
 </template>
+<style scoped>
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--gold, #D4A84B);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+@keyframes headerGlow {
+  0%, 100% { border-bottom-color: rgba(212, 168, 75, 0.1); }
+  50% { border-bottom-color: rgba(212, 168, 75, 0.25); }
+}
+header {
+  animation: headerGlow 3s ease-in-out infinite;
+}
+</style>
