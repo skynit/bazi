@@ -89,8 +89,8 @@ func main() {
 		api.GET("/charts", hh.ListCharts)
 		api.GET("/charts/:id", hh.GetChart)
 		api.GET("/fortune/history", hh.FortuneHistoryList)
-		handler.RegisterZiWeiRoutes(r, ziweiSvc)
-		handler.RegisterZiWeiPeriodRoutes(r, ziweiSvc, cs)
+		handler.RegisterZiWeiRoutes(api, ziweiSvc)
+		handler.RegisterZiWeiPeriodRoutes(api, ziweiSvc, cs)
 	}
 
 	log.Println("Server starting on :8080")

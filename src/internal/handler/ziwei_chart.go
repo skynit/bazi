@@ -119,7 +119,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 }
 
 // RegisterZiWeiRoutes registers the ZiWei chart calculation route.
-func RegisterZiWeiRoutes(r *gin.Engine, svc *service.ZiWeiService) {
+func RegisterZiWeiRoutes(r gin.IRouter, svc *service.ZiWeiService) {
 	h := &ZiWeiChartHandler{Service: svc}
-	r.POST("/api/ziwei/chart", h.Calculate)
+	r.POST("/ziwei/chart", h.Calculate)
 }
