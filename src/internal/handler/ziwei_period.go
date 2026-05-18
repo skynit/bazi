@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
 	"bazi/internal/model"
 	"bazi/internal/service"
+
 	"github.com/gin-gonic/gin"
 )
 
-type ChartStore interface {
-	FindByID(id uint) (*model.BirthChart, error)
-}
-
+// ZiWeiPeriodHandler handles period (dayun/liunian/liuyue/liuri) and overlay calculations.
 type ZiWeiPeriodHandler struct {
 	Charts  ChartStore
 	Service interface{}
 }
 
+// getChart looks up the birth chart and calculates the ZiWeiChart.
 func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*service.ZiWeiChart, *model.BirthChart, error) {
 	svc, ok := h.Service.(*service.ZiWeiService)
 	if !ok || svc == nil {
@@ -37,6 +37,7 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*service.ZiWeiChart, *model
 	return chart, birthChart, nil
 }
 
+// Period handles dayun, liunian, liuyue, liuri, and sihua_feixing period calculations.
 func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 	var req struct {
 		ChartID    uint   `json:"chart_id"`
@@ -49,16 +50,20 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
 		return
 	}
+
 	chart, birthChart, err := h.getChart(req.ChartID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
 	svc, _ := h.Service.(*service.ZiWeiService)
+
 	switch req.PeriodType {
 	case "dayun":
 		dayun := svc.CalculateDayun(chart)
 		c.JSON(http.StatusOK, gin.H{"periods": dayun})
+
 	case "liunian":
 		year := req.Year
 		if year == 0 {
@@ -66,6 +71,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		}
 		liunian := svc.CalculateLiunian(chart, year)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{mapChartToResponse(liunian, birthChart.BirthMonth, birthChart.BirthHour)}})
+
 	case "liuyue":
 		month := req.Month
 		if month == 0 {
@@ -73,6 +79,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		}
 		liuyue := svc.CalculateLiuyue(chart, month)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{mapChartToResponse(liuyue, birthChart.BirthMonth, birthChart.BirthHour)}})
+
 	case "liuri":
 		day := req.Day
 		if day == 0 {
@@ -80,14 +87,17 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		}
 		liuri := svc.CalculateLiuri(chart, day)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{mapChartToResponse(liuri, birthChart.BirthMonth, birthChart.BirthHour)}})
+
 	case "sihua_feixing":
 		flying := svc.AnalyzeFlyingStars(chart)
 		c.JSON(http.StatusOK, gin.H{"periods": flying})
+
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown period_type"})
 	}
 }
 
+// Overlay handles the liunian overlay calculation.
 func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 	var req struct {
 		ChartID uint `json:"chart_id"`
@@ -97,16 +107,19 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
 		return
 	}
+
 	chart, birthChart, err := h.getChart(req.ChartID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
 	svc, _ := h.Service.(*service.ZiWeiService)
 	liunian := svc.CalculateLiunian(chart, req.Year)
 	c.JSON(http.StatusOK, mapChartToResponse(liunian, birthChart.BirthMonth, birthChart.BirthHour))
 }
 
+// RegisterZiWeiPeriodRoutes registers ZiWei period and overlay routes.
 func RegisterZiWeiPeriodRoutes(r *gin.Engine, svc *service.ZiWeiService, store ChartStore) {
 	h := &ZiWeiPeriodHandler{Service: svc, Charts: store}
 	r.POST("/api/ziwei/period", h.Period)
