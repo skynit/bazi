@@ -39,6 +39,11 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*service.ZiWeiChart, *model
 
 // Period handles dayun, liunian, liuyue, liuri, and sihua_feixing period calculations.
 func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
+	if _, exists := c.Get("userID"); !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var req struct {
 		ChartID    uint   `json:"chart_id"`
 		PeriodType string `json:"period_type"`
@@ -99,6 +104,11 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 
 // Overlay handles the liunian overlay calculation.
 func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
+	if _, exists := c.Get("userID"); !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var req struct {
 		ChartID uint `json:"chart_id"`
 		Year    int  `json:"year"`
