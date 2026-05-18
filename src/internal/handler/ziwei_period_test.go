@@ -14,6 +14,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type periodRequest struct {
+	ChartID    uint   `json:"chart_id"`
+	PeriodType string `json:"period_type"`
+	Year       int    `json:"year"`
+}
+
 func setupZiWeiPeriodRouter(store ChartStore) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	middleware.InitJWT("test-secret")
