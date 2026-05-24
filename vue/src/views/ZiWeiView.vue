@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
-import ZiWeiChart from '../components/ZiWeiChart.vue'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
 
@@ -35,6 +34,7 @@ interface ZiWeiChartData {
   shenZhu: string
   wuxingJu: string
   patterns: string[]
+  bodyPalace?: string
 }
 
 interface SectionData {
@@ -69,11 +69,18 @@ const selectedPalace = ref<PalaceReading | null>(null)
 const dayunData = ref<any[]>([])
 const liunianData = ref<any[]>([])
 const liuyueData = ref<any[]>([])
-const liuriData = ref<any[]>([])
-const sihuaData = ref<any[]>([])
+const liuriData = ref<any>({})
+const sihuaData = ref<any>({})
+const sihuaChainData = ref<any>({})
+
+// Interpretation data (loaded per year, not cached across year changes)
+const liunianInterp = ref<Record<string, any>>({})
+const liuyueInterp = ref<Record<string, any>>({})
+const liuriInterp = ref<Record<string, any>>({})
 
 const liunianOverlay = ref<LiunianChartData>()
 const availableYears = ref<number[]>([])
+const selectedLiunianYear = ref<number>(new Date().getFullYear())
 const loadingTab = ref(false)
 
 // Load chart data
@@ -113,10 +120,8 @@ async function loadZiWeiChart() {
     const currentYear = new Date().getFullYear()
     availableYears.value = Array.from({length: 11}, (_, i) => currentYear - 5 + i)
 
-    // Load initial liunian overlay
-    if (availableYears.value.length > 0) {
-      await loadOverlay(availableYears.value[0])
-    }
+    // Load initial liunian overlay for the middle year (current year)
+    await loadOverlay(availableYears.value[5])
   } catch (err: any) {
     if (err.response?.status === 404) {
       error.value = '该命盘不存在或已被删除，请重新创建。'
@@ -139,7 +144,8 @@ async function loadOverlay(year: number) {
       chart_id: Number(chartId),
       year,
     })
-    liunianOverlay.value = resp.data
+    // Always update with fresh data keyed by year for caching
+    liunianOverlay.value = { ...resp.data, year }
   } catch {
     // Overlay data optional, don't block
   }
@@ -163,39 +169,86 @@ async function switchTab(tab: string) {
         }
         break
       case 'liunian':
-        if (!liunianData.value.length) {
+        {
+          const year = selectedLiunianYear.value
           const resp = await client.post('/ziwei/period', {
             chart_id: Number(chartId),
             period_type: 'liunian',
+            year,
           })
           liunianData.value = resp.data.periods || []
+          // Also fetch interpretation
+          const interpResp = await client.post('/ziwei/period', {
+            chart_id: Number(chartId),
+            period_type: 'liunian_interpretation',
+            year,
+          })
+          liunianInterp.value[year] = interpResp.data.periods?.[0] || null
         }
         break
       case 'liuyue':
-        if (!liuyueData.value.length) {
-          const resp = await client.post('/ziwei/period', {
-            chart_id: Number(chartId),
-            period_type: 'liuyue',
-          })
-          liuyueData.value = resp.data.periods || []
+        {
+          const year = selectedLiunianYear.value
+          const month = new Date().getMonth() + 1
+          const key = `${year}-${month}`
+          if (!liuyueInterp.value[key]) {
+            const resp = await client.post('/ziwei/period', {
+              chart_id: Number(chartId),
+              period_type: 'liuyue',
+              year,
+              month,
+            })
+            liuyueData.value = resp.data.periods || []
+            const interpResp = await client.post('/ziwei/period', {
+              chart_id: Number(chartId),
+              period_type: 'liuyue_interpretation',
+              year,
+              month,
+            })
+            liuyueInterp.value[key] = interpResp.data.periods?.[0] || null
+          }
         }
         break
       case 'liuri':
-        if (!liuriData.value.length) {
-          const resp = await client.post('/ziwei/period', {
-            chart_id: Number(chartId),
-            period_type: 'liuri',
-          })
-          liuriData.value = resp.data.periods || []
+        {
+          const year = selectedLiunianYear.value
+          const month = new Date().getMonth() + 1
+          const day = new Date().getDate()
+          const key = `${year}-${month}-${day}`
+          if (!liuriInterp.value[key]) {
+            const resp = await client.post('/ziwei/period', {
+              chart_id: Number(chartId),
+              period_type: 'liuri',
+              year,
+              month,
+              day,
+            })
+            liuriData.value = resp.data.periods || []
+            const interpResp = await client.post('/ziwei/period', {
+              chart_id: Number(chartId),
+              period_type: 'liuri_interpretation',
+              year,
+              month,
+              day,
+            })
+            liuriInterp.value[key] = interpResp.data.periods?.[0] || null
+          }
         }
         break
       case 'sihua':
-        if (!sihuaData.value.length) {
+        if (!Object.keys(sihuaData.value).length) {
           const resp = await client.post('/ziwei/period', {
             chart_id: Number(chartId),
             period_type: 'sihua_feixing',
           })
-          sihuaData.value = resp.data.periods || []
+          sihuaData.value = resp.data.periods || {}
+        }
+        if (!Object.keys(sihuaChainData.value).length) {
+          const chainResp = await client.post('/ziwei/period', {
+            chart_id: Number(chartId),
+            period_type: 'sihua_chain',
+          })
+          sihuaChainData.value = chainResp.data.chain || {}
         }
         break
     }
@@ -206,49 +259,81 @@ async function switchTab(tab: string) {
   }
 }
 
-function onPalaceClick(palace: PalaceData) {
-  // Build a mock PalaceReading from the palace data
-  selectedPalace.value = {
-    palaceName: palace.name,
-    mainStarAnalysis: {
-      title: '主星特性',
-      content: palace.mainStars.length
-        ? `${palace.name}主星：${palace.mainStars.map((s) => s.name + '(' + s.brightness + ')').join('、')}。主星坐守影响该宫位的基本特质。`
-        : `${palace.name}无主星，借对宫安星论之。`,
-      tags: palace.mainStars.map((s) => s.name),
-    },
-    auxStarInfluence: {
-      title: '辅星影响',
-      content: palace.auxStars.length
-        ? `辅星增强或削弱主星力量，影响宫位细节表现。`
-        : '此宫无辅星影响。',
-      tags: palace.auxStars.map((s) => s.name),
-    },
-    sihuaInfluence: {
-      title: '四化影响',
-      content: palace.sihua.length
-        ? `四化飞入${palace.name}，带来化禄/化权/化科/化忌的特定影响。`
-        : '此宫无四化飞入。',
-      tags: palace.sihua,
-    },
-    sanFangSiZheng: {
-      title: '三方四正',
-      content: '三方四正宫位相互对照，形成完整的影响力网络。',
-      tags: [],
-    },
-    patternAnnotations: {
-      title: '格局标注',
-      content: chartData.value?.patterns?.length
-        ? `此命盘含：${chartData.value.patterns.join('、')}`
-        : '未检测到特殊格局。',
-      tags: chartData.value?.patterns || [],
-    },
+async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
+  if (!route.params.chartId) return
+  try {
+    const resp = await client.post('/ziwei/period', {
+      chart_id: Number(route.params.chartId),
+      period_type: 'palace_reading',
+      palace_idx: palaceIdx,
+    })
+    const reading = resp.data.reading
+    selectedPalace.value = {
+      palaceName: palace.name,
+      mainStarAnalysis: {
+        title: '主星特性',
+        content: reading.main_star_analysis || '',
+        tags: palace.mainStars.map((s) => s.name),
+      },
+      auxStarInfluence: {
+        title: '辅星影响',
+        content: reading.aux_star_influence || '',
+        tags: palace.auxStars.map((s) => s.name),
+      },
+      sihuaInfluence: {
+        title: '四化影响',
+        content: reading.sihua_influence || '',
+        tags: palace.sihua || [],
+      },
+      sanFangSiZheng: {
+        title: '三方四正',
+        content: reading.sanfang_analysis || '',
+        tags: [],
+      },
+      patternAnnotations: {
+        title: '格局标注',
+        content: reading.pattern_notes || '',
+        tags: chartData.value?.patterns || [],
+      },
+    }
+  } catch (e) {
+    console.error('Failed to load palace reading:', e)
   }
 }
 
 function onYearChange(year: number) {
   loadOverlay(year)
 }
+
+const currentAge = computed(() => {
+  if (!birthInfo.value) return 0
+  const parts = birthInfo.value.solarDate.split('-')
+  return new Date().getFullYear() - Number(parts[0])
+})
+
+function getPalacesFromPeriod(p: any) { return p?.palaces || [] }
+
+const sihuaFlyGroups = computed(() => {
+  const data = sihuaData.value as any
+  if (!data || !data.hua_lu) return []
+  return [
+    { type: '化禄', css: 'sihua-lu', items: data.hua_lu || [] },
+    { type: '化权', css: 'sihua-quan', items: data.hua_quan || [] },
+    { type: '化科', css: 'sihua-ke', items: data.hua_ke || [] },
+    { type: '化忌', css: 'sihua-ji', items: data.hua_ji || [] },
+  ]
+})
+
+const sihuaChainGroups = computed(() => {
+  const chain = sihuaChainData.value as any
+  if (!chain || !chain.hua_lu) return []
+  return [
+    { type: '化禄', css: 'sihua-lu', items: chain.hua_lu || [] },
+    { type: '化权', css: 'sihua-quan', items: chain.hua_quan || [] },
+    { type: '化科', css: 'sihua-ke', items: chain.hua_ke || [] },
+    { type: '化忌', css: 'sihua-ji', items: chain.hua_ji || [] },
+  ]
+})
 </script>
 
 <template>
@@ -304,24 +389,7 @@ function onYearChange(year: number) {
         </router-link>
       </div>
 
-      <!-- ZiWei Chart -->
-      <div class="chart-section" v-if="chartData">
-        <div v-if="chartData.palaces && chartData.palaces.length > 0">
-          <ZiWeiChart
-            :palaces="chartData.palaces"
-            :ming-zhu="chartData.mingZhu"
-            :shen-zhu="chartData.shenZhu"
-            :wuxing-ju="chartData.wuxingJu"
-            :patterns="chartData.patterns"
-          />
-        </div>
-        <div v-else class="empty-hint py-8">
-          <span class="text-3xl">📋</span>
-          <p>暂无命盘数据，请稍后重试</p>
-        </div>
-      </div>
-
-      <!-- Overlay section -->
+      <!-- Overlay section (本命盘/流年叠盘 toggle) -->
       <div class="overlay-section" v-if="chartData && liunianOverlay">
         <ZiWeiOverlay
           :base-chart="{
@@ -359,156 +427,203 @@ function onYearChange(year: number) {
 
         <!-- Tab content -->
         <div class="tab-content">
-          <!-- 命盘详解: click a palace to see interpretation -->
+          <!-- 命盘详解 -->
           <div v-if="activeTab === 'mingpan'" class="mingpan-tab">
-            <p class="tab-hint">点击上方命盘中的宫位查看详解</p>
+            <p class="tab-desc">选择一个宫位查看主星、辅星、四化详细解读</p>
 
-            <!-- Palace click simulation via data display -->
-            <div class="palace-quick-list">
+            <div class="palace-quick-grid">
               <button
-                v-for="palace in chartData?.palaces || []"
+                v-for="(palace, idx) in (chartData?.palaces || [])"
                 :key="palace.branch"
-                class="palace-quick-btn"
-                @click="onPalaceClick(palace)"
+                class="palace-pill"
+                :class="{
+                  active: selectedPalace?.palaceName === palace.name,
+                  'body-palace': chartData && palace.name === chartData.bodyPalace
+                }"
+                @click="onPalaceClick(palace, idx)"
               >
-                {{ palace.name }}
+                <span class="palace-pill-name">{{ palace.name }}</span>
+                <span class="palace-pill-branch">{{ palace.branch }}</span>
+                <span v-if="chartData && palace.name === chartData.bodyPalace" class="body-badge">身</span>
               </button>
             </div>
 
-            <!-- Interpretation card -->
-            <ZiWeiInterpretation
-              v-if="selectedPalace"
-              :palace-reading="selectedPalace"
-            />
-            <div v-else class="empty-hint">
-              <span class="text-3xl">👆</span>
-              <p>请选择一个宫位查看详细解读</p>
+            <ZiWeiInterpretation v-if="selectedPalace" :palace-reading="selectedPalace" />
+            <div v-else class="empty-state-inline">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="16" stroke="#D4A84B" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.3"/>
+                <circle cx="20" cy="20" r="3" fill="#D4A84B" opacity="0.2"/>
+              </svg>
+              <p>选择一个宫位查看详细解读</p>
             </div>
           </div>
 
           <!-- 大限分析 -->
           <div v-else-if="activeTab === 'dayun'" class="data-tab">
-            <div v-if="loadingTab" class="tab-loading">加载中...</div>
-            <div v-else-if="!dayunData.length" class="empty-hint">
-              <p>暂无可显示的大限数据</p>
-            </div>
-            <div v-else class="period-list">
-              <div
-                v-for="(item, idx) in dayunData"
-                :key="idx"
-                class="period-card"
-              >
-                <div class="period-header">
-                  <span class="period-age">{{ item.start_age }}–{{ item.start_age + 9 }}岁</span>
-                  <span class="period-palace">{{ item.palace_name }}</span>
+            <p class="tab-desc">人生各阶段十年大限，展示每阶段主要星曜和宫位变化</p>
+            <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="!dayunData.length" class="empty-state-inline"><p>暂无可显示的大限数据</p></div>
+            <div v-else class="dayun-timeline">
+              <div v-for="(item, idx) in dayunData" :key="idx" class="dayun-card" :class="{ 'is-current': item.start_age <= currentAge && item.end_age >= currentAge }">
+                <div class="dayun-age-badge">
+                  <span class="age-primary">{{ item.start_age }}–{{ item.end_age }}</span>
+                  <span class="age-unit">岁</span>
                 </div>
-                <p class="period-desc">{{ item.description || item.palace_name + '大限' }}</p>
+                <div class="dayun-body">
+                  <div class="dayun-palace">{{ item.palace_name || item.palace }}</div>
+                  <p class="dayun-desc">{{ item.description }}</p>
+                  <div v-if="item.stars?.length" class="dayun-stars"><span v-for="s in item.stars" :key="s" class="star-chip">{{ s }}</span></div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- 流年分析 -->
           <div v-else-if="activeTab === 'liunian'" class="data-tab">
-            <div v-if="loadingTab" class="tab-loading">加载中...</div>
-            <div v-else-if="!liunianData.length" class="empty-hint">
-              <p>暂无可显示的流年数据</p>
-            </div>
-            <div v-else class="period-list">
-              <div
-                v-for="(item, idx) in liunianData"
-                :key="idx"
-                class="period-card"
-              >
-                <div class="period-header">
-                  <span class="period-age">{{ item.year }}年</span>
-                  <span class="period-palace">{{ item.palace_name }}</span>
+            <p class="tab-desc">{{ liunianData[0]?.year ? liunianData[0].year + '年' : '' }}流年各宫星曜分布，每年依次轮换</p>
+            <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="!liunianData.length" class="empty-state-inline"><p>暂无可显示的流年数据</p></div>
+            <div v-else>
+              <div v-for="p in getPalacesFromPeriod(liunianData[0])" :key="p.branch" class="palace-strip">
+                <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
+                <div class="palace-strip-stars">
+                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
+                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
-                <p class="period-desc">{{ item.description || '流年运势' }}</p>
+              </div>
+            </div>
+            <!-- 流年详解析 -->
+            <div v-if="liunianInterp[selectedLiunianYear]" class="interp-card">
+              <div class="interp-header">
+                <span class="interp-year">{{ selectedLiunianYear }}年</span>
+                <span class="interp-ganZhi">{{ liunianInterp[selectedLiunianYear].gan_zhi }}</span>
+                <div class="interp-score" :class="liunianInterp[selectedLiunianYear].score >= 60 ? 'score-good' : 'score-bad'">{{ liunianInterp[selectedLiunianYear].score }}分</div>
+              </div>
+              <div class="interp-section">
+                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].gan_zhi_desc }}</span></div>
+                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].shi_shen }}</span></div>
+                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liunianInterp[selectedLiunianYear].relation_to_ming }}</span></div>
+                <div class="interp-row"><span class="interp-label">全年基调</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].overall_tone }}</span></div>
+                <div class="interp-row tip"><span class="interp-label">重点提示</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].key_tips }}</span></div>
               </div>
             </div>
           </div>
 
           <!-- 流月分析 -->
           <div v-else-if="activeTab === 'liuyue'" class="data-tab">
-            <div v-if="loadingTab" class="tab-loading">加载中...</div>
-            <div v-else-if="!liuyueData.length" class="empty-hint">
-              <p>暂无可显示的流月数据</p>
-            </div>
-            <div v-else class="period-list">
-              <div
-                v-for="(item, idx) in liuyueData"
-                :key="idx"
-                class="period-card"
-              >
-                <div class="period-header">
-                  <span class="period-age">{{ item.year }}年{{ item.month }}月</span>
-                  <span class="period-palace">{{ item.palace_name }}</span>
+            <p class="tab-desc">{{ liuyueData[0]?.year ? liuyueData[0].year + '年' + liuyueData[0].month + '月' : '' }}流月各宫星曜分布，每月依次轮换</p>
+            <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="!liuyueData.length" class="empty-state-inline"><p>暂无可显示的流月数据</p></div>
+            <div v-else>
+              <div v-for="p in getPalacesFromPeriod(liuyueData[0])" :key="'ly-' + p.branch" class="palace-strip">
+                <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
+                <div class="palace-strip-stars">
+                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
+                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
-                <p class="period-desc">{{ item.description || '流月运势' }}</p>
+              </div>
+            </div>
+            <!-- 流月详解析 -->
+            <div v-if="liuyueData[0]" class="interp-card">
+              <div class="interp-header">
+                <span class="interp-year">{{ liuyueData[0].year }}年{{ liuyueData[0].month }}月</span>
+                <span class="interp-ganZhi">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.gan_zhi || '—' }}</span>
+                <div class="interp-score" :class="(liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.score || '—' }}分</div>
+              </div>
+              <div class="interp-section">
+                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.gan_zhi_desc || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.shi_shen || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.relation_to_ming || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">作用特点</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.effect || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.health || '—' }}</span></div>
               </div>
             </div>
           </div>
 
           <!-- 流日分析 -->
           <div v-else-if="activeTab === 'liuri'" class="data-tab">
-            <div v-if="loadingTab" class="tab-loading">加载中...</div>
-            <div v-else-if="!liuriData.length" class="empty-hint">
-              <p>暂无可显示的流日数据</p>
-            </div>
-            <div v-else class="period-list">
-              <div
-                v-for="(item, idx) in liuriData"
-                :key="idx"
-                class="period-card"
-              >
-                <div class="period-header">
-                  <span class="period-age">{{ item.date }}</span>
-                  <span class="period-palace">{{ item.palace_name }}</span>
+            <p class="tab-desc">{{ liuriData[0]?.year ? liuriData[0].year + '年' + liuriData[0].month + '月' + liuriData[0].day + '日' : '' }}流日各宫星曜分布，每日依次轮换</p>
+            <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="!liuriData.length" class="empty-state-inline"><p>暂无可显示的流日数据</p></div>
+            <div v-else>
+              <div v-for="p in getPalacesFromPeriod(liuriData[0])" :key="'lr-' + p.branch" class="palace-strip palace-strip-sm">
+                <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
+                <div class="palace-strip-stars">
+                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
                 </div>
-                <p class="period-desc">{{ item.description || '流日运势' }}</p>
               </div>
+            </div>
+            <!-- 流日详解析 -->
+            <div v-if="liuriData[0]" class="interp-card">
+              <div class="interp-header">
+                <span class="interp-year">{{ liuriData[0].year }}年{{ liuriData[0].month }}月{{ liuriData[0].day }}日</span>
+                <span class="interp-ganZhi">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.gan_zhi || '—' }}</span>
+                <div class="interp-score" :class="(liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.score || '—' }}分</div>
+              </div>
+              <div class="interp-section">
+                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.gan_zhi_desc || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.shi_shen || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.relation_to_ming || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">七杀作用</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.qi_zi_effect || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">情绪状态</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.emotional_state || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.health || '—' }}</span></div>
+              </div>
+              <div class="interp-section">
+                <p class="interp-subtitle">时辰分析</p>
+                <div class="hourly-grid">
+                  <div v-for="(h, i) in (liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.hourly_analysis || [])" :key="i" class="hour-block" :class="h.score >= 65 ? 'hour-good' : h.score < 45 ? 'hour-bad' : 'hour-neutral'">
+                    <span class="hour-time">{{ h.stem_branch }}</span>
+                    <span class="hour-effect">{{ h.effect }}</span>
+                    <span class="hour-score">{{ h.score }}分</span>
+                  </div>
+                </div>
+              </div>
+              <div class="interp-summary">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.summary || '—' }}</div>
             </div>
           </div>
 
           <!-- 四化飞星 -->
           <div v-else-if="activeTab === 'sihua'" class="data-tab">
-            <div v-if="loadingTab" class="tab-loading">加载中...</div>
-            <div v-else-if="!sihuaData.length" class="empty-hint">
-              <p>暂无可显示的四化飞星数据</p>
-            </div>
-            <div v-else class="sihua-table-wrap">
-              <table class="sihua-table">
-                <thead>
-                  <tr>
-                    <th>四化</th>
-                    <th>星曜</th>
-                    <th>飞入宫位</th>
-                    <th>影响</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, idx) in sihuaData" :key="idx">
-                    <td>
-                      <span
-                        class="sihua-badge"
-                        :class="{
-                          'sihua-lu': item.type === '化禄',
-                          'sihua-quan': item.type === '化权',
-                          'sihua-ke': item.type === '化科',
-                          'sihua-ji': item.type === '化忌',
-                        }"
-                      >
-                        {{ item.type }}
-                      </span>
-                    </td>
-                    <td>{{ item.star }}</td>
-                    <td>{{ item.target_palace }}</td>
-                    <td class="text-sm text-gray-600">{{ item.description || '' }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <p class="tab-desc">四化飞星在各宫的分布，展示星曜化禄/化权/化科/化忌的飞入情况及链式分析</p>
+            <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="!sihuaFlyGroups.length" class="empty-state-inline"><p>暂无可显示的四化飞星数据</p></div>
+            <div v-else class="sihua-groups">
+              <div v-for="grp in sihuaFlyGroups" :key="grp.type" class="sihua-group">
+                <span class="sihua-group-badge" :class="grp.css">{{ grp.type }}</span>
+                <div v-if="grp.items.length" class="sihua-group-items">
+                  <div v-for="(it, i) in grp.items" :key="i" class="sihua-fly-item">
+                    <span class="fly-star">{{ it.from_star }}</span><span class="fly-arrow">→</span>
+                    <span class="fly-palace">{{ it.to_palace }}</span>
+                    <span v-if="it.from_palace" class="fly-from">源{{ it.from_palace }}</span>
+                    <span v-if="it.chain_depth > 0" class="fly-chain">链{{ it.chain_depth }}</span>
+                    <span class="fly-effect">{{ it.effect }}</span>
+                  </div>
+                </div>
+                <p v-else class="sihua-empty-group">无</p>
+              </div>
+              <div v-if="sihuaChainGroups.length" class="sihua-chain-section">
+                <h4 class="chain-title">四化链式分析</h4>
+                <div v-for="grp in sihuaChainGroups" :key="'chain-' + grp.type" class="sihua-group">
+                  <span class="sihua-group-badge" :class="grp.css">{{ grp.type }}</span>
+                  <div v-if="grp.items.length" class="sihua-group-items">
+                    <div v-for="(it, i) in grp.items" :key="'c-' + i" class="sihua-fly-item">
+                      <span class="fly-star">{{ it.from_star }}</span><span class="fly-arrow">→</span>
+                      <span class="fly-palace">{{ it.to_palace }}</span>
+                      <span v-if="it.from_palace" class="fly-from">源{{ it.from_palace }}</span>
+                      <span v-if="it.chain_depth > 0" class="fly-chain">链{{ it.chain_depth }}</span>
+                      <span v-if="it.star_affinity > 0" class="fly-affinity">辅{{ it.star_affinity }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -630,21 +745,48 @@ function onYearChange(year: number) {
   @apply flex flex-col items-center gap-2 py-10 text-gray-400;
 }
 
-/* Palace quick list */
-.palace-quick-list {
-  @apply flex flex-wrap gap-2 mb-4;
+/* Palace quick grid */
+.palace-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
 }
-
-.palace-quick-btn {
-  @apply rounded-md border px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors;
-  background-color: var(--color-bazi-paper);
-  border-color: var(--color-bazi-blue);
-  color: var(--color-bazi-blue);
+.palace-pill {
+  display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
+  padding: 0.5rem 0.5rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(212,168,75,0.06);
+  border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+  font-family: var(--font-sans);
 }
-
-.palace-quick-btn:hover {
-  background-color: var(--color-bazi-blue);
-  color: #fff;
+.palace-pill:hover {
+  background: rgba(212,168,75,0.05);
+  border-color: rgba(212,168,75,0.2);
+  transform: translateY(-1px);
+}
+.palace-pill.active {
+  border-color: rgba(212,168,75,0.3);
+  background: rgba(212,168,75,0.08);
+}
+.palace-pill.body-palace {
+  border-color: rgba(139, 75, 75, 0.4);
+  background: rgba(139, 75, 75, 0.06);
+}
+.palace-pill-name {
+  font-size: 0.75rem; font-weight: 600; color: var(--text);
+  letter-spacing: 0.5px;
+}
+.palace-pill-branch {
+  font-size: 0.58rem; color: var(--muted);
+}
+.body-badge {
+  font-size: 0.5rem; background: rgba(139, 75, 75, 0.25); color: rgba(255, 200, 200, 0.8);
+  padding: 0.05rem 0.25rem; border-radius: 3px; font-weight: 600;
+}
+.body-palace .palace-pill-name {
+  color: rgba(255, 200, 200, 0.9);
 }
 
 /* Period lists */
@@ -721,4 +863,76 @@ function onYearChange(year: number) {
   background-color: rgba(26, 26, 26, 0.1);
   color: var(--color-bazi-ink);
 }
+
+.tab-desc { font-size:0.72rem; color:var(--muted); margin:0 0 1rem; font-style:italic; }
+.dayun-timeline { display:flex; flex-direction:column; gap:0.5rem; }
+.dayun-card { display:flex; gap:0.75rem; padding:0.625rem 0.75rem; background:rgba(255,255,255,0.015); border:1px solid rgba(212,168,75,0.05); border-radius:8px; }
+.dayun-card.is-current { border-color:rgba(212,168,75,0.2); background:rgba(212,168,75,0.04); }
+.dayun-age-badge { min-width:60px; text-align:center; }
+.age-primary { display:block; font-size:0.8rem; font-weight:700; color:var(--gold); }
+.age-unit { font-size:0.58rem; color:var(--muted); }
+.dayun-body { flex:1; }
+.dayun-palace { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:0.125rem; }
+.dayun-desc { font-size:0.68rem; color:var(--muted); margin:0 0 0.25rem; }
+.dayun-stars { display:flex; flex-wrap:wrap; gap:0.2rem; }
+.star-chip { padding:0.08rem 0.35rem; font-size:0.62rem; background:rgba(196,30,58,0.08); color:var(--crimson); border-radius:3px; border:1px solid rgba(196,30,58,0.12); }
+.palace-strip { display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0.6rem; border-bottom:1px solid rgba(255,255,255,0.025); }
+.palace-strip-sm { padding:0.25rem 0.4rem; }
+.palace-strip-header { display:flex; align-items:center; gap:0.3rem; min-width:68px; }
+.strip-name { font-size:0.72rem; font-weight:600; color:var(--text); }
+.strip-branch { font-size:0.58rem; color:var(--muted); }
+.palace-strip-stars { display:flex; align-items:center; gap:0.25rem; flex-wrap:wrap; flex:1; }
+.strip-main-star { padding:0.06rem 0.3rem; font-size:0.62rem; font-weight:600; background:rgba(212,168,75,0.08); color:var(--gold); border-radius:3px; }
+.strip-main-star.dim { color:var(--muted); background:rgba(255,255,255,0.02); }
+.strip-main-star small { font-size:0.5rem; opacity:0.5; }
+.strip-aux-star { font-size:0.58rem; color:rgba(139,131,120,0.45); }
+.strip-sihua { padding:0.06rem 0.3rem; font-size:0.58rem; background:rgba(196,30,58,0.08); color:var(--crimson); border-radius:3px; }
+.strip-empty { font-size:0.58rem; color:var(--muted); opacity:0.3; }
+.sihua-groups { display:flex; flex-direction:column; gap:0.625rem; }
+.sihua-group-badge { display:inline-block; padding:0.15rem 0.5rem; font-size:0.68rem; font-weight:700; border-radius:4px; margin-bottom:0.25rem; }
+.sihua-lu { background:rgba(74,222,128,0.1); color:#4ade80; }
+.sihua-quan { background:rgba(212,168,75,0.1); color:var(--gold); }
+.sihua-ke { background:rgba(96,165,250,0.1); color:#60a5fa; }
+.sihua-ji { background:rgba(196,30,58,0.1); color:var(--crimson); }
+.sihua-group-items { display:flex; flex-direction:column; gap:0.2rem; }
+.sihua-fly-item { display:flex; align-items:center; gap:0.4rem; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.012); border-radius:5px; font-size:0.72rem; }
+.fly-star { font-weight:600; color:var(--text); }
+.fly-arrow { color:var(--muted); font-size:0.65rem; }
+.fly-palace { color:var(--gold); font-weight:500; }
+.fly-effect { color:var(--muted); font-size:0.65rem; flex:1; }
+.fly-from { font-size:0.6rem; color:#93c5fd; background:rgba(96,165,250,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
+.fly-chain { font-size:0.6rem; color:#86efac; background:rgba(74,222,128,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
+.fly-affinity { font-size:0.6rem; color:#c4a84b; background:rgba(212,168,75,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
+.sihua-chain-section { margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.05); }
+.chain-title { font-size:0.72rem; color:var(--muted); margin:0 0 0.5rem; font-weight:600; }
+.sihua-empty-group { font-size:0.68rem; color:var(--muted); padding:0.2rem 0.4rem; opacity:0.4; }
+
+/* Interpretation tab styles */
+.interp-tab { display:flex; flex-direction:column; gap:0.75rem; }
+.interp-card { background:var(--glass); border:1px solid rgba(212,168,75,0.1); border-radius:12px; overflow:hidden; }
+.interp-header { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:rgba(212,168,75,0.06); border-bottom:1px solid rgba(212,168,75,0.1); }
+.interp-year { font-size:0.9rem; font-weight:700; color:var(--gold); font-family:var(--font-serif); }
+.interp-ganZhi { font-size:0.85rem; color:var(--text); font-weight:600; }
+.interp-score { font-size:0.8rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:6px; margin-left:auto; }
+.score-good { background:rgba(74,222,128,0.12); color:#4ade80; }
+.score-bad { background:rgba(196,30,58,0.12); color:#f08080; }
+.interp-section { padding:0.75rem 1rem; display:flex; flex-direction:column; gap:0.4rem; }
+.interp-row { display:flex; gap:0.5rem; font-size:0.78rem; line-height:1.5; }
+.interp-label { min-width:70px; font-weight:600; color:var(--muted); }
+.interp-value { color:var(--text); flex:1; }
+.interp-value.danger { color:#f08080; }
+.interp-row.tip .interp-value { color:var(--gold); font-style:italic; }
+.interp-subtitle { font-size:0.75rem; font-weight:700; color:var(--gold); margin:0 0 0.5rem; }
+.interp-summary { font-size:0.72rem; color:var(--muted); padding:0.5rem 1rem; background:rgba(212,168,75,0.04); border-top:1px dashed rgba(212,168,75,0.1); font-style:italic; }
+.hourly-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:0.375rem; }
+.hour-block { display:flex; flex-direction:column; gap:0.15rem; padding:0.4rem 0.5rem; border-radius:6px; font-size:0.68rem; }
+.hour-good { background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.15); }
+.hour-neutral { background:rgba(212,168,75,0.05); border:1px solid rgba(212,168,75,0.1); }
+.hour-bad { background:rgba(196,30,58,0.08); border:1px solid rgba(196,30,58,0.15); }
+.hour-time { font-weight:700; color:var(--gold); }
+.hour-effect { color:var(--text); line-height:1.3; }
+.hour-score { font-size:0.62rem; margin-top:0.1rem; }
+.hour-good .hour-score { color:#4ade80; }
+.hour-neutral .hour-score { color:var(--muted); }
+.hour-bad .hour-score { color:#f08080; }
 </style>

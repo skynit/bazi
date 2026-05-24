@@ -10,7 +10,7 @@ Fix critical UX issues in bazi-fortune Vue frontend:
 
 ## TODOs
 - [x] A. Router fix: add /fortune/weekly, /fortune/monthly routes + beforeEach auth guard
-- [ ] B. App.vue global header: sticky nav bar with auth state
-- [ ] C. HomeView: remove inline header, add hero entrance animation
-- [ ] D. All views: add loading skeletons and error states
-- [ ] E. Design system: enhanced CSS variables, grain texture, animations
+- [x] B. App.vue global header: sticky nav bar with auth state
+- [x] C. HomeView: remove inline header, add hero entrance animation
+- [x] D. All views: add loading skeletons and error states
+- [x] E. Design system: enhanced CSS variables, grain texture, animations

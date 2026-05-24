@@ -9,7 +9,6 @@ require (
 	github.com/kaecer68/ziwei-zenith v1.1.0
 	golang.org/x/crypto v0.48.0
 	gorm.io/datatypes v1.2.0
-	gorm.io/driver/mysql v1.5.4
 	gorm.io/gorm v1.25.7
 )
 
@@ -46,4 +45,5 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gorm.io/driver/mysql v1.5.4 // indirect
 )

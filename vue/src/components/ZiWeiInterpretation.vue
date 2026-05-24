@@ -20,7 +20,7 @@ defineProps<{
   palaceReading: PalaceReading
 }>()
 
-const expanded = ref(false)
+const expanded = ref(true)
 
 function toggle() {
   expanded.value = !expanded.value
@@ -28,14 +28,11 @@ function toggle() {
 </script>
 
 <template>
-  <div
-    class="interpretation-card"
-    :class="{ expanded }"
-  >
+  <div class="interpretation-card" :class="{ expanded }">
     <!-- Card header (always visible, clickable) -->
     <div class="card-header" @click="toggle">
       <div class="flex items-center gap-3">
-        <span class="text-xl">{{ expanded ? '📖' : '📘' }}</span>
+        <span class="text-xl">{{ expanded ? '✨' : '📜' }}</span>
         <div>
           <h3 class="card-title">{{ palaceReading.palaceName }} 详解</h3>
           <p class="card-subtitle">点击{{ expanded ? '收起' : '展开' }}查看完整解读</p>
@@ -59,7 +56,8 @@ function toggle() {
               v-for="(tag, i) in palaceReading.mainStarAnalysis.tags"
               :key="'ms-' + i"
               class="reading-tag main-star"
-            >{{ tag }}</span>
+              >{{ tag }}</span
+            >
           </div>
         </section>
 
@@ -75,7 +73,8 @@ function toggle() {
               v-for="(tag, i) in palaceReading.auxStarInfluence.tags"
               :key="'as-' + i"
               class="reading-tag aux-star"
-            >{{ tag }}</span>
+              >{{ tag }}</span
+            >
           </div>
         </section>
 
@@ -91,7 +90,8 @@ function toggle() {
               v-for="(tag, i) in palaceReading.sihuaInfluence.tags"
               :key="'sh-' + i"
               class="reading-tag sihua-star"
-            >{{ tag }}</span>
+              >{{ tag }}</span
+            >
           </div>
         </section>
 
@@ -107,7 +107,8 @@ function toggle() {
               v-for="(tag, i) in palaceReading.sanFangSiZheng.tags"
               :key="'sf-' + i"
               class="reading-tag sanfang-star"
-            >{{ tag }}</span>
+              >{{ tag }}</span
+            >
           </div>
         </section>
 
@@ -123,7 +124,8 @@ function toggle() {
               v-for="(tag, i) in palaceReading.patternAnnotations.tags"
               :key="'pa-' + i"
               class="reading-tag pattern-star"
-            >{{ tag }}</span>
+              >{{ tag }}</span
+            >
           </div>
         </section>
       </div>
@@ -134,37 +136,38 @@ function toggle() {
 <style scoped>
 @reference "tailwindcss";
 .interpretation-card {
-  @apply rounded-lg border overflow-hidden transition-shadow duration-200;
-  background-color: var(--color-bazi-paper);
-  border-color: var(--color-bazi-blue);
+  @apply rounded-xl border overflow-hidden;
+  background: var(--glass);
+  border-color: rgba(212, 168, 75, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .interpretation-card:hover {
-  box-shadow: 0 4px 12px rgba(43, 58, 66, 0.15);
+  border-color: rgba(212, 168, 75, 0.25);
 }
 
 .card-header {
   @apply flex items-center justify-between p-4 cursor-pointer select-none;
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
 }
 
 .expanded .card-header {
-  border-bottom-color: rgba(43, 58, 66, 0.15);
+  border-bottom-color: rgba(212, 168, 75, 0.15);
 }
 
 .card-title {
   @apply text-base font-bold m-0;
-  color: var(--color-bazi-blue);
+  color: var(--gold);
 }
 
 .card-subtitle {
   @apply text-xs m-0 mt-0.5;
-  color: #999;
+  color: var(--muted);
 }
 
 .toggle-icon {
   @apply text-sm;
-  color: var(--color-bazi-blue);
+  color: var(--gold);
 }
 
 .card-body {
@@ -173,7 +176,7 @@ function toggle() {
 
 .reading-section {
   @apply pb-3 border-b border-dashed;
-  border-color: rgba(43, 58, 66, 0.1);
+  border-color: rgba(212, 168, 75, 0.08);
 }
 
 .reading-section:last-child {
@@ -182,17 +185,17 @@ function toggle() {
 
 .section-heading {
   @apply flex items-center gap-1.5 text-sm font-bold mb-2 m-0;
-  color: var(--color-bazi-blue);
+  color: var(--gold);
 }
 
 .section-marker {
-  color: var(--color-bazi-red);
+  color: var(--crimson);
   font-size: 12px;
 }
 
 .section-text {
   @apply text-sm leading-relaxed m-0 mb-2;
-  color: var(--color-bazi-ink);
+  color: var(--text);
 }
 
 .tag-row {
@@ -204,28 +207,33 @@ function toggle() {
 }
 
 .main-star {
-  background-color: rgba(196, 30, 58, 0.1);
-  color: var(--color-bazi-red);
+  background-color: rgba(196, 30, 58, 0.15);
+  color: #f08080;
+  border: 1px solid rgba(196, 30, 58, 0.25);
 }
 
 .aux-star {
-  background-color: rgba(43, 58, 66, 0.08);
-  color: var(--color-bazi-blue);
+  background-color: rgba(212, 168, 75, 0.08);
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 75, 0.2);
 }
 
 .sihua-star {
-  background-color: rgba(218, 165, 32, 0.15);
-  color: #8B6914;
+  background-color: rgba(218, 165, 32, 0.1);
+  color: #daa520;
+  border: 1px solid rgba(218, 165, 32, 0.2);
 }
 
 .sanfang-star {
   background-color: rgba(34, 139, 34, 0.1);
-  color: #228B22;
+  color: #90ee90;
+  border: 1px solid rgba(34, 139, 34, 0.2);
 }
 
 .pattern-star {
   background-color: rgba(128, 0, 128, 0.1);
-  color: #800080;
+  color: #da90d0;
+  border: 1px solid rgba(128, 0, 128, 0.2);
 }
 
 /* Expand/collapse transition */

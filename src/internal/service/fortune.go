@@ -39,6 +39,7 @@ type DailyFortune struct {
 	Ji              []model.YiJiItem     `json:"ji"`
 	ShengKe         ShengKeAnalysis      `json:"sheng_ke"`
 	ElementImages   []model.ElementImage `json:"element_images"`
+	TodayElements   map[string]int       `json:"today_elements"` // 今日五行分布 {金木水火土}
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
@@ -150,6 +151,15 @@ func (e *FortuneEngine) CalculateDaily(userChart *BaziResult, queryDate time.Tim
 		Summary:           shengKeSummary(stemRel, branchRel, score),
 	}
 
+	// compute today's five-element distribution
+	ec, _ := getDayEightChar(qYear, qMonth, qDay)
+	todayElements := calcFiveElements(ec)
+	// Filter to only 金木水火土
+	filtered := map[string]int{
+		"金": todayElements["金"], "木": todayElements["木"],
+		"水": todayElements["水"], "火": todayElements["火"], "土": todayElements["土"],
+	}
+
 	return &DailyFortune{
 		Date:            queryDate.Format("2006-01-02"),
 		DayPillar:       dayPillar,
@@ -163,6 +173,7 @@ func (e *FortuneEngine) CalculateDaily(userChart *BaziResult, queryDate time.Tim
 		Ji:              ji,
 		ShengKe:         shengKe,
 		ElementImages:   fixedElementImages(),
+		TodayElements:   filtered,
 	}
 }
 

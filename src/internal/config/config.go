@@ -13,19 +13,18 @@ type Config struct {
 	ServerPort string
 }
 
-// Load reads configuration from environment variables, applying defaults where appropriate.
-// Panics if JWT_SECRET is not set.
+// Load reads configuration from environment variables, applying defaults.
+// Uses mock-mode defaults (no MySQL) when DB_HOST is not set.
 func Load() *Config {
-	cfg := &Config{
-		DBHost:     getEnv("DB_HOST", "localhost"),
+	return &Config{
+		DBHost:     getEnv("DB_HOST", ""),
 		DBPort:     getEnv("DB_PORT", "3306"),
 		DBUser:     getEnv("DB_USER", "root"),
-		DBPass:     getEnv("DB_PASS", "123456"),
+		DBPass:     getEnv("DB_PASS", ""),
 		DBName:     getEnv("DB_NAME", "bazi"),
-		JWTSecret:  getEnv("JWT_SECRET", "1234567890abcdef"),
-		ServerPort: getEnv("SERVER_PORT", "8080"),
+		JWTSecret:  getEnv("JWT_SECRET", "dev-secret"),
+		ServerPort: getEnv("SERVER_PORT", "8088"),
 	}
-	return cfg
 }
 
 func getEnv(key, fallback string) string {

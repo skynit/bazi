@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -37,14 +36,15 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	var dayPillar model.Pillar
-	if err := json.Unmarshal(chart.DayPillar, &dayPillar); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to parse chart data"})
+	gender := normalizeGender(chart.Gender)
+	baziSvc := service.BaziService{}
+	baziResult, err := baziSvc.Calculate(
+		chart.BirthYear, chart.BirthMonth, chart.BirthDay,
+		chart.BirthHour, chart.BirthMin, gender,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to compute chart: " + err.Error()})
 		return
-	}
-
-	baziResult := &service.BaziResult{
-		DayPillar: dayPillar,
 	}
 
 	queryDate, err := time.Parse("2006-01-02", req.QueryDate)
@@ -57,26 +57,37 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 
 	// Map daily fortune to response
 	yiItems := make([]string, len(fortune.Yi))
-	for i, item := range fortune.Yi { yiItems[i] = item.Activity }
+	for i, item := range fortune.Yi {
+		yiItems[i] = item.Activity
+	}
 	jiItems := make([]string, len(fortune.Ji))
-	for i, item := range fortune.Ji { jiItems[i] = item.Activity }
+	for i, item := range fortune.Ji {
+		jiItems[i] = item.Activity
+	}
 
+	luckyNum := 0
+	if len(fortune.LuckyNumbers) > 0 {
+		luckyNum = fortune.LuckyNumbers[0]
+	}
 	resp := model.FortuneResponse{
-		SolarDate:      fortune.Date,
-		DayGanZhi:      fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
-		ElementImages:  fortune.ElementImages,
-		Score:          fortune.Score,
-		LuckyColor:     fortune.LuckyColor,
-		LuckyNumber:    fortune.LuckyNumbers[0],
-		WealthDir:      fortune.WealthDir,
-		ClashZodiac:    fortune.ClashZodiac,
+		SolarDate:       fortune.Date,
+		DayGanZhi:       fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
+		ElementImages:   fortune.ElementImages,
+		Score:           fortune.Score,
+		LuckyColor:      fortune.LuckyColor,
+		LuckyNumber:     luckyNum,
+		WealthDir:       fortune.WealthDir,
+		ClashZodiac:     fortune.ClashZodiac,
 		AuspiciousHours: fortune.AuspiciousHours,
-		YiItems:        yiItems,
-		JiItems:        jiItems,
+		YiItems:         yiItems,
+		JiItems:         jiItems,
+		TodayElements:   fortune.TodayElements,
+		TiaoHou:         service.TiaoHou[fortune.DayPillar.Gan+fortune.DayPillar.Zhi],
 	}
 	// Generate detailed analysis
 	analysis := service.AnalyzeDailyFortune(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi)
 	resp.Analysis = analysis
+	resp.Score = analysis.Overall.Score   // use AI score, not basic calcScore
 
 	c.JSON(http.StatusOK, resp)
 }

@@ -11,8 +11,6 @@ import (
 	"bazi/internal/model"
 	"bazi/internal/service"
 
-	"gorm.io/datatypes"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,6 +24,10 @@ func (m *mockChartStore) FindByID(id uint) (*model.BirthChart, error) {
 		return m.chart, nil
 	}
 	return nil, nil
+}
+func (m *mockChartStore) Update(chart *model.BirthChart) error {
+	m.chart = chart
+	return nil
 }
 
 func setupFortuneRouter(store ChartStore) *gin.Engine {
@@ -52,9 +54,14 @@ func fortuneJSONBody(t *testing.T, v interface{}) *strings.Reader {
 }
 
 func TestCalculateDailyValid(t *testing.T) {
-	chart := &model.BirthChart{}
+	chart := &model.BirthChart{
+		BirthYear:  1990,
+		BirthMonth: 6,
+		BirthDay:   15,
+		BirthHour:  8,
+		Gender:     "男",
+	}
 	chart.ID = 1
-	chart.DayPillar = datatypes.JSON(`{"gan":"甲","zhi":"子"}`)
 
 	store := &mockChartStore{chart: chart}
 	router := setupFortuneRouter(store)
@@ -93,9 +100,14 @@ func TestCalculateDailyValid(t *testing.T) {
 }
 
 func TestCalculateDailyNoJWT(t *testing.T) {
-	chart := &model.BirthChart{}
+	chart := &model.BirthChart{
+		BirthYear:  1990,
+		BirthMonth: 6,
+		BirthDay:   15,
+		BirthHour:  8,
+		Gender:     "男",
+	}
 	chart.ID = 1
-	chart.DayPillar = datatypes.JSON(`{"gan":"甲","zhi":"子"}`)
 
 	store := &mockChartStore{chart: chart}
 	router := setupFortuneRouter(store)

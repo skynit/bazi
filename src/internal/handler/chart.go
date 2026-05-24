@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"bazi/internal/model"
-	"gorm.io/datatypes"
 	"bazi/internal/service"
+	"gorm.io/datatypes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -63,14 +63,17 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		BirthMonth:   req.BirthMonth,
 		BirthDay:     req.BirthDay,
 		BirthHour:    req.BirthHour,
-		BirthMin:  req.BirthMin,
+		BirthMin:     req.BirthMin,
 		CalendarType: req.CalendarType,
-		YearPillar:   datatypes.JSON(mustJSON(result.YearPillar)),
-		MonthPillar:  datatypes.JSON(mustJSON(result.MonthPillar)),
-		DayPillar:    datatypes.JSON(mustJSON(result.DayPillar)),
-		HourPillar:   datatypes.JSON(mustJSON(result.HourPillar)),
-		FiveElements: datatypes.JSON(mustJSON(result.FiveElements)),
-		NaYin:        datatypes.JSON(mustJSON(result.NaYin)),
+		YearPillar:    datatypes.JSON(mustJSON(result.YearPillar)),
+		MonthPillar:   datatypes.JSON(mustJSON(result.MonthPillar)),
+		DayPillar:     datatypes.JSON(mustJSON(result.DayPillar)),
+		HourPillar:    datatypes.JSON(mustJSON(result.HourPillar)),
+		FiveElements:  datatypes.JSON(mustJSON(result.FiveElements)),
+		ElementDetail: datatypes.JSON(mustJSON(result.ElementDetail)),
+		BodyStrength:  datatypes.JSON(mustJSON(result.BodyStrength)),
+		TenGods:       datatypes.JSON(mustJSON(result.TenGods)),
+		NaYin:         datatypes.JSON(mustJSON(result.NaYin)),
 	}
 	if h.Store != nil {
 		if err := h.Store.Create(chart); err != nil {
@@ -80,17 +83,36 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":            chart.ID,
-		"year_pillar":   result.YearPillar,
-		"month_pillar":  result.MonthPillar,
-		"day_pillar":    result.DayPillar,
-		"hour_pillar":   result.HourPillar,
-		"five_elements": result.FiveElements,
-		"na_yin":        result.NaYin,
-		"ten_gods":     result.TenGods,
-		"hidden_stems": result.HiddenStems,
-		"da_yun":       result.DaYunInfo,
-		"clash_harmony": result.ClashHarmony,
+		"id":             chart.ID,
+		"year_pillar":    result.YearPillar,
+		"month_pillar":   result.MonthPillar,
+		"day_pillar":     result.DayPillar,
+		"hour_pillar":    result.HourPillar,
+		"five_elements":  result.FiveElements,
+		"element_detail": result.ElementDetail,
+		"body_strength":  result.BodyStrength,
+		"na_yin":         result.NaYin,
+		"ten_gods":       result.TenGods,
+		"hidden_stems":   result.HiddenStems,
+		"da_yun":         result.DaYunInfo,
+		"clash_harmony":      result.ClashHarmony,
+			"gan_zhi_analysis":   result.GanZhiAnalysis,
+		"ming_gong":      result.MingGong,
+		"ri_zhu_desc":    result.RiZhuDesc,
+		"pillar_details": result.PillarDetails,
+		"tiao_hou":       result.DayStemTiaoHou,
+		"jin_bu_huan":    result.DayStemJinBuHuan,
+		"day_shen_sha":   result.DayShenSha,
+		"season_text":        result.SeasonText,
+		"season_text_month":  result.SeasonTextMonth,
+		"ri_zhu_poem":        result.RiZhuPoem,
+		"ri_zhu_source":      result.RiZhuSource,
+		"ri_zhu_comment":     result.RiZhuComment,
+		"ri_zhu_hour_detail":   result.RiZhuHourDetail,
+		"shen_sha_by_pillar":   result.ShenShaByPillar,
+		"shen_sha_summary":     result.ShenShaSummary,
+		"ten_god_proportion":   result.TenGodProportion,
+		"birth_month":          req.BirthMonth,
 	})
 }
 

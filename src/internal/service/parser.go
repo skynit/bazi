@@ -23,15 +23,10 @@ type ParseRequest struct {
 // InputParser parses multi-format birth input.
 type InputParser struct{}
 
-// Chinese gan-zhi character sets.
-const (
-	stemsZh   = "甲乙丙丁戊己庚辛壬癸"
-	branchesZh = "子丑寅卯辰巳午未申酉戌亥"
-)
+// ganZhiChars is built from Gans and Zhis constants in data_gans.go.
+var ganZhiChars = strings.Join(Gans[:], "") + strings.Join(Zhis[:], "")
 
 var (
-	ganZhiChars = stemsZh + branchesZh
-
 	// Solar: "YYYY-MM-DD HH:MM"
 	solarRe1 = regexp.MustCompile(`^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$`)
 	// Solar: "YYYYMMDD HHMM"

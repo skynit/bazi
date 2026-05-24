@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"bazi/internal/model"
 	"bazi/internal/service"
@@ -69,13 +70,13 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// mapGender converts the BirthChart gender field ("男"/"女")
-// to the service-layer constant ("MALE"/"FEMALE").
+// mapGender converts the BirthChart gender field to service-layer constant.
 func mapGender(gender string) (string, error) {
-	switch gender {
-	case "男":
+	s := strings.TrimSpace(gender)
+	switch {
+	case s == "男" || strings.EqualFold(s, "male") || strings.EqualFold(s, "m"):
 		return model.GenderMale, nil
-	case "女":
+	case s == "女" || strings.EqualFold(s, "female") || strings.EqualFold(s, "f"):
 		return model.GenderFemale, nil
 	default:
 		return "", fmt.Errorf("unsupported gender: %s", gender)

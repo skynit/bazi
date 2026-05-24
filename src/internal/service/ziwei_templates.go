@@ -330,7 +330,7 @@ func buildPatternTemplates() map[string]string {
 // buildPalaceContext returns palace name → contextual description prefix.
 func buildPalaceContext() map[string]string {
 	return map[string]string{
-		"命宮": "命宮為十二宮之首，代表命主的性格、天賦和一生的總體走向。",
+		"命宮":  "命宮為十二宮之首，代表命主的性格、天賦和一生的總體走向。",
 		"兄弟宮": "兄弟宮代表命主與兄弟姊妹、同儕朋友之間的關係，以及合作運勢。",
 		"夫妻宮": "夫妻宮代表命主的婚姻狀況、配偶特質以及感情生活。",
 		"子女宮": "子女宮代表命主的子女緣分、生育能力以及與晚輩的互動。",

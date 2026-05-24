@@ -1,0 +1,55 @@
+run:
+  timeout: 2m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - errcheck
+    - gosimple
+    - staticcheck
+    - unused
+    - goimports
+    - misspell
+    - revive
+    - unconvert
+    - prealloc
+    - exportloopref
+    - ineffassign
+    - typecheck
+    - deadcode
+
+linters-settings:
+  gofmt:
+    simplify: true
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name:_redeclaration
+      - name: result-snippet
+      - name: superfluous-else
+      - name: indent-error-flow
+      - name: error-naming
+      - name: ambiguous-anonymous-field-type
+  misspell:
+    locale: APAC
+
+issues:
+  exclude-use-func: false
+  exclude-rules:
+    - path: "_test\\.go"
+      linters:
+        - errcheck
+        - staticcheck

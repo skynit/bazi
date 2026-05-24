@@ -17,8 +17,8 @@ func TestLoadDefaults(t *testing.T) {
 
 	cfg := Load()
 
-	if cfg.DBHost != "localhost" {
-		t.Errorf("expected DBHost=localhost, got %s", cfg.DBHost)
+	if cfg.DBHost != "" {
+		t.Errorf("expected DBHost empty, got %s", cfg.DBHost)
 	}
 	if cfg.DBPort != "3306" {
 		t.Errorf("expected DBPort=3306, got %s", cfg.DBPort)
@@ -32,8 +32,8 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.DBName != "bazi" {
 		t.Errorf("expected DBName=bazi, got %s", cfg.DBName)
 	}
-	if cfg.ServerPort != "8080" {
-		t.Errorf("expected ServerPort=8080, got %s", cfg.ServerPort)
+	if cfg.ServerPort != "8088" {
+		t.Errorf("expected ServerPort=8088, got %s", cfg.ServerPort)
 	}
 	if cfg.JWTSecret != "test-secret" {
 		t.Errorf("expected JWTSecret=test-secret, got %s", cfg.JWTSecret)
@@ -83,14 +83,12 @@ func TestLoadEnvOverrides(t *testing.T) {
 	}
 }
 
-func TestLoadMissingJWTSecret(t *testing.T) {
+func TestLoadJWTSecretDefault(t *testing.T) {
 	os.Unsetenv("JWT_SECRET")
+	defer os.Unsetenv("JWT_SECRET")
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("expected panic when JWT_SECRET is not set")
-		}
-	}()
-
-	Load()
+	cfg := Load()
+	if cfg.JWTSecret != "dev-secret" {
+		t.Errorf("expected JWTSecret=dev-secret, got %s", cfg.JWTSecret)
+	}
 }

@@ -23,3 +23,18 @@ dist-ssr
 
 vue/node_modules*
 vue/node_modules.old/
+*.md
+*.json
+*.txt
+
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.env
+.vscode
+# OS specific
+
+# Task files
+tasks.json
+tasks/ 

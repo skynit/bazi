@@ -16,6 +16,7 @@ import (
 // ChartStore defines an interface for looking up birth charts.
 type ChartStore interface {
 	FindByID(id uint) (*model.BirthChart, error)
+	Update(chart *model.BirthChart) error
 }
 
 // WeeklyFortuneHandler handles weekly fortune endpoints.

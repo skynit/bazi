@@ -25,6 +25,10 @@ func (m *mockWeeklyChartStore) FindByID(id uint) (*model.BirthChart, error) {
 	}
 	return nil, nil
 }
+func (m *mockWeeklyChartStore) Update(chart *model.BirthChart) error {
+	m.chart = chart
+	return nil
+}
 
 func setupWeeklyRouter(store ChartStore) *gin.Engine {
 	gin.SetMode(gin.TestMode)

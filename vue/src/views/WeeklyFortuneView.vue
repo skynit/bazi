@@ -54,9 +54,9 @@ function todayStr(): string {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 80) return '#228B22'
-  if (score >= 60) return '#DAA520'
-  return '#DC143C'
+  if (score >= 80) return '#4ADE80'
+  if (score >= 60) return 'var(--gold)'
+  return 'var(--crimson)'
 }
 
 async function fetchWeekly() {
@@ -87,64 +87,121 @@ onMounted(() => {
 
 <template>
   <div class="weekly-page">
-    <!-- Loading -->
-    <div v-if="loading" class="p-8 space-y-4">
-      <div class="skeleton h-8 w-48 mx-auto mb-2"></div>
-      <div class="skeleton h-56 rounded-xl"></div>
-      <div class="skeleton h-14 rounded-lg" v-for="i in 4" :key="i"></div>
+    <!-- Constellation background -->
+    <div class="bg-constellation" aria-hidden="true">
+      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
+        <circle cx="100" cy="80" r="1" fill="#D4A84B" opacity="0.3" />
+        <circle cx="600" cy="60" r="1.2" fill="#D4A84B" opacity="0.35" />
+        <circle cx="700" cy="400" r="1" fill="#D4A84B" opacity="0.25" />
+        <circle cx="200" cy="500" r="0.8" fill="#D4A84B" opacity="0.2" />
+        <circle cx="400" cy="300" r="1.5" fill="#D4A84B" opacity="0.4" />
+        <line
+          x1="100"
+          y1="80"
+          x2="400"
+          y2="300"
+          stroke="#D4A84B"
+          stroke-width="0.4"
+          opacity="0.06"
+        />
+      </svg>
     </div>
-    <div v-else-if="error" class="state-box">
-      <el-result icon="error" title="加载失败" sub-title="请检查网络连接后重试">
-        <template #extra>
-          <el-button type="primary" @click="fetchWeekly">重试</el-button>
-        </template>
-      </el-result>
+
+    <!-- Loading -->
+    <div v-if="loading" class="loading-state">
+      <div class="loading-inner">
+        <div class="loading-constellation">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+            <circle
+              cx="30"
+              cy="30"
+              r="25"
+              stroke="#D4A84B"
+              stroke-width="0.5"
+              stroke-dasharray="2 3"
+              opacity="0.4"
+            />
+            <circle cx="30" cy="30" r="12" stroke="#D4A84B" stroke-width="0.5" opacity="0.3" />
+            <circle cx="30" cy="30" r="3" fill="#D4A84B" opacity="0.3" />
+            <circle cx="15" cy="20" r="2" fill="#D4A84B" opacity="0.5" class="star-pulse" />
+            <circle
+              cx="45"
+              cy="18"
+              r="2"
+              fill="#D4A84B"
+              opacity="0.4"
+              class="star-pulse"
+              style="animation-delay: 0.3s"
+            />
+          </svg>
+        </div>
+        <p class="loading-text">本周运势加载中</p>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <circle
+            cx="30"
+            cy="30"
+            r="26"
+            stroke="#C41E3A"
+            stroke-width="1"
+            stroke-dasharray="3 2"
+            opacity="0.4"
+          />
+          <line x1="20" y1="20" x2="40" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
+          <line x1="40" y1="20" x2="20" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
+        </svg>
+      </div>
+      <p class="error-text">{{ error }}</p>
+      <button class="btn-retry" @click="fetchWeekly">重新加载</button>
     </div>
 
     <template v-else-if="data">
-      <!-- Header -->
-      <div class="weekly-header">
-        <h1 class="page-title">本周运势</h1>
-        <p class="week-range">{{ weekRange }}</p>
-        <div class="score-display">
-          <span
-            class="score-number"
-            :style="{ color: scoreColor(data.weekly_score) }"
-          >
-            {{ data.weekly_score }}
-          </span>
-          <span class="score-label">综合评分</span>
-        </div>
-      </div>
-
-      <!-- Chart -->
-      <div class="chart-section">
-        <FortuneChart :daily-data="trendData" height="300px" />
-      </div>
-
-      <!-- Daily Mini Cards -->
-      <div class="daily-cards">
-        <h3 class="section-label">每日概况</h3>
-        <div
-          v-for="(day, idx) in data.daily_fortunes"
-          :key="idx"
-          class="day-card"
-        >
-          <div class="day-card-header">
-            <span class="day-date">{{ day.solar_date }}</span>
-            <span class="day-pillar">{{ day.day_gan_zhi }}</span>
+      <div class="page-inner">
+        <!-- Header -->
+        <div class="weekly-header">
+          <div class="header-eyebrow">BaZi Fortune</div>
+          <h1 class="page-title">本周运势</h1>
+          <p class="week-range">{{ weekRange }}</p>
+          <div class="score-display glass-panel">
+            <div class="score-glow"></div>
+            <div class="score-inner">
+              <span class="score-number" :style="{ color: scoreColor(data.weekly_score) }">
+                {{ data.weekly_score }}
+              </span>
+              <span class="score-label">综合评分</span>
+            </div>
           </div>
-          <p v-if="day.yi_ji" class="day-yiji">{{ day.yi_ji }}</p>
         </div>
-      </div>
 
-      <div class="bottom-nav">
-        <router-link
-          :to="`/fortune?chart_id=${route.query.chart_id}`"
-          class="nav-link"
-        >
-          查看今日运势
-        </router-link>
+        <!-- Chart -->
+        <div class="chart-section glass-card">
+          <FortuneChart :daily-data="trendData" height="280px" />
+        </div>
+
+        <!-- Daily Cards -->
+        <div class="daily-section">
+          <h3 class="section-title">每日概况</h3>
+          <div class="daily-cards">
+            <div v-for="(day, idx) in data.daily_fortunes" :key="idx" class="day-card">
+              <div class="day-card-left">
+                <span class="day-date">{{ day.solar_date }}</span>
+              </div>
+              <span class="day-pillar">{{ day.day_gan_zhi }}</span>
+              <p v-if="day.yi_ji" class="day-yiji">{{ day.yi_ji }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <router-link :to="`/fortune?chart_id=${route.query.chart_id}`" class="nav-link">
+            查看今日运势 →
+          </router-link>
+        </div>
       </div>
     </template>
   </div>
@@ -153,36 +210,123 @@ onMounted(() => {
 <style scoped>
 .weekly-page {
   min-height: 100vh;
-  background: #FAF8F3;
-  padding: 1.25rem 1rem;
-  max-width: 540px;
-  margin: 0 auto;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
 }
 
-/* States */
-.state-box {
+.bg-constellation {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.constellation-svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.page-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Loading */
+.loading-state {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+}
+
+.loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loading-constellation {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.star-pulse {
+  animation: star-twinkle 2s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+    r: 2;
+  }
+  50% {
+    opacity: 0.9;
+    r: 3;
+  }
+}
+
+.loading-text {
+  font-size: 12px;
+  color: rgba(212, 168, 75, 0.5);
+  letter-spacing: 2px;
+}
+
+/* Error */
+.error-state {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  gap: 0.75rem;
+  min-height: 70vh;
+  gap: 1rem;
 }
 
-.state-text {
-  font-size: 1rem;
-  color: var(--color-bazi-ink);
+.error-icon {
+  opacity: 0.6;
+}
+
+.error-text {
+  font-size: 0.9rem;
+  color: var(--muted);
   margin: 0;
 }
 
-.state-text.error {
-  color: var(--color-bazi-red);
+.btn-retry {
+  padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(196, 30, 58, 0.2);
 }
 
-.back-link {
-  color: var(--color-bazi-red);
-  text-decoration: none;
-  font-size: 0.9rem;
+.btn-retry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.3);
 }
 
 /* Header */
@@ -191,96 +335,131 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
+.header-eyebrow {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(212, 168, 75, 0.35);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
 .page-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--color-bazi-ink);
-  margin: 0 0 0.25rem 0;
+  font-family: var(--font-serif), serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 6px;
+  letter-spacing: 3px;
 }
 
 .week-range {
-  font-size: 0.82rem;
-  color: #999;
-  margin: 0 0 0.75rem 0;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 1rem 0;
 }
 
 .score-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: inline-block;
+  padding: 1.25rem 2.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(212, 168, 75, 0.06), transparent 70%);
+  pointer-events: none;
+}
+
+.score-inner {
+  position: relative;
 }
 
 .score-number {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1;
+  text-shadow: 0 0 30px currentColor;
 }
 
 .score-label {
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 0.2rem;
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  letter-spacing: 1px;
 }
 
 /* Chart */
 .chart-section {
-  background: white;
-  border: 1px solid #E8E3D5;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
+  padding: 1rem;
   margin-bottom: 1.25rem;
 }
 
-/* Daily Mini Cards */
-.section-label {
+/* Daily Cards */
+.daily-section {
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--color-bazi-ink);
-  margin: 0 0 0.625rem 0;
+  color: var(--text);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(212, 168, 75, 0.1);
+  letter-spacing: 1px;
 }
 
 .daily-cards {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
 }
 
 .day-card {
-  background: white;
-  border: 1px solid #E8E3D5;
-  border-radius: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  transition: border-color 0.15s;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 168, 75, 0.08);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s;
 }
 
 .day-card:hover {
-  border-color: var(--color-bazi-red);
+  border-color: rgba(212, 168, 75, 0.2);
+  background: rgba(212, 168, 75, 0.03);
 }
 
-.day-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.day-card-left {
+  flex: 1;
 }
 
 .day-date {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-bazi-ink);
+  color: var(--text);
 }
 
 .day-pillar {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--color-bazi-red);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--crimson);
+  text-shadow: 0 0 10px rgba(196, 30, 58, 0.3);
+  min-width: 48px;
+  text-align: center;
 }
 
 .day-yiji {
-  font-size: 0.72rem;
-  color: #888;
-  margin: 0.3rem 0 0 0;
-  line-height: 1.3;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0;
+  flex: 2;
+  text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -293,9 +472,14 @@ onMounted(() => {
 }
 
 .nav-link {
-  color: var(--color-bazi-red);
+  color: var(--gold);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  text-shadow: 0 0 12px rgba(212, 168, 75, 0.4);
 }
 </style>
