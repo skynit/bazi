@@ -41,7 +41,8 @@ type BaziResult struct {
 	DaYunInfo        DaYunInfo            `json:"da_yun_info"`
 	ClashHarmony     []ClashRelation      `json:"clash_harmony"`
 	GanZhiAnalysis   GanZhiAnalysis       `json:"gan_zhi_analysis"`
-	MingGong         string               `json:"ming_gong"`
+	PatternAnalysis PatternAnalysis      `json:"pattern_analysis"`
+	MingGong         MingGongDetail      `json:"ming_gong"`
 	RiZhuDesc        string               `json:"ri_zhu_desc"`
 	PillarDetails    []PillarDetail       `json:"pillar_details"`
 	DayStemTiaoHou   string               `json:"tiao_hou"`
@@ -53,6 +54,7 @@ type BaziResult struct {
 	SeasonText       string               `json:"season_text"`
 	SeasonTextMonth  string               `json:"season_text_month"` // month-specific YueTexts when available
 	TenGodProportion []TenGodRatio        `json:"ten_god_proportion"`
+	TenGodAnalysis   *TenGodAnalysis      `json:"ten_god_analysis"`
 	RiZhuPoem        string               `json:"ri_zhu_poem"`
 	RiZhuSource      string               `json:"ri_zhu_source"`
 	RiZhuComment     string               `json:"ri_zhu_comment"`
@@ -154,8 +156,12 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	result.DayPillar = pillarFromSixtyCycle(ec.GetDay())
 	result.HourPillar = pillarFromSixtyCycle(ec.GetHour())
 
-	// MingGong from day branch
-	result.MingGong = MingGong[ZhiIndex(result.DayPillar.Zhi)]
+	// MingGong from year gan, month zhi, hour zhi (《渊海子平》古法)
+	mingGongGanZhi, err := CalcMingGong(result.YearPillar.Gan, result.MonthPillar.Zhi, result.HourPillar.Zhi)
+	if err != nil {
+		return nil, fmt.Errorf("计算命宫失败: %w", err)
+	}
+	result.MingGong = BuildMingGongDetail(mingGongGanZhi)
 	// RiZhuDesc from day pillar (key format: dayGan + "日" + dayZhi e.g. "甲日甲子")
 	riZhuKey := result.DayPillar.Gan + "日" + result.DayPillar.Zhi
 	result.RiZhuDesc = SiZiSummaries[riZhuKey]
@@ -184,9 +190,17 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	result.GanZhiAnalysis = CalcGanZhiAnalysis(
 		result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar,
 	)
+	result.PatternAnalysis = analyzePatternExtended(
+		[]model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar},
+		result.MonthPillar.Zhi,
+		result.FiveElements,
+		result.BodyStrength,
+	)
 
 	// --- enrich pillar details ---
 	result.TenGodProportion = calcTenGodProportion(&ec, result.DayPillar.Gan)
+	analyzer := &TenGodAnalyzer{}
+	result.TenGodAnalysis = analyzer.AnalyzeTenGod(result.TenGodProportion)
 	s.enrichPillarDetails(result, month, gender)
 
 	enrichRiZhuText(result)
@@ -443,14 +457,14 @@ var tianGanMap = map[string]struct {
 }
 
 // yueLingMatrix: rows = day element (木火土金水), cols = month branch element
-// 旺(3) 同我, 相(2) 我生, 休(1) 生我, 囚死(0) 克我/我克
+// 旺(3) 同我, 相(2) 我生, 休(1) 生我, 囚(0) 克我, 死(0) 我克
 var yueLingMatrix = [5][5]float64{
 	// 木   火   土   金   水   ← 月支五行
-	{3, 2, 1, 0, 0}, // 木日主：木木旺，木火相，木土休，木金囚，木水死
-	{0, 3, 2, 1, 0}, // 火日主
-	{0, 0, 3, 2, 1}, // 土日主
-	{1, 0, 0, 3, 2}, // 金日主
-	{2, 1, 0, 0, 3}, // 水日主
+	{3, 2, 0, 0, 1}, // 木日主: 旺(木) 相(火) 死(土) 囚(金) 休(水)
+	{1, 3, 2, 0, 0}, // 火日主: 休(木) 旺(火) 相(土) 死(金) 囚(水)
+	{0, 1, 3, 2, 0}, // 土日主: 囚(木) 休(火) 旺(土) 相(金) 死(水)
+	{0, 0, 1, 3, 2}, // 金日主: 死(木) 囚(火) 休(土) 旺(金) 相(水)
+	{2, 0, 0, 1, 3}, // 水日主: 相(木) 死(火) 囚(土) 休(金) 旺(水)
 }
 
 func getYueLingScore(dayElem string, monthBranchElem string) float64 {
@@ -489,13 +503,14 @@ func isRestrict(gan string, dayElem string) bool {
 	if tg.WuXing == dayElem {
 		return false // 同五行已由 isSupport 处理
 	}
-	// 克我：木克土、火克金、土克水、金克木、水克火
-	// 泄我：木泄水、火泄木、土泄火、金泄土、水泄火
-	// 克我者
+	// 克我: gan克day
+	// 我生(泄): day生gan
+	// 我克(耗): day克gan
 	ke := map[string]string{"木": "土", "火": "金", "土": "水", "金": "木", "水": "火"}
-	// 泄我者（我生者）
-	xie := map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
-	return ke[tg.WuXing] == dayElem || xie[tg.WuXing] == dayElem
+	sheng := map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
+	return ke[tg.WuXing] == dayElem ||        // 克我
+		sheng[dayElem] == tg.WuXing ||        // 我生(泄)
+		ke[dayElem] == tg.WuXing              // 我克(耗)
 }
 
 // zangGanWeight returns the藏干 weight for a given earth branch position.
@@ -595,6 +610,9 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 
 	// 总分
 	totalScore := lingScore*3 + diScore*2 + shiScore*1 + shengScore*1
+	if totalScore < 0 {
+		totalScore = 0
+	}
 
 	var verdict string
 	var like, dislike []string
@@ -604,12 +622,22 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		verdict = "身弱"
 	}
 
+	// 根据日主五行动态计算喜忌
+	// 身旺: 喜克泄耗(克我+我生+我克), 忌生扶(生我+同我)
+	// 身弱: 喜生扶(生我+同我), 忌克泄耗(克我+我生+我克)
+	allElems := []string{"木", "火", "土", "金", "水"}
+	idx := elementIdx[dayElem]
+	sameElem := allElems[idx]             // 同我(比劫)
+	supportElem := allElems[(idx+4)%5]    // 生我(印星)
+	drainElem := allElems[(idx+1)%5]      // 我生(食伤)
+	controlElem := allElems[(idx+3)%5]    // 克我(官杀)
+	wealthElem := allElems[(idx+2)%5]     // 我克(财)
 	if verdict == "身旺" {
-		like = []string{"金", "水", "木"}
-		dislike = []string{"火", "土"}
+		like = []string{controlElem, drainElem, wealthElem}
+		dislike = []string{supportElem, sameElem}
 	} else {
-		like = []string{"火", "土"}
-		dislike = []string{"金", "水", "木"}
+		like = []string{supportElem, sameElem}
+		dislike = []string{controlElem, drainElem, wealthElem}
 	}
 
 	return BodyStrengthResult{

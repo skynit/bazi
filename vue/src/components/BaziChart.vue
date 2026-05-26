@@ -71,6 +71,28 @@ function zhiRelClass(type: string): string {
   return ''
 }
 
+function ganRelSymbol(type: string): string {
+  if (type === '五合') return '合'
+  if (type === '相克') return '克'
+  return '生'
+}
+
+function zhiRelSymbol(type: string): string {
+  if (type === '六冲') return '冲'
+  if (type === '六合') return '合'
+  if (type === '六害') return '害'
+  if (type === '相刑') return '刑'
+  return '会'
+}
+
+function relationSummary(detail: string): string {
+  return String(detail || '').split('\n')[0] || ''
+}
+
+function relationDescription(detail: string): string {
+  return String(detail || '').split('\n').slice(1).join('\n').trim()
+}
+
 const elemColor = (e: string) =>
   ({ 金: '#FFD700', 木: '#228B22', 水: '#4169E1', 火: '#DC143C', 土: '#DAA520' })[e] || '#999'
 
@@ -111,6 +133,18 @@ function strengthLevel(total: number): string {
   if (total <= 15) return 'medium'
   if (total <= 25) return 'strong'
   return 'very-strong'
+}
+
+// MingGong shensha classification
+const jiShenSha = new Set(['天福', '天贵', '天权', '天印', '天艺', '天寿'])
+const xiongShenSha = new Set(['天刃', '天破', '天奸', '天孤', '天刑', '天囚'])
+
+function isJiShenSha(name: string): boolean {
+  return jiShenSha.has(name)
+}
+
+function isXiongShenSha(name: string): boolean {
+  return xiongShenSha.has(name)
 }
 
 const fiveElementsOption = computed(() => {
@@ -415,18 +449,17 @@ const tenGodChartOptions = computed(() => {
       <div v-if="ganZhi" class="ganzhi-analysis">
         <!-- 天干关系 -->
         <div v-if="ganZhi.gan_relations?.length > 0" class="relations-section">
-          <div class="relations-title">天干关系</div>
-          <div class="relations-list">
-            <div
-              v-for="(rel, ri) in ganZhi.gan_relations"
-              :key="'g'+ri"
-              class="rel-chip"
-              :class="ganRelClass(rel.type)"
-            >
-              <span>{{ rel.pillar1 }}</span>
-              <span class="rel-symbol">{{ rel.type === '五合' ? '合' : rel.type === '相克' ? '克' : '生' }}</span>
-              <span>{{ rel.pillar2 }}</span>
-              <span class="rel-detail">{{ rel.detail }}</span>
+          <div class="relations-title">
+            <span class="relations-title-icon">◇</span>
+            天干关系
+          </div>
+          <div class="ganzhi-rows">
+            <div v-for="(rel, ri) in ganZhi.gan_relations" :key="'g'+ri" class="ganzhi-row" :class="ganRelClass(rel.type)" :style="{ animationDelay: Number(ri) * 0.06 + 's' }">
+              <div class="ganzhi-headline">
+                <span class="pillar-name">{{ rel.pillar1 }}{{ ganRelSymbol(rel.type) }}{{ rel.pillar2 }}</span>
+                <span class="ganzhi-summary">{{ relationSummary(rel.detail) }}</span>
+              </div>
+              <div v-if="relationDescription(rel.detail)" class="ganzhi-detail">{{ relationDescription(rel.detail) }}</div>
             </div>
           </div>
         </div>
@@ -434,18 +467,17 @@ const tenGodChartOptions = computed(() => {
 
         <!-- 地支关系 -->
         <div v-if="ganZhi.zhi_relations?.length > 0" class="relations-section">
-          <div class="relations-title">地支关系</div>
-          <div class="relations-list">
-            <div
-              v-for="(rel, ri) in ganZhi.zhi_relations"
-              :key="'z'+ri"
-              class="rel-chip"
-              :class="zhiRelClass(rel.type)"
-            >
-              <span>{{ rel.pillar1 }}</span>
-              <span class="rel-symbol">{{ rel.type === '六冲' ? '冲' : rel.type === '六合' ? '合' : rel.type === '六害' ? '害' : rel.type === '相刑' ? '刑' : '会' }}</span>
-              <span>{{ rel.pillar2 }}</span>
-              <span class="rel-detail">{{ rel.detail }}</span>
+          <div class="relations-title">
+            <span class="relations-title-icon">◇</span>
+            地支关系
+          </div>
+          <div class="ganzhi-rows">
+            <div v-for="(rel, ri) in ganZhi.zhi_relations" :key="'z'+ri" class="ganzhi-row" :class="zhiRelClass(rel.type)" :style="{ animationDelay: Number(ri) * 0.06 + 's' }">
+              <div class="ganzhi-headline">
+                <span class="pillar-name">{{ rel.pillar1 }}{{ zhiRelSymbol(rel.type) }}{{ rel.pillar2 }}</span>
+                <span class="ganzhi-summary">{{ relationSummary(rel.detail) }}</span>
+              </div>
+              <div v-if="relationDescription(rel.detail)" class="ganzhi-detail">{{ relationDescription(rel.detail) }}</div>
             </div>
           </div>
         </div>
@@ -484,7 +516,31 @@ const tenGodChartOptions = computed(() => {
           </div>
         </div>
 
-        <!-- Body Strength -->
+        <!-- Pattern Analysis -->
+        <div v-if="chart.pattern_analysis" class="analysis-block">
+          <div class="block-title">命局格局</div>
+          <div class="pattern-detail">
+            <div class="pattern-header">
+              <span class="pattern-name">{{ chart.pattern_analysis.pattern_name }}</span>
+              <span class="pattern-type-tag" :class="chart.pattern_analysis.pattern_type === '特殊格局' ? 'tag-special' : 'tag-normal'">
+                {{ chart.pattern_analysis.pattern_type }}
+              </span>
+            </div>
+            <p class="pattern-desc">{{ chart.pattern_analysis.description }}</p>
+            <div class="pattern-elems">
+              <div v-if="chart.pattern_analysis.favorable_elements?.length" class="pattern-favor">
+                <span class="pattern-elem-label">喜</span>
+                <span v-for="e in chart.pattern_analysis.favorable_elements" :key="'fav'+e" class="pattern-elem-tag favor">{{ e }}</span>
+              </div>
+              <div v-if="chart.pattern_analysis.unfavorable_elements?.length" class="pattern-avoid">
+                <span class="pattern-elem-label">忌</span>
+                <span v-for="e in chart.pattern_analysis.unfavorable_elements" :key="'unf'+e" class="pattern-elem-tag avoid">{{ e }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+                <!-- Body Strength -->
         <div v-if="chart.body_strength" class="analysis-block">
           <div class="block-title">身旺喜忌</div>
           <div class="body-strength">
@@ -515,6 +571,43 @@ const tenGodChartOptions = computed(() => {
           <div class="ten-god-chart-wrap">
             <v-chart class="ten-god-chart" :option="(tenGodChartOptions as any)" autoresize />
           </div>
+        </div>
+
+        <!-- TenGodAnalysis -->
+        <div v-if="chart.ten_god_analysis" class="analysis-block">
+          <div class="block-title">十神综合解读</div>
+          <el-tabs class="ten-god-tabs" tab-position="top">
+            <el-tab-pane label="综合概述">
+              <div class="tg-summary">{{ chart.ten_god_analysis.summary }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="性格特点">
+              <div class="tg-text">{{ chart.ten_god_analysis.personality }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="人际关系">
+              <div class="tg-text">{{ chart.ten_god_analysis.interpersonal }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="事业财运">
+              <div class="tg-text">{{ chart.ten_god_analysis.career_fortune }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="感情姻缘">
+              <div class="tg-text">{{ chart.ten_god_analysis.emotion_relation }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="健康提醒">
+              <div class="tg-text">{{ chart.ten_god_analysis.health_note }}</div>
+            </el-tab-pane>
+            <el-tab-pane label="十神详解">
+              <div class="tg-god-list">
+                <div v-for="god in chart.ten_god_analysis.god_relations" :key="god.god" class="tg-god-card">
+                  <div class="tg-god-header">
+                    <span class="tg-god-name">{{ god.god }}</span>
+                    <span class="tg-god-pct">{{ god.percent }}</span>
+                  </div>
+                  <div class="tg-god-meaning">{{ god.meaning }}</div>
+                  <div class="tg-god-advice">{{ god.advice }}</div>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
         </div>
 
         <!-- NaYin -->
@@ -610,9 +703,23 @@ const tenGodChartOptions = computed(() => {
         </div>
 
         <!-- MingGong -->
-        <div v-if="chart.ming_gong" class="analysis-block">
-          <div class="block-title">命宫</div>
-          <p class="ming-gong-text">{{ chart.ming_gong }}</p>
+        <div v-if="chart.ming_gong && chart.ming_gong.gan_zhi" class="analysis-block">
+          <div class="block-title">命宫 · 第五柱</div>
+          <div class="ming-gong-detail">
+            <div class="ming-gong-main">
+              <span class="ming-gong-ganzhi">{{ chart.ming_gong.gan_zhi }}</span>
+              <span v-if="chart.ming_gong.nayin" class="ming-gong-nayin">({{ chart.ming_gong.nayin }})</span>
+            </div>
+            <div v-if="chart.ming_gong.shen_sha" class="ming-gong-shensha">
+              <span class="shensha-badge" :class="{ 'shensha-ji': isJiShenSha(chart.ming_gong.shen_sha), 'shensha-xiong': isXiongShenSha(chart.ming_gong.shen_sha) }">
+                {{ chart.ming_gong.shen_sha }}星
+              </span>
+              <span class="shensha-desc">{{ chart.ming_gong.shen_sha_desc }}</span>
+            </div>
+            <div v-if="chart.ming_gong.zhi_detail" class="ming-gong-zhi">
+              {{ chart.ming_gong.zhi_detail }}
+            </div>
+          </div>
         </div>
 
         <!-- TiaoHou -->
@@ -809,100 +916,111 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid;
 }
 
-/* Relations */
-.relations-section {
-  padding: 0.875rem 1.25rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
-}
+/* ===== 天干地支关系 — 紧凑卡片布局 ===== */
 
-.relations-title {
-  font-size: 0.75rem;
-  color: var(--muted);
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-
-.relations-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.rel-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* 天干地支分析 */
 .ganzhi-analysis {
   margin-top: 4px;
 }
 
-/* 关系颜色 */
-.rel-he {
-  background: rgba(74, 222, 128, 0.08);
-  color: #4ade80;
-  border: 1px solid rgba(74, 222, 128, 0.15);
+.relations-section {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
 }
 
-.rel-ke {
-  background: rgba(196, 30, 58, 0.08);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.15);
-}
-
-.rel-sheng {
-  background: rgba(65, 105, 225, 0.08);
-  color: #6495ed;
-  border: 1px solid rgba(65, 105, 225, 0.15);
-}
-
-.rel-chong {
-  background: rgba(196, 30, 58, 0.1);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.2);
-}
-
-.rel-hai {
-  background: rgba(255, 140, 0, 0.08);
-  color: #ff8c00;
-  border: 1px solid rgba(255, 140, 0, 0.15);
-}
-
-.rel-xing {
-  background: rgba(138, 43, 226, 0.08);
-  color: #ba55d3;
-  border: 1px solid rgba(138, 43, 226, 0.15);
-}
-
-.rel-hui {
-  background: rgba(65, 105, 225, 0.08);
-  color: #6495ed;
-  border: 1px solid rgba(65, 105, 225, 0.15);
-}
-
-.rel-symbol {
-  font-weight: 700;
-}
-
-.rel-detail {
+.relations-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.7rem;
-  opacity: 0.7;
-  margin-left: 2px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.relations-title-icon {
+  font-size: 0.5rem;
+  color: rgba(212, 168, 75, 0.4);
+}
+
+.ganzhi-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ganzhi-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 10px;
+  border-radius: 0 6px 6px 0;
+  background: rgba(255, 255, 255, 0.015);
+  border-left: 2px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: relationSlideIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.ganzhi-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-left-width: 3px;
+  transform: translateX(2px);
+}
+
+.ganzhi-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pillar-name {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ganzhi-summary {
+  color: var(--gold);
+  font-family: var(--font-serif), serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ganzhi-detail {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.7rem;
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* —— 关系颜色 —— */
+.ganzhi-row.rel-he { border-left-color: #4ade80; }
+.ganzhi-row.rel-ke { border-left-color: #dc143c; }
+.ganzhi-row.rel-sheng { border-left-color: #6495ed; }
+.ganzhi-row.rel-chong { border-left-color: #dc143c; }
+.ganzhi-row.rel-hai { border-left-color: #ff8c00; }
+.ganzhi-row.rel-xing { border-left-color: #ba55d3; }
+.ganzhi-row.rel-hui { border-left-color: #6495ed; }
+
+@keyframes relationSlideIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 .no-relations {
-  padding: 0.875rem 1.25rem;
+  padding: 0.5rem 1rem;
   text-align: center;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
+  font-style: italic;
 }
 
 /* Analysis sections */
@@ -1183,7 +1301,172 @@ const tenGodChartOptions = computed(() => {
   border-radius: 4px;
 }
 
-.ming-gong-text,
+/* Pattern Analysis */
+.pattern-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pattern-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pattern-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+.pattern-type-tag {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tag-special {
+  background: rgba(186, 85, 211, 0.12);
+  color: #ba55d3;
+  border: 1px solid rgba(186, 85, 211, 0.22);
+}
+
+.tag-normal {
+  background: rgba(100, 149, 237, 0.1);
+  color: #6495ed;
+  border: 1px solid rgba(100, 149, 237, 0.18);
+}
+
+.pattern-desc {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.pattern-elems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pattern-favor,
+.pattern-avoid {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.pattern-elem-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.pattern-favor .pattern-elem-label {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.pattern-avoid .pattern-elem-label {
+  background: rgba(196, 30, 58, 0.1);
+  color: var(--crimson);
+  border: 1px solid rgba(196, 30, 58, 0.2);
+}
+
+.pattern-elem-tag {
+  font-size: 0.7rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 3px;
+}
+
+.pattern-elem-tag.favor {
+  background: rgba(74, 222, 128, 0.06);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.12);
+}
+
+.pattern-elem-tag.avoid {
+  background: rgba(196, 30, 58, 0.06);
+  color: var(--crimson);
+  border: 1px solid rgba(196, 30, 58, 0.12);
+}
+
+.ming-gong-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ming-gong-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ming-gong-ganzhi {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+}
+
+.ming-gong-nayin {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ming-gong-shensha {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.shensha-badge {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(100, 100, 100, 0.25);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.shensha-badge.shensha-ji {
+  background: rgba(196, 164, 75, 0.18);
+  color: var(--gold);
+  border: 1px solid rgba(212, 168, 75, 0.25);
+}
+
+.shensha-badge.shensha-xiong {
+  background: rgba(196, 30, 58, 0.14);
+  color: #f87171;
+  border: 1px solid rgba(196, 30, 58, 0.22);
+}
+
+.shensha-desc {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+}
+
+.ming-gong-zhi {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+  border-left: 2px solid rgba(212, 168, 75, 0.25);
+  padding-left: 0.6rem;
+}
+
 .ri-zhu-text,
 .tiao-hou-text,
 .jin-bu-huan-text,
@@ -1345,6 +1628,70 @@ const tenGodChartOptions = computed(() => {
 .ten-god-chart {
   width: 100%;
   height: 220px;
+}
+.ten-god-tabs {
+  --el-color-primary: #D4A84B;
+}
+.ten-god-tabs .el-tabs__item {
+  color: rgba(255,255,255,0.55);
+  font-size: 13px;
+}
+.ten-god-tabs .el-tabs__item.is-active {
+  color: #D4A84B;
+}
+.ten-god-tabs .el-tabs__nav-wrap::after {
+  background: rgba(212,168,75,0.1);
+}
+.tg-summary {
+  background: rgba(212,168,75,0.06);
+  border: 1px solid rgba(212,168,75,0.12);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.85);
+}
+.tg-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.8);
+}
+.tg-god-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tg-god-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,168,75,0.1);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+}
+.tg-god-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.tg-god-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #D4A84B;
+}
+.tg-god-pct {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+}
+.tg-god-meaning {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 4px;
+}
+.tg-god-advice {
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(212,168,75,0.7);
 }
 </style>
 

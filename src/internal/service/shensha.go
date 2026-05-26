@@ -174,19 +174,21 @@ var monthXiaoShi = map[string]string{
 	"子": "卯", "丑": "子", "寅": "酉", "卯": "午", "辰": "卯", "巳": "子",
 	"午": "酉", "未": "午", "申": "卯", "酉": "子", "戌": "酉", "亥": "午",
 }
+// --- 月支追加：天杀（正月起戌顺行十二宫）、大败 ---
 var monthTianSha = map[string]string{
-	"子": "丑", "丑": "戌", "寅": "未", "卯": "辰", "辰": "丑", "巳": "戌",
-	"午": "未", "未": "辰", "申": "丑", "酉": "戌", "戌": "未", "亥": "辰",
+	"寅": "戌", "卯": "亥", "辰": "子", "巳": "丑",
+	"午": "寅", "未": "卯", "申": "辰", "酉": "巳",
+	"戌": "午", "亥": "未", "子": "申", "丑": "酉",
 }
 var monthDaBai = map[string]string{
 	"子": "巳", "丑": "午", "寅": "酉", "卯": "子", "辰": "酉", "巳": "午",
 	"午": "酉", "未": "子", "申": "卯", "酉": "午", "戌": "卯", "亥": "子",
 }
 
-// --- 四大空亡 ---
-var siDaKongWang = map[string][]string{
-	"甲子": {"水", "火"}, "甲午": {"水", "火"},
-	"甲申": {"金", "木"}, "甲寅": {"金", "木"},
+// --- 四大空亡：每旬只有一种五行空亡 ---
+var siDaKongWang = map[string]string{
+	"甲子": "水", "甲午": "水",
+	"甲申": "金", "甲寅": "金",
 }
 
 // --- 孤辰寡宿：按年支/日支所在三会方查找（非三合局） ---
@@ -489,6 +491,10 @@ func addGlobalShenSha(p shenShaPillars, res *shenShaCalcResult) {
 }
 
 func addGongLuGongGui(p shenShaPillars, res *shenShaCalcResult) {
+	// 拱禄/拱贵要求日柱与时柱天干相同
+	if p.Day.Gan != p.Hour.Gan {
+		return
+	}
 	dIdx := ZhiIndex(p.Day.Zhi)
 	hIdx := ZhiIndex(p.Hour.Zhi)
 	if dIdx < 0 || hIdx < 0 {
@@ -696,11 +702,11 @@ func addDayExtra(p shenShaPillars, branches []string, res *shenShaCalcResult) {
 	if chongZhi := zhiLiuChong[luZhi]; chongZhi != "" && branchInList(chongZhi, branches) {
 		appendShenSha(&res.Day, "飞禄", chongZhi)
 	}
-	// 交禄：日干与年/月/时干合且合干之禄在地支
+	// 交禄：日干与年/月/时干合（不含自己合自己）且合干之禄在地支
 	for _, pair := range []struct{ gan, pillar string }{
 		{p.Year.Gan, "年"}, {p.Month.Gan, "月"}, {p.Hour.Gan, "时"},
 	} {
-		if ganHe[p.Day.Gan] == pair.gan && pair.gan != "" {
+		if ganHe[p.Day.Gan] == pair.gan && pair.gan != "" && pair.gan != p.Day.Gan {
 			partnerLu := luShenZhi[pair.gan]
 			if partnerLu != "" && branchInList(partnerLu, branches) {
 				appendShenSha(&res.Day, "交禄", partnerLu)
@@ -708,11 +714,13 @@ func addDayExtra(p shenShaPillars, branches []string, res *shenShaCalcResult) {
 			break
 		}
 	}
-	// 四大空亡
-	if empty := siDaKongWang[p.Day.Gan+p.Day.Zhi]; empty != nil {
-		for _, elem := range empty {
-			if anyBranchHasElement(elem, branches) {
-				appendShenSha(&res.Day, "四大空亡", elem)
+	// 四大空亡：按日柱旬空，查每柱纳音五行是否为空亡五行
+	if empty := siDaKongWang[p.Day.Gan+p.Day.Zhi]; empty != "" {
+		for _, pillar := range []model.Pillar{p.Year, p.Month, p.Day, p.Hour} {
+			naYin := Nayin[GanIndex(pillar.Gan)][ZhiIndex(pillar.Zhi)]
+			if entry := NaYinMap[naYin]; entry.Element == empty {
+				appendShenSha(&res.Day, "四大空亡", empty)
+				break
 			}
 		}
 	}
@@ -754,7 +762,7 @@ func addGenderBasedShenSha(p shenShaPillars, branches []string, res *shenShaCalc
 		}
 		appendShenSha(&res.Year, "勾绞煞", label)
 	}
-	if hasGou || hasJiao {
+	if hasGou && hasJiao {
 		appendShenSha(&res.Year, "暴败煞", gouTarget+jiaoTarget)
 	}
 }
@@ -906,7 +914,9 @@ func hasDeXiu(monthZhi, gan string) bool {
 
 func isTongZiSha(monthZhi, hourZhi string) bool {
 	switch monthZhi {
-	case "寅", "卯", "辰", "申", "酉", "戌":
+	case "寅", "卯", "辰":
+		return hourZhi == "寅" || hourZhi == "子"
+	case "申", "酉", "戌":
 		return hourZhi == "寅" || hourZhi == "子"
 	case "亥", "子", "丑":
 		return hourZhi == "卯" || hourZhi == "未"

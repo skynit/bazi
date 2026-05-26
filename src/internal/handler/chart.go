@@ -95,9 +95,10 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		"ten_gods":       result.TenGods,
 		"hidden_stems":   result.HiddenStems,
 		"da_yun":         result.DaYunInfo,
-		"clash_harmony":      result.ClashHarmony,
-			"gan_zhi_analysis":   result.GanZhiAnalysis,
-		"ming_gong":      result.MingGong,
+		"clash_harmony":     result.ClashHarmony,
+		"gan_zhi_analysis":  result.GanZhiAnalysis,
+		"pattern_analysis":  result.PatternAnalysis,
+		"ming_gong":         result.MingGong,
 		"ri_zhu_desc":    result.RiZhuDesc,
 		"pillar_details": result.PillarDetails,
 		"tiao_hou":       result.DayStemTiaoHou,
@@ -112,6 +113,7 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		"shen_sha_by_pillar":   result.ShenShaByPillar,
 		"shen_sha_summary":     result.ShenShaSummary,
 		"ten_god_proportion":   result.TenGodProportion,
+		"ten_god_analysis":    result.TenGodAnalysis,
 		"birth_month":          req.BirthMonth,
 	})
 }

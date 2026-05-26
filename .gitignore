@@ -11,8 +11,6 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -24,17 +22,25 @@ dist-ssr
 vue/node_modules*
 vue/node_modules.old/
 *.md
-*.json
 *.txt
+# Re-include important JSON config files
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
 
 dev-debug.log
 # Dependency directories
 node_modules/
 # Environment variables
 .env
-.vscode
 # OS specific
 
 # Task files
 tasks.json
 tasks/ 
+
+cmd/
+!cmd/main.go
+!cmd/database.go
+__debug_*
+data/

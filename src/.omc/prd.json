@@ -1,0 +1,81 @@
+{
+  "version": "1.0",
+  "stories": [
+    {
+      "id": "US-001",
+      "subject": "定义 NaYinEntry 结构体",
+      "description": "在 data_gans.go 中定义 NaYinEntry 结构体，包含 Name、StemBranches、Element、ImageDesc、Personality、EnergyStage、Modern联想、Judgments 字段",
+      "acceptanceCriteria": [
+        "NaYinEntry 结构体在 data_gans.go 中定义，包含所有8个字段",
+        "结构体字段类型正确（string、[]string 等）"
+      ],
+      "priority": 1,
+      "passes": true
+    },
+    {
+      "id": "US-002",
+      "subject": "构建30种纳音知识库数据",
+      "description": "在 src/internal/service/nayin_knowledge.go 中存储30种纳音完整数据（金、木、水、火、土各6种）",
+      "acceptanceCriteria": [
+        "nayin_knowledge.go 文件存在且包含30种纳音完整数据",
+        "每种纳音包含 Name、StemBranches、Element、ImageDesc、Personality、EnergyStage、Modern联想、Judgments 全部8个属性",
+        "数据覆盖用户提供的所有示例（杨柳木、大林木、松柏木等）"
+      ],
+      "priority": 2,
+      "passes": true
+    },
+    {
+      "id": "US-003",
+      "subject": "初始化 data_gans.go 中的知识库",
+      "description": "在 data_gans.go init() 中将nayin_knowledge.go的数据写入全局 NaYinMap",
+      "acceptanceCriteria": [
+        "data_gans.go 导入 nayin_knowledge.go",
+        "init() 中完成 NaYinMap 的初始化（60条干支组合 → 纳音名 → NaYinEntry）"
+      ],
+      "priority": 3,
+      "passes": true
+    },
+    {
+      "id": "US-004",
+      "subject": "更新 calcNaYin 返回 NaYinEntry",
+      "description": "修改 bazi.go 中 calcNaYin 函数的返回类型，从 map[string]string 改为 map[string]NaYinInfo",
+      "acceptanceCriteria": [
+        "calcNaYin 函数签名更新，返回 map[string]NaYinInfo",
+        "BaziResult.NaYin 字段类型同步更新为 map[string]NaYinInfo",
+        "calcNaYin 中通过 NaYinMap[纳音名] 查找完整条目"
+      ],
+      "priority": 4,
+      "passes": true
+    },
+    {
+      "id": "US-005",
+      "subject": "更新 DTO 和前端适配",
+      "description": "更新 dto.go 中的 NaYin 相关字段类型，确保证据链完整",
+      "acceptanceCriteria": [
+        "dto.go 中 NaYin 相关字段类型已更新为 NaYinInfo 或兼容格式"
+      ],
+      "priority": 5,
+      "passes": true
+    },
+    {
+      "id": "US-006",
+      "subject": "修复测试断言",
+      "description": "更新测试中 NaYin 相关断言以适应新的返回结构",
+      "acceptanceCriteria": [
+        "go test ./... 通过"
+      ],
+      "priority": 6,
+      "passes": true
+    },
+    {
+      "id": "US-007",
+      "subject": "构建验证",
+      "description": "运行 go build ./... 确认无编译错误",
+      "acceptanceCriteria": [
+        "go build ./... 成功，无错误"
+      ],
+      "priority": 7,
+      "passes": true
+    }
+  ]
+}

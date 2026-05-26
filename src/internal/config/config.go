@@ -9,6 +9,8 @@ type Config struct {
 	DBUser     string
 	DBPass     string
 	DBName     string
+	SQLitePath string
+	UseSQLite  bool
 	JWTSecret  string
 	ServerPort string
 }
@@ -16,12 +18,17 @@ type Config struct {
 // Load reads configuration from environment variables, applying defaults.
 // Uses mock-mode defaults (no MySQL) when DB_HOST is not set.
 func Load() *Config {
+	dbHost := getEnv("DB_HOST", "")
+	useSQLite := dbHost == ""
+	sqlitePath := getEnv("SQLITE_PATH", "./data/bazi.db")
 	return &Config{
-		DBHost:     getEnv("DB_HOST", ""),
+		DBHost:     dbHost,
 		DBPort:     getEnv("DB_PORT", "3306"),
 		DBUser:     getEnv("DB_USER", "root"),
 		DBPass:     getEnv("DB_PASS", ""),
 		DBName:     getEnv("DB_NAME", "bazi"),
+		SQLitePath: sqlitePath,
+		UseSQLite:  useSQLite,
 		JWTSecret:  getEnv("JWT_SECRET", "dev-secret"),
 		ServerPort: getEnv("SERVER_PORT", "8088"),
 	}

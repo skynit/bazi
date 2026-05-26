@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"testing"
 
 	"bazi/internal/model"
@@ -114,25 +115,23 @@ func TestCalcGanZhiAnalysisSample(t *testing.T) {
 
 	result := CalcGanZhiAnalysis(year, month, day, hour)
 
-	// 天干：戊癸合(年日) ✅, 丙辛 should be 月日 or 月时... 丙+辛? No 辛 in chart.
-	// 癸=年, 丙=月, 戊=日, 己=时
-	// GanHe: 戊癸合(日+年=戊癸合火)
+	// 天干：戊癸合(年日) → "癸合戊（无情之合）" + explanation
 	foundHe := false
 	for _, r := range result.GanRelations {
-		if r.Type == "五合" && (r.Detail == "戊癸合火" || r.Detail == "癸戊合火") {
+		if r.Type == "五合" && (containsStr(r.Detail, "癸合戊") || containsStr(r.Detail, "戊合癸")) {
 			foundHe = true
 			break
 		}
 	}
 	if !foundHe {
-		t.Errorf("should find 戊癸合火 in gan relations: %+v", result.GanRelations)
+		t.Errorf("should find 戊癸合 in gan relations: %+v", result.GanRelations)
 	}
 
-	// 地支：午未合 (月日or日时)
+	// 地支：午未合
 	foundLiuHe := false
-	foundChong := false // 未丑冲 → no丑 in chart
+	foundChong := false
 	for _, r := range result.ZhiRelations {
-		if r.Type == "六合" && r.Detail == "午未合" {
+		if r.Type == "六合" && (containsStr(r.Detail, "午未合") || containsStr(r.Detail, "未午合")) {
 			foundLiuHe = true
 		}
 		if r.Type == "六冲" {
@@ -145,6 +144,10 @@ func TestCalcGanZhiAnalysisSample(t *testing.T) {
 	if foundChong {
 		t.Errorf("should NOT find 六冲 in this chart: %+v", result.ZhiRelations)
 	}
+}
+
+func containsStr(s, substr string) bool {
+	return strings.Contains(s, substr)
 }
 
 func containsInSlice(slice []string, target string) bool {

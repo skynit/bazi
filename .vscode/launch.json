@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Backend (Go)",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/cmd",
+      "cwd": "${userHome}/bin/bazi",
+      "env": {
+        "SQLITE_PATH": "${userHome}/bin/bazi/data/bazi.db"
+      },
+      "showLog": true
+    },
+    {
+      "name": "Launch Frontend (Vue)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/vue",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch All (Backend + Frontend)",
+      "configurations": ["Launch Backend (Go)", "Launch Frontend (Vue)"],
+      "stopAll": true
+    }
+  ]
+}

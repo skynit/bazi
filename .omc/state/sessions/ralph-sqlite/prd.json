@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Add SQLite configuration to config.go",
+      "description": "Add SQLitePath config and UseSQLite flag",
+      "passes": true,
+      "acceptanceCriteria": [
+        "config.go has SQLitePath string field with default './data/bazi.db'",
+        "config.go has UseSQLite bool that is true when DB_HOST is empty",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Create FortuneRecord model",
+      "description": "New GORM model for fortune history persistence",
+      "passes": true,
+      "acceptanceCriteria": [
+        "src/internal/model/fortune_record.go exists with FortuneRecord struct",
+        "FortuneRecord has gorm.Model, UserID, ChartID, Date, PeriodType, Pillar (JSON), Score, FiveElement (JSON), Luck (JSON), Advice fields",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Implement database initialization in main.go",
+      "description": "initDatabase() function with SQLite/MySQL driver selection",
+      "passes": true,
+      "acceptanceCriteria": [
+        "main.go has initDatabase() that opens SQLite when UseSQLite is true",
+        "initDatabase() uses WAL mode for SQLite",
+        "AutoMigrate runs for BirthChart and FortuneRecord",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Create DBChartStore",
+      "description": "Implement ChartStoreInterface using GORM",
+      "passes": true,
+      "acceptanceCriteria": [
+        "src/internal/store/db_chart_store.go exists",
+        "DBChartStore implements Create, FindByID, ListByUser, Update methods",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Create DBFortuneStore",
+      "description": "Implement FortuneStoreInterface using GORM",
+      "passes": true,
+      "acceptanceCriteria": [
+        "src/internal/store/db_fortune_store.go exists",
+        "DBFortuneStore implements Create, FindByUser, ListByUser methods",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Wire DB stores into handlers in main.go",
+      "description": "Replace memChartStore/memFortuneStore with DB stores",
+      "passes": true,
+      "acceptanceCriteria": [
+        "main.go uses DBChartStore and DBFortuneStore instead of in-memory stores",
+        "go build ./cmd/ passes"
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Verify end-to-end persistence",
+      "description": "Test SQLite persistence works for charts and fortune history",
+      "passes": true,
+      "acceptanceCriteria": [
+        "go test ./... passes",
+        "data/bazi.db file is created on first run",
+        "Chart records persist across server restarts"
+      ]
+    }
+  ]
+}

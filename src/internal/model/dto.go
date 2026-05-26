@@ -63,6 +63,16 @@ type NaYinInfo struct {
 	Judgments   []string `json:"judgments"`
 }
 
+type MingGongDTO struct {
+	GanZhi      string `json:"gan_zhi"`
+	Gan         string `json:"gan"`
+	Zhi         string `json:"zhi"`
+	ShenSha     string `json:"shen_sha"`
+	ShenShaDesc string `json:"shen_sha_desc"`
+	ZhiDetail   string `json:"zhi_detail"`
+	Nayin       string `json:"nayin"`
+}
+
 type ChartResponse struct {
 	YearPillar    Pillar                   `json:"year_pillar"`
 	MonthPillar   Pillar                   `json:"month_pillar"`
@@ -70,7 +80,7 @@ type ChartResponse struct {
 	HourPillar    Pillar                   `json:"hour_pillar"`
 	FiveElements  map[string]int            `json:"five_elements"`
 	NaYin         map[string]NaYinInfo      `json:"na_yin"`
-	MingGong      string                   `json:"ming_gong"`
+	MingGong      MingGongDTO              `json:"ming_gong"`
 	RiZhuDesc     string                   `json:"ri_zhu_desc"`
 }
 

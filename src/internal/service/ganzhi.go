@@ -1,6 +1,10 @@
 package service
 
-import "bazi/internal/model"
+import (
+	"fmt"
+
+	"bazi/internal/model"
+)
 
 // ============================================================
 // 天干新增数据（已有：Gans, GanElement, ganHe 在 data_gans.go / shensha.go）
@@ -84,6 +88,142 @@ var ZhiXing = map[string]string{
 }
 
 // ============================================================
+// 解释器：天干地支关系命理解读
+// ============================================================
+
+// ganHeName 天干五合名称
+var ganHeName = map[string]string{
+	"甲己": "中正之合", "己甲": "中正之合",
+	"乙庚": "仁义之合", "庚乙": "仁义之合",
+	"丙辛": "威制之合", "辛丙": "威制之合",
+	"丁壬": "淫慝之合", "壬丁": "淫慝之合",
+	"戊癸": "无情之合", "癸戊": "无情之合",
+}
+
+// pillarMeaning 柱位含义
+var pillarMeaning = map[string]string{
+	labelYear:  "祖上、童年、大环境",
+	labelMonth: "父母、兄弟、青年、事业",
+	labelDay:   "自身、配偶、中年",
+	labelHour:  "子女、晚年、事业成果",
+}
+
+func interpretGanHe(gan1, gan2, label1, label2, hua string) string {
+	pair := gan1 + gan2
+	name := ganHeName[pair]
+	base := fmt.Sprintf("%s合%s（%s）", gan1, gan2, name)
+	var body string
+	switch {
+	case (label1 == labelYear && label2 == labelDay) || (label1 == labelDay && label2 == labelYear):
+		body = fmt.Sprintf("【祖上与自身的羁绊】年柱与日柱相合，代表祖辈、家庭背景与你的自身及婚姻有深刻联结。合化为%s，增强了命局的融合与协调。", hua)
+	case (label1 == labelMonth && label2 == labelDay) || (label1 == labelDay && label2 == labelMonth):
+		body = fmt.Sprintf("【事业与自身的和谐】月柱与日柱相合，代表你的内在自我与外部事业环境高度契合，配偶或合作对象与你的社会追求相辅相成。合化为%s，带来稳定与助力。", hua)
+	case (label1 == labelDay && label2 == labelHour) || (label1 == labelHour && label2 == labelDay):
+		body = fmt.Sprintf("【自身与晚年的联结】日柱与时柱相合，主自身与子女、晚年归宿关系紧密，家庭生活对你的晚年有深远影响。合化为%s，晚年生活丰足。", hua)
+	case (label1 == labelYear && label2 == labelMonth) || (label1 == labelMonth && label2 == labelYear):
+		body = fmt.Sprintf("【祖上对事业的牵引】年柱与月柱相合，祖辈、原生家庭对你的青少年时期和事业起步有决定性影响，形成了一种承前启后的良性互动。合化为%s。", hua)
+	case (label1 == labelYear && label2 == labelHour) || (label1 == labelHour && label2 == labelYear):
+		body = fmt.Sprintf("【祖上与晚景的呼应】年柱与时柱遥合，虽然距离较远，但仍主祖辈福德荫及晚年，或子女与你原生家庭有相似特质。合化为%s，影响较隐晦。", hua)
+	case (label1 == labelMonth && label2 == labelHour) || (label1 == labelHour && label2 == labelMonth):
+		body = fmt.Sprintf("【事业与晚年的过渡】月柱与时柱相合，青年事业与晚年归宿一脉相承，社会成就可能转化为晚年的安定。合化为%s。", hua)
+	default:
+		body = fmt.Sprintf("%s与%s天干相合，化气为%s，加强了两柱的联系。", label1, label2, hua)
+	}
+	return base + "\n" + body
+}
+
+func interpretGanKe(ganKe, ganBeiKe, labelKe, labelBeiKe string) string {
+	base := fmt.Sprintf("%s克%s", ganKe, ganBeiKe)
+	var body string
+	switch {
+	case (labelKe == labelYear && labelBeiKe == labelDay) || (labelKe == labelDay && labelBeiKe == labelYear):
+		body = fmt.Sprintf("【祖上对自身的约束】%s克%s，年柱与日柱相克，代表祖辈家庭或早年环境对你自身发展有一定的限制或磨砺，需通过努力突破固有框架。", ganKe, ganBeiKe)
+	case (labelKe == labelMonth && labelBeiKe == labelDay):
+		body = "【事业对自身的压力】月柱克日柱，事业、外部环境对个人形成压力，但也可能促使你不断成长，将压力转化为动力。"
+	case (labelKe == labelDay && labelBeiKe == labelHour):
+		body = "【自身对晚年的主导】日柱克时柱，你对子女、晚景有较强的控制欲或责任感，晚年生活会按你的意愿发展。"
+	case (labelKe == labelHour && labelBeiKe == labelYear):
+		body = "【晚年与根源的调和】时柱克年柱，子女、晚年的理念或环境可能对原生家庭的影响进行修正，带来新的局面。"
+	default:
+		body = fmt.Sprintf("%s与%s相克，存在互相制约的关系，需注意相关领域的人际关系与健康。", labelKe, labelBeiKe)
+	}
+	return base + "\n" + body
+}
+
+func interpretGanSheng(shengGan, shouGan, labelSheng, labelShou string) string {
+	base := fmt.Sprintf("%s生%s", shengGan, shouGan)
+	var body string
+	switch {
+	case (labelSheng == labelMonth && labelShou == labelDay):
+		body = "【事业对自身的强力支撑】月柱生扶日柱，代表父母、事业环境对你自身有极大的帮助和滋养，是你力量的重要来源。"
+	case (labelSheng == labelDay && labelShou == labelHour):
+		body = "【自身对晚年的付出】日柱生扶时柱，你对子女及晚年生活倾注大量心血，晚年也将因此获得回报和满足感。"
+	case (labelSheng == labelYear && labelShou == labelDay):
+		body = "【祖上对自身的生扶】年柱生扶日柱，祖辈福荫深厚，对你自身发展有正面影响，根基扎实。"
+	case (labelSheng == labelYear && labelShou == labelMonth):
+		body = "【祖上对事业的荫庇】年柱生扶月柱，原生家庭对事业起步提供良好基础。"
+	case (labelSheng == labelMonth && labelShou == labelHour):
+		body = "【事业对晚年的铺垫】月柱生扶时柱，青年时期的奋斗成果将滋养晚年生活。"
+	default:
+		body = fmt.Sprintf("%s生扶%s，两者相生有情，代表相关宫位间有良好的助益关系。", labelSheng, labelShou)
+	}
+	return base + "\n" + body
+}
+
+func interpretZhiLiuHe(zhi1, zhi2, label1, label2 string) string {
+	base := fmt.Sprintf("%s%s合", zhi1, zhi2)
+	var body string
+	switch {
+	case (label1 == labelDay && label2 == labelHour) || (label1 == labelHour && label2 == labelDay):
+		body = "【自身与晚年的强连接】日时地支相合，婚姻家庭对晚年生活有决定性的影响，子女缘佳，晚景安稳。"
+	case (label1 == labelYear && label2 == labelDay) || (label1 == labelDay && label2 == labelYear):
+		body = "【根基与婚姻的深度融合】年日地支相合，祖上与自身、婚姻紧密相连，家族因素对择偶和婚姻质量影响较大。"
+	case (label1 == labelYear && label2 == labelMonth) || (label1 == labelMonth && label2 == labelYear):
+		body = "【祖上与事业的联结】年月地支相合，原生家庭与你的事业起点有密切关联，父母助力或影响较大。"
+	case (label1 == labelMonth && label2 == labelHour) || (label1 == labelHour && label2 == labelMonth):
+		body = "【事业与晚年的呼应】月时地支相合，早年事业经历可能在晚年重现或转化，带来安定的结局。"
+	default:
+		body = fmt.Sprintf("%s与%s地支六合，代表两者关系亲密，相互吸引。", label1, label2)
+	}
+	return base + "\n" + body
+}
+
+func interpretZhiSanHui(zhi1, zhi2, label1, label2 string) string {
+	base := fmt.Sprintf("%s%s会", zhi1, zhi2)
+	element := ""
+	if g, ok := ZhiSanHui[zhi1]; ok {
+		switch g[0] {
+		case "寅":
+			element = "木"
+		case "巳":
+			element = "火"
+		case "申":
+			element = "金"
+		case "亥":
+			element = "水"
+		}
+	}
+	var body string
+	switch {
+	case (label1 == labelYear && label2 == labelHour) || (label1 == labelHour && label2 == labelYear):
+		body = fmt.Sprintf("【祖上与晚景的呼应】年时地支同会%s方，祖辈与子女有相似气质，晚年环境与童年根源产生呼应，加强了%s的厚重特质。", element, element)
+	case (label1 == labelDay && label2 == labelHour) || (label1 == labelHour && label2 == labelDay):
+		body = fmt.Sprintf("【自身与晚年的共鸣】日时地支同会%s方，家庭与晚年生活深度融合，晚年精神世界富足。", element)
+	case (label1 == labelYear && label2 == labelDay) || (label1 == labelDay && label2 == labelYear):
+		body = fmt.Sprintf("【根基与自身的统一】年日地支同会%s方，祖辈传承与个人发展一脉相承，自我认同感强。", element)
+	default:
+		body = fmt.Sprintf("%s与%s地支同会%s方，具有同类相聚的增强效应。", label1, label2, element)
+	}
+	return base + "\n" + body
+}
+
+func interpretZhiGeneric(relType, zhi1, zhi2, label1, label2 string) string {
+	base := fmt.Sprintf("%s%s%s", zhi1, zhi2, relType)
+	body := fmt.Sprintf("【%s与%s的%s关系】代表%s与%s之间存在矛盾、变动或潜在的不和谐因素，需注意相关领域的沟通与健康。", label1, label2, relType, pillarMeaning[label1], pillarMeaning[label2])
+	return base + "\n" + body
+}
+
+// ============================================================
 // 天干地支综合分析
 // ============================================================
 
@@ -156,21 +296,26 @@ func calcGanPairRelations(label1, gan1, label2, gan2 string) []GanRelation {
 	if ganHe[gan1] == gan2 {
 		pair := gan1 + gan2
 		hua := GanHeHua[pair]
-		rels = append(rels, GanRelation{label1, label2, "五合", gan1 + gan2 + "合" + hua})
+		detail := interpretGanHe(gan1, gan2, label1, label2, hua)
+		rels = append(rels, GanRelation{label1, label2, "五合", detail})
 	}
 
 	// 相克
 	if GanKe[gan1] == gan2 {
-		rels = append(rels, GanRelation{label1, label2, "相克", gan1 + "克" + gan2})
+		detail := interpretGanKe(gan1, gan2, label1, label2)
+		rels = append(rels, GanRelation{label1, label2, "相克", detail})
 	} else if GanKe[gan2] == gan1 {
-		rels = append(rels, GanRelation{label1, label2, "相克", gan2 + "克" + gan1})
+		detail := interpretGanKe(gan2, gan1, label2, label1)
+		rels = append(rels, GanRelation{label1, label2, "相克", detail})
 	}
 
 	// 相生
 	if GanSheng[gan1] == gan2 {
-		rels = append(rels, GanRelation{label1, label2, "相生", gan1 + "生" + gan2})
+		detail := interpretGanSheng(gan1, gan2, label1, label2)
+		rels = append(rels, GanRelation{label1, label2, "相生", detail})
 	} else if GanSheng[gan2] == gan1 {
-		rels = append(rels, GanRelation{label1, label2, "相生", gan2 + "生" + gan1})
+		detail := interpretGanSheng(gan2, gan1, label2, label1)
+		rels = append(rels, GanRelation{label1, label2, "相生", detail})
 	}
 
 	return rels
@@ -181,17 +326,20 @@ func calcZhiPairRelations(label1, zhi1, label2, zhi2 string) []ZhiRelation {
 
 	// 六冲
 	if zhiLiuChong[zhi1] == zhi2 {
-		rels = append(rels, ZhiRelation{label1, label2, "六冲", zhi1 + zhi2 + "冲"})
+		detail := interpretZhiGeneric("冲", zhi1, zhi2, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "六冲", detail})
 	}
 
 	// 六合
 	if zhiLiuHe[zhi1] == zhi2 {
-		rels = append(rels, ZhiRelation{label1, label2, "六合", zhi1 + zhi2 + "合"})
+		detail := interpretZhiLiuHe(zhi1, zhi2, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "六合", detail})
 	}
 
 	// 六害
 	if ZhiLiuHai[zhi1] == zhi2 {
-		rels = append(rels, ZhiRelation{label1, label2, "六害", zhi1 + zhi2 + "害"})
+		detail := interpretZhiGeneric("害", zhi1, zhi2, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "六害", detail})
 	}
 
 	// 相刑
@@ -207,14 +355,16 @@ func calcZhiPairRelations(label1, zhi1, label2, zhi2 string) []ZhiRelation {
 		default:
 			xingName = "自刑"
 		}
-		rels = append(rels, ZhiRelation{label1, label2, "相刑", zhi1 + zhi2 + "刑（" + xingName + "）"})
+		detail := interpretZhiGeneric("刑（"+xingName+"）", zhi1, zhi2, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "相刑", detail})
 	}
 
-	// 三会（同在三会方）
+	// 三会（两支即视为半会，有会意）
 	if group := ZhiSanHui[zhi1]; group != nil {
 		for _, z := range group {
 			if z == zhi2 {
-				rels = append(rels, ZhiRelation{label1, label2, "三会", zhi1 + zhi2 + "会"})
+				detail := interpretZhiSanHui(zhi1, zhi2, label1, label2)
+				rels = append(rels, ZhiRelation{label1, label2, "三会", detail})
 				break
 			}
 		}

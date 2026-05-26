@@ -57,7 +57,6 @@ type LuckyGuide struct {
 // generates/overcomes relationships for wuxing
 var generates = map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
 var overcomes = map[string]string{"木": "土", "土": "水", "水": "火", "火": "金", "金": "木"}
-var generatedBy = map[string]string{"木": "水", "火": "木", "土": "火", "金": "土", "水": "金"}
 
 var shichenInfo = []struct {
 	name, timeRange, desc string
@@ -90,7 +89,7 @@ func AnalyzeDailyFortune(userBazi *BaziResult, todayDayGan, todayDayZhi string) 
 	todayZhiElem := ZhiElement[todayDayZhi]
 
 	// 判断身旺程度
-	isStrong := isBodyStrong(userBazi)
+	isStrong := userBazi.BodyStrength.Verdict == "身旺"
 
 	// 十神关系
 	rel := tenGodRelation(userDayGan, todayDayGan, isStrong)
@@ -138,22 +137,8 @@ func AnalyzeDailyFortune(userBazi *BaziResult, todayDayGan, todayDayZhi string) 
 		Overall:     OverallAnalysis{baseScore, stars, summary, keyTip},
 		Categories:  categories,
 		Hourly:      makeHourly(todayDayGan, todayDayZhi, isFavorableRel(rel)),
-		LuckyGuide:  makeLuckyGuide(todayDayGan, todayDayZhi, userElem),
+		LuckyGuide:  makeLuckyGuide(todayDayGan, todayDayZhi, userElem, userBazi.BodyStrength.Like, userBazi.BodyStrength.Dislike),
 	}
-}
-
-// ── 身旺判断 ─────────────────────────────────────────────────
-
-func isBodyStrong(bazi *BaziResult) bool {
-	fireEarth := 0
-	total := 0
-	for _, v := range bazi.FiveElements {
-		total += v
-	}
-	for _, el := range []string{"火", "土"} {
-		fireEarth += bazi.FiveElements[el]
-	}
-	return total > 0 && float64(fireEarth)/float64(total) > 0.45
 }
 
 // ── 十神关系 ─────────────────────────────────────────────────
@@ -689,35 +674,28 @@ func makeHourly(dayGan, dayZhi string, favorable bool) []HourlyFortune {
 
 // ── 开运指南 ─────────────────────────────────────────────────
 
-func makeLuckyGuide(dayGan, dayZhi, userElem string) LuckyGuide {
+func makeLuckyGuide(dayGan, dayZhi, userElem string, like, dislike []string) LuckyGuide {
 	elem := GanElement[dayGan]
 	colors := map[string]string{"木": "绿色、青色", "火": "红色、紫色", "土": "黄色、棕色", "金": "白色、金色", "水": "黑色、蓝色"}
 	numbers := map[string]string{"木": "3、8", "火": "2、7", "土": "5、0", "金": "4、9", "水": "1、6"}
 	avoidDirs := map[string]string{"木": "西方", "火": "北方", "土": "东方", "金": "南方", "水": "中央"}
 	faceDirs := map[string]string{"木": "东方", "火": "南方", "土": "中央", "金": "西方", "水": "北方"}
 
-	genElem := generatedBy[userElem]
-
-	// 喜用五行：生我者 + 比和
-	var favorable, unfavorable []string
-	allElems := []string{"金", "木", "水", "火", "土"}
-	for _, el := range allElems {
-		if el == genElem || el == userElem {
-			favorable = append(favorable, el)
-		} else if overcomes[el] == userElem {
-			unfavorable = append(unfavorable, el)
-		}
+	// 以首选用神(like[0])作为当日开运元素
+	primaryElem := userElem
+	if len(like) > 0 {
+		primaryElem = like[0]
 	}
 
 	return LuckyGuide{
-		Colors:           fmt.Sprintf("%s（%s）、%s（%s）", colors[genElem], genElem, colors[userElem], userElem),
-		Numbers:          fmt.Sprintf("%s；%s", numbers[genElem], numbers[userElem]),
-		Actions:          fmt.Sprintf("随身携带%s属性物品；面向%s方工作", genElem, faceDirs[genElem]),
+		Colors:           fmt.Sprintf("%s（%s）、%s（%s）", colors[primaryElem], primaryElem, colors[userElem], userElem),
+		Numbers:          fmt.Sprintf("%s；%s", numbers[primaryElem], numbers[userElem]),
+		Actions:          fmt.Sprintf("随身携带%s属性物品；面向%s方工作", primaryElem, faceDirs[primaryElem]),
 		AvoidDir:         avoidDirs[elem],
-		FaceDir:          faceDirs[genElem],
-		Outfit:           fmt.Sprintf("%s色上衣+%s色裤子", colors[genElem], colors[userElem]),
-		FavorableElems:   favorable,
-		UnfavorableElems: unfavorable,
+		FaceDir:          faceDirs[primaryElem],
+		Outfit:           fmt.Sprintf("%s色上衣+%s色裤子", colors[primaryElem], colors[userElem]),
+		FavorableElems:   like,
+		UnfavorableElems: dislike,
 	}
 }
 

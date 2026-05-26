@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "stories": [
+    {
+      "id": "US-001",
+      "subject": "创建纳音详情浮层组件",
+      "description": "在 BaziChart.vue 中添加纳音详情浮层组件",
+      "acceptanceCriteria": [
+        "新增 NaYinDetail 组件（或内联实现），显示 name/element/image_desc/personality/energy_stage/modern_ext/judgments 全部7个字段",
+        "浮层样式与现有深色玻璃态风格一致",
+        "浮层通过点击外部关闭"
+      ],
+      "priority": 1,
+      "passes": true
+    },
+    {
+      "id": "US-002",
+      "subject": "替换纳音展示为可点击标签组",
+      "description": "将现有的 flat tag list 替换为可点击的纳音标签组",
+      "acceptanceCriteria": [
+        "四柱纳音均以可点击标签展示",
+        "标签带五行颜色边框（与现有element-color体系一致）",
+        "点击标签弹出详情浮层"
+      ],
+      "priority": 2,
+      "passes": true
+    },
+    {
+      "id": "US-003",
+      "subject": "验证构建",
+      "description": "运行 npm run build 确认 TypeScript 类型检查通过",
+      "acceptanceCriteria": [
+        "npm run build 成功，无错误"
+      ],
+      "priority": 3,
+      "passes": true
+    }
+  ]
+}

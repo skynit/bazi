@@ -488,6 +488,121 @@ hourOk:
 	}
 }
 
+func TestYueLingMatrixCorrectValues(t *testing.T) {
+	// Verify that 休(生我)=1 and 死(我克)=0 are in the right positions for each day element
+	tests := []struct {
+		dayElem  string
+		expected [5]float64 // 木火土金水 order for month branch
+	}{
+		{"木", [5]float64{3, 2, 0, 0, 1}}, // 旺木 相火 死土 囚金 休水
+		{"火", [5]float64{1, 3, 2, 0, 0}}, // 休木 旺火 相土 死金 囚水
+		{"土", [5]float64{0, 1, 3, 2, 0}}, // 囚木 休火 旺土 相金 死水
+		{"金", [5]float64{0, 0, 1, 3, 2}}, // 死木 囚火 休土 旺金 相水
+		{"水", [5]float64{2, 0, 0, 1, 3}}, // 相木 死火 囚土 休金 旺水
+	}
+	for _, tc := range tests {
+		for mi, monthElem := range []string{"木", "火", "土", "金", "水"} {
+			got := getYueLingScore(tc.dayElem, monthElem)
+			want := tc.expected[mi]
+			if got != want {
+				t.Errorf("%s日主在%s月: 得令分=%.0f, want %.0f", tc.dayElem, monthElem, got, want)
+			}
+		}
+	}
+}
+
+func TestCalcBodyStrengthLikeDislikeDynamic(t *testing.T) {
+	svc := &BaziService{}
+	result, err := svc.Calculate(1990, 1, 15, 8, 0, "MALE") // 庚午 戊寅 己亥 戊辰
+	if err != nil {
+		t.Fatalf("Calculate failed: %v", err)
+	}
+	bs := result.BodyStrength
+	dayGan := result.DayPillar.Gan // 己 → 土日主
+	_ = dayGan
+	// 己土日主, 身旺or身弱 depends on the actual computation
+	// Verify like/dislike are 5 elements total (no empty, no duplicates)
+	allElems := map[string]bool{"木": false, "火": false, "土": false, "金": false, "水": false}
+	for _, e := range bs.Like {
+		allElems[e] = true
+	}
+	for _, e := range bs.Dislike {
+		allElems[e] = true
+	}
+	for elem, found := range allElems {
+		if !found {
+			t.Errorf("element %s not in like or dislike: like=%v dislike=%v", elem, bs.Like, bs.Dislike)
+		}
+	}
+	if len(bs.Like)+len(bs.Dislike) != 5 {
+		t.Errorf("like+dislike should cover all 5 elements: like=%v dislike=%v", bs.Like, bs.Dislike)
+	}
+	t.Logf("己土日主(1990-01-15): verdict=%s like=%v dislike=%v total=%.2f ling=%.2f di=%.2f shi=%.2f sheng=%.2f",
+		bs.Verdict, bs.Like, bs.Dislike, bs.TotalScore, bs.LingScore, bs.DiScore, bs.ShiScore, bs.ShengScore)
+}
+
+func TestCalcBodyStrengthVerdictThreshold(t *testing.T) {
+	svc := &BaziService{}
+
+	for _, tc := range []struct {
+		name   string
+		year   int
+		month  int
+		day    int
+		hour   int
+		gender string
+	}{
+		// 1990-01-15: 己巳年 丁丑月 庚辰日 庚辰时 (金日主, 丑月=土, 土生金=休=1)
+		{"金日主_丑月_1990", 1990, 1, 15, 8, "MALE"},
+		// 2000-06-01: 庚辰年 壬午月 庚寅日 壬午时 (金日主, 午月=火, 火克金=囚=0)
+		{"金日主_午月_2000", 2000, 6, 1, 12, "FEMALE"},
+		// 2003-04-15: 癸未年 丙辰月 戊午日 己未时 (土日主, 辰月=土, 同=旺=3)
+		{"土日主_辰月_2003", 2003, 4, 15, 13, "MALE"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := svc.Calculate(tc.year, tc.month, tc.day, tc.hour, 0, tc.gender)
+			if err != nil {
+				t.Fatalf("Calculate failed: %v", err)
+			}
+			bs := result.BodyStrength
+			if bs.Verdict != "身旺" && bs.Verdict != "身弱" {
+				t.Errorf("verdict should be 身旺 or 身弱, got %q", bs.Verdict)
+			}
+			if bs.TotalScore < 0 {
+				t.Errorf("total score should be >= 0, got %.2f", bs.TotalScore)
+			}
+			t.Logf("%s: dayGan=%s verdict=%s total=%.2f ling=%.2f di=%.2f shi=%.2f sheng=%.2f like=%v dislike=%v",
+				tc.name, result.DayPillar.Gan, bs.Verdict, bs.TotalScore,
+				bs.LingScore, bs.DiScore, bs.ShiScore, bs.ShengScore,
+				bs.Like, bs.Dislike)
+		})
+	}
+}
+
+func TestCalcBodyStrengthIndividualScores(t *testing.T) {
+	svc := &BaziService{}
+	result, err := svc.Calculate(2003, 4, 15, 13, 0, "MALE") // 癸未 丙辰 戊午 己未
+	if err != nil {
+		t.Fatalf("Calculate failed: %v", err)
+	}
+	bs := result.BodyStrength
+
+	// 戊土日主生于辰月(土月) → 同我=旺=3 → 得令分应≥2
+	if bs.LingScore < 2 {
+		t.Errorf("戊土日主在辰(土)月, 得令分应≥2, got %.2f", bs.LingScore)
+	}
+	// 得分应≥0 (四柱地支中有比劫/印星藏干: 午藏丁(火生土=印), 未藏己(土=比), 辰藏戊(土=比))
+	if bs.DiScore <= 0 {
+		t.Errorf("戊土在辰月应有点得地分, got %.2f", bs.DiScore)
+	}
+	// 得生分: 天干地支藏干中丙(火生土=印)多处 → 应>0
+	if bs.ShengScore <= 0 {
+		t.Errorf("戊土日主有丙火印星, 得生分应>0, got %.2f", bs.ShengScore)
+	}
+	t.Logf("戊土日主(2003-04-15): verdict=%s total=%.2f ling=%.2f di=%.2f shi=%.2f sheng=%.2f like=%v dislike=%v",
+		bs.Verdict, bs.TotalScore, bs.LingScore, bs.DiScore, bs.ShiScore, bs.ShengScore, bs.Like, bs.Dislike)
+}
+
 func TestYueKongByMonthXunKong(t *testing.T) {
 	got := calcShenShaByPillars(shenShaPillars{
 		Year:  model.Pillar{Gan: "癸", Zhi: "未"},
