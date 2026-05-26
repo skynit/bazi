@@ -6,7 +6,7 @@ import (
 	"bazi/internal/middleware"
 	"bazi/internal/model"
 	"bazi/internal/service"
-	"fmt"
+	"bazi/internal/store"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"sync"
@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// === Mock stores for local dev ===
+// memUserStore persists users in memory (auth only — user accounts use in-memory store).
 type memUserStore struct {
 	mu    sync.Mutex
 	users map[uint]*model.User
@@ -49,100 +49,18 @@ func (s *memUserStore) FindByID(id uint) (*model.User, error) {
 	return nil, nil
 }
 
-type memChartStore struct {
-	mu     sync.Mutex
-	charts map[uint]*model.BirthChart
-	next   uint
-}
-
-func newMemChartStore() *memChartStore {
-	return &memChartStore{charts: map[uint]*model.BirthChart{}, next: 1}
-}
-func (s *memChartStore) Create(c *model.BirthChart) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	c.ID = s.next
-	s.next++
-	s.charts[c.ID] = c
-	return nil
-}
-func (s *memChartStore) FindByID(id uint) (*model.BirthChart, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if c, ok := s.charts[id]; ok {
-		return c, nil
-	}
-	return nil, nil
-}
-func (s *memChartStore) ListByUser(uid uint, page, size int) ([]model.BirthChart, int64, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	var r []model.BirthChart
-	for _, c := range s.charts {
-		if c.UserID == uid {
-			r = append(r, *c)
-		}
-	}
-	return r, int64(len(r)), nil
-}
-func (s *memChartStore) Update(c *model.BirthChart) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if _, ok := s.charts[c.ID]; !ok {
-		return fmt.Errorf("chart %d not found", c.ID)
-	}
-	s.charts[c.ID] = c
-	return nil
-}
-
-type memFortuneStore struct {
-	mu      sync.Mutex
-	records []model.HistoryResponse
-}
-
-func newMemFortuneStore() *memFortuneStore {
-	return &memFortuneStore{}
-}
-
-func (s *memFortuneStore) SaveRecord(r model.HistoryResponse) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.records = append(s.records, r)
-}
-
-func (s *memFortuneStore) ListByChartID(cid uint, page, size int) ([]model.HistoryResponse, int64, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	var matched []model.HistoryResponse
-	for _, r := range s.records {
-		if r.ChartID == cid {
-			matched = append(matched, r)
-		}
-	}
-	total := int64(len(matched))
-	start := (page - 1) * size
-	if start >= len(matched) {
-		return nil, total, nil
-	}
-	end := start + size
-	if end > len(matched) {
-		end = len(matched)
-	}
-	return matched[start:end], total, nil
-}
-
 func main() {
 	cfg := config.Load()
 	middleware.InitJWT(cfg.JWTSecret)
 
-	log.Printf("Starting server on :%s (mock stores, no MySQL)", cfg.ServerPort)
+	db := initDatabase(cfg)
+	cs := store.NewDBChartStore(db)
+	fs := store.NewDBFortuneStore(db)
 
 	us := newMemUserStore()
-	cs := newMemChartStore()
 	// Seed admin account
 	hash, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	us.Create(&model.User{Username: "admin", Email: "admin@bazi.com", PasswordHash: string(hash)})
-	fs := newMemFortuneStore()
 
 	baziSvc := &service.BaziService{}
 	parser := &service.InputParser{}
