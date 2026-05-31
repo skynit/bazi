@@ -9,7 +9,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/ziwei"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +27,7 @@ func setupZiWeiPeriodRouter(store ChartStore) *gin.Engine {
 	r := gin.New()
 	api := r.Group("/api")
 	api.Use(middleware.AuthMiddleware())
-	svc := service.NewZiWeiService()
+	svc := ziwei.NewZiWeiService()
 	RegisterZiWeiPeriodRoutes(api, svc, store)
 	return r
 }
@@ -67,7 +67,7 @@ func TestZiWeiPeriodDayun(t *testing.T) {
 	}
 
 	var resp struct {
-		Periods service.Dayun `json:"periods"`
+		Periods ziwei.Dayun `json:"periods"`
 	}
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to parse response: %v", err)

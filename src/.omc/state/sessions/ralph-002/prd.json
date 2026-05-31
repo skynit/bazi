@@ -1,0 +1,130 @@
+{
+  "session_id": "ralph-002",
+  "task": "修复八字算命系统115个问题，确保最精确的算命准确率",
+  "iteration": 1,
+  "stories": [
+    {
+      "id": "US-001",
+      "priority": 1,
+      "description": "修复seasonFromMonth季节映射错误 + DayStemTiaoHou用日支而非月支",
+      "passes": true,
+      "acceptanceCriteria": [
+        "seasonFromMonth(3)返回'春'而非'夏'",
+        "seasonFromMonth(5)返回'夏'而非'秋'",
+        "DayStemTiaoHou使用月支而非日支作为lookup key",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-002",
+      "priority": 2,
+      "description": "修复月德贵人数组索引偏移 + 天德合缺失地支版本",
+      "passes": true,
+      "acceptanceCriteria": [
+        "MonthShenMap YueDe数组正确：寅月=壬,卯月=庚,辰月=丙,巳月=甲",
+        "天德在地支时(巳申亥寅)能正确计算天德合",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-003",
+      "priority": 3,
+      "description": "修复从化格/从煞格喜忌错误 + 格局优先顺序",
+      "passes": true,
+      "acceptanceCriteria": [
+        "从化格FavorableElements使用huaElem而非dayElem计算",
+        "弃命从煞格FavorableElements不包含食伤",
+        "从化格在从强格之前判断",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-004",
+      "priority": 4,
+      "description": "修复三会局检测缺失 + 三刑单向检测 + 六冲文案错误",
+      "passes": true,
+      "acceptanceCriteria": [
+        "calcZhiPairRelations检测三会局(ZhiSanHui)",
+        "三刑检测支持所有组合内配对",
+        "interpretZhiChong月时相冲文案正确",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-005",
+      "priority": 5,
+      "description": "修复data_shengxiao.go大面积数据错乱",
+      "passes": true,
+      "acceptanceCriteria": [
+        "SanHe三合数据全部正确",
+        "SanHui三会数据全部正确",
+        "LiuHe六合数据全部正确",
+        "Po相破数据全部正确",
+        "Hai六害数据全部正确",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-006",
+      "priority": 6,
+      "description": "修复纳音数据错误 + 命名不一致",
+      "passes": true,
+      "acceptanceCriteria": [
+        "大驿土StemBranches正确为{戊申,己酉}",
+        "壁上土/城头土/砂中土StemBranches不为空",
+        "金泊金改为金箔金",
+        "砂中金/沙中金命名统一",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-007",
+      "priority": 7,
+      "description": "修复buildHealth十神-脏腑映射逻辑 + 身强弱双重计分",
+      "passes": true,
+      "acceptanceCriteria": [
+        "buildHealth先求十神五行再映射脏腑",
+        "得势不重复计算藏干",
+        "shengScore保留累加值而非二元化",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-008",
+      "priority": 8,
+      "description": "修复TiaoHou map与TiaohouData不一致 + 含地支字符",
+      "passes": true,
+      "acceptanceCriteria": [
+        "TiaoHou map与TiaohouData主要用神一致",
+        "TiaoHou map不含地支字符(申/巳等)",
+        "TiaoHou map不含中文注释(夜生贵等)",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-009",
+      "priority": 9,
+      "description": "修复FortuneAnalyzer逻辑错误 + Handler/DTO输出问题",
+      "passes": true,
+      "acceptanceCriteria": [
+        "makeSummary喜忌分支可达",
+        "scoreHealth不硬编码'克土'",
+        "FortuneResponse包含SeasonElementAdvice和FlowImpact",
+        "dailyFortuneToResponse映射完整",
+        "go build ./... 通过"
+      ]
+    },
+    {
+      "id": "US-010",
+      "priority": 10,
+      "description": "修复UTF-8乱码 + 数据不一致 + 其他中低级问题",
+      "passes": true,
+      "acceptanceCriteria": [
+        "data_wuxing_season.go无UTF-8乱码",
+        "specialDayShenShaRules与SpecialDayShenShaMap一致",
+        "十恶大败包含己丑日",
+        "go build ./... 通过"
+      ]
+    }
+  ]
+}

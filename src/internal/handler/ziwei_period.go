@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/ziwei"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,13 +15,13 @@ import (
 // ZiWeiPeriodHandler handles period (dayun/liunian/liuyue/liuri) and overlay calculations.
 type ZiWeiPeriodHandler struct {
 	Charts  ChartStore
-	Service interface{}
+	Service *ziwei.ZiWeiService
 }
 
 // getChart looks up the birth chart and calculates the ZiWeiChart.
-func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*service.ZiWeiChart, *model.BirthChart, error) {
-	svc, ok := h.Service.(*service.ZiWeiService)
-	if !ok || svc == nil {
+// Uses cached result when available (same as ziwei_chart.go).
+func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*ziwei.ZiWeiChart, *model.BirthChart, error) {
+	if h.Service == nil {
 		return nil, nil, fmt.Errorf("service not available")
 	}
 	birthChart, err := h.Charts.FindByID(chartID)
@@ -30,7 +31,14 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*service.ZiWeiChart, *model
 	if birthChart == nil {
 		return nil, nil, fmt.Errorf("chart not found")
 	}
-	chart, err := svc.CalculateChart(birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender)
+	// Try cached result first
+	if birthChart.ZiWeiComputed && len(birthChart.ZiWeiResult) > 0 {
+		var cached ziwei.ZiWeiChart
+		if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
+			return &cached, birthChart, nil
+		}
+	}
+	chart, err := h.Service.CalculateChart(birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender)
 	if err != nil {
 		return nil, nil, fmt.Errorf("chart calculation failed: %w", err)
 	}
@@ -64,7 +72,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		return
 	}
 
-	svc, _ := h.Service.(*service.ZiWeiService)
+	svc := h.Service
 
 	switch req.PeriodType {
 	case "dayun":
@@ -186,7 +194,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liunian := svc.CalculateLiunian(chart, year)
-		interp := service.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
 		result := interp.AnalyzeLiunian(liunian, year)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
 			{
@@ -211,7 +219,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liuyue := svc.CalculateLiuyue(chart, month)
-		interp := service.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
 		result := interp.AnalyzeLiuyue(liuyue, year, month)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
 			{
@@ -241,16 +249,16 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			month = int(time.Now().Month())
 		}
 		liuri := svc.CalculateLiuri(chart, day)
-		interp := service.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
 		result := interp.AnalyzeLiuri(liuri, year, month, day)
 		// Convert HourlyAnalysis to []gin.H for JSON
 		hourly := make([]gin.H, len(result.HourlyAnalysis))
-		for i, h := range result.HourlyAnalysis {
+		for i, ha := range result.HourlyAnalysis {
 			hourly[i] = gin.H{
-				"hour":        h.Hour,
-				"stem_branch": h.StemBranch,
-				"effect":      h.Effect,
-				"score":       h.Score,
+				"hour":        ha.Hour,
+				"stem_branch": ha.StemBranch,
+				"effect":      ha.Effect,
+				"score":       ha.Score,
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
@@ -287,7 +295,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		liunian := svc.CalculateLiunian(chart, year)
 		liuyue := svc.CalculateLiuyue(chart, month)
 		liuri := svc.CalculateLiuri(chart, day)
-		interp := service.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
 		summary := interp.SummarizeAll(liunian, liuyue, liuri, year, month, day)
 		c.JSON(http.StatusOK, gin.H{"summary": summary})
 
@@ -329,8 +337,7 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 		return
 	}
 
-	svc, _ := h.Service.(*service.ZiWeiService)
-	liunian := svc.CalculateLiunian(chart, req.Year)
+	liunian := h.Service.CalculateLiunian(chart, req.Year)
 	result := mapChartToResponse(liunian, birthChart.BirthMonth, birthChart.BirthHour)
 	result["year"] = req.Year
 	result["liu_nian_stars"] = liunian.LiuNianStars
@@ -359,7 +366,7 @@ func dayunDesc(palace string, startAge int) string {
 }
 
 // RegisterZiWeiPeriodRoutes registers ZiWei period and overlay routes.
-func RegisterZiWeiPeriodRoutes(r gin.IRouter, svc *service.ZiWeiService, store ChartStore) {
+func RegisterZiWeiPeriodRoutes(r gin.IRouter, svc *ziwei.ZiWeiService, store ChartStore) {
 	h := &ZiWeiPeriodHandler{Service: svc, Charts: store}
 	r.POST("/ziwei/period", h.Period)
 	r.POST("/ziwei/overlay", h.Overlay)

@@ -8,7 +8,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/ziwei"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,7 +52,7 @@ func setupZiWeiCachingRouter(store *ziweiCachingStore) *gin.Engine {
 	r := gin.New()
 	api := r.Group("/api")
 	api.Use(middleware.AuthMiddleware())
-	svc := service.NewZiWeiService()
+	svc := ziwei.NewZiWeiService()
 	RegisterZiWeiRoutesWithStore(api, svc, store)
 	return r
 }

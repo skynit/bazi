@@ -88,7 +88,7 @@ func TestLoadJWTSecretDefault(t *testing.T) {
 	defer os.Unsetenv("JWT_SECRET")
 
 	cfg := Load()
-	if cfg.JWTSecret != "dev-secret" {
-		t.Errorf("expected JWTSecret=dev-secret, got %s", cfg.JWTSecret)
+	if cfg.JWTSecret == "" {
+		t.Error("expected non-empty JWTSecret when JWT_SECRET env is unset")
 	}
 }

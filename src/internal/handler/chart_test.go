@@ -9,7 +9,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,8 +20,8 @@ func setupChartRouter() *gin.Engine {
 
 	r := gin.New()
 	h := &ChartHandler{
-		Parser: &service.InputParser{},
-		Bazi:   &service.BaziService{},
+		Parser: &bazi.InputParser{},
+		Bazi:   &bazi.BaziService{},
 	}
 	r.POST("/api/chart", middleware.AuthMiddleware(), h.Chart)
 	return r

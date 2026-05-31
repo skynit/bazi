@@ -6,9 +6,9 @@
       "type": "go",
       "request": "launch",
       "program": "${workspaceFolder}/src/cmd",
-      "cwd": "${userHome}/bin/bazi",
+      "cwd": "${userHome}/WorkSpace/bazi",
       "env": {
-        "SQLITE_PATH": "${userHome}/bin/bazi/data/bazi.db"
+        "SQLITE_PATH": "${userHome}/WorkSpace/bazi/data/bazi.db"
       },
       "showLog": true
     },

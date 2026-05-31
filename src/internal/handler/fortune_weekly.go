@@ -8,7 +8,8 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
+	"bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,7 @@ type ChartStore interface {
 
 // WeeklyFortuneHandler handles weekly fortune endpoints.
 type WeeklyFortuneHandler struct {
-	Engine *service.FortuneEngine
+	Engine *fortune.FortuneEngine
 	Charts ChartStore
 }
 
@@ -41,7 +42,7 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 
 	gender := normalizeGender(chart.Gender)
 
-	baziSvc := service.BaziService{}
+	baziSvc := bazi.BaziService{}
 	baziResult, err := baziSvc.Calculate(
 		chart.BirthYear, chart.BirthMonth, chart.BirthDay,
 		chart.BirthHour, chart.BirthMin, gender,
@@ -51,7 +52,7 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		return
 	}
 
-	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	startDate, err := time.ParseInLocation("2006-01-02", req.StartDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid start_date format, use YYYY-MM-DD"})
 		return
@@ -85,13 +86,39 @@ func normalizeGender(g string) string {
 	}
 }
 
-func dailyFortuneToResponse(df service.DailyFortune) model.FortuneResponse {
+func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 	yiJi := buildYiJiString(df.Yi, df.Ji)
+
+	yiItems := make([]string, len(df.Yi))
+	for i, item := range df.Yi {
+		yiItems[i] = item.Activity
+	}
+	jiItems := make([]string, len(df.Ji))
+	for i, item := range df.Ji {
+		jiItems[i] = item.Activity
+	}
+
+	luckyNum := 0
+	if len(df.LuckyNumbers) > 0 {
+		luckyNum = df.LuckyNumbers[0]
+	}
+
 	return model.FortuneResponse{
-		SolarDate:     df.Date,
-		DayGanZhi:     df.DayPillar.Gan + df.DayPillar.Zhi,
-		YiJi:          yiJi,
-		ElementImages: df.ElementImages,
+		SolarDate:           df.Date,
+		DayGanZhi:           df.DayPillar.Gan + df.DayPillar.Zhi,
+		YiJi:                yiJi,
+		ElementImages:       df.ElementImages,
+		Score:               df.Score,
+		LuckyColor:          df.LuckyColor,
+		LuckyNumber:         luckyNum,
+		WealthDir:           df.WealthDir,
+		ClashZodiac:         df.ClashZodiac,
+		AuspiciousHours:     df.AuspiciousHours,
+		YiItems:             yiItems,
+		JiItems:             jiItems,
+		TodayElements:       df.TodayElements,
+		SeasonElementAdvice: df.SeasonElementAdvice,
+		FlowImpact:          df.FlowImpact,
 	}
 }
 
@@ -110,7 +137,7 @@ func buildYiJiString(yi, ji []model.YiJiItem) string {
 }
 
 // RegisterFortuneRoutes registers fortune routes requiring JWT.
-func RegisterFortuneRoutes(router *gin.Engine, engine *service.FortuneEngine, charts ChartStore) {
+func RegisterFortuneRoutes(router *gin.Engine, engine *fortune.FortuneEngine, charts ChartStore) {
 	h := &WeeklyFortuneHandler{Engine: engine, Charts: charts}
 
 	fortune := router.Group("/api/fortune")

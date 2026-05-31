@@ -3,10 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
 	"gorm.io/datatypes"
 
 	"github.com/gin-gonic/gin"
@@ -17,13 +18,17 @@ type ChartSaver interface {
 }
 
 type ChartHandler struct {
-	Parser *service.InputParser
-	Bazi   *service.BaziService
+	Parser *bazi.InputParser
+	Bazi   *bazi.BaziService
 	Store  ChartSaver
 }
 
 func mustJSON(v interface{}) json.RawMessage {
-	b, _ := json.Marshal(v)
+	b, err := json.Marshal(v)
+	if err != nil {
+		log.Printf("[ERROR] json.Marshal failed: %v", err)
+		return json.RawMessage("{}")
+	}
 	return b
 }
 
@@ -41,7 +46,7 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 	}
 
 	input := formatChartInput(req)
-	parsed, err := h.Parser.Parse(service.ParseRequest{
+	parsed, err := h.Parser.Parse(bazi.ParseRequest{
 		Input: input, CalendarType: req.CalendarType, Gender: req.Gender,
 	})
 	if err != nil {
@@ -101,11 +106,13 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		"ming_gong":         result.MingGong,
 		"ri_zhu_desc":    result.RiZhuDesc,
 		"pillar_details": result.PillarDetails,
-		"tiao_hou":       result.DayStemTiaoHou,
-		"jin_bu_huan":    result.DayStemJinBuHuan,
-		"day_shen_sha":   result.DayShenSha,
-		"season_text":        result.SeasonText,
-		"season_text_month":  result.SeasonTextMonth,
+		"tiao_hou":          result.DayStemTiaoHou,
+		"tiaohou":           result.Tiaohou,
+		"global_shen_sha":   result.GlobalShenSha,
+		"jin_bu_huan":       result.DayStemJinBuHuan,
+		"day_shen_sha":      result.DayShenSha,
+		"season_text":       result.SeasonText,
+		"season_text_month": result.SeasonTextMonth,
 		"ri_zhu_poem":        result.RiZhuPoem,
 		"ri_zhu_source":      result.RiZhuSource,
 		"ri_zhu_comment":     result.RiZhuComment,
@@ -115,6 +122,12 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		"ten_god_proportion":   result.TenGodProportion,
 		"ten_god_analysis":    result.TenGodAnalysis,
 		"birth_month":          req.BirthMonth,
+		"wuxing_season_note":   result.WuxingSeasonNote,
+		"wuxing_flow":          result.WuXingFlow,
+		"tong_guan":            result.TongGuan,
+		"missing_elements":     result.MissingElements,
+		"flow_pattern_desc":    result.FlowPatternDesc,
+		"dayun_flow":           result.DaYunFlow,
 	})
 }
 

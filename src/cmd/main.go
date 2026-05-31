@@ -5,10 +5,13 @@ import (
 	"bazi/internal/handler"
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
+	"bazi/internal/service/fortune"
+	"bazi/internal/service/ziwei"
 	"bazi/internal/store"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -62,14 +65,18 @@ func main() {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
 	us.Create(&model.User{Username: "admin", Email: "admin@bazi.com", PasswordHash: string(hash)})
 
-	baziSvc := &service.BaziService{}
-	parser := &service.InputParser{}
-	engine := service.NewFortuneEngine()
-	ziweiSvc := service.NewZiWeiService()
+	baziSvc := &bazi.BaziService{}
+	parser := &bazi.InputParser{}
+	engine := fortune.NewFortuneEngine()
+	ziweiSvc := ziwei.NewZiWeiService()
 
 	r := gin.Default()
+	allowOrigin := os.Getenv("CORS_ORIGIN")
+	if allowOrigin == "" {
+		allowOrigin = "*"
+	}
 	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Origin", allowOrigin)
 		c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type,Authorization")
 		if c.Request.Method == "OPTIONS" {

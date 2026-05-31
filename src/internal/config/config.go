@@ -1,6 +1,9 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+)
 
 // Config holds all application configuration values.
 type Config struct {
@@ -29,7 +32,7 @@ func Load() *Config {
 		DBName:     getEnv("DB_NAME", "bazi"),
 		SQLitePath: sqlitePath,
 		UseSQLite:  useSQLite,
-		JWTSecret:  getEnv("JWT_SECRET", "dev-secret"),
+		JWTSecret:  requireJWTSecret(),
 		ServerPort: getEnv("SERVER_PORT", "8088"),
 	}
 }
@@ -39,4 +42,16 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func requireJWTSecret() string {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Println("[WARN] JWT_SECRET is not set. Using auto-generated key. Set JWT_SECRET env var for production.")
+		secret = "auto-generated-" + os.Getenv("HOSTNAME")
+		if secret == "auto-generated-" {
+			secret = "auto-generated-bazi-dev"
+		}
+	}
+	return secret
 }

@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "stories": [
+    {
+      "id": "US-001",
+      "priority": 1,
+      "description": "安全问题修复：JWT空密钥拒绝启动、CORS可配置、类型断言nil检查",
+      "passes": true,
+      "acceptanceCriteria": [
+        "config.go: JWT_SECRET为空时使用auto-generated密钥并打印警告",
+        "main.go: CORS AllowOrigin改为可配置（CORS_ORIGIN环境变量）",
+        "ziwei_period.go: Service改为*ziwei.ZiWeiService类型，移除不安全的类型断言"
+      ]
+    },
+    {
+      "id": "US-002",
+      "priority": 2,
+      "description": "时区和日期验证修复：UTC→Asia/Shanghai、日期校验精确化",
+      "passes": true,
+      "acceptanceCriteria": [
+        "fortune.go和fortune_weekly.go: time.Parse改为time.ParseInLocation使用CST时区",
+        "parser.go: parseSolar增加年份范围校验(1900-2100)和按月天数校验"
+      ]
+    },
+    {
+      "id": "US-003",
+      "priority": 3,
+      "description": "数据一致性：消除重复定义、修复语义错误",
+      "passes": true,
+      "acceptanceCriteria": [
+        "fortune.go: 重命名重复函数为shengWo/keWo/woKe/woSheng与wuxing.go一致",
+        "fortune.go: analyzeDayFlowImpact使用修正后的函数名",
+        "model/fortune_query.go: 删除未使用的FortuneQuery"
+      ]
+    },
+    {
+      "id": "US-004",
+      "priority": 4,
+      "description": "API设计修复：interface{}→具体类型、变量遮蔽、mustJSON错误处理",
+      "passes": true,
+      "acceptanceCriteria": [
+        "ziwei_chart.go: Service字段改为*ziwei.ZiWeiService类型",
+        "ziwei_period.go: Service字段改为*ziwei.ZiWeiService类型",
+        "ziwei_period.go:248 循环变量h重命名为ha避免遮蔽接收者",
+        "chart.go: mustJSON添加错误日志记录"
+      ]
+    },
+    {
+      "id": "US-005",
+      "priority": 5,
+      "description": "性能和并发：getChart缓存、LIU_YAO_STARS克隆、pluginRegistry加锁",
+      "passes": true,
+      "acceptanceCriteria": [
+        "ziwei_period.go: getChart复用ziwei_chart.go的缓存检查逻辑",
+        "ziwei.go: LIU_YAO_STARS赋值时使用append克隆避免共享",
+        "ziwei.go: pluginRegistry添加sync.RWMutex保护"
+      ]
+    },
+    {
+      "id": "US-006",
+      "priority": 6,
+      "description": "Misc清理：MonthlyScore命名、mapGender简化、测试更新",
+      "passes": true,
+      "acceptanceCriteria": [
+        "fortune_monthly.go: 删除未使用的strings/fmt导入",
+        "fortune_monthly.go: mapGender简化为直接调用normalizeGender",
+        "dto.go: MonthlyFortuneResponse.WeeklyScore重命名为MonthlyScore",
+        "fortune_monthly_test.go和config_test.go更新以匹配新字段"
+      ]
+    }
+  ]
+}

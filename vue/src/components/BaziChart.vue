@@ -251,6 +251,13 @@ const birthMonthLabel = computed(() => {
   return labels[m] || ''
 })
 
+// tiaohouElem returns the element of the primary tiaohou god for color coding
+const tiaohouElem = computed(() => {
+  const g = props.chart.tiaohou?.primary_god
+  const map: Record<string, string> = { '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土', '己': '土', '庚': '金', '辛': '金', '壬': '水', '癸': '水' }
+  return g ? (map[g] || '金') : '金'
+})
+
 use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
 
 const tenGodChartOptions = computed(() => {
@@ -722,10 +729,27 @@ const tenGodChartOptions = computed(() => {
           </div>
         </div>
 
-        <!-- TiaoHou -->
-        <div v-if="chart.tiao_hou" class="analysis-block">
-          <div class="block-title">调候用神</div>
-          <p class="tiao-hou-text">{{ chart.tiao_hou }}</p>
+        <!-- Tiaohou from 《穷通宝鉴》 -->
+        <div v-if="chart.tiaohou" class="analysis-block">
+          <div class="block-title">调候用神 <span class="tiaohou-source">《穷通宝鉴》</span></div>
+          <div class="tiaohou-card">
+            <div class="tiaohou-header">
+              <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
+              <span class="tiaohou-arrow">生</span>
+              <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
+              <span class="tiaohou-divider">|</span>
+              <span class="tiaohou-label">用神</span>
+              <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{ chart.tiaohou.primary_god }}</span>
+            </div>
+            <div class="tiaohou-summary">{{ chart.tiaohou.summary }}</div>
+            <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
+              <div v-for="(rule, idx) in chart.tiaohou.rules" :key="idx" class="tiaohou-rule">
+                <span class="tiaohou-xi">喜{{ rule.xi_shen }}</span>
+                <span class="tiaohou-ji">忌{{ rule.ji_shen }}</span>
+                <span class="tiaohou-reason">{{ rule.reason }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- JinBuHuan -->
@@ -1465,6 +1489,99 @@ const tenGodChartOptions = computed(() => {
   line-height: 1.6;
   border-left: 2px solid rgba(212, 168, 75, 0.25);
   padding-left: 0.6rem;
+}
+
+.tiaohou-source {
+  font-size: 0.65rem;
+  color: rgba(212,168,75,0.55);
+  font-weight: 400;
+  margin-left: 0.4rem;
+  font-style: italic;
+}
+
+.tiaohou-card {
+  background: rgba(212,168,75,0.06);
+  border: 1px solid rgba(212,168,75,0.18);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-top: 0.4rem;
+}
+
+.tiaohou-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.tiaohou-stem {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.tiaohou-arrow {
+  color: rgba(240,237,228,0.5);
+  font-size: 0.8rem;
+}
+
+.tiaohou-month {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(240,237,228,0.85);
+}
+
+.tiaohou-divider {
+  color: rgba(212,168,75,0.35);
+  margin: 0 0.2rem;
+}
+
+.tiaohou-label {
+  color: rgba(240,237,228,0.45);
+  font-size: 0.78rem;
+}
+
+.tiaohou-primary {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.tiaohou-summary {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.65;
+  margin-bottom: 0.8rem;
+}
+
+.tiaohou-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tiaohou-rule {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.tiaohou-xi {
+  color: #5CBA7F;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tiaohou-ji {
+  color: #CF5C5C;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tiaohou-reason {
+  color: rgba(255,255,255,0.55);
+  line-height: 1.5;
 }
 
 .ri-zhu-text,

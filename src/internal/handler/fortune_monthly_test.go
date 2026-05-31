@@ -10,7 +10,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func setupMonthlyTestRouter(store MonthlyChartStore) *gin.Engine {
 	r := gin.New()
 	h := &MonthlyFortuneHandler{
 		ChartStore: store,
-		Engine:     service.NewFortuneEngine(),
+		Engine:     fortune.NewFortuneEngine(),
 	}
 
 	fortune := r.Group("/api/fortune")
@@ -91,8 +91,8 @@ func TestMonthlyFortuneReturnsDailyFortunesForCorrectMonth(t *testing.T) {
 		t.Errorf("DailyFortunes has %d items, want 30", len(resp.DailyFortunes))
 	}
 
-	if resp.WeeklyScore < 0 || resp.WeeklyScore > 100 {
-		t.Errorf("WeeklyScore = %d, want in [0, 100]", resp.WeeklyScore)
+	if resp.MonthlyScore < 0 || resp.MonthlyScore > 100 {
+		t.Errorf("MonthlyScore = %d, want in [0, 100]", resp.MonthlyScore)
 	}
 
 	for i, df := range resp.DailyFortunes {

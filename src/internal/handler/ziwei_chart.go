@@ -2,7 +2,7 @@ package handler
 
 import (
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/ziwei"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -11,7 +11,7 @@ import (
 )
 
 type ZiWeiChartHandler struct {
-	Service interface{}
+	Service *ziwei.ZiWeiService
 	Charts  ChartStore
 }
 
@@ -43,7 +43,7 @@ type SanfangResponse struct {
 	Trine2   string `json:"trine2"`
 }
 
-func mapPalaceToResponse(p *service.PalaceInfo, branch string, sf *service.SanfangSizhengResult) ZiWeiPalaceResponse {
+func mapPalaceToResponse(p *ziwei.PalaceInfo, branch string, sf *ziwei.SanfangSizhengResult) ZiWeiPalaceResponse {
 	resp := ZiWeiPalaceResponse{
 		Name:            p.Name,
 		Branch:          branch,
@@ -95,7 +95,7 @@ func computeMingGongBranch(lunarMonth, hour int) string {
 	return branchOrder[mingGongIdx]
 }
 
-func mapChartToResponse(chart *service.ZiWeiChart, lunarMonth, hour int) gin.H {
+func mapChartToResponse(chart *ziwei.ZiWeiChart, lunarMonth, hour int) gin.H {
 	branchOrder := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
 	mingGongBranch := computeMingGongBranch(lunarMonth, hour)
 	mingGongIdx := 0
@@ -109,7 +109,7 @@ func mapChartToResponse(chart *service.ZiWeiChart, lunarMonth, hour int) gin.H {
 	palaces := make([]ZiWeiPalaceResponse, 12)
 	for i := 0; i < 12; i++ {
 		branch := branchOrder[(mingGongIdx+i)%12]
-		sf := &service.SanfangSizhengResult{
+		sf := &ziwei.SanfangSizhengResult{
 			Opposite: chart.SanfangSizheng[i].Opposite,
 			Trine1:   chart.SanfangSizheng[i].Trine1,
 			Trine2:   chart.SanfangSizheng[i].Trine2,
@@ -146,17 +146,17 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 		return
 	}
 
-	svc, ok := h.Service.(*service.ZiWeiService)
-	if !ok || svc == nil {
+	svc := h.Service
+	if svc == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
 		return
 	}
 
 	switch req.Algorithm {
 	case "zhongzhou":
-		svc.SetAlgorithm(service.AlgorithmZhongZhou)
+		svc.SetAlgorithm(ziwei.AlgorithmZhongZhou)
 	default:
-		svc.SetAlgorithm(service.AlgorithmFullBook)
+		svc.SetAlgorithm(ziwei.AlgorithmFullBook)
 	}
 
 	// chart_id provided: check cache or compute and store
@@ -173,7 +173,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 
 		if birthChart.ZiWeiComputed && len(birthChart.ZiWeiResult) > 0 {
 			// Serve cached result
-			var cached service.ZiWeiChart
+			var cached ziwei.ZiWeiChart
 			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
 				lunarMonth := cached.LunarMonth
 				if lunarMonth == 0 {
@@ -225,13 +225,13 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 }
 
 // RegisterZiWeiRoutes registers the ZiWei chart calculation route.
-func RegisterZiWeiRoutes(r gin.IRouter, svc *service.ZiWeiService) {
+func RegisterZiWeiRoutes(r gin.IRouter, svc *ziwei.ZiWeiService) {
 	h := &ZiWeiChartHandler{Service: svc}
 	r.POST("/ziwei/chart", h.Calculate)
 }
 
 // RegisterZiWeiRoutesWithStore registers the ZiWei route with a ChartStore for caching.
-func RegisterZiWeiRoutesWithStore(r gin.IRouter, svc *service.ZiWeiService, store ChartStore) {
+func RegisterZiWeiRoutesWithStore(r gin.IRouter, svc *ziwei.ZiWeiService, store ChartStore) {
 	h := &ZiWeiChartHandler{Service: svc, Charts: store}
 	r.POST("/ziwei/chart", h.Calculate)
 }

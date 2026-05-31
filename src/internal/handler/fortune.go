@@ -5,14 +5,16 @@ import (
 	"time"
 
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
+	"bazi/internal/service/data"
+	fortunePkg "bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
 
 // FortuneHandler handles fortune-telling endpoints.
 type FortuneHandler struct {
-	Engine     *service.FortuneEngine
+	Engine     *fortunePkg.FortuneEngine
 	ChartStore ChartStore
 }
 
@@ -37,7 +39,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 	}
 
 	gender := normalizeGender(chart.Gender)
-	baziSvc := service.BaziService{}
+	baziSvc := bazi.BaziService{}
 	baziResult, err := baziSvc.Calculate(
 		chart.BirthYear, chart.BirthMonth, chart.BirthDay,
 		chart.BirthHour, chart.BirthMin, gender,
@@ -47,7 +49,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	queryDate, err := time.Parse("2006-01-02", req.QueryDate)
+	queryDate, err := time.ParseInLocation("2006-01-02", req.QueryDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query_date format, expected YYYY-MM-DD"})
 		return
@@ -82,10 +84,12 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		YiItems:         yiItems,
 		JiItems:         jiItems,
 		TodayElements:   fortune.TodayElements,
-		TiaoHou:         service.TiaoHou[fortune.DayPillar.Gan+fortune.DayPillar.Zhi],
+		TiaoHou:             data.TiaoHou[fortune.DayPillar.Gan+fortune.DayPillar.Zhi],
+		SeasonElementAdvice: fortune.SeasonElementAdvice,
+		FlowImpact:          fortune.FlowImpact,
 	}
 	// Generate detailed analysis
-	analysis := service.AnalyzeDailyFortune(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi)
+	analysis := fortunePkg.AnalyzeDailyFortune(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi)
 	resp.Analysis = analysis
 	resp.Score = analysis.Overall.Score   // use AI score, not basic calcScore
 

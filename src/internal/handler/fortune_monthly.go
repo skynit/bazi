@@ -2,12 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/bazi"
+	"bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +20,7 @@ type MonthlyChartStore interface {
 // MonthlyFortuneHandler handles monthly fortune endpoints.
 type MonthlyFortuneHandler struct {
 	ChartStore MonthlyChartStore
-	Engine     *service.FortuneEngine
+	Engine     *fortune.FortuneEngine
 }
 
 // HandleMonthly processes POST /api/fortune/monthly.
@@ -44,13 +43,9 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 		return
 	}
 
-	gender, err := mapGender(chart.Gender)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid gender in chart"})
-		return
-	}
+	gender := normalizeGender(chart.Gender)
 
-	baziSvc := &service.BaziService{}
+	baziSvc := &bazi.BaziService{}
 	baziResult, err := baziSvc.Calculate(
 		chart.BirthYear,
 		chart.BirthMonth,
@@ -70,22 +65,9 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// mapGender converts the BirthChart gender field to service-layer constant.
-func mapGender(gender string) (string, error) {
-	s := strings.TrimSpace(gender)
-	switch {
-	case s == "男" || strings.EqualFold(s, "male") || strings.EqualFold(s, "m"):
-		return model.GenderMale, nil
-	case s == "女" || strings.EqualFold(s, "female") || strings.EqualFold(s, "f"):
-		return model.GenderFemale, nil
-	default:
-		return "", fmt.Errorf("unsupported gender: %s", gender)
-	}
-}
-
-// mapMonthlyFortuneToResponse converts a service.MonthlyFortune
+// mapMonthlyFortuneToResponse converts a fortune.MonthlyFortune
 // to the API DTO model.MonthlyFortuneResponse.
-func mapMonthlyFortuneToResponse(mf *service.MonthlyFortune) model.MonthlyFortuneResponse {
+func mapMonthlyFortuneToResponse(mf *fortune.MonthlyFortune) model.MonthlyFortuneResponse {
 	dailyFortunes := make([]model.FortuneResponse, len(mf.DailyFortunes))
 	for i, df := range mf.DailyFortunes {
 		dailyFortunes[i] = dailyFortuneToResponse(df)
@@ -95,7 +77,7 @@ func mapMonthlyFortuneToResponse(mf *service.MonthlyFortune) model.MonthlyFortun
 
 	return model.MonthlyFortuneResponse{
 		DailyFortunes: dailyFortunes,
-		WeeklyScore:   mf.MonthlyScore,
+		MonthlyScore:  mf.MonthlyScore,
 		ElementTrend:  string(trendJSON),
 	}
 }

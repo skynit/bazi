@@ -123,8 +123,11 @@ type FortuneResponse struct {
 	Analysis        interface{}    `json:"analysis"`
 	YiItems         []string       `json:"yi"`
 	JiItems         []string       `json:"ji"`
-	TodayElements   map[string]int `json:"today_elements"`
-	TiaoHou         string         `json:"tiao_hou"`
+	TodayElements       map[string]int `json:"today_elements"`
+	TiaoHou             string         `json:"tiao_hou"`
+	SeasonElementAdvice string         `json:"season_element_advice"`
+	FlowImpact          string         `json:"flow_impact"`
+	ShengKeAnalysis     interface{}    `json:"sheng_ke_analysis"`
 }
 
 type WeeklyFortuneRequest struct {
@@ -146,7 +149,7 @@ type MonthlyFortuneRequest struct {
 
 type MonthlyFortuneResponse struct {
 	DailyFortunes []FortuneResponse `json:"daily_fortunes"`
-	WeeklyScore   int               `json:"weekly_score"`
+	MonthlyScore  int               `json:"monthly_score"`
 	ElementTrend  string            `json:"element_trend"`
 }
 

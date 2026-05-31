@@ -9,7 +9,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
-	"bazi/internal/service"
+	"bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +36,7 @@ func setupWeeklyRouter(store ChartStore) *gin.Engine {
 
 	r := gin.New()
 	h := &WeeklyFortuneHandler{
-		Engine: service.NewFortuneEngine(),
+		Engine: fortune.NewFortuneEngine(),
 		Charts: store,
 	}
 
