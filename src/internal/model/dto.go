@@ -128,6 +128,31 @@ type FortuneResponse struct {
 	SeasonElementAdvice string         `json:"season_element_advice"`
 	FlowImpact          string         `json:"flow_impact"`
 	ShengKeAnalysis     interface{}    `json:"sheng_ke_analysis"`
+
+	// 日课推算结果
+	TodayTenGod      string      `json:"today_ten_god"`
+	TenGodFavorable  bool        `json:"ten_god_favorable"`
+	TenGodDesc       string      `json:"ten_god_desc"`
+	TwelveStage      string      `json:"twelve_stage"`
+	StageFavorable   bool        `json:"stage_favorable"`
+	StageDesc        string      `json:"stage_desc"`
+	StageFlexible    string      `json:"stage_flexible"`
+	HiddenStems      interface{} `json:"hidden_stems"`
+	StemRelations    interface{} `json:"stem_relations"`
+	BranchRelations  interface{} `json:"branch_relations"`
+	ActivatedShenSha interface{} `json:"activated_shen_sha"`
+	DaYunInfluence   interface{} `json:"dayun_influence"`
+	LiuNianInfluence interface{} `json:"liunian_influence"`
+	AdvanceRetreat   interface{} `json:"advance_retreat"`
+	YongShenImpact   interface{} `json:"yongshen_impact"`
+	OverallVerdict   string      `json:"overall_verdict"`
+	FavorScore       int         `json:"favor_score"`
+
+	// 格局信息
+	PatternName        string   `json:"pattern_name"`
+	PatternType        string   `json:"pattern_type"`
+	PatternFavorable   []string `json:"pattern_favorable"`
+	PatternUnfavorable []string `json:"pattern_unfavorable"`
 }
 
 type WeeklyFortuneRequest struct {

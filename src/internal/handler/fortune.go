@@ -55,7 +55,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	fortune := h.Engine.CalculateDaily(baziResult, queryDate)
+	fortune := h.Engine.CalculateDaily(baziResult, queryDate, chart.BirthYear)
 
 	// Map daily fortune to response
 	yiItems := make([]string, len(fortune.Yi))
@@ -84,9 +84,33 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		YiItems:         yiItems,
 		JiItems:         jiItems,
 		TodayElements:   fortune.TodayElements,
-		TiaoHou:             data.TiaoHou[fortune.DayPillar.Gan+fortune.DayPillar.Zhi],
+		TiaoHou:             data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
 		SeasonElementAdvice: fortune.SeasonElementAdvice,
 		FlowImpact:          fortune.FlowImpact,
+	}
+	// 日课推算结果
+	if rikuyo := fortune.Rikuyo; rikuyo != nil {
+		resp.TodayTenGod = rikuyo.TodayTenGod
+		resp.TenGodFavorable = rikuyo.TenGodFavorable
+		resp.TenGodDesc = rikuyo.TenGodDesc
+		resp.TwelveStage = rikuyo.TwelveStage
+		resp.StageFavorable = rikuyo.StageFavorable
+		resp.StageDesc = rikuyo.StageDesc
+		resp.StageFlexible = rikuyo.StageFlexible
+		resp.HiddenStems = rikuyo.HiddenStems
+		resp.StemRelations = rikuyo.StemRelations
+		resp.BranchRelations = rikuyo.BranchRelations
+		resp.ActivatedShenSha = rikuyo.ActivatedShenSha
+		resp.DaYunInfluence = rikuyo.DaYunInfluence
+		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
+		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
+		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.OverallVerdict = rikuyo.OverallVerdict
+		resp.FavorScore = rikuyo.FavorScore
+		resp.PatternName = rikuyo.PatternName
+		resp.PatternType = rikuyo.PatternType
+		resp.PatternFavorable = rikuyo.PatternFavorable
+		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
 	}
 	// Generate detailed analysis
 	analysis := fortunePkg.AnalyzeDailyFortune(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi)

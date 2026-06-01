@@ -4,6 +4,69 @@ import { useRoute } from 'vue-router'
 import client from '../api/client'
 import DailyFortune from '../components/DailyFortune.vue'
 
+interface HiddenStemGod {
+  stem: string
+  type: string
+  element: string
+  ten_god: string
+  favorable: boolean
+}
+interface StemRelation {
+  type: string
+  target: string
+  detail: string
+  is_favorable: boolean
+  note?: string
+}
+interface BranchRelation {
+  type: string
+  target: string
+  detail: string
+  is_favorable: boolean
+}
+interface ShenShaActivation {
+  name: string
+  type: string
+  description: string
+  activation: string
+}
+interface DaYunInfluence {
+  current_pillar: string
+  start_age: number
+  end_age: number
+  ten_god: string
+  favorable: boolean
+  relation: string
+  score: number
+  description: string
+}
+interface LiuNianInfluence {
+  year_pillar: string
+  ten_god: string
+  favorable: boolean
+  relation: string
+  tai_sui_relation: string
+  score: number
+  description: string
+}
+interface AdvanceRetreat {
+  phase: string
+  phase_desc: string
+  element: string
+  score: number
+  description: string
+}
+interface YongShenImpact {
+  tiao_hou_element: string
+  tiao_hou_hit: boolean
+  tong_guan_element: string
+  tong_guan_hit: boolean
+  fu_yi_elements: string[]
+  fu_yi_hit: boolean
+  score: number
+  description: string
+}
+
 interface FortuneData {
   solar_date: string
   day_gan_zhi: string
@@ -23,6 +86,41 @@ interface FortuneData {
   element_images?: { element: string; image_url: string; description: string }[]
   today_elements?: Record<string, number>
   tiao_hou?: string
+  week_day?: string
+  lunar_date?: string
+  sheng_xiao?: string
+  ji_shen?: string
+  xiong_shen?: string
+  tai_shen?: string
+  wu_xing?: string
+  peng_zu?: string
+  gua?: string
+  jie_qi?: string
+  sheng_ke_analysis?: { day_stem_relation?: string; day_branch_relation?: string; summary?: string }
+  flow_impact?: string
+  season_element_advice?: string
+  // 日课推算
+  today_ten_god?: string
+  ten_god_favorable?: boolean
+  ten_god_desc?: string
+  twelve_stage?: string
+  stage_favorable?: boolean
+  stage_desc?: string
+  stage_flexible?: string
+  hidden_stems?: HiddenStemGod[]
+  stem_relations?: StemRelation[]
+  branch_relations?: BranchRelation[]
+  activated_shen_sha?: ShenShaActivation[]
+  dayun_influence?: DaYunInfluence
+  liunian_influence?: LiuNianInfluence
+  advance_retreat?: AdvanceRetreat
+  yongshen_impact?: YongShenImpact
+  overall_verdict?: string
+  favor_score?: number
+  pattern_name?: string
+  pattern_type?: string
+  pattern_favorable?: string[]
+  pattern_unfavorable?: string[]
 }
 
 const route = useRoute()
@@ -212,6 +310,9 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
         <DailyFortune
           :solar-date="fortune.solar_date"
           :day-gan-zhi="fortune.day_gan_zhi"
+          :week-day="fortune.week_day"
+          :lunar-date="fortune.lunar_date"
+          :sheng-xiao="fortune.sheng_xiao"
           :lucky-color="fortune.lucky_color"
           :lucky-number="fortune.lucky_number"
           :wealth-dir="fortune.wealth_direction"
@@ -221,6 +322,36 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
           :element-images="fortune.element_images"
           :today-elements="fortune.today_elements"
           :tiao-hou="fortune.tiao_hou"
+          :ji-shen="fortune.ji_shen"
+          :xiong-shen="fortune.xiong_shen"
+          :tai-shen="fortune.tai_shen"
+          :peng-zu="fortune.peng_zu"
+          :gua="fortune.gua"
+          :jie-qi="fortune.jie_qi"
+          :sheng-ke-analysis="fortune.sheng_ke_analysis"
+          :flow-impact="fortune.flow_impact"
+          :season-element-advice="fortune.season_element_advice"
+          :today-ten-god="fortune.today_ten_god"
+          :ten-god-favorable="fortune.ten_god_favorable"
+          :ten-god-desc="fortune.ten_god_desc"
+          :twelve-stage="fortune.twelve_stage"
+          :stage-favorable="fortune.stage_favorable"
+          :stage-desc="fortune.stage_desc"
+          :stage-flexible="fortune.stage_flexible"
+          :hidden-stems="fortune.hidden_stems"
+          :stem-relations="fortune.stem_relations"
+          :branch-relations="fortune.branch_relations"
+          :activated-shen-sha="fortune.activated_shen_sha"
+          :dayun-influence="fortune.dayun_influence"
+          :liunian-influence="fortune.liunian_influence"
+          :advance-retreat="fortune.advance_retreat"
+          :yongshen-impact="fortune.yongshen_impact"
+          :overall-verdict="fortune.overall_verdict"
+          :favor-score="fortune.favor_score"
+          :pattern-name="fortune.pattern_name"
+          :pattern-type="fortune.pattern_type"
+          :pattern-favorable="fortune.pattern_favorable"
+          :pattern-unfavorable="fortune.pattern_unfavorable"
         />
 
         <aside v-if="fortune.analysis?.lucky_guide" class="side-panels">

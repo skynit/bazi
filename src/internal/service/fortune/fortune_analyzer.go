@@ -91,8 +91,9 @@ func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi 
 	todayElem := data.GanElement[todayDayGan]
 	todayZhiElem := data.ZhiElement[todayDayZhi]
 
-	// 判断身旺程度
+	// 判断身旺程度（格局感知）
 	isStrong := userBazi.BodyStrength.Verdict == "身旺"
+	like, dislike, _ := getEffectiveFavor(userBazi)
 
 	// 十神关系
 	rel := tenGodRelation(userDayGan, todayDayGan, isStrong)
@@ -140,7 +141,7 @@ func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi 
 		Overall:     OverallAnalysis{baseScore, stars, summary, keyTip},
 		Categories:  categories,
 		Hourly:      makeHourly(todayDayGan, todayDayZhi, isFavorableRel(rel)),
-		LuckyGuide:  makeLuckyGuide(todayDayGan, todayDayZhi, userElem, userBazi.BodyStrength.Like, userBazi.BodyStrength.Dislike),
+		LuckyGuide:  makeLuckyGuide(todayDayGan, todayDayZhi, userElem, like, dislike),
 	}
 }
 

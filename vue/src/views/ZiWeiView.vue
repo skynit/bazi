@@ -313,6 +313,19 @@ const currentAge = computed(() => {
 
 function getPalacesFromPeriod(p: any) { return p?.palaces || [] }
 
+const currentLiuyueInterp = computed(() => {
+  if (!liuyueData.value[0]) return null
+  const key = `${selectedLiunianYear.value}-${liuyueData.value[0].month}`
+  return liuyueInterp.value[key] || null
+})
+
+const currentLiuriInterp = computed(() => {
+  if (!liuriData.value[0]) return null
+  const d = liuriData.value[0]
+  const key = `${selectedLiunianYear.value}-${d.month}-${d.day}`
+  return liuriInterp.value[key] || null
+})
+
 const sihuaFlyGroups = computed(() => {
   const data = sihuaData.value as any
   if (!data || !data.hua_lu) return []
@@ -490,7 +503,20 @@ const sihuaChainGroups = computed(() => {
                   <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
                   <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
                   <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
                   <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                </div>
+                <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
+                  <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
+                  <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
+                  <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
+                  <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
+                </div>
+                <div v-if="p.sanfang_sizheng" class="strip-sanfang">
+                  <span class="sf-label">三方四正</span>
+                  <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
+                  <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
+                  <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
                 </div>
               </div>
             </div>
@@ -523,7 +549,20 @@ const sihuaChainGroups = computed(() => {
                   <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
                   <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
                   <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
                   <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                </div>
+                <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
+                  <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
+                  <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
+                  <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
+                  <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
+                </div>
+                <div v-if="p.sanfang_sizheng" class="strip-sanfang">
+                  <span class="sf-label">三方四正</span>
+                  <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
+                  <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
+                  <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
                 </div>
               </div>
             </div>
@@ -531,15 +570,15 @@ const sihuaChainGroups = computed(() => {
             <div v-if="liuyueData[0]" class="interp-card">
               <div class="interp-header">
                 <span class="interp-year">{{ liuyueData[0].year }}年{{ liuyueData[0].month }}月</span>
-                <span class="interp-ganZhi">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.gan_zhi || '—' }}</span>
-                <div class="interp-score" :class="(liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.score || '—' }}分</div>
+                <span class="interp-ganZhi">{{ currentLiuyueInterp?.gan_zhi || '—' }}</span>
+                <div class="interp-score" :class="(currentLiuyueInterp?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ currentLiuyueInterp?.score || '—' }}分</div>
               </div>
               <div class="interp-section">
-                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.gan_zhi_desc || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.shi_shen || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.relation_to_ming || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">作用特点</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.effect || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ liuyueInterp[selectedLiunianYear + '-' + liuyueData[0].month]?.health || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ currentLiuyueInterp?.gan_zhi_desc || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ currentLiuyueInterp?.shi_shen || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ currentLiuyueInterp?.relation_to_ming || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">作用特点</span><span class="interp-value">{{ currentLiuyueInterp?.effect || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ currentLiuyueInterp?.health || '—' }}</span></div>
               </div>
             </div>
           </div>
@@ -555,6 +594,21 @@ const sihuaChainGroups = computed(() => {
                 <div class="palace-strip-stars">
                   <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
                   <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
+                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,3)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
+                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                </div>
+                <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
+                  <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
+                  <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
+                  <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
+                  <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
+                </div>
+                <div v-if="p.sanfang_sizheng" class="strip-sanfang">
+                  <span class="sf-label">三方四正</span>
+                  <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
+                  <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
+                  <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
                 </div>
               </div>
             </div>
@@ -562,28 +616,28 @@ const sihuaChainGroups = computed(() => {
             <div v-if="liuriData[0]" class="interp-card">
               <div class="interp-header">
                 <span class="interp-year">{{ liuriData[0].year }}年{{ liuriData[0].month }}月{{ liuriData[0].day }}日</span>
-                <span class="interp-ganZhi">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.gan_zhi || '—' }}</span>
-                <div class="interp-score" :class="(liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.score || '—' }}分</div>
+                <span class="interp-ganZhi">{{ currentLiuriInterp?.gan_zhi || '—' }}</span>
+                <div class="interp-score" :class="(currentLiuriInterp?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ currentLiuriInterp?.score || '—' }}分</div>
               </div>
               <div class="interp-section">
-                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.gan_zhi_desc || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.shi_shen || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.relation_to_ming || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">七杀作用</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.qi_zi_effect || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">情绪状态</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.emotional_state || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.health || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ currentLiuriInterp?.gan_zhi_desc || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ currentLiuriInterp?.shi_shen || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ currentLiuriInterp?.relation_to_ming || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">七杀作用</span><span class="interp-value">{{ currentLiuriInterp?.qi_zi_effect || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">情绪状态</span><span class="interp-value">{{ currentLiuriInterp?.emotional_state || '—' }}</span></div>
+                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ currentLiuriInterp?.health || '—' }}</span></div>
               </div>
               <div class="interp-section">
                 <p class="interp-subtitle">时辰分析</p>
                 <div class="hourly-grid">
-                  <div v-for="(h, i) in (liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.hourly_analysis || [])" :key="i" class="hour-block" :class="h.score >= 65 ? 'hour-good' : h.score < 45 ? 'hour-bad' : 'hour-neutral'">
+                  <div v-for="(h, i) in (currentLiuriInterp?.hourly_analysis || [])" :key="i" class="hour-block" :class="h.score >= 65 ? 'hour-good' : h.score < 45 ? 'hour-bad' : 'hour-neutral'">
                     <span class="hour-time">{{ h.stem_branch }}</span>
                     <span class="hour-effect">{{ h.effect }}</span>
                     <span class="hour-score">{{ h.score }}分</span>
                   </div>
                 </div>
               </div>
-              <div class="interp-summary">{{ liuriInterp[selectedLiunianYear + '-' + liuriData[0].month + '-' + liuriData[0].day]?.summary || '—' }}</div>
+              <div class="interp-summary">{{ currentLiuriInterp?.summary || '—' }}</div>
             </div>
           </div>
 
@@ -930,6 +984,22 @@ const sihuaChainGroups = computed(() => {
 .hour-neutral { background:rgba(212,168,75,0.05); border:1px solid rgba(212,168,75,0.1); }
 .hour-bad { background:rgba(196,30,58,0.08); border:1px solid rgba(196,30,58,0.15); }
 .hour-time { font-weight:700; color:var(--gold); }
+
+/* Adjective stars 形容星 */
+.strip-adj-star { font-size:0.56rem; color:rgba(161,130,207,0.6); padding:0.05rem 0.25rem; background:rgba(161,130,207,0.06); border-radius:3px; }
+
+/* Twelve stars 十二星 */
+.strip-twelve-stars { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.15rem; }
+.twelve-tag { font-size:0.52rem; padding:0.04rem 0.25rem; border-radius:3px; }
+.twelve-cs { color:#D4A84B; background:rgba(212,168,75,0.08); }
+.twelve-bs { color:#60a5fa; background:rgba(96,165,250,0.08); }
+.twelve-jq { color:#4ade80; background:rgba(74,222,128,0.08); }
+.twelve-sq { color:#f08080; background:rgba(196,30,58,0.08); }
+
+/* Sanfang Sizheng 三方四正 */
+.strip-sanfang { display:flex; align-items:center; gap:0.3rem; margin-top:0.15rem; font-size:0.55rem; }
+.sf-label { color:var(--muted); font-weight:600; }
+.sf-item { color:rgba(96,165,250,0.5); padding:0.03rem 0.2rem; background:rgba(96,165,250,0.05); border-radius:3px; }
 .hour-effect { color:var(--text); line-height:1.3; }
 .hour-score { font-size:0.62rem; margin-top:0.1rem; }
 .hour-good .hour-score { color:#4ade80; }

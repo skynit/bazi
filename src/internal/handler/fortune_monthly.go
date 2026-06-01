@@ -59,7 +59,7 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 		return
 	}
 
-	monthlyFortune := h.Engine.CalculateMonthly(baziResult, req.Year, req.Month)
+	monthlyFortune := h.Engine.CalculateMonthly(baziResult, req.Year, req.Month, chart.BirthYear)
 	resp := mapMonthlyFortuneToResponse(monthlyFortune)
 
 	c.JSON(http.StatusOK, resp)

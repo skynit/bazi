@@ -44,6 +44,7 @@ type DailyFortune struct {
 	TodayElements   map[string]int       `json:"today_elements"` // 今日五行分布 {金木水火土}
 	SeasonElementAdvice string           `json:"season_element_advice"` // 五行四时调候建议
 	FlowImpact      string               `json:"flow_impact"`          // 流通对日主影响
+	Rikuyo          *RikuyoResult        `json:"rikuyo"`               // 日课推算结果
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
@@ -124,7 +125,7 @@ var combinePairs = map[string]string{
 }
 
 // CalculateDaily computes the fortune for a single date.
-func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate time.Time) *DailyFortune {
+func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate time.Time, birthYear int) *DailyFortune {
 	qYear := queryDate.Year()
 	qMonth := int(queryDate.Month())
 	qDay := queryDate.Day()
@@ -164,6 +165,9 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 		"水": todayElements["水"], "火": todayElements["火"], "土": todayElements["土"],
 	}
 
+	// 日课推算
+	rikuyo := CalcRikuyo(userChart, queryDate, birthYear)
+
 	return &DailyFortune{
 		Date:            queryDate.Format("2006-01-02"),
 		DayPillar:       dayPillar,
@@ -180,6 +184,7 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 		TodayElements:   filtered,
 		SeasonElementAdvice: getSeasonElementAdvice(userChart.DayPillar.Gan, qMonth),
 		FlowImpact:      analyzeDayFlowImpact(userChart, dayPillar),
+		Rikuyo:          rikuyo,
 	}
 }
 
@@ -223,7 +228,7 @@ func seasonFromMonth(m int) string {
 }
 
 // CalculateWeekly computes fortunes for 7 consecutive days starting from weekStart.
-func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart time.Time) *WeeklyFortune {
+func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart time.Time, birthYear int) *WeeklyFortune {
 	weekStart = toDateStart(weekStart)
 	fortunes := make([]DailyFortune, 7)
 	trends := make([]ElementTrendPoint, 7)
@@ -231,7 +236,7 @@ func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart
 
 	for i := 0; i < 7; i++ {
 		day := weekStart.AddDate(0, 0, i)
-		df := e.CalculateDaily(userChart, day)
+		df := e.CalculateDaily(userChart, day, birthYear)
 		fortunes[i] = *df
 		totalScore += df.Score
 		trends[i] = e.elementTrend(day, df.Score)
@@ -249,7 +254,7 @@ func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart
 }
 
 // CalculateMonthly computes fortunes for every day in the given year/month.
-func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, month int) *MonthlyFortune {
+func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, month, birthYear int) *MonthlyFortune {
 	days := daysInMonth(year, month)
 	fortunes := make([]DailyFortune, 0, days)
 	trends := make([]ElementTrendPoint, 0, days)
@@ -257,7 +262,7 @@ func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, mo
 
 	for d := 1; d <= days; d++ {
 		date := time.Date(year, time.Month(month), d, 12, 0, 0, 0, time.UTC)
-		df := e.CalculateDaily(userChart, date)
+		df := e.CalculateDaily(userChart, date, birthYear)
 		fortunes = append(fortunes, *df)
 		totalScore += df.Score
 		trends = append(trends, e.elementTrend(date, df.Score))

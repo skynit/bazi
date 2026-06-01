@@ -58,7 +58,7 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		return
 	}
 
-	result := h.Engine.CalculateWeekly(baziResult, startDate)
+	result := h.Engine.CalculateWeekly(baziResult, startDate, chart.BirthYear)
 
 	dailyFortunes := make([]model.FortuneResponse, len(result.DailyFortunes))
 	for i, df := range result.DailyFortunes {
@@ -103,7 +103,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		luckyNum = df.LuckyNumbers[0]
 	}
 
-	return model.FortuneResponse{
+	resp := model.FortuneResponse{
 		SolarDate:           df.Date,
 		DayGanZhi:           df.DayPillar.Gan + df.DayPillar.Zhi,
 		YiJi:                yiJi,
@@ -120,6 +120,30 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		SeasonElementAdvice: df.SeasonElementAdvice,
 		FlowImpact:          df.FlowImpact,
 	}
+	if rikuyo := df.Rikuyo; rikuyo != nil {
+		resp.TodayTenGod = rikuyo.TodayTenGod
+		resp.TenGodFavorable = rikuyo.TenGodFavorable
+		resp.TenGodDesc = rikuyo.TenGodDesc
+		resp.TwelveStage = rikuyo.TwelveStage
+		resp.StageFavorable = rikuyo.StageFavorable
+		resp.StageDesc = rikuyo.StageDesc
+		resp.StageFlexible = rikuyo.StageFlexible
+		resp.HiddenStems = rikuyo.HiddenStems
+		resp.StemRelations = rikuyo.StemRelations
+		resp.BranchRelations = rikuyo.BranchRelations
+		resp.ActivatedShenSha = rikuyo.ActivatedShenSha
+		resp.DaYunInfluence = rikuyo.DaYunInfluence
+		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
+		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
+		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.OverallVerdict = rikuyo.OverallVerdict
+		resp.FavorScore = rikuyo.FavorScore
+		resp.PatternName = rikuyo.PatternName
+		resp.PatternType = rikuyo.PatternType
+		resp.PatternFavorable = rikuyo.PatternFavorable
+		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
+	}
+	return resp
 }
 
 func buildYiJiString(yi, ji []model.YiJiItem) string {

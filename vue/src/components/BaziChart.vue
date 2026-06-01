@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { use } from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
@@ -87,10 +87,6 @@ function zhiRelSymbol(type: string): string {
 
 function relationSummary(detail: string): string {
   return String(detail || '').split('\n')[0] || ''
-}
-
-function relationDescription(detail: string): string {
-  return String(detail || '').split('\n').slice(1).join('\n').trim()
 }
 
 const elemColor = (e: string) =>
@@ -259,6 +255,17 @@ const tiaohouElem = computed(() => {
 })
 
 use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
+
+// Tab navigation
+const activeTab = ref('overview')
+const chartTabs = [
+  { key: 'overview', label: '命盘总览' },
+  { key: 'wuxing', label: '五行格局' },
+  { key: 'shishen', label: '十神详解' },
+  { key: 'pattern', label: '格局古籍' },
+  { key: 'shensha', label: '神煞' },
+  { key: 'fortune', label: '运势详批' },
+]
 
 const tenGodChartOptions = computed(() => {
   const data = props.chart.ten_god_proportion || []
@@ -457,382 +464,529 @@ const tenGodChartOptions = computed(() => {
         <!-- 天干关系 -->
         <div v-if="ganZhi.gan_relations?.length > 0" class="relations-section">
           <div class="relations-title">
-            <span class="relations-title-icon">◇</span>
+            <span class="relations-title-dot"></span>
             天干关系
+            <span class="relations-count">{{ ganZhi.gan_relations.length }}组</span>
           </div>
-          <div class="ganzhi-rows">
-            <div v-for="(rel, ri) in ganZhi.gan_relations" :key="'g'+ri" class="ganzhi-row" :class="ganRelClass(rel.type)" :style="{ animationDelay: Number(ri) * 0.06 + 's' }">
-              <div class="ganzhi-headline">
-                <span class="pillar-name">{{ rel.pillar1 }}{{ ganRelSymbol(rel.type) }}{{ rel.pillar2 }}</span>
-                <span class="ganzhi-summary">{{ relationSummary(rel.detail) }}</span>
-              </div>
-              <div v-if="relationDescription(rel.detail)" class="ganzhi-detail">{{ relationDescription(rel.detail) }}</div>
+          <div class="ganzhi-compact">
+            <div v-for="(rel, ri) in ganZhi.gan_relations" :key="'g'+ri" class="gz-item" :class="ganRelClass(rel.type)">
+              <span class="gz-chars">
+                <span class="gz-c">{{ rel.pillar1 }}</span>
+                <span class="gz-sym" :class="'sym-' + ganRelClass(rel.type)">{{ ganRelSymbol(rel.type) }}</span>
+                <span class="gz-c">{{ rel.pillar2 }}</span>
+              </span>
+              <span class="gz-tag" :class="'tag-' + ganRelClass(rel.type)">{{ rel.type }}</span>
+              <span class="gz-text">{{ relationSummary(rel.detail) }}</span>
             </div>
           </div>
         </div>
-        <div v-else class="no-relations">天干无特殊关系</div>
+        <div v-else class="no-relations">
+          <span class="no-rel-icon">◇</span> 天干无特殊关系
+        </div>
 
         <!-- 地支关系 -->
         <div v-if="ganZhi.zhi_relations?.length > 0" class="relations-section">
           <div class="relations-title">
-            <span class="relations-title-icon">◇</span>
+            <span class="relations-title-dot zhi-dot"></span>
             地支关系
+            <span class="relations-count">{{ ganZhi.zhi_relations.length }}组</span>
           </div>
-          <div class="ganzhi-rows">
-            <div v-for="(rel, ri) in ganZhi.zhi_relations" :key="'z'+ri" class="ganzhi-row" :class="zhiRelClass(rel.type)" :style="{ animationDelay: Number(ri) * 0.06 + 's' }">
-              <div class="ganzhi-headline">
-                <span class="pillar-name">{{ rel.pillar1 }}{{ zhiRelSymbol(rel.type) }}{{ rel.pillar2 }}</span>
-                <span class="ganzhi-summary">{{ relationSummary(rel.detail) }}</span>
-              </div>
-              <div v-if="relationDescription(rel.detail)" class="ganzhi-detail">{{ relationDescription(rel.detail) }}</div>
+          <div class="ganzhi-compact">
+            <div v-for="(rel, ri) in ganZhi.zhi_relations" :key="'z'+ri" class="gz-item" :class="zhiRelClass(rel.type)">
+              <span class="gz-chars">
+                <span class="gz-c">{{ rel.pillar1 }}</span>
+                <span class="gz-sym" :class="'sym-' + zhiRelClass(rel.type)">{{ zhiRelSymbol(rel.type) }}</span>
+                <span class="gz-c">{{ rel.pillar2 }}</span>
+              </span>
+              <span class="gz-tag" :class="'tag-' + zhiRelClass(rel.type)">{{ rel.type }}</span>
+              <span class="gz-text">{{ relationSummary(rel.detail) }}</span>
             </div>
           </div>
         </div>
-        <div v-else class="no-relations">地支无特殊关系</div>
+        <div v-else class="no-relations">
+          <span class="no-rel-icon">◇</span> 地支无特殊关系
+        </div>
+      </div>
+
+      <!-- Tab navigation -->
+      <div class="chart-tabs">
+        <button
+          v-for="tab in chartTabs"
+          :key="tab.key"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >{{ tab.label }}</button>
       </div>
 
       <!-- Analysis sections -->
       <div class="analysis-section">
-        <!-- Five Elements bar chart -->
-        <div v-if="fiveElementsOption" class="analysis-block">
-          <div class="block-title">五行分布</div>
-          <v-chart class="five-elem-chart" :option="fiveElementsOption" autoresize />
-        </div>
 
-        <!-- Element Detail -->
-        <div v-if="chart.element_detail && chart.element_detail.length" class="analysis-block">
-          <div class="block-title">五行力量与藏干分析</div>
-          <div class="element-detail-table">
-            <div class="ed-header">
-              <span>五行</span>
-              <span>天干</span>
-              <span>地支藏干</span>
-              <span>总力量</span>
-            </div>
-            <div
-              v-for="ed in chart.element_detail"
-              :key="ed.element"
-              class="ed-row"
-              :class="'level-' + strengthLevel(ed.total)"
-            >
-              <span class="ed-elem" :style="{ color: elemColor(ed.element) }">{{ ed.element }}</span>
-              <span class="ed-tg">{{ ed.tian_gan }}</span>
-              <span class="ed-zc">{{ ed.cang_gan_list ? ed.cang_gan_list.join('、') : '—' }}</span>
-              <span class="ed-total">{{ ed.total }}</span>
-            </div>
+        <!-- ═══ Tab: 命盘总览 (overview) ═══ -->
+        <div v-show="activeTab === 'overview'" class="tab-content">
+          <!-- Five Elements bar chart -->
+          <div v-if="fiveElementsOption" class="analysis-block">
+            <div class="block-title">五行分布</div>
+            <span class="block-desc">木火土金水五行在四柱中的力量分布，反映命局的能量结构</span>
+            <v-chart class="five-elem-chart" :option="fiveElementsOption" autoresize />
           </div>
-        </div>
 
-        <!-- Pattern Analysis -->
-        <div v-if="chart.pattern_analysis" class="analysis-block">
-          <div class="block-title">命局格局</div>
-          <div class="pattern-detail">
-            <div class="pattern-header">
-              <span class="pattern-name">{{ chart.pattern_analysis.pattern_name }}</span>
-              <span class="pattern-type-tag" :class="chart.pattern_analysis.pattern_type === '特殊格局' ? 'tag-special' : 'tag-normal'">
-                {{ chart.pattern_analysis.pattern_type }}
-              </span>
-            </div>
-            <p class="pattern-desc">{{ chart.pattern_analysis.description }}</p>
-            <div class="pattern-elems">
-              <div v-if="chart.pattern_analysis.favorable_elements?.length" class="pattern-favor">
-                <span class="pattern-elem-label">喜</span>
-                <span v-for="e in chart.pattern_analysis.favorable_elements" :key="'fav'+e" class="pattern-elem-tag favor">{{ e }}</span>
-              </div>
-              <div v-if="chart.pattern_analysis.unfavorable_elements?.length" class="pattern-avoid">
-                <span class="pattern-elem-label">忌</span>
-                <span v-for="e in chart.pattern_analysis.unfavorable_elements" :key="'unf'+e" class="pattern-elem-tag avoid">{{ e }}</span>
+          <!-- Ten Gods -->
+          <div v-if="chart.ten_gods" class="analysis-block">
+            <div class="block-title">十神</div>
+            <span class="block-desc">天干对日主的生克关系，反映人际、性格与命运倾向</span>
+            <div class="ten-gods-grid">
+              <div v-for="(god, pillar) in chart.ten_gods" :key="pillar" class="god-item">
+                <span class="god-pillar">{{ pillar }}</span>
+                <span class="god-name">{{ god }}</span>
               </div>
             </div>
           </div>
-        </div>
 
-                <!-- Body Strength -->
-        <div v-if="chart.body_strength" class="analysis-block">
-          <div class="block-title">身旺喜忌</div>
-          <div class="body-strength">
-            <div class="bs-verdict">{{ chart.body_strength.verdict }}</div>
-            <div class="bs-tags">
-              <span class="bs-like-label">喜</span>
-              <span v-for="l in chart.body_strength.like" :key="l" class="bs-like">{{ l }}</span>
-              <span class="bs-dislike-label">忌</span>
-              <span v-for="d in chart.body_strength.dislike" :key="d" class="bs-dislike">{{ d }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ten Gods -->
-        <div v-if="chart.ten_gods" class="analysis-block">
-          <div class="block-title">十神</div>
-          <div class="ten-gods-grid">
-            <div v-for="(god, pillar) in chart.ten_gods" :key="pillar" class="god-item">
-              <span class="god-pillar">{{ pillar }}</span>
-              <span class="god-name">{{ god }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- TenGodProportion -->
-        <div v-if="chart.ten_god_proportion && chart.ten_god_proportion.length" class="analysis-block">
-          <div class="block-title">十神占比</div>
-          <div class="ten-god-chart-wrap">
-            <v-chart class="ten-god-chart" :option="(tenGodChartOptions as any)" autoresize />
-          </div>
-        </div>
-
-        <!-- TenGodAnalysis -->
-        <div v-if="chart.ten_god_analysis" class="analysis-block">
-          <div class="block-title">十神综合解读</div>
-          <el-tabs class="ten-god-tabs" tab-position="top">
-            <el-tab-pane label="综合概述">
-              <div class="tg-summary">{{ chart.ten_god_analysis.summary }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="性格特点">
-              <div class="tg-text">{{ chart.ten_god_analysis.personality }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="人际关系">
-              <div class="tg-text">{{ chart.ten_god_analysis.interpersonal }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="事业财运">
-              <div class="tg-text">{{ chart.ten_god_analysis.career_fortune }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="感情姻缘">
-              <div class="tg-text">{{ chart.ten_god_analysis.emotion_relation }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="健康提醒">
-              <div class="tg-text">{{ chart.ten_god_analysis.health_note }}</div>
-            </el-tab-pane>
-            <el-tab-pane label="十神详解">
-              <div class="tg-god-list">
-                <div v-for="god in chart.ten_god_analysis.god_relations" :key="god.god" class="tg-god-card">
-                  <div class="tg-god-header">
-                    <span class="tg-god-name">{{ god.god }}</span>
-                    <span class="tg-god-pct">{{ god.percent }}</span>
+          <!-- NaYin -->
+          <div v-if="chart.na_yin" class="analysis-block">
+            <div class="block-title">纳音</div>
+            <span class="block-desc">六十甲子纳音五行取象，揭示命局的先天气质与能量场</span>
+            <div class="nayin-list">
+              <el-popover
+                v-for="(info, key) in chart.na_yin"
+                :key="key"
+                placement="bottom"
+                :width="300"
+                trigger="click"
+                popper-class="nayin-popover"
+              >
+                <template #reference>
+                  <span class="nayin-tag" :style="{ borderColor: elemColor(info.element) }">
+                    <span class="nayin-pillar">{{ pillarLabel(String(key)) }}</span>
+                    <span class="nayin-name" :style="{ color: elemColor(info.element) }">{{ info.name }}</span>
+                  </span>
+                </template>
+                <div class="nayin-detail">
+                  <div class="nayin-detail-header">
+                    <span class="nayin-detail-name">{{ info.name }}</span>
+                    <span class="nayin-detail-elem" :style="{ background: elemColor(info.element) }">{{ info.element }}</span>
                   </div>
-                  <div class="tg-god-meaning">{{ god.meaning }}</div>
-                  <div class="tg-god-advice">{{ god.advice }}</div>
+                  <div class="nayin-detail-section">
+                    <div class="nayin-detail-label">取象释义</div>
+                    <div class="nayin-detail-value">{{ info.image_desc }}</div>
+                  </div>
+                  <div class="nayin-detail-section">
+                    <div class="nayin-detail-label">性格命运</div>
+                    <div class="nayin-detail-value">{{ info.personality }}</div>
+                  </div>
+                  <div class="nayin-detail-section">
+                    <div class="nayin-detail-label">能量阶段</div>
+                    <div class="nayin-detail-value nayin-energy">{{ info.energy_stage }}</div>
+                  </div>
+                  <div class="nayin-detail-section">
+                    <div class="nayin-detail-label">现代延伸</div>
+                    <div class="nayin-detail-value">{{ info.modern_ext }}</div>
+                  </div>
+                  <div v-if="info.judgments && info.judgments.length" class="nayin-detail-section">
+                    <div class="nayin-detail-label">特质断语</div>
+                    <div class="nayin-detail-tags">
+                      <span v-for="j in info.judgments" :key="j" class="nayin-judgment-tag">{{ j }}</span>
+                    </div>
+                  </div>
+                </div>
+              </el-popover>
+            </div>
+          </div>
+
+          <!-- DaYun -->
+          <div v-if="chart.da_yun && chart.da_yun.start_age" class="analysis-block">
+            <div class="block-title">
+              大运 ({{ chart.da_yun.direction }} · {{ chart.da_yun.start_age }}岁起运)
+            </div>
+            <span class="block-desc">十年一步的大运流转，决定人生各阶段的运势起伏</span>
+            <div class="dayun-timeline">
+              <div v-for="(p, i) in chart.da_yun.pillars" :key="i" class="dayun-node">
+                <div class="dayun-age">{{ (Number(chart.da_yun.start_age) || 0) + (Number(i) || 0) * 10 }}岁</div>
+                <div class="dayun-dot-line">
+                  <span class="dayun-dot"></span>
+                  <span v-if="i < chart.da_yun.pillars.length - 1" class="dayun-line"></span>
+                </div>
+                <div class="dayun-pillar-card">
+                  <span class="dayun-gan">{{ p.gan }}</span>
+                  <span class="dayun-zhi">{{ p.zhi }}</span>
                 </div>
               </div>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
+            </div>
+          </div>
+        </div><!-- /overview tab -->
 
-        <!-- NaYin -->
-        <div v-if="chart.na_yin" class="analysis-block">
-          <div class="block-title">纳音</div>
-          <div class="nayin-list">
-            <el-popover
-              v-for="(info, key) in chart.na_yin"
-              :key="key"
-              placement="bottom"
-              :width="300"
-              trigger="click"
-              popper-class="nayin-popover"
-            >
-              <template #reference>
-                <span class="nayin-tag" :style="{ borderColor: elemColor(info.element) }">
-                  <span class="nayin-pillar">{{ pillarLabel(String(key)) }}</span>
-                  <span class="nayin-name" :style="{ color: elemColor(info.element) }">{{ info.name }}</span>
+        <!-- ═══ Tab: 五行格局 (wuxing) ═══ -->
+        <div v-show="activeTab === 'wuxing'" class="tab-content">
+          <!-- Element Detail -->
+          <div v-if="chart.element_detail && chart.element_detail.length" class="analysis-block">
+            <div class="block-title">五行力量与藏干分析</div>
+            <span class="block-desc">天干明透与地支藏干的综合力量，揭示五行的真实强弱</span>
+            <div class="element-detail-table">
+              <div class="ed-header">
+                <span>五行</span>
+                <span>天干</span>
+                <span>地支藏干</span>
+                <span>总力量</span>
+              </div>
+              <div
+                v-for="ed in chart.element_detail"
+                :key="ed.element"
+                class="ed-row"
+                :class="'level-' + strengthLevel(ed.total)"
+              >
+                <span class="ed-elem" :style="{ color: elemColor(ed.element) }">{{ ed.element }}</span>
+                <span class="ed-tg">{{ ed.tian_gan }}</span>
+                <span class="ed-zc">{{ ed.cang_gan_list ? ed.cang_gan_list.join('、') : '—' }}</span>
+                <span class="ed-total">{{ ed.total }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- WuXingFlow 五行流通 -->
+          <div v-if="chart.wuxing_flow" class="analysis-block">
+            <div class="block-title">五行流通</div>
+            <span class="block-desc">五行相生流转是否顺畅，流通则吉、阻滞则凶</span>
+            <div class="wuxing-flow-card">
+              <div class="wf-header">
+                <span class="wf-label">日主</span>
+                <span class="wf-elem" :style="{ color: elemColor(chart.wuxing_flow.day_element) }">{{ chart.wuxing_flow.day_element }}</span>
+                <span class="wf-type">{{ chart.wuxing_flow.flow_type }}</span>
+                <span class="wf-status" :class="chart.wuxing_flow.is_smooth ? 'wf-smooth' : 'wf-blocked'">
+                  {{ chart.wuxing_flow.is_smooth ? '流通顺畅' : '流通受阻' }}
                 </span>
-              </template>
-              <div class="nayin-detail">
-                <div class="nayin-detail-header">
-                  <span class="nayin-detail-name">{{ info.name }}</span>
-                  <span class="nayin-detail-elem" :style="{ background: elemColor(info.element) }">{{ info.element }}</span>
+              </div>
+              <div v-if="chart.wuxing_flow.flow_paths?.length" class="wf-paths">
+                <div v-for="(path, pi) in chart.wuxing_flow.flow_paths" :key="pi" class="wf-path">
+                  <span class="wf-path-dot"></span>{{ path }}
                 </div>
-                <div class="nayin-detail-section">
-                  <div class="nayin-detail-label">取象释义</div>
-                  <div class="nayin-detail-value">{{ info.image_desc }}</div>
-                </div>
-                <div class="nayin-detail-section">
-                  <div class="nayin-detail-label">性格命运</div>
-                  <div class="nayin-detail-value">{{ info.personality }}</div>
-                </div>
-                <div class="nayin-detail-section">
-                  <div class="nayin-detail-label">能量阶段</div>
-                  <div class="nayin-detail-value nayin-energy">{{ info.energy_stage }}</div>
-                </div>
-                <div class="nayin-detail-section">
-                  <div class="nayin-detail-label">现代延伸</div>
-                  <div class="nayin-detail-value">{{ info.modern_ext }}</div>
-                </div>
-                <div v-if="info.judgments && info.judgments.length" class="nayin-detail-section">
-                  <div class="nayin-detail-label">特质断语</div>
-                  <div class="nayin-detail-tags">
-                    <span v-for="j in info.judgments" :key="j" class="nayin-judgment-tag">{{ j }}</span>
+              </div>
+              <div v-if="chart.wuxing_flow.blocked_element" class="wf-blocked-row">
+                <span class="wf-blocked-label">阻滞</span>
+                <span class="wf-blocked-elem" :style="{ color: elemColor(chart.wuxing_flow.blocked_element) }">{{ chart.wuxing_flow.blocked_element }}</span>
+              </div>
+              <div v-if="chart.wuxing_flow.balance_verdict" class="wf-verdict">{{ chart.wuxing_flow.balance_verdict }}</div>
+              <div v-if="chart.wuxing_flow.advice" class="wf-advice">{{ chart.wuxing_flow.advice }}</div>
+            </div>
+          </div>
+
+          <!-- TongGuan 通关用神 -->
+          <div v-if="chart.tong_guan && chart.tong_guan.has_tong_guan" class="analysis-block">
+            <div class="block-title">通关用神</div>
+            <span class="block-desc">两行对峙取中间五行通关调和，化敌为友</span>
+            <div class="tong-guan-card">
+              <span class="tg-elem" :style="{ color: elemColor(chart.tong_guan.tong_guan_element) }">{{ chart.tong_guan.tong_guan_element }}</span>
+              <span class="tg-desc">{{ chart.tong_guan.description }}</span>
+            </div>
+          </div>
+
+          <!-- MissingElements 缺失五行 -->
+          <div v-if="chart.missing_elements && chart.missing_elements.missing_elements?.length" class="analysis-block">
+            <div class="block-title">五行缺失</div>
+            <span class="block-desc">命局中完全不见的五行，需通过后天补救平衡</span>
+            <div class="missing-elem-card">
+              <div class="me-row">
+                <span class="me-label">缺失</span>
+                <span v-for="e in chart.missing_elements.missing_elements" :key="'m'+e" class="me-tag me-missing" :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }">{{ e }}</span>
+                <span v-if="chart.missing_elements.severity" class="me-severity" :class="'me-' + chart.missing_elements.severity">{{ chart.missing_elements.severity }}</span>
+              </div>
+              <div v-if="chart.missing_elements.remedy_elements?.length" class="me-row">
+                <span class="me-label">补救</span>
+                <span v-for="e in chart.missing_elements.remedy_elements" :key="'r'+e" class="me-tag me-remedy" :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }">{{ e }}</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /wuxing tab -->
+
+        <!-- ═══ Tab: 十神详解 (shishen) ═══ -->
+        <div v-show="activeTab === 'shishen'" class="tab-content">
+          <!-- TenGodProportion -->
+          <div v-if="chart.ten_god_proportion && chart.ten_god_proportion.length" class="analysis-block">
+            <div class="block-title">十神占比</div>
+            <span class="block-desc">各十神在命局中的比重，占比越高影响力越大</span>
+            <div class="ten-god-chart-wrap">
+              <v-chart class="ten-god-chart" :option="(tenGodChartOptions as any)" autoresize />
+            </div>
+          </div>
+
+          <!-- TenGodAnalysis -->
+          <div v-if="chart.ten_god_analysis" class="analysis-block">
+            <div class="block-title">十神综合解读</div>
+            <span class="block-desc">综合十神组合对性格、事业、感情、健康的深层影响</span>
+            <el-tabs class="ten-god-tabs" tab-position="top">
+              <el-tab-pane label="综合概述">
+                <div class="tg-summary">{{ chart.ten_god_analysis.summary }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="性格特点">
+                <div class="tg-text">{{ chart.ten_god_analysis.personality }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="人际关系">
+                <div class="tg-text">{{ chart.ten_god_analysis.interpersonal }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="事业财运">
+                <div class="tg-text">{{ chart.ten_god_analysis.career_fortune }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="感情姻缘">
+                <div class="tg-text">{{ chart.ten_god_analysis.emotion_relation }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="健康提醒">
+                <div class="tg-text">{{ chart.ten_god_analysis.health_note }}</div>
+              </el-tab-pane>
+              <el-tab-pane label="十神详解">
+                <div class="tg-god-list">
+                  <div v-for="god in chart.ten_god_analysis.god_relations" :key="god.god" class="tg-god-card">
+                    <div class="tg-god-header">
+                      <span class="tg-god-name">{{ god.god }}</span>
+                      <span class="tg-god-pct">{{ god.percent }}</span>
+                    </div>
+                    <div class="tg-god-meaning">{{ god.meaning }}</div>
+                    <div class="tg-god-advice">{{ god.advice }}</div>
                   </div>
                 </div>
+              </el-tab-pane>
+            </el-tabs>
+          </div>
+        </div><!-- /shishen tab -->
+
+        <!-- ═══ Tab: 格局古籍 (pattern) ═══ -->
+        <div v-show="activeTab === 'pattern'" class="tab-content">
+          <!-- Pattern Analysis -->
+          <div v-if="chart.pattern_analysis" class="analysis-block">
+            <div class="block-title">命局格局</div>
+            <span class="block-desc">判断命局属于正格还是特殊格局，格局决定全局喜忌方向</span>
+            <div class="pattern-detail">
+              <div class="pattern-header">
+                <span class="pattern-name">{{ chart.pattern_analysis.pattern_name }}</span>
+                <span class="pattern-type-tag" :class="chart.pattern_analysis.pattern_type === '特殊格局' ? 'tag-special' : 'tag-normal'">
+                  {{ chart.pattern_analysis.pattern_type }}
+                </span>
               </div>
-            </el-popover>
-          </div>
-        </div>
-
-        <!-- RiZhuDesc (legacy fallback) -->
-        <div v-if="chart.ri_zhu_desc && !chart.ri_zhu_poem" class="analysis-block">
-          <div class="block-title">日主坐命</div>
-          <p class="ri-zhu-text">{{ chart.ri_zhu_desc }}</p>
-        </div>
-
-        <!-- RiZhuPoem -->
-        <div v-if="chart.ri_zhu_poem" class="analysis-block">
-          <div class="block-title">日主诗意</div>
-          <p class="ri-zhu-text">{{ chart.ri_zhu_poem }}</p>
-        </div>
-
-        <!-- RiZhuSource -->
-        <div v-if="chart.ri_zhu_source" class="analysis-block">
-          <div class="block-title">古籍出处</div>
-          <p class="ri-zhu-text">{{ chart.ri_zhu_source }}</p>
-        </div>
-
-        <!-- RiZhuComment -->
-        <div v-if="chart.ri_zhu_comment" class="analysis-block">
-          <div class="block-title">补充判断</div>
-          <p class="ri-zhu-text">{{ chart.ri_zhu_comment }}</p>
-        </div>
-
-        <!-- RiZhuHourDetail -->
-        <div v-if="chart.ri_zhu_hour_detail" class="analysis-block">
-          <div class="block-title">时辰详批</div>
-          <p class="ri-zhu-text">{{ chart.ri_zhu_hour_detail }}</p>
-        </div>
-
-        <!-- DaYun -->
-        <div v-if="chart.da_yun && chart.da_yun.start_age" class="analysis-block">
-          <div class="block-title">
-            大运 ({{ chart.da_yun.direction }} · {{ chart.da_yun.start_age }}岁起运)
-          </div>
-          <div class="dayun-list">
-            <span v-for="(p, i) in chart.da_yun.pillars" :key="i" class="dayun-tag">
-              {{ (Number(chart.da_yun.start_age) || 0) + (Number(i) || 0) * 10 }}岁 {{ p.gan }}{{ p.zhi }}
-            </span>
-          </div>
-        </div>
-
-        <!-- MingGong -->
-        <div v-if="chart.ming_gong && chart.ming_gong.gan_zhi" class="analysis-block">
-          <div class="block-title">命宫 · 第五柱</div>
-          <div class="ming-gong-detail">
-            <div class="ming-gong-main">
-              <span class="ming-gong-ganzhi">{{ chart.ming_gong.gan_zhi }}</span>
-              <span v-if="chart.ming_gong.nayin" class="ming-gong-nayin">({{ chart.ming_gong.nayin }})</span>
-            </div>
-            <div v-if="chart.ming_gong.shen_sha" class="ming-gong-shensha">
-              <span class="shensha-badge" :class="{ 'shensha-ji': isJiShenSha(chart.ming_gong.shen_sha), 'shensha-xiong': isXiongShenSha(chart.ming_gong.shen_sha) }">
-                {{ chart.ming_gong.shen_sha }}星
-              </span>
-              <span class="shensha-desc">{{ chart.ming_gong.shen_sha_desc }}</span>
-            </div>
-            <div v-if="chart.ming_gong.zhi_detail" class="ming-gong-zhi">
-              {{ chart.ming_gong.zhi_detail }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Tiaohou from 《穷通宝鉴》 -->
-        <div v-if="chart.tiaohou" class="analysis-block">
-          <div class="block-title">调候用神 <span class="tiaohou-source">《穷通宝鉴》</span></div>
-          <div class="tiaohou-card">
-            <div class="tiaohou-header">
-              <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
-              <span class="tiaohou-arrow">生</span>
-              <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
-              <span class="tiaohou-divider">|</span>
-              <span class="tiaohou-label">用神</span>
-              <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{ chart.tiaohou.primary_god }}</span>
-            </div>
-            <div class="tiaohou-summary">{{ chart.tiaohou.summary }}</div>
-            <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
-              <div v-for="(rule, idx) in chart.tiaohou.rules" :key="idx" class="tiaohou-rule">
-                <span class="tiaohou-xi">喜{{ rule.xi_shen }}</span>
-                <span class="tiaohou-ji">忌{{ rule.ji_shen }}</span>
-                <span class="tiaohou-reason">{{ rule.reason }}</span>
+              <p class="pattern-desc">{{ chart.pattern_analysis.description }}</p>
+              <div class="pattern-elems">
+                <div v-if="chart.pattern_analysis.favorable_elements?.length" class="pattern-favor">
+                  <span class="pattern-elem-label">喜</span>
+                  <span v-for="e in chart.pattern_analysis.favorable_elements" :key="'fav'+e" class="pattern-elem-tag favor">{{ e }}</span>
+                </div>
+                <div v-if="chart.pattern_analysis.unfavorable_elements?.length" class="pattern-avoid">
+                  <span class="pattern-elem-label">忌</span>
+                  <span v-for="e in chart.pattern_analysis.unfavorable_elements" :key="'unf'+e" class="pattern-elem-tag avoid">{{ e }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- JinBuHuan -->
-        <div v-if="chart.jin_bu_huan" class="analysis-block">
-          <div class="block-title">金不换</div>
-          <p class="jin-bu-huan-text">{{ chart.jin_bu_huan }}</p>
-        </div>
+          <!-- Body Strength -->
+          <div v-if="chart.body_strength && chart.pattern_analysis?.pattern_type !== '特殊格局'" class="analysis-block">
+            <div class="block-title">身旺喜忌</div>
+            <span class="block-desc">扶抑法判断日主强弱，身旺抑之、身弱扶之，确定喜用忌神</span>
+            <div class="body-strength">
+              <div class="bs-verdict">{{ chart.body_strength.verdict }}</div>
+              <div class="bs-tags">
+                <span class="bs-like-label">喜</span>
+                <span v-for="l in chart.body_strength.like" :key="l" class="bs-like">{{ l }}</span>
+                <span class="bs-dislike-label">忌</span>
+                <span v-for="d in chart.body_strength.dislike" :key="d" class="bs-dislike">{{ d }}</span>
+              </div>
+            </div>
+          </div>
 
-        <!-- ShenSha (grouped by pillar when available) -->
-        <template v-if="groupedShenSha">
-          <template v-for="group in groupedShenSha" :key="group.pillar">
-            <div v-if="group.items && group.items.length" class="analysis-block">
+          <!-- Tiaohou from 《穷通宝鉴》 -->
+          <div v-if="chart.tiaohou" class="analysis-block">
+            <div class="block-title">调候用神 <span class="tiaohou-source">《穷通宝鉴》</span></div>
+            <span class="block-desc">根据日干生于各月的寒暖燥湿，取调候之用神以求中和</span>
+            <div class="tiaohou-card">
+              <div class="tiaohou-header">
+                <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
+                <span class="tiaohou-arrow">生</span>
+                <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
+                <span class="tiaohou-divider">|</span>
+                <span class="tiaohou-label">用神</span>
+                <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{ chart.tiaohou.primary_god }}</span>
+              </div>
+              <div class="tiaohou-summary">{{ chart.tiaohou.summary }}</div>
+              <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
+                <div v-for="(rule, idx) in chart.tiaohou.rules" :key="idx" class="tiaohou-rule">
+                  <span class="tiaohou-xi">喜{{ rule.xi_shen }}</span>
+                  <span class="tiaohou-ji">忌{{ rule.ji_shen }}</span>
+                  <span class="tiaohou-reason">{{ rule.reason }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- JinBuHuan -->
+          <div v-if="chart.jin_bu_huan" class="analysis-block">
+            <div class="block-title">金不换</div>
+            <span class="block-desc">以日干查十二月令的富贵贫贱断语，出自古籍《金不换》</span>
+            <p class="jin-bu-huan-text">{{ chart.jin_bu_huan }}</p>
+          </div>
+
+          <!-- RiZhuDesc (legacy fallback) -->
+          <div v-if="chart.ri_zhu_desc && !chart.ri_zhu_poem" class="analysis-block">
+            <div class="block-title">日主坐命</div>
+            <span class="block-desc">日柱天干坐支的组合断语，揭示命主的核心气质</span>
+            <p class="ri-zhu-text">{{ chart.ri_zhu_desc }}</p>
+          </div>
+
+          <!-- RiZhuPoem -->
+          <div v-if="chart.ri_zhu_poem" class="analysis-block">
+            <div class="block-title">日主诗意</div>
+            <span class="block-desc">古人以诗赋形式描绘日柱特质，意境深远</span>
+            <p class="ri-zhu-text">{{ chart.ri_zhu_poem }}</p>
+          </div>
+
+          <!-- RiZhuSource -->
+          <div v-if="chart.ri_zhu_source" class="analysis-block">
+            <div class="block-title">古籍出处</div>
+            <span class="block-desc">诗赋的典籍来源，追溯命理学的文化传承</span>
+            <p class="ri-zhu-text">{{ chart.ri_zhu_source }}</p>
+          </div>
+
+          <!-- RiZhuComment -->
+          <div v-if="chart.ri_zhu_comment" class="analysis-block">
+            <div class="block-title">补充判断</div>
+            <span class="block-desc">结合现代视角对日柱特质的补充解读</span>
+            <p class="ri-zhu-text">{{ chart.ri_zhu_comment }}</p>
+          </div>
+
+          <!-- RiZhuHourDetail -->
+          <div v-if="chart.ri_zhu_hour_detail" class="analysis-block">
+            <div class="block-title">时辰详批</div>
+            <span class="block-desc">日柱配合时柱的精细论断，时辰为命局的归宿</span>
+            <p class="ri-zhu-text">{{ chart.ri_zhu_hour_detail }}</p>
+          </div>
+        </div><!-- /pattern tab -->
+
+        <!-- ═══ Tab: 神煞 (shensha) ═══ -->
+        <div v-show="activeTab === 'shensha'" class="tab-content">
+          <!-- ShenSha (grouped by pillar when available) -->
+          <template v-if="groupedShenSha">
+            <template v-for="group in groupedShenSha" :key="group.pillar">
+              <div v-if="group.items && group.items.length" class="analysis-block">
+                <div class="shen-sha-group-title">
+                  <span class="shen-sha-group-dot" :style="{ background: pillarShenShaColor(group.pillar) }"></span>
+                  {{ group.label }}神煞
+                  <span class="shen-sha-group-role">· {{ group.role }}</span>
+                </div>
+                <div class="shen-sha-list">
+                  <article
+                    v-for="sha in group.items"
+                    :key="sha.name + sha.target + sha.desc"
+                    class="shen-sha-row"
+                    :style="{ background: pillarShenShaBg(group.pillar) }"
+                  >
+                    <span class="shen-sha-name" :style="{ color: pillarShenShaColor(group.pillar) }">{{ sha.name }}</span>
+                    <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
+                    <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
+                  </article>
+                </div>
+              </div>
+            </template>
+            <div v-if="globalShenSha.length" class="analysis-block">
               <div class="shen-sha-group-title">
-                <span class="shen-sha-group-dot" :style="{ background: pillarShenShaColor(group.pillar) }"></span>
-                {{ group.label }}神煞
-                <span class="shen-sha-group-role">· {{ group.role }}</span>
+                <span class="shen-sha-group-dot" style="background: var(--gold)"></span>
+                全局组合神煞
+                <span class="shen-sha-group-role">· 多柱配合</span>
               </div>
               <div class="shen-sha-list">
                 <article
-                  v-for="sha in group.items"
+                  v-for="sha in globalShenSha"
                   :key="sha.name + sha.target + sha.desc"
                   class="shen-sha-row"
-                  :style="{ background: pillarShenShaBg(group.pillar) }"
+                  :style="{ background: 'rgba(212,168,75,0.07)' }"
                 >
-                  <span class="shen-sha-name" :style="{ color: pillarShenShaColor(group.pillar) }">{{ sha.name }}</span>
+                  <span class="shen-sha-name" :style="{ color: 'var(--gold)' }">{{ sha.name }}</span>
                   <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
                   <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
                 </article>
               </div>
             </div>
-          </template>
-          <div v-if="globalShenSha.length" class="analysis-block">
-            <div class="shen-sha-group-title">
-              <span class="shen-sha-group-dot" style="background: var(--gold)"></span>
-              全局组合神煞
-              <span class="shen-sha-group-role">· 多柱配合</span>
+            <div v-if="showSummary" class="analysis-block shen-sha-summary-block">
+              <div class="shen-sha-summary-title">{{ props.chart.shen_sha_summary.title }}</div>
+              <ul class="shen-sha-summary-list">
+                <li v-for="line in props.chart.shen_sha_summary.description" :key="line.slice(0, 16)">
+                  {{ line }}
+                </li>
+              </ul>
             </div>
+          </template>
+          <div v-else-if="parsedDayShenSha.length" class="analysis-block">
+            <div class="block-title">日柱神煞</div>
+            <span class="block-desc">日柱天干地支所临神煞，揭示先天吉凶信息</span>
             <div class="shen-sha-list">
-              <article
-                v-for="sha in globalShenSha"
-                :key="sha.name + sha.target + sha.desc"
-                class="shen-sha-row"
-                :style="{ background: 'rgba(212,168,75,0.07)' }"
-              >
-                <span class="shen-sha-name" :style="{ color: 'var(--gold)' }">{{ sha.name }}</span>
+              <article v-for="sha in parsedDayShenSha" :key="sha.name + sha.target + sha.desc" class="shen-sha-row">
+                <span class="shen-sha-name">{{ sha.name }}</span>
                 <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
                 <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
               </article>
             </div>
           </div>
-          <div v-if="showSummary" class="analysis-block shen-sha-summary-block">
-            <div class="shen-sha-summary-title">{{ props.chart.shen_sha_summary.title }}</div>
-            <ul class="shen-sha-summary-list">
-              <li v-for="line in props.chart.shen_sha_summary.description" :key="line.slice(0, 16)">
-                {{ line }}
-              </li>
-            </ul>
+        </div><!-- /shensha tab -->
+
+        <!-- ═══ Tab: 运势详批 (fortune) ═══ -->
+        <div v-show="activeTab === 'fortune'" class="tab-content">
+          <!-- MingGong -->
+          <div v-if="chart.ming_gong && chart.ming_gong.gan_zhi" class="analysis-block">
+            <div class="block-title">命宫 · 第五柱</div>
+            <span class="block-desc">以出生时辰推算命宫，被视为八字之外的第五柱</span>
+            <div class="ming-gong-detail">
+              <div class="ming-gong-main">
+                <span class="ming-gong-ganzhi">{{ chart.ming_gong.gan_zhi }}</span>
+                <span v-if="chart.ming_gong.nayin" class="ming-gong-nayin">({{ chart.ming_gong.nayin }})</span>
+              </div>
+              <div v-if="chart.ming_gong.shen_sha" class="ming-gong-shensha">
+                <span class="shensha-badge" :class="{ 'shensha-ji': isJiShenSha(chart.ming_gong.shen_sha), 'shensha-xiong': isXiongShenSha(chart.ming_gong.shen_sha) }">
+                  {{ chart.ming_gong.shen_sha }}星
+                </span>
+                <span class="shensha-desc">{{ chart.ming_gong.shen_sha_desc }}</span>
+              </div>
+              <div v-if="chart.ming_gong.zhi_detail" class="ming-gong-zhi">
+                {{ chart.ming_gong.zhi_detail }}
+              </div>
+            </div>
           </div>
-        </template>
-        <div v-else-if="parsedDayShenSha.length" class="analysis-block">
-          <div class="block-title">日柱神煞</div>
-          <div class="shen-sha-list">
-            <article v-for="sha in parsedDayShenSha" :key="sha.name + sha.target + sha.desc" class="shen-sha-row">
-              <span class="shen-sha-name">{{ sha.name }}</span>
-              <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
-              <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
-            </article>
+
+          <!-- SeasonText -->
+          <div v-if="chart.season_text" class="analysis-block">
+            <div class="block-title">季节解读</div>
+            <span class="block-desc">日主生于当令季节的旺衰状态与调候要点</span>
+            <p class="season-text">{{ chart.season_text }}</p>
           </div>
-        </div>
 
-        <!-- SeasonText -->
-        <div v-if="chart.season_text" class="analysis-block">
-          <div class="block-title">季节解读</div>
-          <p class="season-text">{{ chart.season_text }}</p>
-        </div>
+          <!-- SeasonTextMonth -->
+          <div v-if="chart.season_text_month" class="analysis-block">
+            <div class="block-title">{{ birthMonthLabel }}解读</div>
+            <span class="block-desc">该月特有的节气特征与调候细则</span>
+            <p class="season-text">{{ chart.season_text_month }}</p>
+          </div>
 
-        <!-- SeasonTextMonth (五月/六月 specific) -->
-        <div v-if="chart.season_text_month" class="analysis-block">
-          <div class="block-title">{{ birthMonthLabel }}解读</div>
-          <p class="season-text">{{ chart.season_text_month }}</p>
-        </div>
+          <!-- FlowPatternDesc 流通格局 -->
+          <div v-if="chart.flow_pattern_desc" class="analysis-block">
+            <div class="block-title">流通格局</div>
+            <span class="block-desc">五行流通形成的特殊格局类型与化解之道</span>
+            <p class="season-text">{{ chart.flow_pattern_desc }}</p>
+          </div>
 
-      </div>
+          <!-- DaYunFlow 大运流年 -->
+          <div v-if="chart.dayun_flow && chart.dayun_flow.length" class="analysis-block">
+            <div class="block-title">流年运势</div>
+            <span class="block-desc">大运与流年交替的运势变化，关注关键转折节点</span>
+            <div class="dayun-flow-list">
+              <div v-for="(item, di) in chart.dayun_flow" :key="di" class="dayun-flow-item" :class="'df-' + item.flow_change">
+                <div class="df-left">
+                  <span class="df-age">{{ item.start_age }}岁</span>
+                  <span class="df-pillar">{{ item.pillar }}</span>
+                </div>
+                <div class="df-right">
+                  <span class="df-change-badge" :class="'dfb-' + item.flow_change">{{ item.flow_change }}</span>
+                  <span class="df-impact">{{ item.impact }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /fortune tab -->
+
+      </div><!-- /analysis-section -->
     </div>
   </div>
 </template>
@@ -899,55 +1053,72 @@ const tenGodChartOptions = computed(() => {
   flex-direction: column;
   text-align: center;
   border-right: 1px solid rgba(212, 168, 75, 0.06);
+  transition: background 0.3s;
 }
 
 .pillar-col:last-child {
   border-right: none;
 }
 
+.pillar-col:hover {
+  background: rgba(212, 168, 75, 0.03);
+}
+
 .pillar-label {
   background: rgba(255, 255, 255, 0.02);
-  padding: 0.5rem 0;
-  font-size: 0.72rem;
+  padding: 0.35rem 0;
+  font-size: 0.68rem;
   color: var(--muted);
   letter-spacing: 1px;
   border-bottom: 1px solid rgba(212, 168, 75, 0.06);
 }
 
-.pillar-gan,
-.pillar-zhi {
-  padding: 1rem 0.5rem;
+.pillar-gan {
+  padding: 0.65rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.2rem;
+  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
+  background: linear-gradient(180deg, rgba(212, 168, 75, 0.04), transparent);
+}
+
+.pillar-zhi {
+  padding: 0.65rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
   border-bottom: 1px solid rgba(212, 168, 75, 0.04);
 }
 
 .gan-char,
 .zhi-char {
   font-family: var(--font-serif), serif;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   line-height: 1;
+  text-shadow: 0 0 12px currentColor;
 }
 
 .elem-tag {
   display: inline-block;
-  font-size: 0.65rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
   border: 1px solid;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-/* ===== 天干地支关系 — 紧凑卡片布局 ===== */
+/* ===== 天干地支关系 — 紧凑内联布局 ===== */
 
 .ganzhi-analysis {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .relations-section {
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 1rem;
   border-bottom: 1px solid rgba(212, 168, 75, 0.06);
 }
 
@@ -955,96 +1126,133 @@ const tenGodChartOptions = computed(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
-
-.relations-title-icon {
-  font-size: 0.5rem;
-  color: rgba(212, 168, 75, 0.4);
-}
-
-.ganzhi-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ganzhi-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 7px 10px;
-  border-radius: 0 6px 6px 0;
-  background: rgba(255, 255, 255, 0.015);
-  border-left: 2px solid transparent;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: relationSlideIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
-.ganzhi-row:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-left-width: 3px;
-  transform: translateX(2px);
-}
-
-.ganzhi-headline {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  min-width: 0;
-}
-
-.pillar-name {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.ganzhi-summary {
-  color: var(--gold);
-  font-family: var(--font-serif), serif;
-  font-size: 0.82rem;
+  font-size: 0.65rem;
   font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 1.5px;
+  margin-bottom: 0.35rem;
+}
+
+.relations-title-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(212, 168, 75, 0.4);
+}
+
+.relations-title-dot.zhi-dot {
+  background: #6495ed;
+  box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
+}
+
+.relations-count {
+  font-size: 0.55rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.2);
+  margin-left: auto;
   letter-spacing: 0.5px;
+}
+
+.ganzhi-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gz-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border-left: 2px solid transparent;
+  transition: background 0.2s;
+}
+
+.gz-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.gz-item.rel-he { border-left-color: rgba(74, 222, 128, 0.5); }
+.gz-item.rel-ke { border-left-color: rgba(248, 113, 113, 0.5); }
+.gz-item.rel-sheng { border-left-color: rgba(96, 165, 250, 0.5); }
+.gz-item.rel-chong { border-left-color: rgba(248, 113, 113, 0.5); }
+.gz-item.rel-hai { border-left-color: rgba(251, 146, 60, 0.5); }
+.gz-item.rel-xing { border-left-color: rgba(192, 132, 252, 0.5); }
+.gz-item.rel-hui { border-left-color: rgba(96, 165, 250, 0.5); }
+
+.gz-chars {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.gz-c {
+  font-family: var(--font-serif), serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.gz-sym {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0 2px;
+}
+
+.sym-rel-he { color: #4ade80; }
+.sym-rel-ke { color: #f87171; }
+.sym-rel-sheng { color: #60a5fa; }
+.sym-rel-chong { color: #f87171; }
+.sym-rel-hai { color: #fb923c; }
+.sym-rel-xing { color: #c084fc; }
+.sym-rel-hui { color: #60a5fa; }
+
+.gz-tag {
+  font-size: 0.5rem;
+  font-weight: 600;
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.tag-rel-he { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
+.tag-rel-ke { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+.tag-rel-sheng { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
+.tag-rel-chong { color: #f87171; background: rgba(248, 113, 113, 0.1); }
+.tag-rel-hai { color: #fb923c; background: rgba(251, 146, 60, 0.1); }
+.tag-rel-xing { color: #c084fc; background: rgba(192, 132, 252, 0.1); }
+.tag-rel-hui { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
+
+.gz-text {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.ganzhi-detail {
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 0.7rem;
-  line-height: 1.55;
-  white-space: pre-line;
-  word-break: break-word;
-}
-
-/* —— 关系颜色 —— */
-.ganzhi-row.rel-he { border-left-color: #4ade80; }
-.ganzhi-row.rel-ke { border-left-color: #dc143c; }
-.ganzhi-row.rel-sheng { border-left-color: #6495ed; }
-.ganzhi-row.rel-chong { border-left-color: #dc143c; }
-.ganzhi-row.rel-hai { border-left-color: #ff8c00; }
-.ganzhi-row.rel-xing { border-left-color: #ba55d3; }
-.ganzhi-row.rel-hui { border-left-color: #6495ed; }
-
-@keyframes relationSlideIn {
-  from { opacity: 0; transform: translateX(-6px); }
-  to   { opacity: 1; transform: translateX(0); }
 }
 
 .no-relations {
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 1rem;
   text-align: center;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.12);
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.15);
   border-bottom: 1px solid rgba(212, 168, 75, 0.04);
-  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.no-rel-icon {
+  font-size: 0.5rem;
+  color: rgba(212, 168, 75, 0.25);
 }
 
 /* Analysis sections */
@@ -1055,7 +1263,35 @@ const tenGodChartOptions = computed(() => {
   gap: 1rem;
 }
 
-.analysis-block {
+/* Tab navigation */
+.chart-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(212, 168, 75, 0.1);
+  padding: 0 1.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chart-tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+.tab-btn:hover { color: rgba(212, 168, 75, 0.7); }
+.tab-btn.active { color: #D4A84B; border-bottom-color: #D4A84B; }
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .block-title {
@@ -1064,6 +1300,16 @@ const tenGodChartOptions = computed(() => {
   color: var(--gold);
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
+}
+
+.block-desc {
+  display: block;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.5;
+  margin-top: -0.3rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.3px;
 }
 
 /* Five elements chart */
@@ -1206,20 +1452,83 @@ const tenGodChartOptions = computed(() => {
   color: var(--gold);
 }
 
-/* DaYun */
-.dayun-list {
+/* DaYun — 时间轴风格 */
+.dayun-timeline {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0;
 }
 
-.dayun-tag {
-  font-size: 0.72rem;
-  padding: 0.25rem 0.625rem;
-  background: rgba(196, 30, 58, 0.06);
-  border: 1px solid rgba(196, 30, 58, 0.12);
-  border-radius: 4px;
-  color: var(--crimson);
+.dayun-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+  flex: 1;
+}
+
+.dayun-age {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 0.3rem;
+  white-space: nowrap;
+}
+
+.dayun-dot-line {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.dayun-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(212, 168, 75, 0.4);
+  flex-shrink: 0;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.dayun-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212, 168, 75, 0.3), rgba(212, 168, 75, 0.08));
+  transform: translateY(-50%);
+}
+
+.dayun-pillar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(212, 168, 75, 0.05);
+  border: 1px solid rgba(212, 168, 75, 0.12);
+  border-radius: 6px;
+}
+
+.dayun-gan {
+  font-family: var(--font-serif), serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.2;
+}
+
+.dayun-zhi {
+  font-family: var(--font-serif), serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.2;
 }
 
 /* Element Detail Table */
@@ -1600,19 +1909,19 @@ const tenGodChartOptions = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.4rem 0.25rem;
+  gap: 0.1rem;
+  padding: 0.25rem 0.25rem;
   border-top: 1px solid rgba(212, 168, 75, 0.04);
 }
 
 .sheng-xiao-tag {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: rgba(212, 168, 75, 0.5);
   letter-spacing: 1px;
 }
 
 .empties-tag {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: rgba(196, 30, 58, 0.5);
 }
 
@@ -1809,6 +2118,138 @@ const tenGodChartOptions = computed(() => {
   font-size: 12px;
   line-height: 1.6;
   color: rgba(212,168,75,0.7);
+}
+
+/* WuXingFlow 五行流通 */
+.wuxing-flow-card {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.015);
+  border-radius: 8px;
+  border: 1px solid rgba(212,168,75,0.06);
+}
+.wf-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.wf-label { font-size: 0.65rem; color: var(--muted); }
+.wf-elem { font-size: 0.85rem; font-weight: 700; }
+.wf-type { font-size: 0.7rem; color: var(--muted); padding: 0.1rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 4px; }
+.wf-status { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 4px; }
+.wf-smooth { color: #4ade80; background: rgba(74,222,128,0.1); }
+.wf-blocked { color: #f08080; background: rgba(196,30,58,0.1); }
+.wf-paths { display: flex; flex-direction: column; gap: 0.25rem; }
+.wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+.wf-path-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+.wf-blocked-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
+.wf-blocked-label { color: #f08080; font-size: 0.65rem; }
+.wf-blocked-elem { font-weight: 600; }
+.wf-verdict { font-size: 0.72rem; color: rgba(255,255,255,0.5); font-style: italic; }
+.wf-advice { font-size: 0.72rem; color: var(--gold); opacity: 0.8; }
+
+/* TongGuan 通关用神 */
+.tong-guan-card {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.015);
+  border-radius: 8px;
+  border: 1px solid rgba(212,168,75,0.06);
+}
+.tg-elem { font-size: 1.4rem; font-weight: 900; font-family: var(--font-serif); }
+.tg-desc { font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5; }
+
+/* MissingElements 缺失五行 */
+.missing-elem-card {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.015);
+  border-radius: 8px;
+  border: 1px solid rgba(212,168,75,0.06);
+}
+.me-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.me-label { font-size: 0.65rem; color: var(--muted); min-width: 28px; }
+.me-tag { font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.4rem; border: 1px solid; border-radius: 4px; }
+.me-missing { background: rgba(196,30,58,0.06); }
+.me-remedy { background: rgba(74,222,128,0.06); }
+.me-severity { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.25rem; }
+.me-轻微 { color: #D4A84B; background: rgba(212,168,75,0.1); }
+.me-中等 { color: #f08080; background: rgba(196,30,58,0.1); }
+.me-严重 { color: #C41E3A; background: rgba(196,30,58,0.2); }
+
+/* DaYunFlow 流年运势 */
+.dayun-flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dayun-flow-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.25s ease;
+}
+
+.dayun-flow-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(212, 168, 75, 0.1);
+}
+
+.df-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.df-age {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+
+.df-pillar {
+  font-family: var(--font-serif), serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+.df-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.df-change-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+.dfb-增强 { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.18); }
+.dfb-减弱 { color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.18); }
+.dfb-不变 { color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+
+.df-增强 { border-left: 3px solid rgba(74, 222, 128, 0.4); }
+.df-减弱 { border-left: 3px solid rgba(248, 113, 113, 0.4); }
+.df-不变 { border-left: 3px solid rgba(212, 168, 75, 0.2); }
+
+.df-impact {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
 }
 </style>
 
