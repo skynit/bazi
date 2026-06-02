@@ -155,3 +155,19 @@ var WuxingSeasonKnowledge = map[string][]WuxingSeasonEntry{
 		},
 	},
 }
+
+// SeasonFromMonth maps birth month (1-12) to season key.
+// 按中国传统节气/地支划分与公历对应：寅卯辰≈公历2-4月=春, 巳午未≈公历5-7月=夏,
+// 申酉戌≈公历8-10月=秋, 亥子丑≈公历11-1月=冬.
+func SeasonFromMonth(m int) string {
+	switch m {
+	case 2, 3, 4:
+		return "春"
+	case 5, 6, 7:
+		return "夏"
+	case 8, 9, 10:
+		return "秋"
+	default: // 11, 12, 1
+		return "冬"
+	}
+}

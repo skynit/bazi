@@ -391,22 +391,22 @@ func TestLuShen(t *testing.T) {
 
 func TestAdvanceRetreat(t *testing.T) {
 	tests := []struct {
-		todayGan string
-		month    int
+		todayGan  string
+		monthZhi  string
 		wantPhase string
-		desc     string
+		desc      string
 	}{
-		{"甲", 3, "当令", "甲木春天=旺=当令"},
-		{"丙", 3, "进气", "丙火春天=相=进气"},
-		{"壬", 3, "退气", "壬水春天=休=退气"},
-		{"庚", 3, "无气", "庚金春天=囚=无气"},
-		{"戊", 3, "绝灭", "戊土春天=死=绝灭"},
-		{"庚", 8, "当令", "庚金秋天=旺=当令"},
-		{"壬", 8, "进气", "壬水秋天=相=进气"},
-		{"丙", 12, "绝灭", "丙火冬天=死=绝灭"},
+		{"甲", "卯", "当令", "甲木春天=旺=当令"},
+		{"丙", "卯", "进气", "丙火春天=相=进气"},
+		{"壬", "卯", "退气", "壬水春天=休=退气"},
+		{"庚", "卯", "无气", "庚金春天=囚=无气"},
+		{"戊", "卯", "绝灭", "戊土春天=死=绝灭"},
+		{"庚", "酉", "当令", "庚金秋天=旺=当令"},
+		{"壬", "酉", "进气", "壬水秋天=相=进气"},
+		{"丙", "子", "绝灭", "丙火冬天=死=绝灭"},
 	}
 	for _, tt := range tests {
-		result := calcAdvanceRetreat(tt.todayGan, "", tt.month)
+		result := calcAdvanceRetreat(tt.todayGan, "", tt.monthZhi)
 		if result.Phase != tt.wantPhase {
 			t.Errorf("%s: got phase=%s, want %s", tt.desc, result.Phase, tt.wantPhase)
 		}
@@ -417,39 +417,65 @@ func TestAdvanceRetreat(t *testing.T) {
 
 func TestGetYearGanZhi(t *testing.T) {
 	tests := []struct {
-		year int
-		want string
+		year, month, day int
+		want             string
 	}{
-		{2024, "甲辰"},
-		{2025, "乙巳"},
-		{2026, "丙午"},
-		{1990, "庚午"},
-		{2000, "庚辰"},
+		{2024, 6, 1, "甲辰"},    // 立春后
+		{2025, 3, 1, "乙巳"},    // 立春后
+		{2026, 1, 15, "乙巳"},   // 立春前，应属上一年乙巳
+		{2026, 6, 1, "丙午"},    // 立春后
+		{1990, 8, 15, "庚午"},   // 立春后
+		{2000, 2, 1, "己卯"},    // 立春前，1999=己卯
+		{2000, 3, 1, "庚辰"},    // 立春后
+		{2025, 2, 3, "甲辰"},    // 立春前，2024=甲辰
+		{2025, 2, 5, "乙巳"},    // 立春后
 	}
 	for _, tt := range tests {
-		got := getYearGanZhi(tt.year)
+		got := getYearGanZhi(tt.year, tt.month, tt.day)
 		if got != tt.want {
-			t.Errorf("getYearGanZhi(%d) = %s, want %s", tt.year, got, tt.want)
+			t.Errorf("getYearGanZhi(%d-%02d-%02d) = %s, want %s", tt.year, tt.month, tt.day, got, tt.want)
 		}
 	}
 }
 
 // ── 季节判断验证 ──────────────────────────────────────────
 
-func TestMonthToSeason(t *testing.T) {
+func TestMonthZhiToSeason(t *testing.T) {
 	tests := []struct {
-		month int
-		want  string
+		zhi  string
+		want string
 	}{
-		{1, "冬"}, {2, "春"}, {3, "春"}, {4, "春"},
-		{5, "夏"}, {6, "夏"}, {7, "夏"},
-		{8, "秋"}, {9, "秋"}, {10, "秋"},
-		{11, "冬"}, {12, "冬"},
+		{"寅", "春"}, {"卯", "春"}, {"辰", "春"},
+		{"巳", "夏"}, {"午", "夏"}, {"未", "夏"},
+		{"申", "秋"}, {"酉", "秋"}, {"戌", "秋"},
+		{"亥", "冬"}, {"子", "冬"}, {"丑", "冬"},
 	}
 	for _, tt := range tests {
-		got := monthToSeason(tt.month)
+		got := monthZhiToSeason(tt.zhi)
 		if got != tt.want {
-			t.Errorf("monthToSeason(%d) = %s, want %s", tt.month, got, tt.want)
+			t.Errorf("monthZhiToSeason(%s) = %s, want %s", tt.zhi, got, tt.want)
+		}
+	}
+}
+
+func TestSolarDateToJieQiMonth(t *testing.T) {
+	tests := []struct {
+		month, day int
+		want       int
+	}{
+		{1, 5, 12},   // 小寒前属上一年子月(12月)
+		{1, 7, 1},    // 小寒后属丑月(1月)
+		{2, 3, 1},    // 立春前属丑月(1月)
+		{2, 5, 2},    // 立春后属寅月(2月)
+		{6, 5, 5},    // 芒种前属巳月(5月)
+		{6, 7, 6},    // 芒种后属午月(6月)
+		{12, 6, 11},  // 大雪前属亥月(11月)
+		{12, 8, 12},  // 大雪后属子月(12月)
+	}
+	for _, tt := range tests {
+		got := solarDateToJieQiMonth(tt.month, tt.day)
+		if got != tt.want {
+			t.Errorf("solarDateToJieQiMonth(%d, %d) = %d, want %d", tt.month, tt.day, got, tt.want)
 		}
 	}
 }
@@ -676,7 +702,7 @@ func TestBranchRelationsComprehensive(t *testing.T) {
 	}
 
 	// 今日午支 → 与年支子冲，与月支午自刑(午午)，与日支寅三合(寅午戌)
-	rels := calcBranchRelations("午", bazi)
+	rels := calcBranchRelations("午", bazi, nil, nil)
 	t.Logf("午支关系数量: %d", len(rels))
 	for _, r := range rels {
 		t.Logf("  %s: %s (favorable=%v)", r.Type, r.Detail, r.IsFavorable)
@@ -695,13 +721,82 @@ func TestBranchRelationsComprehensive(t *testing.T) {
 	}
 }
 
+// ── 地支关系喜忌个性化验证 ──────────────────────────────────────────
+// 验证同一日课对不同喜忌的用户产生不同的吉凶判断
+
+func TestBranchRelationFavorPersonalized(t *testing.T) {
+	bazi := &bazipkg.BaziResult{
+		YearPillar:  model.Pillar{Gan: "甲", Zhi: "子"},
+		MonthPillar: model.Pillar{Gan: "丙", Zhi: "午"},
+		DayPillar:   model.Pillar{Gan: "庚", Zhi: "寅"},
+		HourPillar:  model.Pillar{Gan: "戊", Zhi: "卯"},
+	}
+
+	// 场景1：喜木忌金的用户 → 水生木为喜神，子午冲冲去水(喜神) → 凶
+	likeWood := []string{"木", "水"} // 水生木(生我)为喜神
+	dislikeWood := []string{"金"}    // 金克木(克我)为忌神
+	rels := calcBranchRelations("午", bazi, likeWood, dislikeWood)
+	for _, r := range rels {
+		if r.Type == "六冲" && r.Target == "子" {
+			// 子属水，水在喜用列表中 → 冲去喜神 → IsFavorable应为false
+			if r.IsFavorable {
+				t.Error("喜木用户：子午冲冲去水(喜神)，应为凶")
+			}
+		}
+	}
+
+	// 场景2：喜金忌水的用户 → 子(水)为忌神，子午冲冲去水(忌神) → 吉
+	likeMetal := []string{"金", "土"}
+	dislikeMetal := []string{"水", "木"}
+	rels2 := calcBranchRelations("午", bazi, likeMetal, dislikeMetal)
+	for _, r := range rels2 {
+		if r.Type == "六冲" && r.Target == "子" {
+			// 子属水，水在忌神列表中 → 冲去忌神 → IsFavorable应为true
+			if !r.IsFavorable {
+				t.Error("喜金用户：子午冲冲去水(忌神)，应为吉")
+			}
+		}
+	}
+
+	// 场景3：验证六合喜忌 -- 今日午与未六合
+	bazi2 := &bazipkg.BaziResult{
+		YearPillar:  model.Pillar{Gan: "甲", Zhi: "未"},
+		MonthPillar: model.Pillar{Gan: "丙", Zhi: "午"},
+		DayPillar:   model.Pillar{Gan: "庚", Zhi: "寅"},
+		HourPillar:  model.Pillar{Gan: "戊", Zhi: "卯"},
+	}
+	// 喜土用户 → 未(土)为喜神 → 六合合住喜神 → 凶
+	likeEarth := []string{"土", "金"}
+	rels3 := calcBranchRelations("午", bazi2, likeEarth, nil)
+	for _, r := range rels3 {
+		if r.Type == "六合" && r.Target == "未" {
+			// 未属土，土在喜用列表中 → 合住喜神 → IsFavorable应为false
+			if r.IsFavorable {
+				t.Error("喜土用户：午未六合合住土(喜神)，应为凶")
+			}
+		}
+	}
+	// 忌土用户 → 未(土)为忌神 → 六合合住忌神 → 吉
+	dislikeEarth := []string{"土", "火"}
+	rels4 := calcBranchRelations("午", bazi2, nil, dislikeEarth)
+	for _, r := range rels4 {
+		if r.Type == "六合" && r.Target == "未" {
+			// 未属土，但这里用 !isFavorableElement(like) 判断
+			// like=nil → 不在喜用中 → 合住非喜神 → IsFavorable应为true
+			if !r.IsFavorable {
+				t.Error("忌土用户(无喜用)：午未六合合住非喜神，应为吉")
+			}
+		}
+	}
+}
+
 // ── 岁伤日干 vs 日犯岁君方向验证 ──────────────────────────────────
 // 岁伤日干：流年克今日 → 轻
 // 日犯岁君：今日克流年 → 重
 
 func TestTaiSuiDirection(t *testing.T) {
 	// 2026丙午年
-	yearGanZhi := getYearGanZhi(2026)
+	yearGanZhi := getYearGanZhi(2026, 6, 1)
 	if yearGanZhi != "丙午" {
 		t.Fatalf("2026年干支: got %s, want 丙午", yearGanZhi)
 	}

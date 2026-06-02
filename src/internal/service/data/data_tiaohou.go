@@ -27,38 +27,45 @@ func init() {
 
 	// ========== 甲木 (stem index 0) ==========
 	// 寅月 (month index 0)
+	// 经典依据：穷通宝鉴 寅月甲木："正月甲木，丙火为主，癸水佐之。丙癸两透，富贵双全。"
 	TiaohouData[0][0] = []TiaohouRule{
-		{XiShen: "丙", JiShen: "癸", Reason: "寒木无权，寅月余寒未退，喜丙火温木，无丙则木气不活"},
+		{XiShen: "丙", JiShen: "庚", Reason: "寒木无权，寅月余寒未退，喜丙火温木，无丙则木气不活"},
 		{XiShen: "癸", JiShen: "庚", Reason: "水盛则木浮，寅月木嫩，过癸则寒"},
 	}
 	// 卯月 (month index 1)
+	// 经典依据：穷通宝鉴 卯月甲木："二月甲木，庚金为主，丁火佐之。庚丁两透，科甲定然。"
 	TiaohouData[0][1] = []TiaohouRule{
-		{XiShen: "庚", JiShen: "丁", Reason: "木旺宜庚丁，庚金劈甲引丁，配合有力"},
+		{XiShen: "庚", JiShen: "癸", Reason: "木旺宜庚丁，庚金劈甲引丁，配合有力"},
 		{XiShen: "丁", JiShen: "癸", Reason: "丁火温木，木旺无庚则用丁"},
 	}
 	// 辰月 (month index 2)
+	// 经典依据：穷通宝鉴 辰月甲木："三月甲木，先取庚金，次用壬水。"
 	TiaohouData[0][2] = []TiaohouRule{
 		{XiShen: "庚", JiShen: "乙", Reason: "湿土培木，庚金疏土引木气"},
-		{XiShen: "丙", JiShen: "癸", Reason: "辰月土湿，用丙暖土护木"},
+		{XiShen: "壬", JiShen: "丁", Reason: "辰月土湿，先取庚金次用壬水"},
 	}
 	// 巳月 (month index 3)
+	// 经典依据：穷通宝鉴 巳月甲木："四月甲木，癸水为主，丁火佐之。"
 	TiaohouData[0][3] = []TiaohouRule{
-		{XiShen: "癸", JiShen: "丙", Reason: "夏木性枯，巳月火旺，先癸水润叶"},
-		{XiShen: "壬", JiShen: "戊", Reason: "壬水润木，泄火之烈"},
+		{XiShen: "癸", JiShen: "戊", Reason: "夏木性枯，巳月火旺，先癸水润叶"},
+		{XiShen: "丁", JiShen: "戊", Reason: "先癸后丁，丁火佐之调候"},
 	}
 	// 午月 (month index 4)
+	// 经典依据：穷通宝鉴 午月甲木："五月甲木，癸水为主，丁火庚金次之。"
 	TiaohouData[0][4] = []TiaohouRule{
 		{XiShen: "癸", JiShen: "丙", Reason: "午月丁火司权，癸水调候为急"},
-		{XiShen: "壬", JiShen: "己", Reason: "壬水制火润木，己土混水则减力"},
+		{XiShen: "丁", JiShen: "己", Reason: "先癸后丁庚金次之，丁火佐之调候"},
 	}
 	// 未月 (month index 5)
+	// 经典依据：穷通宝鉴 未月甲木："六月甲木，癸水为主，丁火庚金佐之。大暑后先丁后庚。"
 	TiaohouData[0][5] = []TiaohouRule{
 		{XiShen: "癸", JiShen: "丙", Reason: "未月燥土司令，癸水滋木为先"},
-		{XiShen: "壬", JiShen: "戊", Reason: "壬水通根，润木之功胜过癸水"},
+		{XiShen: "丁", JiShen: "戊", Reason: "大暑后先丁后庚，丁火调候为用"},
 	}
 	// 申月 (month index 6)
+	// 经典依据：穷通宝鉴 申月甲木："七月甲木，丁火为主，庚金次之。非庚不能造甲，非丁不能煅庚。"
 	TiaohouData[0][6] = []TiaohouRule{
-		{XiShen: "丁", JiShen: "庚", Reason: "申月金旺，甲木退气，丁火制金护木"},
+		{XiShen: "丁", JiShen: "癸", Reason: "申月金旺，甲木退气，丁火制金护木，庚为必需用神"},
 		{XiShen: "庚", JiShen: "乙", Reason: "庚金劈甲引丁，丁庚两透为贵"},
 	}
 	// 酉月 (month index 7)
@@ -67,23 +74,27 @@ func init() {
 		{XiShen: "庚", JiShen: "乙", Reason: "庚金劈甲引丁，配合成局"},
 	}
 	// 戌月 (month index 8)
+	// 经典依据：穷通宝鉴 戌月甲木："九月甲木，独爱丁火，壬癸滋扶。"
 	TiaohouData[0][8] = []TiaohouRule{
-		{XiShen: "庚", JiShen: "乙", Reason: "戌月土燥金相，用庚疏土生木"},
-		{XiShen: "丁", JiShen: "辛", Reason: "丁火温木，土旺用丁煅金"},
+		{XiShen: "丁", JiShen: "乙", Reason: "戌月土燥，独爱丁火温木，壬癸滋扶"},
+		{XiShen: "庚", JiShen: "辛", Reason: "庚金疏土，配合丁火煅金"},
 	}
 	// 亥月 (month index 9)
+	// 经典依据：穷通宝鉴 亥月甲木："十月甲木，以庚为君，以丁为佐。"
 	TiaohouData[0][9] = []TiaohouRule{
-		{XiShen: "戊", JiShen: "壬", Reason: "亥月水旺木漂，用戊土制水培木"},
+		{XiShen: "庚", JiShen: "壬", Reason: "亥月水旺木漂，以庚为君以丁为佐"},
 		{XiShen: "丙", JiShen: "癸", Reason: "丙火暖木，亥月寒水凛冽，丙为调候要神"},
 	}
 	// 子月 (month index 10)
+	// 经典依据：穷通宝鉴 子月甲木："十一月甲木，丁先庚后，丁火必不可少。"
 	TiaohouData[0][10] = []TiaohouRule{
-		{XiShen: "丙", JiShen: "壬", Reason: "子月寒木冻结，丙火解冻温木为先"},
+		{XiShen: "丁", JiShen: "壬", Reason: "子月寒木冻结，丁先庚后，丁火必不可少"},
 		{XiShen: "戊", JiShen: "癸", Reason: "戊土制水培根，丙戊并用贵显"},
 	}
 	// 丑月 (month index 11)
+	// 经典依据：穷通宝鉴 丑月甲木："十二月甲木，先用庚劈甲，方引丁火。"
 	TiaohouData[0][11] = []TiaohouRule{
-		{XiShen: "丙", JiShen: "癸", Reason: "丑月湿寒交加，丙火暖木驱寒为用"},
+		{XiShen: "庚", JiShen: "癸", Reason: "丑月湿寒交加，先用庚劈甲方引丁火"},
 		{XiShen: "丁", JiShen: "壬", Reason: "丁火温木之寒，配合癸水润木"},
 	}
 
@@ -94,8 +105,9 @@ func init() {
 	TiaohouData[1][1] = []TiaohouRule{ // 卯月
 		{XiShen: "丙", JiShen: "癸", Reason: "木旺之月，丙火泄秀调候，癸水不宜混"},
 	}
+	// 经典依据：穷通宝鉴 辰月乙木："三月乙木，先癸后丙。乙木阴柔，不能用庚。"
 	TiaohouData[1][2] = []TiaohouRule{ // 辰月
-		{XiShen: "庚", JiShen: "乙", Reason: "辰月湿土，庚金疏土培乙木之根"},
+		{XiShen: "癸", JiShen: "乙", Reason: "辰月湿土，先癸后丙，乙木阴柔不能用庚"},
 		{XiShen: "丙", JiShen: "癸", Reason: "丙火暖土，辰土寒湿用丙护乙"},
 	}
 	TiaohouData[1][3] = []TiaohouRule{ // 巳月
@@ -115,8 +127,9 @@ func init() {
 		{XiShen: "癸", JiShen: "辛", Reason: "酉月辛金当令，癸水滋乙泄金"},
 		{XiShen: "丙", JiShen: "丁", Reason: "丙火温木，辛金无丙煅炼无威"},
 	}
+	// 经典依据：穷通宝鉴 戌月乙木："九月乙木，必赖癸水滋养。"
 	TiaohouData[1][8] = []TiaohouRule{ // 戌月
-		{XiShen: "辛", JiShen: "丙", Reason: "戌月土旺，辛金煅乙，丙辛合而化水吉"},
+		{XiShen: "癸", JiShen: "丙", Reason: "戌月土旺，必赖癸水滋养乙木"},
 	}
 	TiaohouData[1][9] = []TiaohouRule{ // 亥月
 		{XiShen: "丙", JiShen: "癸", Reason: "亥月水冷木寒，丙火调候暖乙为首"},
@@ -136,15 +149,17 @@ func init() {
 		{XiShen: "壬", JiShen: "癸", Reason: "卯月木旺火相，壬水为调候用神，泄木之秀"},
 		{XiShen: "庚", JiShen: "戊", Reason: "庚金劈甲引丁，壬庚两透为贵"},
 	}
+	// 经典依据：穷通宝鉴 辰月丙火："三月丙火，壬水为用，取甲为辅。"
 	TiaohouData[2][2] = []TiaohouRule{ // 辰月
 		{XiShen: "壬", JiShen: "戊", Reason: "辰月湿土晦火，壬水充日元之不足"},
-		{XiShen: "庚", JiShen: "戊", Reason: "庚金生壬水，辰月用庚辛金发水源"},
+		{XiShen: "甲", JiShen: "戊", Reason: "取甲为辅，甲木生火疏土"},
 	}
 	TiaohouData[2][3] = []TiaohouRule{ // 巳月
 		{XiShen: "壬", JiShen: "戊", Reason: "巳月火旺极热，壬水制火煅金为急"},
 	}
+	// 经典依据：穷通宝鉴 午月丙火："五月丙火，壬水通根亥子制火为先，忌戊土晦光。"
 	TiaohouData[2][4] = []TiaohouRule{ // 午月
-		{XiShen: "壬", JiShen: "己", Reason: "午月丁火司权，壬水通根亥子制火为先"},
+		{XiShen: "壬", JiShen: "戊", Reason: "午月丁火司权，壬水通根亥子制火为先，忌戊土晦光"},
 		{XiShen: "庚", JiShen: "戊", Reason: "庚金生壬水，制火煅金两相宜"},
 	}
 	TiaohouData[2][5] = []TiaohouRule{ // 未月
@@ -167,9 +182,10 @@ func init() {
 		{XiShen: "壬", JiShen: "戊", Reason: "亥月水临官，壬水当令，丙火绝地用壬为相"},
 		{XiShen: "庚", JiShen: "丙", Reason: "庚金生壬水为用，丙火赖之而明"},
 	}
+	// 经典依据：穷通宝鉴 子月丙火："十一月丙火，壬水为主，配甲木化煞生丙。"
 	TiaohouData[2][10] = []TiaohouRule{ // 子月
 		{XiShen: "壬", JiShen: "癸", Reason: "子月水旺火死，壬水解冻温木为先"},
-		{XiShen: "丙", JiShen: "壬", Reason: "丙火暖木化水，壬丙并用为贵"},
+		{XiShen: "甲", JiShen: "壬", Reason: "配甲木化煞生丙，甲木化水生火"},
 	}
 	TiaohouData[2][11] = []TiaohouRule{ // 丑月
 		{XiShen: "壬", JiShen: "己", Reason: "丑月寒湿，壬水解冻温丙火为急"},
@@ -340,8 +356,9 @@ func init() {
 		{XiShen: "壬", JiShen: "丙", Reason: "巳月火旺金瘟，壬水洗金除瘟为急"},
 		{XiShen: "戊", JiShen: "丁", Reason: "戊土生金泄火，巳月火旺金衰用壬戊并"},
 	}
+	// 经典依据：穷通宝鉴 午月庚金："五月庚金，壬水为主，丁火佐之。丁是配合用神，非忌神。"
 	TiaohouData[6][4] = []TiaohouRule{ // 午月
-		{XiShen: "壬", JiShen: "丁", Reason: "午月火旺金败，壬水制火洗金为第一要义"},
+		{XiShen: "壬", JiShen: "己", Reason: "午月火旺金败，壬水制火洗金为第一要义"},
 		{XiShen: "丁", JiShen: "己", Reason: "丁火煅金，午月金将熔非丁无以成器"},
 	}
 	TiaohouData[6][5] = []TiaohouRule{ // 未月
@@ -459,8 +476,9 @@ func init() {
 		{XiShen: "辛", JiShen: "丁", Reason: "戌月土旺水弱，辛金发水源为急"},
 		{XiShen: "甲", JiShen: "戊", Reason: "甲木疏土制水，戌月土燥用甲木化之"},
 	}
+	// 经典依据：穷通宝鉴 亥月壬水："十月壬水，丙火为主，戊土佐之。丙是配合用神。"
 	TiaohouData[8][9] = []TiaohouRule{ // 亥月
-		{XiShen: "戊", JiShen: "丙", Reason: "亥月水旺木漂，戊土制水培木为急"},
+		{XiShen: "戊", JiShen: "壬", Reason: "亥月水旺木漂，戊土制水培木为急，丙是配合用神"},
 		{XiShen: "丙", JiShen: "辛", Reason: "丙火温木化水，亥月甲木长生用丙火温局"},
 	}
 	TiaohouData[8][10] = []TiaohouRule{ // 子月

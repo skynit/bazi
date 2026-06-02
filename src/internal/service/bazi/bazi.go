@@ -24,6 +24,14 @@ var tenGodNames = [10]string{
 	"正印", "偏印",
 }
 
+// PillarTenGods tracks which ten gods appear in each pillar position.
+type PillarTenGods struct {
+	Year  []string `json:"year"`
+	Month []string `json:"month"`
+	Day   []string `json:"day"`
+	Hour  []string `json:"hour"`
+}
+
 // BaziService calculates BaZi (八字) birth charts using tyme4go.
 type BaziService struct{}
 
@@ -210,8 +218,9 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	// --- enrich pillar details ---
 	dayElem := data.GanElement[result.DayPillar.Gan]
 	result.TenGodProportion = calcTenGodProportion(&ec, result.DayPillar.Gan)
+	pillarTenGods := calcPillarTenGods(&ec, result.DayPillar.Gan)
 	analyzer := &TenGodAnalyzer{}
-	result.TenGodAnalysis = analyzer.AnalyzeTenGod(result.TenGodProportion, dayElem, result.BodyStrength)
+	result.TenGodAnalysis = analyzer.AnalyzeTenGod(result.TenGodProportion, dayElem, result.BodyStrength, pillarTenGods, gender)
 	s.enrichPillarDetails(result, month, gender)
 
 	enrichRiZhuText(result)
@@ -228,7 +237,7 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	// --- enrich from 《滴天髓》流通分析 ---
 	pillars := []model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar}
 	result.WuXingFlow = data.AnalyzeWuXingFlowV2(result.FiveElements, dayElem)
-	result.TongGuan = data.FindTongGuan(pillars, dayElem)
+	result.TongGuan = data.FindTongGuan(pillars, dayElem, result.MonthPillar.Zhi)
 	result.MissingElements = data.FindMissingElements(result.FiveElements)
 	result.FlowPatternDesc = data.BuildFlowPatternDesc(result.WuXingFlow, result.TongGuan, result.MissingElements)
 
@@ -350,23 +359,7 @@ func monthKey(m int) string {
 	case 5, 6:
 		return fmt.Sprintf("%d月", m)
 	default:
-		return seasonFromMonth(m)
-	}
-}
-
-// seasonFromMonth maps birth month (1-12) to data.YueTexts season key.
-// 按中国传统节气/地支划分与公历对应：寅卯辰≈公历2-4月=春, 巳午未≈公历5-7月=夏,
-// 申酉戌≈公历8-10月=秋, 亥子丑≈公历11-1月=冬.
-func seasonFromMonth(m int) string {
-	switch m {
-	case 2, 3, 4:
-		return "春"
-	case 5, 6, 7:
-		return "夏"
-	case 8, 9, 10:
-		return "秋"
-	default: // 11, 12, 1
-		return "冬"
+		return data.SeasonFromMonth(m)
 	}
 }
 
@@ -468,14 +461,15 @@ var tianGanMap = map[string]struct {
 }
 
 // yueLingMatrix: rows = day element (木火土金水), cols = month branch element
-// 旺(3) 同我, 相(2) 我生, 休(1) 生我, 囚(0) 克我, 死(0) 我克
+// 经典依据：日主强弱判断"囚：日主克他力量较弱；死：日主被克力量最弱"
+// 旺(3) 同我, 相(2) 我生, 休(1) 生我, 囚(0.5) 我克, 死(0) 克我
 var yueLingMatrix = [5][5]float64{
 	// 木   火   土   金   水   ← 月支五行
-	{3, 2, 0, 0, 1}, // 木日主: 旺(木) 相(火) 死(土) 囚(金) 休(水)
-	{1, 3, 2, 0, 0}, // 火日主: 休(木) 旺(火) 相(土) 死(金) 囚(水)
-	{0, 1, 3, 2, 0}, // 土日主: 囚(木) 休(火) 旺(土) 相(金) 死(水)
-	{0, 0, 1, 3, 2}, // 金日主: 死(木) 囚(火) 休(土) 旺(金) 相(水)
-	{2, 0, 0, 1, 3}, // 水日主: 相(木) 死(火) 囚(土) 休(金) 旺(水)
+	{3, 2, 0, 0.5, 1}, // 木日主: 旺(木) 相(火) 死(土) 囚(金) 休(水)
+	{1, 3, 2, 0, 0.5}, // 火日主: 休(木) 旺(火) 相(土) 死(金) 囚(水)
+	{0.5, 1, 3, 2, 0}, // 土日主: 囚(木) 休(火) 旺(土) 相(金) 死(水)
+	{0, 0.5, 1, 3, 2}, // 金日主: 死(木) 囚(火) 休(土) 旺(金) 相(水)
+	{2, 0, 0.5, 1, 3}, // 水日主: 相(木) 死(火) 囚(土) 休(金) 旺(水)
 }
 
 func getYueLingScore(dayElem string, monthBranchElem string) float64 {
@@ -503,6 +497,28 @@ func isSupport(gan string, dayElem string) bool {
 		return true
 	}
 	return false
+}
+
+// isSameElement returns true if gan's element is the same as day master (比劫 only).
+// 经典依据：滴天髓"通根者如甲木见寅卯"，通根仅指同五行
+func isSameElement(gan string, dayElem string) bool {
+	tg, ok := tianGanMap[gan]
+	if !ok {
+		return false
+	}
+	return tg.WuXing == dayElem
+}
+
+// isYinStar returns true if gan's element is印星 (生我者).
+func isYinStar(gan string, dayElem string) bool {
+	tg, ok := tianGanMap[gan]
+	if !ok {
+		return false
+	}
+	supporter := map[string]string{
+		"木": "火", "火": "土", "土": "金", "金": "水", "水": "木",
+	}
+	return supporter[tg.WuXing] == dayElem
 }
 
 // isRestrict returns true if gan's element restricts (克泄耗) the day master.
@@ -537,6 +553,40 @@ func zangGanWeight(hsType tyme.HideHeavenStemType) float64 {
 	return 0.0
 }
 
+// changShengMap 十二长生阶段查询表（阳干顺行）
+// 经典依据：滴天髓"长生帝旺，得气最厚；冠带临官，得气次之"
+var changShengMap = map[string]map[string]string{
+	"木": {"亥": "长生", "子": "沐浴", "丑": "冠带", "寅": "临官", "卯": "帝旺", "辰": "衰", "巳": "病", "午": "死", "未": "墓", "申": "绝", "酉": "胎", "戌": "养"},
+	"火": {"寅": "长生", "卯": "沐浴", "辰": "冠带", "巳": "临官", "午": "帝旺", "未": "衰", "申": "病", "酉": "死", "戌": "墓", "亥": "绝", "子": "胎", "丑": "养"},
+	"土": {"寅": "长生", "卯": "沐浴", "辰": "冠带", "巳": "临官", "午": "帝旺", "未": "衰", "申": "病", "酉": "死", "戌": "墓", "亥": "绝", "子": "胎", "丑": "养"},
+	"金": {"巳": "长生", "午": "沐浴", "未": "冠带", "申": "临官", "酉": "帝旺", "戌": "衰", "亥": "病", "子": "死", "丑": "墓", "寅": "绝", "卯": "胎", "辰": "养"},
+	"水": {"申": "长生", "酉": "沐浴", "戌": "冠带", "亥": "临官", "子": "帝旺", "丑": "衰", "寅": "病", "卯": "死", "辰": "墓", "巳": "绝", "午": "胎", "未": "养"},
+}
+
+// changShengWeight returns the twelve-stage weight for a given day element and branch.
+// 长生/帝旺/临官 → 1.5, 沐浴/冠带/衰/墓 → 1.0, 胎/养/病/死 → 0.5, 绝 → 0
+func changShengWeight(dayElem, branch string) float64 {
+	stages, ok := changShengMap[dayElem]
+	if !ok {
+		return 1.0
+	}
+	stage, ok := stages[branch]
+	if !ok {
+		return 1.0
+	}
+	switch stage {
+	case "长生", "帝旺", "临官":
+		return 1.5
+	case "沐浴", "冠带", "衰", "墓":
+		return 1.0
+	case "胎", "养", "病", "死":
+		return 0.5
+	case "绝":
+		return 0.0
+	}
+	return 1.0
+}
+
 func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	dayStem := ec.GetDay().GetHeavenStem()
 	dayElem := dayStem.GetElement().GetName()
@@ -547,18 +597,24 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	// 1. 得令
 	lingScore := getYueLingScore(dayElem, monthElem)
 
-	// 2. 得地：四柱地支藏干中比劫/印星 × weight × 1.5
+	// 2. 得地：四柱地支藏干中仅统计同五行（通根），印星归入得势
+	// 经典依据：滴天髓"通根者如甲木见寅卯"，通根仅指同五行，印星归入得势
 	diScore := 0.0
 	pillars := [](func() tyme.SixtyCycle){ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour}
 	for _, fn := range pillars {
-		for _, hhs := range fn().GetEarthBranch().GetHideHeavenStems() {
-			if isSupport(hhs.GetHeavenStem().GetName(), dayElem) {
-				diScore += zangGanWeight(hhs.GetType()) * 1.5
+		branch := fn().GetEarthBranch()
+		branchName := branch.GetName()
+		csW := changShengWeight(dayElem, branchName)
+		for _, hhs := range branch.GetHideHeavenStems() {
+			if isSameElement(hhs.GetHeavenStem().GetName(), dayElem) {
+				diScore += zangGanWeight(hhs.GetType()) * 1.5 * csW
 			}
 		}
 	}
 
-	// 3. 得势：仅统计天干（年月时三干），藏干归入得地
+	// 3. 得势：天干（年月时三干）+ 日支藏干（×1.5，坐下有根最贴身）
+	// 经典依据：渊海子平"天干有比劫帮身有印绶生身"，力量有层级差异
+	// 经典依据：滴天髓"坐下有根最贴身"，日支藏干给予更高权重
 	supportWeight := 0.0
 	restrictWeight := 0.0
 	for i, fn := range pillars {
@@ -566,15 +622,64 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		if i == 2 { // 跳过日干本身
 			continue
 		}
-		if isSupport(gan, dayElem) {
-			supportWeight += 1.0
+		tg, ok := tianGanMap[gan]
+		if !ok {
+			continue
+		}
+		if tg.WuXing == dayElem {
+			// 比肩 1.0，劫财 0.8（阴阳异，助力稍弱）
+			if GanInfoOf(gan).yang == GanInfoOf(dayStem.GetName()).yang {
+				supportWeight += 1.0 // 比肩
+			} else {
+				supportWeight += 0.8 // 劫财
+			}
 		} else if isRestrict(gan, dayElem) {
-			restrictWeight += 1.0
+			// 官杀 -1.2，食伤 -0.8，财 -0.6
+			godName := ClassifyTenGod(gan, dayStem.GetName(), false)
+			switch godName {
+			case "正官", "七杀":
+				restrictWeight += 1.2
+			case "食神", "伤官":
+				restrictWeight += 0.8
+			case "正财", "偏财":
+				restrictWeight += 0.6
+			default:
+				restrictWeight += 1.0
+			}
+		}
+	}
+	// 日支藏干：坐下有根最贴身，权重×1.5
+	dayBranch := ec.GetDay().GetEarthBranch()
+	for _, hhs := range dayBranch.GetHideHeavenStems() {
+		hiddenGan := hhs.GetHeavenStem().GetName()
+		w := zangGanWeight(hhs.GetType()) * 1.5
+		tg, ok := tianGanMap[hiddenGan]
+		if !ok {
+			continue
+		}
+		if tg.WuXing == dayElem {
+			if GanInfoOf(hiddenGan).yang == GanInfoOf(dayStem.GetName()).yang {
+				supportWeight += w // 比肩
+			} else {
+				supportWeight += w * 0.8 // 劫财
+			}
+		} else if isRestrict(hiddenGan, dayElem) {
+			godName := ClassifyTenGod(hiddenGan, dayStem.GetName(), false)
+			switch godName {
+			case "正官", "七杀":
+				restrictWeight += w * 1.2
+			case "食神", "伤官":
+				restrictWeight += w * 0.8
+			case "正财", "偏财":
+				restrictWeight += w * 0.6
+			default:
+				restrictWeight += w * 1.0
+			}
 		}
 	}
 	shiScore := supportWeight - restrictWeight
 
-	// 4. 得生
+	// 4. 得生：地支藏干中印星归入此处（与通根区分）
 	shengScore := 0.0
 	// 天干印星
 	for i, fn := range pillars {
@@ -582,64 +687,132 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 			continue
 		}
 		tg := fn().GetHeavenStem()
-		tgElem := tg.GetElement().GetName()
-		// 生我者
-		if (tgElem == "木" && dayElem == "火") ||
-			(tgElem == "火" && dayElem == "土") ||
-			(tgElem == "土" && dayElem == "金") ||
-			(tgElem == "金" && dayElem == "水") ||
-			(tgElem == "水" && dayElem == "木") {
+		if isYinStar(tg.GetName(), dayElem) {
 			shengScore += 1.0
 		}
 	}
 	// 地支藏干印星
 	for _, fn := range pillars {
 		for _, hhs := range fn().GetEarthBranch().GetHideHeavenStems() {
-			tgElem := hhs.GetHeavenStem().GetElement().GetName()
-			if (tgElem == "木" && dayElem == "火") ||
-				(tgElem == "火" && dayElem == "土") ||
-				(tgElem == "土" && dayElem == "金") ||
-				(tgElem == "金" && dayElem == "水") ||
-				(tgElem == "水" && dayElem == "木") {
+			if isYinStar(hhs.GetHeavenStem().GetName(), dayElem) {
 				shengScore += zangGanWeight(hhs.GetType())
 			}
 		}
 	}
-	// 总分
-	totalScore := lingScore*3 + diScore*2 + shiScore*1 + shengScore*1
-	if totalScore < 0 {
-		totalScore = 0
-	}
+
+	// 总分：归一化后按经典权重加权
+	// 经典依据：日主强弱判断"得令50%得地25%得势15%得气10%"
+	normLing := lingScore / 3.0                            // lingScore最大3
+	normDi := diScore / 7.0                                // diScore理论最大约7
+	normShi := 1.0 / (1.0 + math.Exp(-shiScore/2.0))      // sigmoid归一化，避免极端值
+	normSheng := 1.0 / (1.0 + math.Exp(-shengScore/2.0))  // sigmoid归一化
+	totalScore := normLing*0.50 + normDi*0.25 + normShi*0.15 + normSheng*0.10
 
 	var verdict string
 	var like, dislike []string
-	if totalScore > 7.0 {
+	// 经典依据：滴天髓"身旺者日主得令得地得势三者居其二以上"
+	switch {
+	case totalScore > 0.60:
 		verdict = "身旺"
-	} else if totalScore < 3.0 {
-		verdict = "身弱"
-	} else {
+	case totalScore > 0.55:
+		verdict = "偏旺"
+	case totalScore > 0.45:
 		verdict = "中和"
+	case totalScore > 0.40:
+		verdict = "偏弱"
+	default:
+		verdict = "身弱"
+	}
+
+	// 5. 后验修正："得令不旺失令不衰"
+	// 经典依据：滴天髓"春木虽强金太重而木亦危"
+	// 如果得令五行被克它的五行总力超过自身力量的60%，则降低其旺度20%
+	restrainingMap := map[string]string{
+		"木": "金", "火": "水", "土": "木", "金": "火", "水": "土",
+	}
+	supportingMap := map[string]string{
+		"木": "水", "火": "木", "土": "火", "金": "土", "水": "金",
+	}
+	if lingScore >= 2.0 { // 得令
+		reElem := restrainingMap[dayElem]
+		restrainingForce := 0.0
+		selfForce := lingScore + diScore + shengScore
+		for _, fn := range pillars {
+			sc := fn()
+			stElem := sc.GetHeavenStem().GetElement().GetName()
+			if stElem == reElem {
+				restrainingForce += 5.0
+			}
+			for _, hhs := range sc.GetEarthBranch().GetHideHeavenStems() {
+				if hhs.GetHeavenStem().GetElement().GetName() == reElem {
+					restrainingForce += zangGanWeight(hhs.GetType()) * 3.0
+				}
+			}
+		}
+		if selfForce > 0 && restrainingForce/selfForce > 0.6 {
+			totalScore *= 0.8
+			verdict = "偏旺" // 降级：得令但被严重克制
+		}
+	} else if lingScore <= 0.5 { // 失令
+		spElem := supportingMap[dayElem]
+		supportingForce := 0.0
+		for _, fn := range pillars {
+			sc := fn()
+			stElem := sc.GetHeavenStem().GetElement().GetName()
+			if stElem == spElem || stElem == dayElem {
+				supportingForce += 5.0
+			}
+			for _, hhs := range sc.GetEarthBranch().GetHideHeavenStems() {
+				hElem := hhs.GetHeavenStem().GetElement().GetName()
+				if hElem == spElem || hElem == dayElem {
+					supportingForce += zangGanWeight(hhs.GetType()) * 3.0
+				}
+			}
+		}
+		if supportingForce >= 8.0 { // 有足够生扶
+			totalScore = totalScore*0.8 + 0.5*0.2 // 适度提升，不完全逆转
+			if verdict == "身弱" {
+				verdict = "偏弱"
+			} else if verdict == "偏弱" {
+				verdict = "中和"
+			}
+		}
 	}
 
 	// 根据日主五行动态计算喜忌
 	// 身旺: 喜克泄耗(克我+我生+我克), 忌生扶(生我+同我)
 	// 身弱: 喜生扶(生我+同我), 忌克泄耗(克我+我生+我克)
-	allElems := []string{"木", "火", "土", "金", "水"}
-	idx := elementIdx[dayElem]
-	sameElem := allElems[idx]             // 同我(比劫)
-	supportElem := allElems[(idx+4)%5]    // 生我(印星)
-	drainElem := allElems[(idx+1)%5]      // 我生(食伤)
-	controlElem := allElems[(idx+3)%5]    // 克我(官杀)
-	wealthElem := allElems[(idx+2)%5]     // 我克(财)
-	if verdict == "身旺" {
+	elemRelation := map[string]map[string]string{
+		"木": {"同我": "木", "生我": "水", "我生": "火", "克我": "金", "我克": "土"},
+		"火": {"同我": "火", "生我": "木", "我生": "土", "克我": "水", "我克": "金"},
+		"土": {"同我": "土", "生我": "火", "我生": "金", "克我": "木", "我克": "水"},
+		"金": {"同我": "金", "生我": "土", "我生": "水", "克我": "火", "我克": "木"},
+		"水": {"同我": "水", "生我": "金", "我生": "木", "克我": "土", "我克": "火"},
+	}
+	rel := elemRelation[dayElem]
+	sameElem := rel["同我"]
+	supportElem := rel["生我"]
+	drainElem := rel["我生"]
+	controlElem := rel["克我"]
+	wealthElem := rel["我克"]
+	if verdict == "身旺" || verdict == "偏旺" {
 		like = []string{controlElem, drainElem, wealthElem}
 		dislike = []string{supportElem, sameElem}
-	} else if verdict == "身弱" {
+	} else if verdict == "身弱" || verdict == "偏弱" {
 		like = []string{supportElem, sameElem}
 		dislike = []string{controlElem, drainElem, wealthElem}
 	} else {
 		// 中和：五行相对平衡，喜通关调候
+		// 经典依据：穷通宝鉴调候用神，在中和格局中优先考虑
+		tiaoHouRules := data.GetTiaohou(dayStem.GetName(), monthBranch.GetName())
+		tiaoHouElem := ""
+		if len(tiaoHouRules) > 0 {
+			tiaoHouElem = data.GanElement[tiaoHouRules[0].XiShen]
+		}
 		like = []string{drainElem, wealthElem}
+		if tiaoHouElem != "" && tiaoHouElem != drainElem && tiaoHouElem != wealthElem {
+			like = append(like, tiaoHouElem)
+		}
 		dislike = []string{controlElem}
 	}
 
@@ -798,18 +971,18 @@ func tortureType(a, b tyme.EarthBranch) string {
 	if (aName == "子" && bName == "卯") || (aName == "卯" && bName == "子") {
 		return "无礼之刑"
 	}
-	// 无恩之刑: 丑-戌, 戌-未, 未-丑
-	wuEn := [][]string{{"丑", "戌"}, {"戌", "未"}, {"未", "丑"}}
-	for _, pair := range wuEn {
-		if (aName == pair[0] && bName == pair[1]) || (aName == pair[1] && bName == pair[0]) {
-			return "无恩之刑"
-		}
-	}
-	// 恃势之刑: 寅-巳, 巳-申, 申-寅
-	shiShi := [][]string{{"寅", "巳"}, {"巳", "申"}, {"申", "寅"}}
+	// 恃势之刑: 丑-戌, 戌-未, 未-丑 (三命通会第38章)
+	shiShi := [][]string{{"丑", "戌"}, {"戌", "未"}, {"未", "丑"}}
 	for _, pair := range shiShi {
 		if (aName == pair[0] && bName == pair[1]) || (aName == pair[1] && bName == pair[0]) {
 			return "恃势之刑"
+		}
+	}
+	// 无恩之刑: 寅-巳, 巳-申, 申-寅 (三命通会第38章)
+	wuEn := [][]string{{"寅", "巳"}, {"巳", "申"}, {"申", "寅"}}
+	for _, pair := range wuEn {
+		if (aName == pair[0] && bName == pair[1]) || (aName == pair[1] && bName == pair[0]) {
+			return "无恩之刑"
 		}
 	}
 	// 自刑: 辰-辰, 午-午, 酉-酉, 亥-亥
@@ -1052,6 +1225,50 @@ func calcTenGodProportion(ec *tyme.EightChar, dayGan string) []TenGodRatio {
 	return result
 }
 
+// calcPillarTenGods computes which ten gods appear in each pillar position.
+func calcPillarTenGods(ec *tyme.EightChar, dayGan string) PillarTenGods {
+	classify := func(stemName string) string {
+		god := ClassifyTenGod(stemName, dayGan, false)
+		if god == "日主" {
+			return ""
+		}
+		return god
+	}
+
+	ptg := PillarTenGods{}
+
+	// Visible stems (year, month, hour)
+	if g := classify(ec.GetYear().GetHeavenStem().GetName()); g != "" {
+		ptg.Year = append(ptg.Year, g)
+	}
+	if g := classify(ec.GetMonth().GetHeavenStem().GetName()); g != "" {
+		ptg.Month = append(ptg.Month, g)
+	}
+	if g := classify(ec.GetHour().GetHeavenStem().GetName()); g != "" {
+		ptg.Hour = append(ptg.Hour, g)
+	}
+
+	// Hidden stems from all 4 branches
+	type pillarTarget struct {
+		fn     func() tyme.SixtyCycle
+		target *[]string
+	}
+	for _, pair := range []pillarTarget{
+		{ec.GetYear, &ptg.Year},
+		{ec.GetMonth, &ptg.Month},
+		{ec.GetDay, &ptg.Day},
+		{ec.GetHour, &ptg.Hour},
+	} {
+		for _, hhs := range pair.fn().GetEarthBranch().GetHideHeavenStems() {
+			if g := classify(hhs.GetHeavenStem().GetName()); g != "" {
+				*pair.target = append(*pair.target, g)
+			}
+		}
+	}
+
+	return ptg
+}
+
 // enrichRiZhuText splits the data.SiZiSummaries text into poem/source/comment/hourDetail.
 func enrichRiZhuText(result *BaziResult) {
 	key := result.DayPillar.Gan + "日" + result.DayPillar.Zhi
@@ -1082,7 +1299,7 @@ func enrichRiZhuText(result *BaziResult) {
 // enrichWuxingSeason adds seasonal five-element analysis from 《三命通会》chapters 65-69.
 func enrichWuxingSeason(result *BaziResult, birthMonth int) {
 	dayElem := data.GanElement[result.DayPillar.Gan]
-	season := seasonFromMonth(birthMonth)
+	season := data.SeasonFromMonth(birthMonth)
 	entries, ok := data.WuxingSeasonKnowledge[dayElem]
 	if !ok {
 		return

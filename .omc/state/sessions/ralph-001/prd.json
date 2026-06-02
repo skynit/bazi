@@ -1,73 +1,43 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "stories": [
     {
-      "id": "US-001",
+      "id": "US-101",
       "priority": 1,
-      "subject": "八字命盘：补充展示五行流通、通关、缺失五行、大运流",
-      "description": "BaziChart.vue 已展示 body_strength/ten_gods/pattern_analysis/ming_gong/tiaohou/shen_sha/season_text/ri_zhu_poem/da_yun 等。缺少 wuxing_flow、flow_pattern_desc、tong_guan、missing_elements、dayun_flow",
+      "subject": "深度审查后端算命算法，找出80+错误和精度提升点",
+      "description": "对 /home/skynit/WorkSpace/bazi/src/internal/service/ 所有算命方法代码和数据进行全面审查，交叉比对知识库 /home/skynit/Uni/ming/mingli/ 中的经典文献（穷通宝鉴、三命通会、滴天髓阐微、渊海子平），找出所有能修正算命错误和提升算命精度的地方。至少80处。",
       "passes": true,
       "acceptanceCriteria": [
-        "BaziChart.vue 新增「五行流通」区域，展示 wuxing_flow 和 flow_pattern_desc 字段",
-        "BaziChart.vue 新增「通关用神」区域，展示 tong_guan 字段",
-        "BaziChart.vue 新增「缺失五行」区域，展示 missing_elements 字段",
-        "BaziChart.vue 新增「大运流年」区域，展示 dayun_flow 字段",
-        "新增区域样式与现有深色玻璃态风格一致"
+        "至少找出80处具体的错误和精度提升点",
+        "每处都标明：涉及文件、具体问题、修正方案、经典依据",
+        "覆盖所有算命模块：身强身弱、十神、神煞、格局、调候、日课、运势计算",
+        "修正方案可直接实施，不含模糊建议"
       ]
     },
     {
-      "id": "US-002",
+      "id": "US-102",
       "priority": 2,
-      "subject": "每日运势：展示农历、星期、生肖、吉神凶神、胎神、彭祖百忌、卦象、节气等黄历信息",
-      "description": "DailyFortune.vue 目前只展示 solar_date/day_gan_zhi/score/lucky_color/lucky_number/wealth_dir/chong_sha/auspicious_hours/yi_ji/today_elements/tiao_hou。缺少大量黄历字段",
+      "subject": "实施所有修正",
+      "description": "根据 US-101 审查结果，逐一实施修正。每处修正必须保留经典依据注释。",
       "passes": true,
       "acceptanceCriteria": [
-        "DailyFortune.vue header 区域展示 lunar_date（农历）和 week_day（星期）",
-        "DailyFortune.vue 新增「黄历」区域，展示 sheng_xiao（生肖）、wu_xing（五行）、jie_qi（节气）",
-        "DailyFortune.vue 新增「吉神凶神」区域，展示 ji_shen 和 xiong_shen",
-        "DailyFortune.vue 新增「胎神」区域，展示 tai_shen 字段",
-        "DailyFortune.vue 新增「彭祖百忌」区域，展示 peng_zu 字段",
-        "DailyFortune.vue 新增「卦象」区域，展示 gua 字段",
-        "新增区域样式与现有深色玻璃态风格一致"
+        "所有80+处修正均已实施",
+        "修正后代码编译通过",
+        "修正后测试通过",
+        "每处修正保留经典文献依据"
       ]
     },
     {
-      "id": "US-003",
+      "id": "US-103",
       "priority": 3,
-      "subject": "每日运势：展示生克分析、流年影响、季节五行建议",
-      "description": "DailyFortune.vue 缺少五行生克分析和运势影响字段",
+      "subject": "验证修正效果",
+      "description": "对修正后的代码进行全面验证，确保没有引入新问题。",
       "passes": true,
       "acceptanceCriteria": [
-        "DailyFortune.vue 新增「生克分析」区域，展示 sheng_ke_analysis 字段（day_stem_relation、day_branch_relation、summary）",
-        "DailyFortune.vue 新增「流年影响」区域，展示 flow_impact 字段",
-        "DailyFortune.vue 新增「季节五行建议」区域，展示 season_element_advice 字段",
-        "新增区域样式与现有深色玻璃态风格一致"
-      ]
-    },
-    {
-      "id": "US-004",
-      "priority": 4,
-      "subject": "紫微斗数：展示形容星、三方四正详情、长生十二星等宫位附加信息",
-      "description": "紫微斗数命盘中后端已计算但前端未显示的宫位附加字段",
-      "passes": true,
-      "acceptanceCriteria": [
-        "宫位中展示 adjective_stars（形容星）",
-        "宫位详情中展示 sanfang_sizheng（三方四正）的 opposite、trine1、trine2",
-        "宫位中展示 changsheng_12（长生十二星）字段",
-        "宫位中展示 boshi_12（博士十二星）字段",
-        "宫位中展示 jiang_qian_12（将前十二星）和 sui_qian_12（岁前十二星）字段",
-        "新增样式与现有深色玻璃态风格一致"
-      ]
-    },
-    {
-      "id": "US-005",
-      "priority": 5,
-      "subject": "构建验证",
-      "description": "确保所有前端修改后项目仍能正常构建",
-      "passes": true,
-      "acceptanceCriteria": [
-        "npm run build 成功，无 TypeScript 错误",
-        "所有新增的 prop 和 data binding 类型正确"
+        "go build 通过",
+        "go test 通过",
+        "关键算法逻辑人工复核",
+        "所有修正均有经典文献支撑"
       ]
     }
   ]

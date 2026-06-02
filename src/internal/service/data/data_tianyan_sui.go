@@ -338,14 +338,25 @@ type WuXingFlowAnalysis struct {
 type TongGuanAnalysis struct {
 	HasTongGuan     bool     `json:"has_tong_guan"`      // 是否有通关
 	TongGuanElement string   `json:"tong_guan_element"`   // 通关五行
+	Weight          float64  `json:"weight"`             // 通关权重（0.0-1.0）
 	Description     string   `json:"description"`        // 说明
 }
 
 // MissingElementAnalysis 缺失五行分析。
 type MissingElementAnalysis struct {
-	MissingElements []string `json:"missing_elements"` // 缺失五行
-	RemedyElements  []string `json:"remedy_elements"`  // 补救五行（生缺失五行的）
-	Severity        string   `json:"severity"`         // 缺失程度：轻微/中等/严重
+	MissingElements []string         `json:"missing_elements"` // 缺失五行
+	RemedyElements  []string         `json:"remedy_elements"`  // 补救五行（生缺失五行的）
+	Severity        string           `json:"severity"`         // 缺失程度：轻微/中等/严重
+	RemedyAdvice    []RemedyAdviceItem `json:"remedy_advice"`  // 补救建议
+}
+
+// RemedyAdviceItem 补救建议条目。
+type RemedyAdviceItem struct {
+	Element string `json:"element"` // 补救五行
+	Direction string `json:"direction"` // 吉利方位
+	Color   string `json:"color"`   // 吉利颜色
+	Industry string `json:"industry"` // 适合行业
+	Daily   string `json:"daily"`   // 日常建议
 }
 
 // DaYunFlowItem 大运流通影响。
@@ -505,7 +516,8 @@ func generateFlowAdvice(scores map[string]int, dayElem string, isSmooth bool) st
 }
 
 // FindTongGuan 查找通关用神。
-func FindTongGuan(pillars []model.Pillar, dayElem string) TongGuanAnalysis {
+// monthZhi 为月支，用于判断节气深浅对通关效果的影响。
+func FindTongGuan(pillars []model.Pillar, dayElem string, monthZhi string) TongGuanAnalysis {
 	// 通关规则：金木交关需水通关，火金交战需水，木土相战需火
 	tongGuanMap := map[string]map[string]string{
 		"金": {"木": "水"},
@@ -525,24 +537,84 @@ func FindTongGuan(pillars []model.Pillar, dayElem string) TongGuanAnalysis {
 	// 检测金木交关
 	if elemCount["金"] > 0 && elemCount["木"] > 0 {
 		if mapHasKey(tongGuanMap, "金", "木") {
+			weight := calcTongGuanWeight("水", monthZhi)
+			desc := "金木交关，需水通关，流通得以调和"
+			if weight < 0.8 {
+				desc += fmt.Sprintf("（冬月金寒水冷，通关效果减弱，权重%.1f）", weight)
+			}
 			return TongGuanAnalysis{
 				HasTongGuan:     true,
 				TongGuanElement: "水",
-				Description:     "金木交关，需水通关，流通得以调和",
+				Weight:          weight,
+				Description:     desc,
 			}
 		}
 	}
 
 	// 检测火金交战
 	if elemCount["火"] > 0 && elemCount["金"] > 0 {
+		weight := calcTongGuanWeight("水", monthZhi)
+		desc := "火金交战，需水通关，流通得以调和"
+		if weight < 0.8 {
+			desc += fmt.Sprintf("（冬月金寒水冷，通关效果减弱，权重%.1f）", weight)
+		}
 		return TongGuanAnalysis{
 			HasTongGuan:     true,
 			TongGuanElement: "水",
-			Description:     "火金交战，需水通关，流通得以调和",
+			Weight:          weight,
+			Description:     desc,
 		}
 	}
 
-	return TongGuanAnalysis{HasTongGuan: false}
+	// 检测木土相战
+	if elemCount["木"] > 0 && elemCount["土"] > 0 {
+		weight := calcTongGuanWeight("火", monthZhi)
+		desc := "木土相战，需火通关，流通得以调和"
+		if weight < 0.8 {
+			desc += fmt.Sprintf("（冬月火弱，通关效果减弱，权重%.1f）", weight)
+		}
+		return TongGuanAnalysis{
+			HasTongGuan:     true,
+			TongGuanElement: "火",
+			Weight:          weight,
+			Description:     desc,
+		}
+	}
+
+	return TongGuanAnalysis{HasTongGuan: false, Weight: 1.0}
+}
+
+// calcTongGuanWeight 根据月支判断节气深浅对通关权重的影响。
+// 经典依据：《滴天髓》"天道有寒暖，地道有燥湿"
+// 冬月（亥子丑）水旺金寒，火弱则通关效果减弱；
+// 夏月（巳午未）火旺水弱，水通关效果减弱。
+func calcTongGuanWeight(tongGuanElem string, monthZhi string) float64 {
+	// 月支所属季节
+	seasonMap := map[string]string{
+		"寅": "春", "卯": "春", "辰": "春",
+		"巳": "夏", "午": "夏", "未": "夏",
+		"申": "秋", "酉": "秋", "戌": "秋",
+		"亥": "冬", "子": "冬", "丑": "冬",
+	}
+	season := seasonMap[monthZhi]
+	if season == "" {
+		return 1.0
+	}
+
+	// 通关五行在各季节的权重
+	// 冬月水旺但火弱，火通关效果减弱；夏月火旺但水弱，水通关效果减弱
+	weightMap := map[string]map[string]float64{
+		"水": {"春": 0.9, "夏": 0.7, "秋": 1.0, "冬": 1.0}, // 夏月火旺水弱，水通关减弱
+		"火": {"春": 1.0, "夏": 1.0, "秋": 0.9, "冬": 0.7}, // 冬月水旺火弱，火通关减弱
+		"木": {"春": 1.0, "夏": 0.9, "秋": 0.7, "冬": 0.9}, // 秋月金旺克木，木通关减弱
+		"金": {"春": 0.7, "夏": 0.9, "秋": 1.0, "冬": 0.9}, // 春月木旺克金，金通关减弱
+		"土": {"春": 0.9, "夏": 1.0, "秋": 0.9, "冬": 0.7}, // 冬月水旺土弱，土通关减弱
+	}
+
+	if w, ok := weightMap[tongGuanElem][season]; ok {
+		return w
+	}
+	return 1.0
 }
 
 func mapHasKey(m map[string]map[string]string, key1, key2 string) bool {
@@ -592,11 +664,66 @@ func FindMissingElements(scores map[string]int) MissingElementAnalysis {
 		severity = "中等"
 	}
 
+	// 生成补救建议
+	advice := generateRemedyAdvice(missing)
+
 	return MissingElementAnalysis{
 		MissingElements: missing,
 		RemedyElements:  remedy,
 		Severity:        severity,
+		RemedyAdvice:    advice,
 	}
+}
+
+// generateRemedyAdvice 根据缺失五行生成生活化补救建议。
+// 经典依据：《协纪辨方书》五行方位、颜色、行业对应。
+func generateRemedyAdvice(missing []string) []RemedyAdviceItem {
+	// 五行对应的生活建议
+	adviceMap := map[string]RemedyAdviceItem{
+		"木": {
+			Element:   "木",
+			Direction: "东方",
+			Color:     "绿色、青色",
+			Industry:  "教育、文化、出版、园艺、中医",
+			Daily:     "多接触绿植，佩戴木质饰品，穿绿色衣物",
+		},
+		"火": {
+			Element:   "火",
+			Direction: "南方",
+			Color:     "红色、紫色、橙色",
+			Industry:  "传媒、娱乐、餐饮、能源、电子",
+			Daily:     "多晒太阳，佩戴红色饰品，穿暖色衣物",
+		},
+		"土": {
+			Element:   "土",
+			Direction: "中央",
+			Color:     "黄色、棕色、米色",
+			Industry:  "房地产、建筑、农业、珠宝、陶瓷",
+			Daily:     "多接触大地，佩戴玉石饰品，穿黄色衣物",
+		},
+		"金": {
+			Element:   "金",
+			Direction: "西方",
+			Color:     "白色、银色、金色",
+			Industry:  "金融、法律、机械、IT硬件、汽车",
+			Daily:     "佩戴金属饰品，穿白色衣物，多接触金属器物",
+		},
+		"水": {
+			Element:   "水",
+			Direction: "北方",
+			Color:     "黑色、蓝色、灰色",
+			Industry:  "物流、旅游、渔业、水利、航运",
+			Daily:     "多接触水，佩戴黑曜石等深色饰品，穿深色衣物",
+		},
+	}
+
+	var result []RemedyAdviceItem
+	for _, elem := range missing {
+		if advice, ok := adviceMap[elem]; ok {
+			result = append(result, advice)
+		}
+	}
+	return result
 }
 
 // CalcDaYunFlow 计算大运流通影响。
@@ -618,19 +745,19 @@ func CalcDaYunFlow(dayGan string, scores map[string]int, dayunPillars []model.Pi
 		}
 
 		switch elem {
-		case shengWo(dayElem):
+		case ShengWo(dayElem):
 			change = "增强"
 			impact = fmt.Sprintf("%s大运，%s气（印星）增强，对日主有生扶之力", p.Gan+p.Zhi, elem)
 		case dayElem:
 			change = "增强"
 			impact = fmt.Sprintf("%s大运，%s气（比劫）增强，日主得助但防竞争", p.Gan+p.Zhi, elem)
-		case woSheng(dayElem):
+		case WoSheng(dayElem):
 			change = "泄秀"
 			impact = fmt.Sprintf("%s大运，%s气（食伤）泄秀，才华得以发挥", p.Gan+p.Zhi, elem)
-		case woKe(dayElem):
+		case WoKe(dayElem):
 			change = "增强"
 			impact = fmt.Sprintf("%s大运，%s财星旺盛，利于求财", p.Gan+p.Zhi, elem)
-		case keWo(dayElem):
+		case KeWo(dayElem):
 			change = "减弱"
 			impact = fmt.Sprintf("%s大运，%s气（官杀）当令，日主压力增大", p.Gan+p.Zhi, elem)
 		}
@@ -682,25 +809,22 @@ func joinElems(elems []string) string {
 	return result
 }
 
-// shengWo 返回生我者（印星五行）。
-func shengWo(elem string) string {
+// ShengWo 返回生我者（印星五行）。导出版本，供其他包调用。
+func ShengWo(elem string) string {
 	return map[string]string{"木": "水", "火": "木", "土": "火", "金": "土", "水": "金"}[elem]
 }
 
-// woSheng 返回我生者（食伤五行）。
-func woSheng(elem string) string {
+// WoSheng 返回我生者（食伤五行）。导出版本，供其他包调用。
+func WoSheng(elem string) string {
 	return map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}[elem]
 }
 
-// woKe 是 keWuXing 的语义化别名。
-func woKe(elem string) string { return keWuXing(elem) }
-
-// keWuXing 返回我克者（财五行）。
-func keWuXing(elem string) string {
+// WoKe 返回我克者（财五行）。导出版本，供其他包调用。
+func WoKe(elem string) string {
 	return map[string]string{"木": "土", "火": "金", "土": "水", "金": "木", "水": "火"}[elem]
 }
 
-// keWo 返回克我者（官杀五行）。
-func keWo(elem string) string {
+// KeWo 返回克我者（官杀五行）。导出版本，供其他包调用。
+func KeWo(elem string) string {
 	return map[string]string{"木": "金", "火": "水", "土": "木", "金": "火", "水": "土"}[elem]
 }

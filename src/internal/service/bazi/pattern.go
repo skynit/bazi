@@ -58,6 +58,9 @@ func AnalyzePatternExtended(pillars []model.Pillar, monthZhi string, scores map[
 	if pat := checkSanQiGe(pillars); pat != nil {
 		return *pat
 	}
+	if pat := checkCongShiGe(pillars, scores); pat != nil {
+		return *pat
+	}
 	if pat := checkCongCaiGe(pillars, scores); pat != nil {
 		return *pat
 	}
@@ -65,6 +68,9 @@ func AnalyzePatternExtended(pillars []model.Pillar, monthZhi string, scores map[
 		return *pat
 	}
 	if pat := checkCongRuoGe(pillars, scores); pat != nil {
+		return *pat
+	}
+	if pat := checkCongErGe(pillars, scores); pat != nil {
 		return *pat
 	}
 
@@ -156,9 +162,9 @@ func checkCongQiangGe(pillars []model.Pillar, monthZhi string, scores map[string
 		return nil
 	}
 
-	// 生扶力量（日主+印星） > 2/3
+	// 生扶力量（日主+印星） > 60%
 	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
-	if float64(supportScore)/float64(total) <= 2.0/3.0 {
+	if float64(supportScore)/float64(total) <= 0.6 {
 		return nil
 	}
 	// 日主自身 > 30%
@@ -168,15 +174,15 @@ func checkCongQiangGe(pillars []model.Pillar, monthZhi string, scores map[string
 
 	geName := ""
 	switch {
-	case dayElem == "木" && inStrings(monthZhi, "寅", "卯", "辰"):
+	case dayElem == "木" && inStrings(monthZhi, "寅", "卯", "辰", "亥", "未"):
 		geName = "曲直格"
-	case dayElem == "火" && inStrings(monthZhi, "巳", "午", "未"):
+	case dayElem == "火" && inStrings(monthZhi, "巳", "午", "未", "寅", "戌"):
 		geName = "炎上格"
 	case dayElem == "土" && inStrings(monthZhi, "辰", "戌", "丑", "未"):
 		geName = "稼穑格"
-	case dayElem == "金" && inStrings(monthZhi, "申", "酉", "戌"):
+	case dayElem == "金" && inStrings(monthZhi, "申", "酉", "戌", "巳", "丑"):
 		geName = "从革格"
-	case dayElem == "水" && inStrings(monthZhi, "亥", "子", "丑"):
+	case dayElem == "水" && inStrings(monthZhi, "亥", "子", "丑", "申", "辰"):
 		geName = "润下格"
 	}
 	if geName == "" {
@@ -201,7 +207,7 @@ func checkLiangShenChengXiang(scores map[string]int) *PatternAnalysis {
 
 	var majorElems []string
 	for _, elem := range []string{"木", "火", "土", "金", "水"} {
-		if float64(scores[elem])/float64(total) >= 0.05 {
+		if float64(scores[elem])/float64(total) >= 0.15 {
 			majorElems = append(majorElems, elem)
 		}
 	}
@@ -211,7 +217,7 @@ func checkLiangShenChengXiang(scores map[string]int) *PatternAnalysis {
 
 	score1 := scores[majorElems[0]]
 	score2 := scores[majorElems[1]]
-	if absInt(score1-score2) > total/5 {
+	if absInt(score1-score2) > total/4 {
 		return nil
 	}
 
@@ -239,28 +245,49 @@ func checkLiangShenChengXiang(scores map[string]int) *PatternAnalysis {
 }
 
 func checkKuiGangGe(gan, zhi string) *PatternAnalysis {
-	if map[string]bool{"庚辰": true, "壬辰": true, "戊戌": true, "庚戌": true, "戊辰": true, "丙辰": true}[gan+zhi] {
-		dayElem := data.GanElement[gan]
+	// 经典依据：三命通会"庚辰庚戌壬辰戊戌为魁罡"
+	dayCol := gan + zhi
+	isShuiTu := dayCol == "庚辰" || dayCol == "壬辰"
+	isTuJin := dayCol == "戊戌" || dayCol == "庚戌"
+	if !isShuiTu && !isTuJin {
+		return nil
+	}
+
+	dayElem := data.GanElement[gan]
+	if isShuiTu {
+		// 水土魁罡（庚辰、壬辰）：喜印星护身
 		return &PatternAnalysis{
-			PatternName:         "魁罡格",
+			PatternName:         "魁罡格（水土）",
 			PatternType:         "特殊格局",
-			Description:         fmt.Sprintf("日柱%s%s为魁罡日，性格刚毅果断，宜有规矩约束。喜身旺，忌财官。", gan, zhi),
+			Description:         fmt.Sprintf("日柱%s为水土魁罡，性格刚毅果断，喜印星护身、身旺。忌财星坏印、官杀攻身。", dayCol),
 			FavorableElements:   []string{dayElem, shengWo(dayElem)},
 			UnfavorableElements: []string{woKe(dayElem), keWo(dayElem)},
 		}
 	}
-	return nil
+	// 土金魁罡（戊戌、庚戌）：喜财星滋养
+	return &PatternAnalysis{
+		PatternName:         "魁罡格（土金）",
+		PatternType:         "特殊格局",
+		Description:         fmt.Sprintf("日柱%s为土金魁罡，性格刚毅果断，喜财星滋养。忌印星过旺、比劫争财。", dayCol),
+		FavorableElements:   []string{dayElem, woKe(dayElem)},
+		UnfavorableElements: []string{shengWo(dayElem), keWo(dayElem)},
+	}
 }
 
 func checkRiDeGe(gan, zhi string) *PatternAnalysis {
-	if map[string]bool{"甲寅": true, "丙辰": true, "戊辰": true, "庚辰": true, "壬戌": true}[gan+zhi] {
+	// 经典依据：《三命通会》日德五日"甲寅、丙午、戊辰、庚辰、壬戌"
+	if map[string]bool{"甲寅": true, "丙午": true, "戊辰": true, "庚辰": true, "壬戌": true}[gan+zhi] {
 		dayElem := data.GanElement[gan]
 		return &PatternAnalysis{
 			PatternName:         "日德格",
 			PatternType:         "特殊格局",
-			Description:         fmt.Sprintf("日柱%s%s为日德，性格慈善，福分深厚。喜身旺，忌刑冲破害。", gan, zhi),
-			FavorableElements:   []string{dayElem, shengWo(dayElem)},
-			UnfavorableElements: []string{keWo(dayElem)},
+			Description: fmt.Sprintf(
+				"日柱%s%s为日德格，《三命通会》载日德五日：甲寅、丙午、戊辰、庚辰、壬戌。"+
+					"性格慈善宽厚，福分深厚。"+
+					"喜身旺、印绶生扶、食神泄秀；"+
+					"忌刑冲破害、空亡、魁罡混杂。", gan, zhi),
+			FavorableElements:   []string{dayElem, shengWo(dayElem), woSheng(dayElem)},
+			UnfavorableElements: []string{keWo(dayElem), woKe(dayElem)},
 		}
 	}
 	return nil
@@ -278,23 +305,25 @@ func checkJianLuYueRen(pillars []model.Pillar, monthZhi string) *PatternAnalysis
 	}
 
 	if monthZhi == luShenZhi[dayGan] {
-		// 建禄喜财（我克）、官（克我）
+		// 建禄格：《子平真诠》"建禄格用财须身旺方能任财"
+		// 喜财官食伤（我克、克我、我生），忌印比（生我、同我）
 		return &PatternAnalysis{
 			PatternName:         "建禄格",
 			PatternType:         "正格",
-			Description:         fmt.Sprintf("日主%s禄在月支%s，为建禄格。喜财官，忌劫财。", dayGan, monthZhi),
-			FavorableElements:   []string{woKe(dayElem), keWo(dayElem)},
-			UnfavorableElements: []string{dayElem},
+			Description:         fmt.Sprintf("日主%s禄在月支%s，为建禄格。《子平真诠》云：建禄格用财须身旺方能任财。喜财官食伤，忌印比夺财。", dayGan, monthZhi),
+			FavorableElements:   []string{woKe(dayElem), keWo(dayElem), woSheng(dayElem)},
+			UnfavorableElements: []string{shengWo(dayElem), dayElem},
 		}
 	}
 	if monthZhi == yangRenZhi(dayGan) {
-		// 月刃喜官杀（克我）
+		// 月刃格：《子平真诠》"月刃用官须透出有根"
+		// 喜官杀制刃、食伤泄刃，忌印比助刃、财星生刃
 		return &PatternAnalysis{
 			PatternName:         "月刃格",
 			PatternType:         "正格",
-			Description:         fmt.Sprintf("日主%s羊刃在月支%s，为月刃格。喜官杀制刃。", dayGan, monthZhi),
-			FavorableElements:   []string{keWo(dayElem)},
-			UnfavorableElements: []string{dayElem},
+			Description:         fmt.Sprintf("日主%s羊刃在月支%s，为月刃格。《子平真诠》云：月刃用官须透出有根。喜官杀制刃、食伤泄秀，忌印比助刃。", dayGan, monthZhi),
+			FavorableElements:   []string{keWo(dayElem), woSheng(dayElem)},
+			UnfavorableElements: []string{shengWo(dayElem), dayElem},
 		}
 	}
 	return nil
@@ -328,9 +357,10 @@ func checkCongRuoGe(pillars []model.Pillar, scores map[string]int) *PatternAnaly
 		return nil
 	}
 
-	// 生扶力量（日主 + 印星）占比 < 10%
+	// 经典依据：滴天髓"弱极者扶之扶之徒劳而无功"
+	// 生扶力量（日主 + 印星）占比 < 15%
 	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
-	if float64(supportScore)/float64(total) >= 0.1 {
+	if float64(supportScore)/float64(total) >= 0.15 {
 		return nil
 	}
 
@@ -415,7 +445,7 @@ func hasSequence(pillars []model.Pillar, a, b, c string) bool {
 }
 
 // checkCongHuaGe 从化格判断（《三命通会》专旺从化格局）。
-// 从化格喜忌：生扶为忌，克泄耗为喜。
+// 化气成格后以化神为新日主，喜生扶化神及化神所生，忌克破化神。
 func checkCongHuaGe(pillars []model.Pillar, monthZhi string, scores map[string]int) *PatternAnalysis {
 	if len(pillars) < 4 {
 		return nil
@@ -479,9 +509,9 @@ func checkCongHuaGe(pillars []model.Pillar, monthZhi string, scores map[string]i
 	return &PatternAnalysis{
 		PatternName:         fmt.Sprintf("从化格（%s）", huaElem),
 		PatternType:         "特殊格局",
-		Description:         fmt.Sprintf("日干%s从%s而化，月令%s旺地，化气成格。喜克泄耗，忌生扶。", dayGan, huaTarget, monthZhi),
-		FavorableElements:   []string{keHua, woSheng(huaElem), woKe(huaElem)},
-		UnfavorableElements: []string{shengWo(huaElem), huaElem},
+		Description:         fmt.Sprintf("日干%s从%s而化，月令%s旺地，化气成格。喜生扶化神及化神所生（印比食伤），忌克破化神（官杀财）。", dayGan, huaTarget, monthZhi),
+		FavorableElements:   []string{shengWo(huaElem), huaElem, woSheng(huaElem)},
+		UnfavorableElements: []string{keWo(huaElem), woKe(huaElem)},
 		SubType:             huaElem,
 	}
 }
@@ -504,6 +534,14 @@ func checkCongCaiGe(pillars []model.Pillar, scores map[string]int) *PatternAnaly
 	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
 	if float64(supportScore)/float64(total) >= 0.1 {
 		return nil
+	}
+
+	// 日主在日支无根：日支藏干含日主五行则有根，不从
+	dayZhi := pillars[2].Zhi
+	for _, elem := range ZhiAllElements[dayZhi] {
+		if elem == dayElem {
+			return nil
+		}
 	}
 
 	// 财星当令或天透
@@ -535,6 +573,80 @@ func checkCongCaiGe(pillars []model.Pillar, scores map[string]int) *PatternAnaly
 	}
 }
 
+// checkCongShiGe 从势格判断。
+// 日主极弱，满局财官杀（财与官杀皆强），日主从之。
+// 区别于从财格（仅财强）和从杀格（仅官杀强）。
+func checkCongShiGe(pillars []model.Pillar, scores map[string]int) *PatternAnalysis {
+	if len(pillars) < 4 {
+		return nil
+	}
+
+	dayGan := pillars[2].Gan
+	dayElem := data.GanElement[dayGan]
+	total := totalScore(scores)
+	if dayElem == "" || total == 0 {
+		return nil
+	}
+
+	// 日主极弱（生扶 < 10%）
+	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
+	if float64(supportScore)/float64(total) >= 0.1 {
+		return nil
+	}
+
+	// 日主在日支无根：日支藏干含日主五行则有根，不从
+	dayZhi := pillars[2].Zhi
+	for _, elem := range ZhiAllElements[dayZhi] {
+		if elem == dayElem {
+			return nil
+		}
+	}
+
+	caiElem := woKe(dayElem)
+	shaElem := keWo(dayElem)
+
+	// 财与官杀必须同时当令或透干
+	hasCai := false
+	hasSha := false
+	yueElem := data.ZhiElement[pillars[1].Zhi]
+	if yueElem == caiElem {
+		hasCai = true
+	}
+	if yueElem == shaElem {
+		hasSha = true
+	}
+	for i, p := range pillars {
+		if i == 2 {
+			continue
+		}
+		elem := data.GanElement[p.Gan]
+		if elem == caiElem {
+			hasCai = true
+		}
+		if elem == shaElem {
+			hasSha = true
+		}
+	}
+	if !hasCai || !hasSha {
+		return nil
+	}
+
+	// 财+官杀合计须 > 60%
+	dominantScore := scores[caiElem] + scores[shaElem]
+	if float64(dominantScore)/float64(total) < 0.6 {
+		return nil
+	}
+
+	return &PatternAnalysis{
+		PatternName:         "从势格",
+		PatternType:         "特殊格局",
+		Description:         fmt.Sprintf("日主%s极弱，满局财官杀，从势。喜食伤生财、财官顺势，忌印比扶身。", dayGan),
+		FavorableElements:   []string{woSheng(dayElem), caiElem, shaElem},
+		UnfavorableElements: []string{dayElem, shengWo(dayElem)},
+		SubType:             "财官",
+	}
+}
+
 // checkQiMingCongShaGe 弃命从煞格判断。
 // 日主极弱，官杀当令。
 func checkQiMingCongShaGe(pillars []model.Pillar, monthZhi string, scores map[string]int) *PatternAnalysis {
@@ -553,6 +665,14 @@ func checkQiMingCongShaGe(pillars []model.Pillar, monthZhi string, scores map[st
 	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
 	if float64(supportScore)/float64(total) >= 0.1 {
 		return nil
+	}
+
+	// 日主在日支无根：日支藏干含日主五行则有根，不从
+	dayZhi := pillars[2].Zhi
+	for _, elem := range ZhiAllElements[dayZhi] {
+		if elem == dayElem {
+			return nil
+		}
 	}
 
 	// 官杀当令
@@ -581,5 +701,74 @@ func checkQiMingCongShaGe(pillars []model.Pillar, monthZhi string, scores map[st
 		FavorableElements:   []string{woKe(dayElem), shaElem},
 		UnfavorableElements: []string{dayElem, shengWo(dayElem), woSheng(dayElem)},
 		SubType:             "杀",
+	}
+}
+
+// checkCongErGe 从儿格判断（格局总论"从儿格日主无气满局食伤"）
+// 经典依据：滴天髓"从儿不论身强弱，只要吾儿又见儿"
+// 日主极弱，食伤当令或透干，满局食伤生财，日主从之。
+func checkCongErGe(pillars []model.Pillar, scores map[string]int) *PatternAnalysis {
+	if len(pillars) < 4 {
+		return nil
+	}
+
+	dayGan := pillars[2].Gan
+	dayElem := data.GanElement[dayGan]
+	total := totalScore(scores)
+	if dayElem == "" || total == 0 {
+		return nil
+	}
+
+	// 日主极弱（生扶<15%）
+	supportScore := scores[dayElem] + scores[shengWo(dayElem)]
+	if float64(supportScore)/float64(total) >= 0.15 {
+		return nil
+	}
+
+	// 食伤五行
+	shiShangElem := woSheng(dayElem)
+	// 财星五行
+	caiElem := woKe(dayElem)
+
+	// 食伤当令或透干
+	yueElem := data.ZhiElement[pillars[1].Zhi]
+	hasShiShang := yueElem == shiShangElem
+	if !hasShiShang {
+		for i, p := range pillars {
+			if i == 2 {
+				continue
+			}
+			if data.GanElement[p.Gan] == shiShangElem {
+				hasShiShang = true
+				break
+			}
+		}
+	}
+	if !hasShiShang {
+		return nil
+	}
+
+	// 食伤+财星合计占比须>60%（满局食伤生财）
+	dominantScore := scores[shiShangElem] + scores[caiElem]
+	if float64(dominantScore)/float64(total) < 0.6 {
+		return nil
+	}
+
+	// 日主在地支无根
+	for _, p := range pillars {
+		for _, elem := range ZhiAllElements[p.Zhi] {
+			if elem == dayElem {
+				return nil
+			}
+		}
+	}
+
+	return &PatternAnalysis{
+		PatternName:         "从儿格",
+		PatternType:         "特殊格局",
+		Description:         fmt.Sprintf("日主%s极弱，满局食伤生财，从儿。喜食伤财星，忌印比扶身。", dayGan),
+		FavorableElements:   []string{shiShangElem, caiElem},
+		UnfavorableElements: []string{dayElem, shengWo(dayElem)},
+		SubType:             "食伤",
 	}
 }

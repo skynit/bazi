@@ -57,25 +57,22 @@ type LuckyGuide struct {
 // data.GanElements and data.ZhiElements are defined in data_gans.go.
 // Use data.GanElements[GanIndex(gan)] for stem elements and data.ZhiElements[ZhiIndex(zhi)] for branch elements.
 
-// generates/overcomes relationships for wuxing
-var generates = map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
-var overcomes = map[string]string{"木": "土", "土": "水", "水": "火", "火": "金", "金": "木"}
-
+// shichenInfo 时辰信息（经典依据：三命通会时辰论）
 var shichenInfo = []struct {
 	name, timeRange, desc string
 }{
-	{"子时", "23-01点", "水旺，宜静思"},
-	{"丑时", "01-03点", "土旺，宜安睡"},
-	{"寅时", "03-05点", "木旺，宜早起"},
-	{"卯时", "05-07点", "木旺，宜晨练"},
-	{"辰时", "07-09点", "土旺，宜早餐"},
-	{"巳时", "09-11点", "火旺，宜工作"},
-	{"午时", "11-13点", "火旺极，宜午休"},
-	{"未时", "13-15点", "土旺，宜学习"},
-	{"申时", "15-17点", "金旺，宜决策"},
-	{"酉时", "17-19点", "金旺，宜社交"},
-	{"戌时", "19-21点", "土旺，宜放松"},
-	{"亥时", "21-23点", "水旺，宜静养"},
+	{"子时", "23-01点", "子时水旺，阴阳交接，一阳初动，宜静思冥想，利灵感创意，夜深宜安寝"},
+	{"丑时", "01-03点", "丑时土旺，万物伏藏，鸡鸣之时，宜深度睡眠养精蓄锐，不宜劳作"},
+	{"寅时", "03-05点", "寅时木旺，三阳开泰，平旦之时，宜早起吐纳练功，一日之计在于寅"},
+	{"卯时", "05-07点", "卯时木旺，日出东方，破晓之时，宜晨练运动进食，精力充沛利决策"},
+	{"辰时", "07-09点", "辰时土旺，食时之时，龙行布雨，宜早餐充实脾胃，利商贸谈判"},
+	{"巳时", "09-11点", "巳时火旺，隅中之时，阳气渐盛，宜处理要务决策，工作效率最高"},
+	{"午时", "11-13点", "午时火旺极盛，日中阳极，一阴初生，宜午休小憩养心，忌大喜大怒"},
+	{"未时", "13-15点", "未时土旺，日昳之时，小肠当令，宜学习进修思考，利文书创作"},
+	{"申时", "15-17点", "申时金旺，晡时之时，日落西山，宜处理收尾事务，利社交拜访"},
+	{"酉时", "17-19点", "酉时金旺，日入之时，鸡归巢穴，宜应酬交际晚餐，利感情沟通"},
+	{"戌时", "19-21点", "戌时土旺，黄昏之时，天地将合，宜放松休闲阅读，不宜剧烈运动"},
+	{"亥时", "21-23点", "亥时水旺，人定之时，万籁俱寂，宜静养安神入睡，利修行养生"},
 }
 
 type catResult struct {
@@ -167,7 +164,7 @@ func tenGodRelation(userGan, dayGan string, isStrong bool) string {
 	}
 
 	// 我生 → 食伤
-	if generates[ue] == de {
+	if elementGenerates[ue] == de {
 		if sameYinYang {
 			return "食神"
 		}
@@ -175,7 +172,7 @@ func tenGodRelation(userGan, dayGan string, isStrong bool) string {
 	}
 
 	// 生我 → 印星
-	if generates[de] == ue {
+	if elementGenerates[de] == ue {
 		if sameYinYang {
 			return "偏印"
 		}
@@ -183,7 +180,7 @@ func tenGodRelation(userGan, dayGan string, isStrong bool) string {
 	}
 
 	// 我克 → 财星
-	if overcomes[ue] == de {
+	if elementOvercomes[ue] == de {
 		if sameYinYang {
 			return "偏财"
 		}
@@ -191,7 +188,7 @@ func tenGodRelation(userGan, dayGan string, isStrong bool) string {
 	}
 
 	// 克我 → 官杀
-	if overcomes[de] == ue {
+	if elementOvercomes[de] == ue {
 		if sameYinYang {
 			return "七杀"
 		}
@@ -343,7 +340,7 @@ func makeSummary(userGan, userElem, todayGan, todayElem, todayZhi, rel string, b
 		return s, "适合学习充电，安静思考。"
 
 	default:
-		favorable := isFavorableTenGod(rel, isStrong)
+		favorable := isFavorableTenGod(rel, isStrong, bazi.PatternAnalysis)
 		if favorable {
 			s := fmt.Sprintf("今日天干%s（%s），与日主%s（%s）为喜用关系。%s。整体运势较佳。",
 				todayGan, todayElem, userGan, userElem, branchDesc)
@@ -355,8 +352,101 @@ func makeSummary(userGan, userElem, todayGan, todayElem, todayZhi, rel string, b
 	}
 }
 
-// isFavorableTenGod 根据身旺身弱判断十神是否为喜用
-func isFavorableTenGod(rel string, isStrong bool) bool {
+// isFavorableTenGod 根据身旺身弱及格局判断十神是否为喜用。
+// 特殊格局（从格等）的喜忌异于常格，需优先按格局喜忌判断。
+// 经典依据：
+//   - 从财格：财和食伤为喜，印比为忌（《滴天髓》"从财者以财用"）
+//   - 从杀格：官杀和财为喜，印比为忌（《子平真诠》"弃命从煞"）
+//   - 从儿格：食伤和财为喜，印比官杀为忌（《滴天髓》"从儿不论身强弱"）
+//   - 建禄格：财官食伤为喜（《子平真诠》"建禄用财官"）
+//   - 月刃格：官杀为喜（《子平真诠》"月刃用官杀"）
+func isFavorableTenGod(rel string, isStrong bool, pattern bazipkg.PatternAnalysis) bool {
+	// 特殊格局优先判断
+	if pattern.PatternType == "特殊格局" {
+		switch {
+		case pattern.PatternName == "从财格" || pattern.SubType == "财":
+			// 从财格：喜食伤生财、财星，忌印比扶身
+			switch rel {
+			case "食神", "伤官", "正财", "偏财":
+				return true
+			case "比肩", "劫财", "正印", "偏印":
+				return false
+			case "正官", "七杀":
+				return false // 从财格忌官杀克身
+			}
+
+		case pattern.PatternName == "弃命从煞格" || pattern.SubType == "杀":
+			// 从杀格：喜官杀和财，忌印比
+			switch rel {
+			case "正官", "七杀", "正财", "偏财":
+				return true
+			case "比肩", "劫财", "正印", "偏印":
+				return false
+			case "食神", "伤官":
+				return false // 从杀格忌食伤制杀
+			}
+
+		case pattern.PatternName == "从儿格" || pattern.SubType == "食伤":
+			// 从儿格：喜食伤和财，忌印比官杀
+			switch rel {
+			case "食神", "伤官", "正财", "偏财":
+				return true
+			case "比肩", "劫财", "正印", "偏印", "正官", "七杀":
+				return false
+			}
+
+		case pattern.PatternName == "从势格" || pattern.SubType == "财官":
+			// 从势格：喜食伤生财、财官顺势，忌印比
+			switch rel {
+			case "食神", "伤官", "正财", "偏财", "正官", "七杀":
+				return true
+			case "比肩", "劫财", "正印", "偏印":
+				return false
+			}
+
+		case pattern.PatternName == "从弱格":
+			// 从弱格：喜克泄耗，忌生扶
+			switch rel {
+			case "正官", "七杀", "食神", "伤官", "正财", "偏财":
+				return true
+			case "比肩", "劫财", "正印", "偏印":
+				return false
+			}
+
+		case pattern.PatternName == "从强格" || strings.Contains(pattern.PatternName, "从强"):
+			// 从强格：喜印比，忌克泄耗
+			switch rel {
+			case "比肩", "劫财", "正印", "偏印":
+				return true
+			case "正官", "七杀", "食神", "伤官", "正财", "偏财":
+				return false
+			}
+		}
+	}
+
+	// 正格：建禄格、月刃格喜忌修正
+	if pattern.PatternType == "正格" {
+		switch pattern.PatternName {
+		case "建禄格":
+			// 建禄格：喜财官食伤，忌比劫争财
+			switch rel {
+			case "正财", "偏财", "正官", "七杀", "食神", "伤官":
+				return true
+			case "比肩", "劫财":
+				return false
+			}
+		case "月刃格":
+			// 月刃格：喜官杀制刃
+			switch rel {
+			case "正官", "七杀":
+				return true
+			case "比肩", "劫财":
+				return false
+			}
+		}
+	}
+
+	// 常格（正格一般情况）
 	switch rel {
 	case "食神", "伤官", "正财", "偏财", "正官", "七杀":
 		// 身旺：泄克为喜用；身弱：泄克为忌神
@@ -480,11 +570,11 @@ func scoreHealth(todayElem, userElem string, isStrong bool) catResult {
 		score += 5
 		analysis = "今日元素与日主相同，身体状态良好，精力充沛。"
 		advice = "适合运动锻炼，保持作息规律。"
-	} else if generates[todayElem] == userElem {
+	} else if elementGenerates[todayElem] == userElem {
 		score += 3
 		analysis = "今日元素生身，精力补充。适合调养身体。"
 		advice = "多喝水，饮食清淡，适度运动。"
-	} else if overcomes[todayElem] == userElem {
+	} else if elementOvercomes[todayElem] == userElem {
 		score -= 5
 		if isStrong {
 			analysis = fmt.Sprintf("今日%s克身，虽利于制衡，但需注意消化系统。", todayElem)

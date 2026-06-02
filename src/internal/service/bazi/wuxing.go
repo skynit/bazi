@@ -55,6 +55,18 @@ func keWo(elem string) string {
 	return map[string]string{"木": "金", "火": "水", "土": "木", "金": "火", "水": "土"}[elem]
 }
 
+// ShengWo 是 shengWo 的导出版本，供其他包调用。
+func ShengWo(elem string) string { return shengWo(elem) }
+
+// WoSheng 是 woSheng 的导出版本，供其他包调用。
+func WoSheng(elem string) string { return woSheng(elem) }
+
+// WoKe 是 woKe 的导出版本，供其他包调用。
+func WoKe(elem string) string { return woKe(elem) }
+
+// KeWo 是 keWo 的导出版本，供其他包调用。
+func KeWo(elem string) string { return keWo(elem) }
+
 // favorHuaQi 返回化气格的喜用：生扶化神及化神所生（印 + 比劫 + 食伤）。
 func favorHuaQi(huaQi string) []string {
 	return []string{shengWo(huaQi), huaQi, woSheng(huaQi)}

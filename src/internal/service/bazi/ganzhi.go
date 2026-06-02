@@ -87,6 +87,30 @@ var ZhiXing = map[string]string{
 	"辰": "辰", "午": "午", "酉": "酉", "亥": "亥",
 }
 
+// ZhiLiuPo 地支六破
+// 经典依据：渊海子平"子酉破、丑辰破、寅亥破、卯午破、巳申破、未戌破"
+var ZhiLiuPo = map[string]string{
+	"子": "酉", "酉": "子",
+	"丑": "辰", "辰": "丑",
+	"寅": "亥", "亥": "寅",
+	"卯": "午", "午": "卯",
+	"巳": "申", "申": "巳",
+	"未": "戌", "戌": "未",
+}
+
+// ZhiSanXingGroups 地支三刑组合
+// 经典依据：三命通会第38章
+// 寅巳申为恃势之刑（三者辗转相克）
+// 丑戌未为无恩之刑（忘恩负义之象）
+// 子卯为无礼之刑（门户之争）
+// 辰午酉亥为自刑
+var ZhiSanXingGroups = map[string][]string{
+	"恃势之刑": {"寅", "巳", "申"},
+	"无恩之刑": {"丑", "戌", "未"},
+	"无礼之刑": {"子", "卯"},
+	"自刑":     {"辰", "午", "酉", "亥"},
+}
+
 // ============================================================
 // 解释器：天干地支关系命理解读
 // ============================================================
@@ -295,6 +319,26 @@ func interpretZhiHai(zhi1, zhi2, label1, label2 string) string {
 	return base + "\n" + body
 }
 
+// interpretZhiPo 地支六破解读。
+// 经典依据：渊海子平"破者，散也、移也"
+func interpretZhiPo(zhi1, zhi2, label1, label2 string) string {
+	base := fmt.Sprintf("%s%s破", zhi1, zhi2)
+	var body string
+	switch {
+	case (label1 == labelDay && label2 == labelHour) || (label1 == labelHour && label2 == labelDay):
+		body = "【自身与晚年的破损】日时地支相破，自身或婚姻与子女、晚年之间有散破之象。易有内部损耗，家庭关系需维护。"
+	case (label1 == labelYear && label2 == labelDay) || (label1 == labelDay && label2 == labelYear):
+		body = "【根基与婚姻的破损】年日地支相破，祖辈根基与自身、婚姻有散破之象。家族因素可能对婚姻产生干扰。"
+	case (label1 == labelYear && label2 == labelMonth) || (label1 == labelMonth && label2 == labelYear):
+		body = "【祖上与事业的破损】年月地支相破，祖辈、原生家庭与事业有散破之象。早年基础可能有裂痕。"
+	case (label1 == labelMonth && label2 == labelHour) || (label1 == labelHour && label2 == labelMonth):
+		body = "【事业与晚年的破损】月时地支相破，青年事业与晚年归宿有散破之象。事业成果可能有损耗。"
+	default:
+		body = fmt.Sprintf("%s与%s地支相破，代表两者之间有散破、损耗之象，虽不如冲刑剧烈，但主内部消耗与不和。", label1, label2)
+	}
+	return base + "\n" + body
+}
+
 // interpretZhiSanHe 专门的地支三合局解读（来自《三命通会》第34章）。
 func interpretZhiSanHe(zhi1, zhi2, label1, label2 string) string {
 	// 确定三合局五行
@@ -462,6 +506,12 @@ func calcZhiPairRelations(label1, zhi1, label2, zhi2 string) []ZhiRelation {
 	if isXing {
 		detail := interpretZhiXing(zhi1, zhi2, label1, label2)
 		rels = append(rels, ZhiRelation{label1, label2, "相刑", detail})
+	}
+
+	// 六破
+	if ZhiLiuPo[zhi1] == zhi2 {
+		detail := interpretZhiPo(zhi1, zhi2, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "六破", detail})
 	}
 
 	// 三合局

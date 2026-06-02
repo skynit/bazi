@@ -52,6 +52,24 @@ type RikuyoResult struct {
 	PatternType         string   `json:"pattern_type"`
 	PatternFavorable    []string `json:"pattern_favorable"`
 	PatternUnfavorable  []string `json:"pattern_unfavorable"`
+
+	// 建除十二神
+	JianChuName   string `json:"jian_chu_name"`
+	JianChuFavor  string `json:"jian_chu_favor"`
+	JianChuDesc   string `json:"jian_chu_desc"`
+
+	// 彭祖百忌
+	PengzuGanTaboo string `json:"pengzu_gan_taboo"`
+	PengzuZhiTaboo string `json:"pengzu_zhi_taboo"`
+
+	// 黄道黑道日
+	HuangDaoName      string `json:"huang_dao_name"`
+	HuangDaoFavorable bool   `json:"huang_dao_favorable"`
+	HuangDaoDesc      string `json:"huang_dao_desc"`
+
+	// 日课综合建议
+	DayClassSummary string `json:"day_class_summary"`
+	DayClassAdvice  string `json:"day_class_advice"`
 }
 
 // HiddenStemGod 地支藏干及其十神
@@ -253,8 +271,9 @@ var branchThreePunishment = []struct {
 	Desc  string
 }{
 	{"无礼之刑", []string{"子", "卯"}, "子刑卯，卯刑子，无礼之刑。主无礼犯上，是非口舌。"},
-	{"无恩之刑", []string{"寅", "巳", "申"}, "寅刑巳，巳刑申，申刑寅，无恩之刑。主忘恩负义，恩将仇报。"},
-	{"恃势之刑", []string{"丑", "戌", "未"}, "丑刑戌，戌刑未，未刑丑，恃势之刑。主仗势欺人，刑伤灾祸。"},
+	// 经典依据：三命通会第38章——寅巳申为无恩之刑，丑戌未为恃势之刑
+	{"无恩之刑", []string{"寅", "巳", "申"}, "寅刑巳，巳刑申，申刑寅，无恩之刑。主忘恩负义，辗转相克，事情反复难解。"},
+	{"恃势之刑", []string{"丑", "戌", "未"}, "丑刑戌，戌刑未，未刑丑，恃势之刑。主仗势欺人，恃强凌弱，暗中损耗。"},
 	{"自刑", []string{"辰", "午", "酉", "亥"}, "辰午酉亥自刑。主自我矛盾，自找麻烦。"},
 }
 
@@ -286,6 +305,80 @@ var elementGeneratesMap = map[string]string{
 }
 var elementOvercomesMap = map[string]string{
 	"木": "土", "土": "水", "水": "火", "火": "金", "金": "木",
+}
+
+// ── 黄道黑道日（协纪辨方书） ──────────────────────────────────
+// 黄道六神：青龙、明堂、金匮、天德、玉堂、司命 → 吉
+// 黑道六神：天刑、朱雀、白虎、天牢、玄武、勾陈 → 凶
+// 以月支起青龙，顺排十二建星
+// 建除十二神：建、除、满、平、定、执、破、危、成、收、开、闭
+var jianChuTable = map[string][]string{
+	// 月支 → [建,除,满,平,定,执,破,危,成,收,开,闭] 对应日子地支
+	"寅": {"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"},
+	"卯": {"卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅"},
+	"辰": {"辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯"},
+	"巳": {"巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"},
+	"午": {"午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳"},
+	"未": {"未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午"},
+	"申": {"申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"},
+	"酉": {"酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申"},
+	"戌": {"戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉"},
+	"亥": {"亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"},
+	"子": {"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"},
+	"丑": {"丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子"},
+}
+
+// jianChuFavorability 建除十二神吉凶
+var jianChuFavorability = map[string]string{
+	"建": "吉", "除": "吉", "满": "吉", "平": "平",
+	"定": "吉", "执": "吉", "破": "凶", "危": "凶",
+	"成": "吉", "收": "吉", "开": "吉", "闭": "凶",
+}
+
+// jianChuDesc 建除十二神描述（协纪辨方书）
+var jianChuDesc = map[string]string{
+	"建": "万物生育之始，宜出行、上任、拜谒",
+	"除": "除旧布新，宜治病、解除、清洁",
+	"满": "丰收圆满，宜祭祀、祈福、开张",
+	"平": "平顺无奇，宜修造、安葬，诸事平常",
+	"定": "安定稳固，宜签约、交易、安床",
+	"执": "执持果断，宜捕捉、执法、施工",
+	"破": "破败损耗，大事不宜，仅宜破屋坏垣",
+	"危": "高处危险，宜祭祀安床，忌登高冒险",
+	"成": "成就圆满，宜开业、嫁娶、签约",
+	"收": "收藏收获，宜纳财、收债、入库",
+	"开": "开通顺利，宜开业、出行、求医",
+	"闭": "关闭不通，宜收藏静守，忌开业出行",
+}
+
+// ── 彭祖百忌日（协纪辨方书） ──────────────────────────────────
+// 以天干取前半句，以地支取后半句
+var pengzuGanTaboo = map[string]string{
+	"甲": "甲不开仓财物耗散",
+	"乙": "乙不栽植千株不长",
+	"丙": "丙不修灶必见灾殃",
+	"丁": "丁不剃头头必生疮",
+	"戊": "戊不受田田主不祥",
+	"己": "己不破券二比并亡",
+	"庚": "庚不经络织机虚张",
+	"辛": "辛不合酱主人不尝",
+	"壬": "壬不汲水更难提防",
+	"癸": "癸不词讼理弱敌强",
+}
+
+var pengzuZhiTaboo = map[string]string{
+	"子": "子不问卜自惹祸殃",
+	"丑": "丑不冠带主不还乡",
+	"寅": "寅不祭祀神鬼不尝",
+	"卯": "卯不穿井水泉不香",
+	"辰": "辰不哭泣必主重丧",
+	"巳": "巳不远行财物伏藏",
+	"午": "午不苫盖屋主更张",
+	"未": "未不服药毒气入肠",
+	"申": "申不安床鬼祟入房",
+	"酉": "酉不宴客醉坐颠狂",
+	"戌": "戌不吃犬作怪上床",
+	"亥": "亥不嫁娶不利新郎",
 }
 
 // ── 天乙贵人速查（以日干查地支） ──────────────────────────
@@ -350,7 +443,7 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 	dayGan := bazi.DayPillar.Gan
 
 	// 获取有效喜忌（格局优先，扶抑兜底）
-	like, _, isSpecialPattern := getEffectiveFavor(bazi)
+	like, dislike, isSpecialPattern := getEffectiveFavor(bazi)
 
 	// 获取今日干支
 	qYear, qMonth, qDay := queryDate.Year(), int(queryDate.Month()), queryDate.Day()
@@ -360,7 +453,7 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 	}
 	todayGan := ec.GetDay().GetHeavenStem().GetName()
 	todayZhi := ec.GetDay().GetEarthBranch().GetName()
-	todayMonth := qMonth
+	monthZhi := ec.GetMonth().GetEarthBranch().GetName()
 
 	// 步骤一：今日天干取十神（格局感知）
 	tenGod := bazipkg.ClassifyTenGod(todayGan, dayGan, false)
@@ -376,7 +469,7 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 	stemRels := calcStemRelations(todayGan, bazi)
 
 	// 步骤五：地支关系（今日地支 vs 命局四柱地支）
-	branchRels := calcBranchRelations(todayZhi, bazi)
+	branchRels := calcBranchRelations(todayZhi, bazi, like, dislike)
 
 	// 步骤六：神煞引动
 	shenSha := calcShenShaActivation(todayGan, todayZhi, bazi)
@@ -388,7 +481,7 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 	liuNian := calcLiuNianInfluence(bazi, queryDate)
 
 	// 步骤九：进退气分析
-	advanceRetreat := calcAdvanceRetreat(todayGan, todayZhi, todayMonth)
+	advanceRetreat := calcAdvanceRetreat(todayGan, todayZhi, monthZhi)
 
 	// 步骤十：用神综合判断
 	yongShen := calcYongShenIntegration(bazi, todayGan, todayZhi)
@@ -400,6 +493,19 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 		shenSha, daYun, liuNian,
 		advanceRetreat, yongShen, isSpecialPattern, bazi,
 	)
+
+	// 步骤十二：建除十二神
+	jianChuName, jianChuFav, jianChuD := calcJianChu(bazi.MonthPillar.Zhi, todayZhi)
+
+	// 步骤十三：彭祖百忌
+	pengzuGan := pengzuGanTaboo[todayGan]
+	pengzuZhi := pengzuZhiTaboo[todayZhi]
+
+	// 步骤十四：黄道黑道日
+	huangDaoName, huangDaoFav, huangDaoDesc := calcHuangDaoHeiDao(monthZhi, todayZhi)
+
+	// 步骤十五：日课综合判断
+	dayClassSummary, dayClassAdvice := calcDayClassSummary(jianChuName, jianChuFav, huangDaoName, huangDaoFav, pengzuGan, pengzuZhi)
 
 	return &RikuyoResult{
 		TodayTenGod:      tenGod,
@@ -423,6 +529,16 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 		PatternType:         bazi.PatternAnalysis.PatternType,
 		PatternFavorable:    bazi.PatternAnalysis.FavorableElements,
 		PatternUnfavorable:  bazi.PatternAnalysis.UnfavorableElements,
+		JianChuName:      jianChuName,
+		JianChuFavor:     jianChuFav,
+		JianChuDesc:      jianChuD,
+		PengzuGanTaboo:   pengzuGan,
+		PengzuZhiTaboo:   pengzuZhi,
+		HuangDaoName:      huangDaoName,
+		HuangDaoFavorable: huangDaoFav,
+		HuangDaoDesc:      huangDaoDesc,
+		DayClassSummary:   dayClassSummary,
+		DayClassAdvice:    dayClassAdvice,
 	}
 }
 
@@ -473,7 +589,7 @@ func isFavorableTenGodByFavor(tenGod string, like []string, dayGan string) bool 
 	var targetElem string
 	switch tenGod {
 	case "正印", "偏印":
-		targetElem = shengWo(dayElem) // 生我
+		targetElem = bazipkg.ShengWo(dayElem) // 生我
 	case "比肩", "劫财":
 		targetElem = dayElem // 同我
 	case "食神", "伤官":
@@ -481,14 +597,9 @@ func isFavorableTenGodByFavor(tenGod string, like []string, dayGan string) bool 
 	case "正财", "偏财":
 		targetElem = elementOvercomesMap[dayElem] // 我克
 	case "正官", "七杀":
-		targetElem = keWoReverse(dayElem) // 克我
+		targetElem = bazipkg.KeWo(dayElem) // 克我
 	}
 	return isFavorableElement(targetElem, like)
-}
-
-// keWoReverse 返回克我的五行（与 keWo 逻辑一致，但在此独立定义避免跨包依赖）
-func keWoReverse(elem string) string {
-	return map[string]string{"木": "金", "火": "水", "土": "木", "金": "火", "水": "土"}[elem]
 }
 
 // ── 步骤二：十二长生（含活法修正） ──────────────────────────
@@ -668,7 +779,7 @@ func checkTanHeWangKe(todayGan, combinedGan string, bazi *bazipkg.BaziResult) st
 
 // ── 步骤五：地支关系 ──────────────────────────────────────
 
-func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult) []BranchRelation {
+func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult, like, dislike []string) []BranchRelation {
 	birthZhis := []struct {
 		name  string
 		label string
@@ -682,31 +793,31 @@ func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult) []BranchRela
 	var rels []BranchRelation
 
 	for _, bz := range birthZhis {
-		// 六合
+		// 六合：合住忌神为吉（忌神被合住不为害），合住喜神为凶（喜神被合住失去作用）
 		if branchSixCombine[todayZhi] == bz.name {
 			rels = append(rels, BranchRelation{
 				Type:        "六合",
 				Target:      bz.name,
 				Detail:      fmt.Sprintf("%s%s六合", todayZhi, bz.name),
-				IsFavorable: true,
+				IsFavorable: !isFavorableElement(data.ZhiElement[bz.name], like),
 			})
 		}
-		// 六冲
+		// 六冲：冲去忌神为吉（忌神被冲走），冲去喜神为凶（喜神被冲散）
 		if branchSixClash[todayZhi] == bz.name {
 			rels = append(rels, BranchRelation{
 				Type:        "六冲",
 				Target:      bz.name,
 				Detail:      fmt.Sprintf("%s%s六冲", todayZhi, bz.name),
-				IsFavorable: false,
+				IsFavorable: isFavorableElement(data.ZhiElement[bz.name], dislike),
 			})
 		}
-		// 六害
+		// 六害：害到忌神为吉，害到喜神为凶
 		if branchSixHarm[todayZhi] == bz.name {
 			rels = append(rels, BranchRelation{
 				Type:        "六害",
 				Target:      bz.name,
 				Detail:      fmt.Sprintf("%s%s六害", todayZhi, bz.name),
-				IsFavorable: false,
+				IsFavorable: !isFavorableElement(data.ZhiElement[bz.name], like),
 			})
 		}
 	}
@@ -841,10 +952,13 @@ func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 	age := queryDate.Year() - birthYear
 	startAge := bazi.DaYunInfo.StartAge
 
-	// 确定当前大运索引
+	// 确定当前大运索引（精确计算，处理起运年龄非整十年的情况）
+	// 大运每步10年，从起运年龄开始：第0步 = [startAge, startAge+9]，第1步 = [startAge+10, startAge+19]...
 	idx := 0
-	if startAge > 0 {
+	if age >= startAge {
 		idx = (age - startAge) / 10
+	} else {
+		idx = 0 // 未起运，取第一步大运
 	}
 	if idx < 0 {
 		idx = 0
@@ -857,6 +971,10 @@ func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 	daYunGan := pillar.Gan
 	daYunZhi := pillar.Zhi
 	dayGan := bazi.DayPillar.Gan
+
+	// 计算当前大运精确的起止年龄和年份
+	daYunStartAge := startAge + idx*10
+	daYunEndAge := daYunStartAge + 9
 
 	// 大运天干对日主的十神（格局感知）
 	tenGod := bazipkg.ClassifyTenGod(daYunGan, dayGan, false)
@@ -881,8 +999,8 @@ func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 
 	return DaYunInfluence{
 		CurrentPillar: daYunGan + daYunZhi,
-		StartAge:      startAge + idx*10,
-		EndAge:        startAge + (idx+1)*10 - 1,
+		StartAge:      daYunStartAge,
+		EndAge:        daYunEndAge,
 		TenGod:        tenGod,
 		Favorable:     fav,
 		Relation:      desc,
@@ -903,7 +1021,7 @@ func queryDateGan(queryDate time.Time) string {
 // ── 步骤八：流年叠加 ──────────────────────────────────────
 
 func calcLiuNianInfluence(bazi *bazipkg.BaziResult, queryDate time.Time) LiuNianInfluence {
-	yearGanZhi := getYearGanZhi(queryDate.Year())
+	yearGanZhi := getYearGanZhi(queryDate.Year(), int(queryDate.Month()), queryDate.Day())
 	if len(yearGanZhi) < 2 {
 		return LiuNianInfluence{}
 	}
@@ -942,20 +1060,26 @@ func calcLiuNianInfluence(bazi *bazipkg.BaziResult, queryDate time.Time) LiuNian
 	}
 }
 
-// getYearGanZhi 获取年干支（简化版，以立春为界）
-func getYearGanZhi(year int) string {
+// getYearGanZhi 获取年干支（以立春为界）
+// 立春前仍属上一年干支
+func getYearGanZhi(year, month, day int) string {
+	y := year
+	// 立春约在2月4日，立春前用上一年干支
+	if month < 2 || (month == 2 && day < 4) {
+		y = year - 1
+	}
 	gans := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
 	zhis := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	ganIdx := (year - 4) % 10
-	zhiIdx := (year - 4) % 12
+	ganIdx := (y - 4) % 10
+	zhiIdx := (y - 4) % 12
 	return gans[ganIdx] + zhis[zhiIdx]
 }
 
 // ── 步骤九：进退气分析 ──────────────────────────────────────
 
-func calcAdvanceRetreat(todayGan, todayZhi string, month int) AdvanceRetreat {
+func calcAdvanceRetreat(todayGan, todayZhi string, monthZhi string) AdvanceRetreat {
 	elem := data.GanElement[todayGan]
-	season := monthToSeason(month)
+	season := monthZhiToSeason(monthZhi)
 	state := elementSeasonState[season][elem]
 
 	phase := ""
@@ -998,17 +1122,33 @@ func calcAdvanceRetreat(todayGan, todayZhi string, month int) AdvanceRetreat {
 	}
 }
 
-func monthToSeason(m int) string {
-	switch m {
-	case 2, 3, 4:
+// monthZhiToSeason 以节气月地支判断季节
+// 寅卯辰=春, 巳午未=夏, 申酉戌=秋, 亥子丑=冬
+func monthZhiToSeason(zhi string) string {
+	switch zhi {
+	case "寅", "卯", "辰":
 		return "春"
-	case 5, 6, 7:
+	case "巳", "午", "未":
 		return "夏"
-	case 8, 9, 10:
+	case "申", "酉", "戌":
 		return "秋"
-	default:
+	default: // 亥, 子, 丑
 		return "冬"
 	}
+}
+
+// solarDateToJieQiMonth 根据公历日期近似推算节气月（1-12）
+// 节气月以每月节气日为界（约4-8日），此处用简化日期近似
+func solarDateToJieQiMonth(month, day int) int {
+	jieQiDays := []int{6, 4, 6, 5, 6, 6, 7, 7, 8, 8, 7, 7}
+	if day >= jieQiDays[month-1] {
+		return month
+	}
+	// 在当月节气日之前，属上一个节气月
+	if month == 1 {
+		return 12
+	}
+	return month - 1
 }
 
 // ── 步骤十：用神综合判断 ──────────────────────────────────
@@ -1070,6 +1210,137 @@ func calcYongShenIntegration(bazi *bazipkg.BaziResult, todayGan, todayZhi string
 		Score:           score,
 		Description:     desc,
 	}
+}
+
+// ── 步骤十二：建除十二神 ──────────────────────────────────────
+
+// calcJianChu 计算建除十二神
+// 以月支为起点，今日地支与月支的距离决定建除值
+func calcJianChu(monthZhi, todayZhi string) (name, favor, desc string) {
+	table, ok := jianChuTable[monthZhi]
+	if !ok {
+		return "未知", "平", ""
+	}
+	zhiOrder := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	monthIdx, todayIdx := -1, -1
+	for i, z := range zhiOrder {
+		if z == monthZhi {
+			monthIdx = i
+		}
+		if z == todayZhi {
+			todayIdx = i
+		}
+	}
+	if monthIdx < 0 || todayIdx < 0 {
+		return "未知", "平", ""
+	}
+	// 月支本身为"建"日，顺推
+	offset := (todayIdx - monthIdx + 12) % 12
+	jianChu := table[offset]
+	return jianChu, jianChuFavorability[jianChu], jianChuDesc[jianChu]
+}
+
+// ── 黄道黑道日（协纪辨方书） ──────────────────────────────────
+
+// huangDaoTwelveGods 十二值神顺排顺序
+var huangDaoTwelveGods = []string{
+	"青龙", "明堂", "天刑", "朱雀", "金匮", "天德",
+	"白虎", "玉堂", "天牢", "玄武", "司命", "勾陈",
+}
+
+// huangDaoFavorableMap 黄道六神（吉）vs 黑道六神（凶）
+var huangDaoFavorableMap = map[string]bool{
+	"青龙": true, "明堂": true, "金匮": true, "天德": true, "玉堂": true, "司命": true,
+	"天刑": false, "朱雀": false, "白虎": false, "天牢": false, "玄武": false, "勾陈": false,
+}
+
+// huangDaoDescMap 十二值神描述
+var huangDaoDescMap = map[string]string{
+	"青龙": "黄道吉神，主喜庆、贵人、财利。所值之日，百事皆宜。",
+	"明堂": "黄道吉神，主明达、公开、顺畅。利公开事务、文书契约。",
+	"天刑": "黑道凶神，主刑伤、意外。忌诉讼、出行、手术。",
+	"朱雀": "黑道凶神，主口舌、是非、文书纠纷。忌签约、诉讼。",
+	"金匮": "黄道吉神，主财富、收藏、积蓄。利纳财、储蓄、收账。",
+	"天德": "黄道吉神，主德行、化解、贵人。百事皆宜，逢凶化吉。",
+	"白虎": "黑道凶神，主血光、伤灾、丧事。忌动刀、出行、见血。",
+	"玉堂": "黄道吉神，主吉庆、文昌、学业。利考试、文书、求名。",
+	"天牢": "黑道凶神，主囚禁、束缚、不自由。忌诉讼、出行。",
+	"玄武": "黑道凶神，主盗窃、暗昧、欺诈。防失财、小人、被骗。",
+	"司命": "黄道吉神，主寿命、健康、平安。利求医、祈福、安床。",
+	"勾陈": "黑道凶神，主田土、牵连、拖沓。忌动土、搬家、签约。",
+}
+
+// huangDaoStartIdx 月支 → 青龙起始地支索引
+// 子午月从寅起，丑未月从卯起，寅申月从辰起，卯酉月从巳起，辰戌月从午起，巳亥月从未起
+var huangDaoStartIdx = map[string]int{
+	"子": 2, "午": 2, // 寅(2)起青龙
+	"丑": 3, "未": 3, // 卯(3)起青龙
+	"寅": 4, "申": 4, // 辰(4)起青龙
+	"卯": 5, "酉": 5, // 巳(5)起青龙
+	"辰": 6, "戌": 6, // 午(6)起青龙
+	"巳": 7, "亥": 7, // 未(7)起青龙
+}
+
+// calcHuangDaoHeiDao 计算黄道黑道日
+// 以月支定青龙起点，顺排十二值神，看今日地支落在哪个神
+func calcHuangDaoHeiDao(monthZhi, todayZhi string) (name string, favorable bool, desc string) {
+	startIdx, ok := huangDaoStartIdx[monthZhi]
+	if !ok {
+		return "未知", false, ""
+	}
+	todayIdx := data.ZhiIndex(todayZhi)
+	if todayIdx < 0 {
+		return "未知", false, ""
+	}
+	offset := (todayIdx - startIdx + 12) % 12
+	name = huangDaoTwelveGods[offset]
+	favorable = huangDaoFavorableMap[name]
+	desc = huangDaoDescMap[name]
+	return
+}
+
+// ── 日课综合判断 ──────────────────────────────────────────
+
+// calcDayClassSummary 综合建除十二神、黄道黑道日、彭祖百忌，给出日课综合建议
+func calcDayClassSummary(jianChuName, jianChuFav, huangDaoName string, huangDaoFav bool, pengzuGan, pengzuZhi string) (summary, advice string) {
+	score := 0
+	var goodPoints, badPoints []string
+
+	// 建除十二神
+	switch jianChuFav {
+	case "吉":
+		score += 2
+		goodPoints = append(goodPoints, "建除"+jianChuName+"为吉")
+	case "凶":
+		score -= 2
+		badPoints = append(badPoints, "建除"+jianChuName+"为凶")
+	}
+
+	// 黄道黑道
+	if huangDaoFav {
+		score += 2
+		goodPoints = append(goodPoints, huangDaoName+"为黄道吉神")
+	} else {
+		score -= 2
+		badPoints = append(badPoints, huangDaoName+"为黑道凶神")
+	}
+
+	// 生成综合断语
+	if score >= 3 {
+		summary = "日课大吉：黄道" + huangDaoName + "、建除" + jianChuName + "皆吉，诸事皆宜。"
+		advice = "今日日课吉利，宜行大事。忌：" + pengzuGan + "；" + pengzuZhi
+	} else if score >= 1 {
+		summary = "日课偏吉：黄道" + huangDaoName + "、建除" + jianChuName + "尚可，宜谨慎行事。"
+		advice = "今日日课尚可，宜择吉而行。忌：" + pengzuGan + "；" + pengzuZhi
+	} else if score >= -1 {
+		summary = "日课平平：黄道" + huangDaoName + "、建除" + jianChuName + "参半，宜守不宜攻。"
+		advice = "今日日课平平，宜谨慎行事。忌：" + pengzuGan + "；" + pengzuZhi
+	} else {
+		summary = "日课欠佳：黄道" + huangDaoName + "、建除" + jianChuName + "皆凶，大事不宜。"
+		advice = "今日日课不利，宜守不宜进，大事不宜。忌：" + pengzuGan + "；" + pengzuZhi
+	}
+
+	return
 }
 
 // ── 步骤十一：综合评分与断语 ──────────────────────────────
