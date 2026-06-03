@@ -3,23 +3,33 @@ import { ref, computed, watch } from 'vue'
 
 interface StarInfo {
   name: string
+  type: string
+  scope: string
   brightness: string
 }
 
 interface PalaceData {
-  branch: string
   name: string
-  mainStars: StarInfo[]
-  auxStars: StarInfo[]
-  sihua: string[]
+  branch: string
+  heavenly_stem: string
+  is_body_palace: boolean
+  stars: StarInfo[]
+  four_hua: string[]
+  adjective_stars?: string[]
+  changsheng_12?: string
+  boshi_12?: string
+  jiang_qian_12?: string
+  sui_qian_12?: string
 }
 
 interface Props {
   baseChart: {
     palaces: PalaceData[]
-    mingZhu: string
-    shenZhu: string
-    wuxingJu: string
+    life_master: string
+    body_master: string
+    five_bureau: string
+    earthly_branch_of_soul_palace: string
+    earthly_branch_of_body_palace: string
   }
   liunianChart: {
     palaces: PalaceData[]
@@ -101,9 +111,87 @@ const liunianStarsMap = computed<Record<string, string[]>>(() => {
   return m
 })
 
+const branchIndexMap: Record<string, number> = {
+  '子': 0, '丑': 1, '寅': 2, '卯': 3, '辰': 4, '巳': 5,
+  '午': 6, '未': 7, '申': 8, '酉': 9, '戌': 10, '亥': 11,
+}
+const indexBranchMap = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+function fixIdx(i: number): number {
+  return ((i % 12) + 12) % 12
+}
+
+function sanfangBranches(branch: string): { opposite: string; trine1: string; trine2: string } {
+  const idx = branchIndexMap[branch]
+  if (idx === undefined) return { opposite: '', trine1: '', trine2: '' }
+  return {
+    opposite: indexBranchMap[fixIdx(idx + 6)],
+    trine1: indexBranchMap[fixIdx(idx + 4)],
+    trine2: indexBranchMap[fixIdx(idx - 4)],
+  }
+}
+
+const focusedBranch = ref<string | undefined>(undefined)
+
+function palaceHighlightClass(branch: string): string {
+  if (!focusedBranch.value) return ''
+  if (branch === focusedBranch.value) return 'zw-focused'
+  const sf = sanfangBranches(focusedBranch.value)
+  if (branch === sf.opposite) return 'zw-opposite'
+  if (branch === sf.trine1 || branch === sf.trine2) return 'zw-surrounded'
+  return ''
+}
+
+const gridRef = ref<HTMLElement | null>(null)
+
+type Point = { x: number; y: number }
+
+const branchAnchorPercent: Record<string, Point> = {
+  '巳': { x: 12.5, y: 12.5 },
+  '午': { x: 37.5, y: 12.5 },
+  '未': { x: 62.5, y: 12.5 },
+  '申': { x: 87.5, y: 12.5 },
+  '辰': { x: 12.5, y: 37.5 },
+  '酉': { x: 87.5, y: 37.5 },
+  '卯': { x: 12.5, y: 62.5 },
+  '戌': { x: 87.5, y: 62.5 },
+  '寅': { x: 12.5, y: 87.5 },
+  '丑': { x: 37.5, y: 87.5 },
+  '子': { x: 62.5, y: 87.5 },
+  '亥': { x: 87.5, y: 87.5 },
+}
+
+const svgLines = computed<{ from: Point; to: Point; type: 'opposite' | 'trine' }[]>(() => {
+  if (!focusedBranch.value) return []
+  const sf = sanfangBranches(focusedBranch.value)
+  const from = branchAnchorPercent[focusedBranch.value]
+  if (!from) return []
+  const lines: { from: Point; to: Point; type: 'opposite' | 'trine' }[] = []
+  const opp = branchAnchorPercent[sf.opposite]
+  const t1 = branchAnchorPercent[sf.trine1]
+  const t2 = branchAnchorPercent[sf.trine2]
+  if (opp) lines.push({ from, to: opp, type: 'opposite' })
+  if (t1) lines.push({ from, to: t1, type: 'trine' })
+  if (t2) lines.push({ from, to: t2, type: 'trine' })
+  return lines
+})
+
 const branchOrder = ['巳', '午', '未', '申', '辰', '卯', '酉', '戌', '寅', '丑', '子', '亥']
 const row1Branches = branchOrder.slice(0, 4)
 const row4Branches = branchOrder.slice(8, 12)
+
+interface RichStar { name: string; brightness: string }
+function richStars(p: PalaceData | undefined): RichStar[] {
+  if (!p) return []
+  return p.stars || []
+}
+function liunianStars(p: PalaceData | undefined): RichStar[] {
+  if (!p) return []
+  return p.stars || []
+}
+function palaceSihua(p: PalaceData | undefined): string[] {
+  return p?.four_hua || []
+}
 
 function basePalaceAt(b: string): PalaceData | undefined { return baseLookup.value[b] }
 function liunianPalaceAt(b: string): PalaceData | undefined {
@@ -140,30 +228,33 @@ function liunianStarsAt(b: string): string[] {
     </div>
 
     <!-- Chart grid -->
-    <div class="zw-grid" :class="{ 'zw-grid-overlay': mode === 'overlay' }">
+    <div class="zw-grid-wrap">
+      <div class="zw-grid" :class="{ 'zw-grid-overlay': mode === 'overlay' }" ref="gridRef">
 
       <!-- Row 1 -->
       <template v-for="branch in row1Branches" :key="'r1-' + branch">
-        <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+        <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt(branch)?.is_body_palace }, palaceHighlightClass(branch)]" @mouseenter="focusedBranch = branch" @mouseleave="focusedBranch = undefined">
           <div class="zw-cell-header">
             <span class="zw-palace-name">{{ basePalaceAt(branch)?.name || branch }}</span>
-            <span class="zw-branch">{{ branch }}</span>
+            <span class="zw-branch">{{ branch }}<template v-if="basePalaceAt(branch)?.heavenly_stem"> · {{ basePalaceAt(branch)?.heavenly_stem }}</template></span>
+            <span v-if="basePalaceAt(branch)?.is_body_palace" class="zw-body-tag">身宫</span>
           </div>
           <div class="zw-stars">
             <span
-              v-for="(star, si) in (basePalaceAt(branch)?.mainStars || [])"
+              v-for="(star, si) in richStars(basePalaceAt(branch))"
               :key="'bs-' + si"
               class="zw-star zw-star-gold"
               :style="{ background: baseMeta(star.brightness).bg }"
             >{{ star.name }}</span>
           </div>
-          <div v-if="basePalaceAt(branch)?.sihua?.length" class="zw-sihua">
-            <span v-for="(sh, si) in (basePalaceAt(branch)?.sihua || [])" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
+          <div v-if="palaceSihua(basePalaceAt(branch)).length" class="zw-sihua">
+            <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
           </div>
+          <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
           <div v-if="mode === 'overlay' && liunianPalaceAt(branch)" class="zw-overlay-stars">
             <div class="zw-overlay-label">流年</div>
             <span
-              v-for="(star, si) in (liunianPalaceAt(branch)?.mainStars || [])"
+              v-for="(star, si) in liunianStars(liunianPalaceAt(branch))"
               :key="'ls-' + si"
               class="zw-star zw-star-purple"
               :style="{ background: overlayMeta(star.brightness).bg }"
@@ -180,23 +271,25 @@ function liunianStarsAt(b: string): string[] {
       </template>
 
       <!-- Row 2: 辰 + center + 酉 -->
-      <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('辰')?.is_body_palace }, palaceHighlightClass('辰')]" @mouseenter="focusedBranch = '辰'" @mouseleave="focusedBranch = undefined">
         <div class="zw-cell-header">
           <span class="zw-palace-name">{{ basePalaceAt('辰')?.name || '辰' }}</span>
-          <span class="zw-branch">辰</span>
+          <span class="zw-branch">辰<template v-if="basePalaceAt('辰')?.heavenly_stem"> · {{ basePalaceAt('辰')?.heavenly_stem }}</template></span>
+          <span v-if="basePalaceAt('辰')?.is_body_palace" class="zw-body-tag">身宫</span>
         </div>
         <div class="zw-stars">
-          <span
-            v-for="(star, si) in (basePalaceAt('辰')?.mainStars || [])"
-            :key="'bs-' + si"
-            class="zw-star zw-star-gold"
-            :style="{ background: baseMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
+<span
+              v-for="(star, si) in richStars(basePalaceAt('辰'))"
+              :key="'bs-' + si"
+              class="zw-star zw-star-gold"
+              :style="{ background: baseMeta(star.brightness).bg }"
+            >{{ star.name }}</span>
         </div>
+        <div v-if="basePalaceAt('辰')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('辰')?.changsheng_12 }}</span></div>
         <div v-if="mode === 'overlay' && liunianPalaceAt('辰')" class="zw-overlay-stars">
           <div class="zw-overlay-label">流年</div>
           <span
-            v-for="(star, si) in (liunianPalaceAt('辰')?.mainStars || [])"
+            v-for="(star, si) in (liunianStars(liunianPalaceAt('辰')))"
             :key="'ls-' + si"
             class="zw-star zw-star-purple"
             :style="{ background: overlayMeta(star.brightness).bg }"
@@ -213,15 +306,15 @@ function liunianStarsAt(b: string): string[] {
         <div class="zw-center-title">命宫核心</div>
         <div class="zw-center-row">
           <span class="zw-center-lbl">命主</span>
-          <span class="zw-center-val">{{ baseChart.mingZhu }}</span>
+          <span class="zw-center-val">{{ baseChart.life_master }}</span>
         </div>
         <div class="zw-center-row">
           <span class="zw-center-lbl">身主</span>
-          <span class="zw-center-val">{{ baseChart.shenZhu }}</span>
+          <span class="zw-center-val">{{ baseChart.body_master }}</span>
         </div>
         <div class="zw-center-row">
           <span class="zw-center-lbl">五行局</span>
-          <span class="zw-center-val">{{ baseChart.wuxingJu }}</span>
+          <span class="zw-center-val">{{ baseChart.five_bureau }}</span>
         </div>
         <div v-if="mode === 'overlay'" class="zw-center-row zw-center-year">
           <span class="zw-center-lbl">流年</span>
@@ -229,23 +322,25 @@ function liunianStarsAt(b: string): string[] {
         </div>
       </div>
 
-      <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('酉')?.is_body_palace }, palaceHighlightClass('酉')]" @mouseenter="focusedBranch = '酉'" @mouseleave="focusedBranch = undefined">
         <div class="zw-cell-header">
           <span class="zw-palace-name">{{ basePalaceAt('酉')?.name || '酉' }}</span>
-          <span class="zw-branch">酉</span>
+          <span class="zw-branch">酉<template v-if="basePalaceAt('酉')?.heavenly_stem"> · {{ basePalaceAt('酉')?.heavenly_stem }}</template></span>
+          <span v-if="basePalaceAt('酉')?.is_body_palace" class="zw-body-tag">身宫</span>
         </div>
         <div class="zw-stars">
           <span
-            v-for="(star, si) in (basePalaceAt('酉')?.mainStars || [])"
+            v-for="(star, si) in (richStars(basePalaceAt('酉')))"
             :key="'bs-' + si"
             class="zw-star zw-star-gold"
             :style="{ background: baseMeta(star.brightness).bg }"
           >{{ star.name }}</span>
         </div>
+        <div v-if="basePalaceAt('酉')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('酉')?.changsheng_12 }}</span></div>
         <div v-if="mode === 'overlay' && liunianPalaceAt('酉')" class="zw-overlay-stars">
           <div class="zw-overlay-label">流年</div>
           <span
-            v-for="(star, si) in (liunianPalaceAt('酉')?.mainStars || [])"
+            v-for="(star, si) in (liunianStars(liunianPalaceAt('酉')))"
             :key="'ls-' + si"
             class="zw-star zw-star-purple"
             :style="{ background: overlayMeta(star.brightness).bg }"
@@ -257,23 +352,25 @@ function liunianStarsAt(b: string): string[] {
       </div>
 
       <!-- Row 3: 卯 (cols 2-3 taken by zw-center) -->
-      <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('卯')?.is_body_palace }, palaceHighlightClass('卯')]" @mouseenter="focusedBranch = '卯'" @mouseleave="focusedBranch = undefined">
         <div class="zw-cell-header">
           <span class="zw-palace-name">{{ basePalaceAt('卯')?.name || '卯' }}</span>
-          <span class="zw-branch">卯</span>
+          <span class="zw-branch">卯<template v-if="basePalaceAt('卯')?.heavenly_stem"> · {{ basePalaceAt('卯')?.heavenly_stem }}</template></span>
+          <span v-if="basePalaceAt('卯')?.is_body_palace" class="zw-body-tag">身宫</span>
         </div>
         <div class="zw-stars">
           <span
-            v-for="(star, si) in (basePalaceAt('卯')?.mainStars || [])"
+            v-for="(star, si) in (richStars(basePalaceAt('卯')))"
             :key="'bs-' + si"
             class="zw-star zw-star-gold"
             :style="{ background: baseMeta(star.brightness).bg }"
           >{{ star.name }}</span>
         </div>
+        <div v-if="basePalaceAt('卯')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('卯')?.changsheng_12 }}</span></div>
         <div v-if="mode === 'overlay' && liunianPalaceAt('卯')" class="zw-overlay-stars">
           <div class="zw-overlay-label">流年</div>
           <span
-            v-for="(star, si) in (liunianPalaceAt('卯')?.mainStars || [])"
+            v-for="(star, si) in (liunianStars(liunianPalaceAt('卯')))"
             :key="'ls-' + si"
             class="zw-star zw-star-purple"
             :style="{ background: overlayMeta(star.brightness).bg }"
@@ -286,23 +383,25 @@ function liunianStarsAt(b: string): string[] {
 
       <!-- cols 2-3 occupied by zw-center -->
 
-      <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('戌')?.is_body_palace }, palaceHighlightClass('戌')]" @mouseenter="focusedBranch = '戌'" @mouseleave="focusedBranch = undefined">
         <div class="zw-cell-header">
           <span class="zw-palace-name">{{ basePalaceAt('戌')?.name || '戌' }}</span>
-          <span class="zw-branch">戌</span>
+          <span class="zw-branch">戌<template v-if="basePalaceAt('戌')?.heavenly_stem"> · {{ basePalaceAt('戌')?.heavenly_stem }}</template></span>
+          <span v-if="basePalaceAt('戌')?.is_body_palace" class="zw-body-tag">身宫</span>
         </div>
         <div class="zw-stars">
           <span
-            v-for="(star, si) in (basePalaceAt('戌')?.mainStars || [])"
+            v-for="(star, si) in (richStars(basePalaceAt('戌')))"
             :key="'bs-' + si"
             class="zw-star zw-star-gold"
             :style="{ background: baseMeta(star.brightness).bg }"
           >{{ star.name }}</span>
         </div>
+        <div v-if="basePalaceAt('戌')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('戌')?.changsheng_12 }}</span></div>
         <div v-if="mode === 'overlay' && liunianPalaceAt('戌')" class="zw-overlay-stars">
           <div class="zw-overlay-label">流年</div>
           <span
-            v-for="(star, si) in (liunianPalaceAt('戌')?.mainStars || [])"
+            v-for="(star, si) in (liunianStars(liunianPalaceAt('戌')))"
             :key="'ls-' + si"
             class="zw-star zw-star-purple"
             :style="{ background: overlayMeta(star.brightness).bg }"
@@ -315,26 +414,28 @@ function liunianStarsAt(b: string): string[] {
 
       <!-- Row 4 -->
       <template v-for="branch in row4Branches" :key="'r4-' + branch">
-        <div class="zw-cell" :class="{ 'zw-cell-overlay': mode === 'overlay' }">
+        <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt(branch)?.is_body_palace }, palaceHighlightClass(branch)]" @mouseenter="focusedBranch = branch" @mouseleave="focusedBranch = undefined">
           <div class="zw-cell-header">
             <span class="zw-palace-name">{{ basePalaceAt(branch)?.name || branch }}</span>
-            <span class="zw-branch">{{ branch }}</span>
+            <span class="zw-branch">{{ branch }}<template v-if="basePalaceAt(branch)?.heavenly_stem"> · {{ basePalaceAt(branch)?.heavenly_stem }}</template></span>
+            <span v-if="basePalaceAt(branch)?.is_body_palace" class="zw-body-tag">身宫</span>
           </div>
           <div class="zw-stars">
             <span
-              v-for="(star, si) in (basePalaceAt(branch)?.mainStars || [])"
+              v-for="(star, si) in richStars(basePalaceAt(branch))"
               :key="'bs-' + si"
               class="zw-star zw-star-gold"
               :style="{ background: baseMeta(star.brightness).bg }"
             >{{ star.name }}</span>
           </div>
-          <div v-if="basePalaceAt(branch)?.sihua?.length" class="zw-sihua">
-            <span v-for="(sh, si) in (basePalaceAt(branch)?.sihua || [])" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
+          <div v-if="palaceSihua(basePalaceAt(branch)).length" class="zw-sihua">
+            <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
           </div>
+          <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
           <div v-if="mode === 'overlay' && liunianPalaceAt(branch)" class="zw-overlay-stars">
             <div class="zw-overlay-label">流年</div>
             <span
-              v-for="(star, si) in (liunianPalaceAt(branch)?.mainStars || [])"
+              v-for="(star, si) in liunianStars(liunianPalaceAt(branch))"
               :key="'ls-' + si"
               class="zw-star zw-star-purple"
               :style="{ background: overlayMeta(star.brightness).bg }"
@@ -349,6 +450,62 @@ function liunianStarsAt(b: string): string[] {
           </div>
         </div>
       </template>
+      </div>
+
+      <!-- SVG connection lines for sanfang sizheng -->
+      <svg
+        v-if="svgLines.length"
+        class="zw-svg-overlay"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <filter id="glow-line" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="0.8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <linearGradient id="grad-opposite" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(186,130,255,0.95)" />
+            <stop offset="100%" stop-color="rgba(186,130,255,0.3)" />
+          </linearGradient>
+          <linearGradient id="grad-trine" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(206,168,255,0.85)" />
+            <stop offset="100%" stop-color="rgba(206,168,255,0.2)" />
+          </linearGradient>
+        </defs>
+        <line
+          v-for="(l, i) in svgLines"
+          :key="'line-' + i"
+          :x1="l.from.x" :y1="l.from.y"
+          :x2="l.to.x" :y2="l.to.y"
+          :stroke="l.type === 'opposite' ? 'url(#grad-opposite)' : 'url(#grad-trine)'"
+          :stroke-width="l.type === 'opposite' ? 0.7 : 0.5"
+          stroke-dasharray="120"
+          stroke-linecap="round"
+          filter="url(#glow-line)"
+          class="zw-svg-line"
+          :class="{ 'zw-svg-line-opp': l.type === 'opposite' }"
+        />
+        <circle
+          v-for="(l, i) in svgLines"
+          :key="'dot-to-' + i"
+          :cx="l.to.x" :cy="l.to.y"
+          r="0.8"
+          :fill="l.type === 'opposite' ? 'rgba(186,130,255,0.8)' : 'rgba(206,168,255,0.6)'"
+          filter="url(#glow-line)"
+        />
+        <circle
+          v-for="(l, i) in svgLines"
+          :key="'dot-from-' + i"
+          :cx="l.from.x" :cy="l.from.y"
+          r="0.8"
+          fill="rgba(142,109,187,0.8)"
+          filter="url(#glow-line)"
+        />
+      </svg>
     </div>
 
     <!-- Legend -->
@@ -360,6 +517,18 @@ function liunianStarsAt(b: string): string[] {
       <div v-if="mode === 'overlay'" class="zw-legend-item">
         <span class="zw-legend-swatch zw-swatch-purple"></span>
         <span class="zw-legend-text">流年星曜</span>
+      </div>
+      <div class="zw-legend-item">
+        <span class="zw-legend-swatch zw-swatch-focused"></span>
+        <span class="zw-legend-text">本宫</span>
+      </div>
+      <div class="zw-legend-item">
+        <span class="zw-legend-swatch zw-swatch-opposite"></span>
+        <span class="zw-legend-text">对宫</span>
+      </div>
+      <div class="zw-legend-item">
+        <span class="zw-legend-swatch zw-swatch-surrounded"></span>
+        <span class="zw-legend-text">三合</span>
       </div>
     </div>
   </div>
@@ -423,6 +592,10 @@ function liunianStarsAt(b: string): string[] {
 .zw-select:hover { border-color: rgba(142,109,187,0.45); }
 
 /* ── Grid ── */
+.zw-grid-wrap {
+  position: relative;
+  overflow: visible;
+}
 .zw-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -433,6 +606,50 @@ function liunianStarsAt(b: string): string[] {
   overflow: hidden;
 }
 .zw-grid-overlay { background: rgba(20,15,40,0.6); border-color: rgba(142,109,187,0.12); }
+
+/* SVG overlay for connection lines */
+.zw-svg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+.zw-svg-line {
+  animation: zw-line-draw 0.4s ease-out both;
+}
+.zw-svg-line-opp {
+  animation: zw-line-draw-opp 0.35s ease-out both;
+}
+@keyframes zw-line-draw {
+  from { stroke-dashoffset: 120; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes zw-line-draw-opp {
+  from { stroke-dashoffset: 120; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+.zw-svg-line {
+  animation: zw-line-draw 0.4s ease-out both, zw-pulse 2.5s ease-in-out 0.4s infinite;
+}
+.zw-svg-line-opp {
+  animation: zw-line-draw-opp 0.35s ease-out both, zw-pulse-opp 2.5s ease-in-out 0.35s infinite;
+}
+@keyframes zw-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.55; }
+}
+@keyframes zw-pulse-opp {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.6; }
+}
+@keyframes zw-line-draw-opp {
+  from { stroke-dashoffset: 120; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
 
 /* ── Cell ── */
 .zw-cell {
@@ -579,5 +796,30 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-swatch-gold { background: linear-gradient(135deg, #DAA520, #B8860B); box-shadow: 0 0 8px rgba(212,168,75,0.4); }
 .zw-swatch-purple { background: linear-gradient(135deg, #8E6DBB, #6B5B95); box-shadow: 0 0 8px rgba(142,109,187,0.4); }
+.zw-swatch-focused { background: rgba(142, 109, 187, 0.5); border: 1px solid rgba(142, 109, 187, 0.7); }
+.zw-swatch-opposite { background: rgba(186, 130, 255, 0.4); border: 1px solid rgba(186, 130, 255, 0.6); }
+.zw-swatch-surrounded { background: rgba(206, 168, 255, 0.25); border: 1px solid rgba(206, 168, 255, 0.5); }
 .zw-legend-text { font-size: 0.72rem; color: rgba(255,255,255,0.35); letter-spacing: 1px; }
+
+/* Body palace */
+.zw-cell-body { border: 1px solid rgba(139, 75, 75, 0.3); }
+.zw-body-tag { font-size: 0.48rem; font-weight: 700; background: rgba(139, 75, 75, 0.2); color: rgba(255, 180, 180, 0.8); padding: 0px 3px; border-radius: 2px; margin-left: 2px; }
+
+/* ── Sanfang Sizheng highlight ── */
+.zw-focused {
+  background: rgba(142, 109, 187, 0.2) !important;
+  box-shadow: inset 0 0 20px rgba(142, 109, 187, 0.12);
+}
+.zw-opposite {
+  background: rgba(186, 130, 255, 0.2) !important;
+  box-shadow: inset 0 0 20px rgba(186, 130, 255, 0.1);
+}
+.zw-surrounded {
+  background: rgba(206, 168, 255, 0.12) !important;
+  box-shadow: inset 0 0 20px rgba(206, 168, 255, 0.06);
+}
+
+/* Twelve stars */
+.zw-twelve { display: flex; justify-content: center; margin-top: 1px; }
+.zw-twelve-tag { font-size: 0.5rem; color: #D4A84B; background: rgba(212,168,75,0.08); padding: 0px 3px; border-radius: 2px; }
 </style>

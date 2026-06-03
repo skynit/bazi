@@ -17,24 +17,35 @@ interface BirthInfo {
 
 interface StarInfo {
   name: string
+  type: string
+  scope: string
   brightness: string
 }
 
 interface PalaceData {
-  branch: string
   name: string
-  mainStars: StarInfo[]
-  auxStars: StarInfo[]
-  sihua: string[]
+  branch: string
+  heavenly_stem: string
+  is_body_palace: boolean
+  stars: StarInfo[]
+  four_hua: string[]
+  adjective_stars?: string[]
+  changsheng_12?: string
+  boshi_12?: string
+  jiang_qian_12?: string
+  sui_qian_12?: string
+  sanfang_sizheng?: { opposite?: string; trine1?: string; trine2?: string }
 }
 
 interface ZiWeiChartData {
   palaces: PalaceData[]
-  mingZhu: string
-  shenZhu: string
-  wuxingJu: string
+  life_master: string
+  body_master: string
+  five_bureau: string
+  earthly_branch_of_soul_palace: string
+  earthly_branch_of_body_palace: string
+  body_palace: string
   patterns: string[]
-  bodyPalace?: string
 }
 
 interface SectionData {
@@ -109,11 +120,7 @@ async function loadZiWeiChart() {
     })
     const data = resp.data
 
-    const chartValues = data
-    chartValues.mingZhu = data.mingZhu || data.life_master
-    chartValues.shenZhu = data.shenZhu || data.body_master
-    chartValues.wuxingJu = data.wuxingJu || data.five_bureau || data.fiveBureau || ''
-    chartData.value = chartValues  // backend returns ZiWeiChart directly
+    chartData.value = data
     birthInfo.value = chart  // chart from /charts/:id has birth info
 
     // Generate available years for overlay (current year ± 5)
@@ -273,17 +280,17 @@ async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
       mainStarAnalysis: {
         title: '主星特性',
         content: reading.main_star_analysis || '',
-        tags: palace.mainStars.map((s) => s.name),
+        tags: palace.stars.filter(s => s.type === 'major').map(s => s.name),
       },
       auxStarInfluence: {
         title: '辅星影响',
         content: reading.aux_star_influence || '',
-        tags: palace.auxStars.map((s) => s.name),
+        tags: palace.stars.filter(s => s.type !== 'major').map(s => s.name),
       },
       sihuaInfluence: {
         title: '四化影响',
         content: reading.sihua_influence || '',
-        tags: palace.sihua || [],
+        tags: palace.four_hua || [],
       },
       sanFangSiZheng: {
         title: '三方四正',
@@ -312,6 +319,13 @@ const currentAge = computed(() => {
 })
 
 function getPalacesFromPeriod(p: any) { return p?.palaces || [] }
+
+function majorStars(p: any): StarInfo[] {
+  return (p?.stars || []).filter((s: StarInfo) => s.type === 'major')
+}
+function auxStars(p: any): StarInfo[] {
+  return (p?.stars || []).filter((s: StarInfo) => s.type !== 'major')
+}
 
 const currentLiuyueInterp = computed(() => {
   if (!liuyueData.value[0]) return null
@@ -404,13 +418,15 @@ const sihuaChainGroups = computed(() => {
 
       <!-- Overlay section (本命盘/流年叠盘 toggle) -->
       <div class="overlay-section" v-if="chartData && liunianOverlay">
-        <ZiWeiOverlay
-          :base-chart="{
-            palaces: chartData.palaces,
-            mingZhu: chartData.mingZhu,
-            shenZhu: chartData.shenZhu,
-            wuxingJu: chartData.wuxingJu,
-          }"
+<ZiWeiOverlay
+           :base-chart="{
+             palaces: chartData.palaces,
+             life_master: chartData.life_master,
+             body_master: chartData.body_master,
+             five_bureau: chartData.five_bureau,
+             earthly_branch_of_soul_palace: chartData.earthly_branch_of_soul_palace,
+             earthly_branch_of_body_palace: chartData.earthly_branch_of_body_palace,
+           }"
           :liunian-chart="liunianOverlay"
           :available-years="availableYears"
           @year-change="onYearChange"
@@ -451,13 +467,13 @@ const sihuaChainGroups = computed(() => {
                 class="palace-pill"
                 :class="{
                   active: selectedPalace?.palaceName === palace.name,
-                  'body-palace': chartData && palace.name === chartData.bodyPalace
+                  'body-palace': chartData && (palace.name === chartData.body_palace || palace.is_body_palace)
                 }"
                 @click="onPalaceClick(palace, idx)"
               >
                 <span class="palace-pill-name">{{ palace.name }}</span>
                 <span class="palace-pill-branch">{{ palace.branch }}</span>
-                <span v-if="chartData && palace.name === chartData.bodyPalace" class="body-badge">身</span>
+                <span v-if="chartData && (palace.name === chartData.body_palace || palace.is_body_palace)" class="body-badge">身</span>
               </button>
             </div>
 
@@ -500,11 +516,11 @@ const sihuaChainGroups = computed(() => {
               <div v-for="p in getPalacesFromPeriod(liunianData[0])" :key="p.branch" class="palace-strip">
                 <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
                 <div class="palace-strip-stars">
-                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
-                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
-                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
-                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                  <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
+                  <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
                 <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
                   <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
@@ -546,11 +562,11 @@ const sihuaChainGroups = computed(() => {
               <div v-for="p in getPalacesFromPeriod(liuyueData[0])" :key="'ly-' + p.branch" class="palace-strip">
                 <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
                 <div class="palace-strip-stars">
-                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
-                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
-                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
-                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                  <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
+                  <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
                 <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
                   <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
@@ -591,12 +607,12 @@ const sihuaChainGroups = computed(() => {
             <div v-else>
               <div v-for="p in getPalacesFromPeriod(liuriData[0])" :key="'lr-' + p.branch" class="palace-strip palace-strip-sm">
                 <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
-                <div class="palace-strip-stars">
-                  <template v-if="p.mainStars?.length"><span v-for="s in p.mainStars" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
-                  <span v-if="!p.mainStars?.length" class="strip-empty">无主星</span>
-                  <template v-if="p.auxStars?.length"><span v-for="s in p.auxStars?.slice(0,3)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s.name" class="strip-adj-star">{{ s.name }}</span></template>
-                  <template v-if="p.sihua?.length"><span v-for="s in p.sihua" :key="s" class="strip-sihua">{{ s }}</span></template>
+<div class="palace-strip-stars">
+                  <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                  <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
+                  <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
                 <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
                   <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>

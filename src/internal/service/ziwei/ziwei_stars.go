@@ -4,7 +4,6 @@
 // Data is derived from iztro library source code and classical Chinese ZiWei texts.
 //
 // Constants include:
-//   - SI_HUA_TABLE: 四化表 (transformation star lookup by dynasty meter)
 //   - STAR_BRIGHTNESS: 14 main star brightness levels (庙旺落陷)
 //   - STAR_BRIGHTNESS_AUX: 12 auxiliary/unlucky star brightness levels
 //   - LUCUN_TABLE: 禄存表 (LuCun star placement)
@@ -13,17 +12,6 @@
 //   - ADJECTIVE_STAR_PLACEMENTS: placement rules for reactive/secondary stars
 //   - 12神 offset tables: 长生12, 博士12, 将前12, 岁建12
 package ziwei
-
-// SI_HUA_DYNASTY_TABLE maps dynasty meter (年数) to transformation star indices.
-// Index: 0=紫微, 1=天机, 2=太阳, 3=武曲, 4=天同, 5=廉贞, 6=天府, 7=太阴, 8=贪狼, 9=天梁, 10=天机, 11=破军
-// From iztro star/siHua.ts and classical ZiWei texts.
-var SI_HUA_DYNASTY_TABLE = map[string][]string{
-	"水二局": {"天机", "天梁", "天同", "廉贞", "天府", "武曲", "太阳", "天相", "天机", "天梁", "天同", "破军"},
-	"木三局": {"天梁", "天机", "天同", "廉贞", "天府", "武曲", "太阳", "天相", "天梁", "天机", "天同", "破军"},
-	"金四局": {"天机", "天同", "天梁", "廉贞", "天府", "武曲", "太阳", "天相", "天机", "天同", "天梁", "破军"},
-	"土五局": {"天同", "天机", "天梁", "廉贞", "天府", "武曲", "太阳", "天相", "天同", "天机", "天梁", "破军"},
-	"火六局": {"天梁", "天同", "天机", "廉贞", "天府", "武曲", "太阳", "天相", "天梁", "天同", "天机", "破军"},
-}
 
 // STAR_BRIGHTNESS_MAIN maps main star name to 7-level brightness array.
 // Levels: 0=陷(陷), 1=弱(弱), 2=不得地(不得地), 3=得地(得地), 4=中立(中), 5=旺(旺), 6=庙(庙)
@@ -63,32 +51,7 @@ var STAR_BRIGHTNESS_AUX_STARS = map[string][7]int{
 	"铃星": {0, 1, 2, 0, 0, 0, 0},
 }
 
-// LUCUN_FIVE_ELEMENT_TABLE maps five element class (管局) to LuCun branch index.
-// From iztro star/lucun.ts and classical ZiWei derivation.
-var LUCUN_FIVE_ELEMENT_TABLE = map[int]int{
-	2: 9,  // 水二局 -> 申(9)
-	3: 11, // 木三局 -> 亥(11)
-	4: 5,  // 金四局 -> 巳(5)
-	5: 9,  // 土五局 -> 申(9)
-	6: 0,  // 火六局 -> 寅(0)
-}
-
-// TIANMA_FIVE_ELEMENT_TABLE maps five element class (管局) to TianMa branch index.
-// From iztro star/tianma.ts.
-var TIANMA_FIVE_ELEMENT_TABLE = map[int]int{
-	2: 3,  // 水二局 -> 卯(3)
-	3: 5,  // 木三局 -> 巳(5)
-	4: 7,  // 金四局 -> 午(7)
-	5: 11, // 土五局 -> 亥(11)
-	6: 9,  // 火六局 -> 酉(9)
-}
-
-// ZIWEI_PALACE_NAMES are the 12 ZiWei palace names in order (starting from 命宫).
-// Index 0=命宫, 1=兄弟, 2=夫妻, 3=子女, 4=财帛, 5=疾厄, 6=迁移, 7=交友, 8=事业, 9=田宅, 10=福不全, 11=父母
-var ZIWEI_PALACE_NAMES = []string{
-	"命宫", "兄弟", "夫妻", "子女", "财帛", "疾厄",
-	"迁移", "交友", "事业", "田宅", "福不全", "父母",
-}
+// ZIWEI_PALACE_NAMES is now defined in ziwei_data.go
 
 // AdjectiveStarPlacement describes how to place one adjective (secondary/reactive) star.
 type AdjectiveStarPlacement struct {
@@ -118,22 +81,20 @@ var ADJECTIVE_STAR_PLACEMENTS = map[string]AdjectiveStarPlacement{
 		},
 		Direction: -1,
 		StepFunc: func(c *ZiWeiChart) int {
-			return int(c.engineChart.YearPillar.Branch) % 12
+			return c.YearBranch % 12
 		},
 	},
 	"天喜": {
 		Name:    "天喜",
 		BasedOn: "year",
 		StartFunc: func(c *ZiWeiChart) int {
-			// 天喜 is always opposite (对宫, +6) of 红鸾
-			yearBranch := int(c.engineChart.YearPillar.Branch) % 12
-			// 红鸾: (1 - yearBranch + 12) % 12
+			yearBranch := c.YearBranch % 12
 			hongluanTarget := (1 - yearBranch + 12) % 12
 			return (hongluanTarget + 6) % 12
 		},
 		Direction: +1,
 		StepFunc: func(c *ZiWeiChart) int {
-			return 6 // always opposite of 红鸾
+			return 6
 		},
 	},
 	"天姚": {
@@ -144,7 +105,7 @@ var ADJECTIVE_STAR_PLACEMENTS = map[string]AdjectiveStarPlacement{
 		},
 		Direction: +1,
 		StepFunc: func(c *ZiWeiChart) int {
-			return int(c.engineChart.MonthPillar.Branch) % 12
+			return c.LunarMonth % 12
 		},
 	},
 	"天刑": {
@@ -155,96 +116,95 @@ var ADJECTIVE_STAR_PLACEMENTS = map[string]AdjectiveStarPlacement{
 		},
 		Direction: +1,
 		StepFunc: func(c *ZiWeiChart) int {
-			return int(c.engineChart.MonthPillar.Branch) % 12
+			return c.LunarMonth % 12
 		},
 	},
 }
 
 // XIANCHI_TABLE maps year branch index to 咸池 palace index.
-// From iztro decorativeStar.ts getXianchi.
+// Classical rule: 申子辰见酉, 寅午戌见卯, 巳酉丑见午, 亥卯未见子
 // 0=子,1=丑,2=寅,3=卯,4=辰,5=巳,6=午,7=未,8=申,9=酉,10=戌,11=亥
 var XIANCHI_TABLE = map[int]int{
-	0:  9, // 子 -> 酉(9)
-	1:  3, // 丑 -> 卯(3)
-	2:  6, // 寅 -> 午(6)
-	3:  0, // 卯 -> 子(0)
-	4:  6, // 辰 -> 午(6)
-	5:  9, // 巳 -> 酉(9)
-	6:  0, // 午 -> 子(0)
-	7:  3, // 未 -> 卯(3)
-	8:  6, // 申 -> 午(6)
-	9:  9, // 酉 -> 酉(9)
-	10: 0, // 戌 -> 子(0)
-	11: 3, // 亥 -> 卯(3)
+	0:  9, // 子年 → 酉
+	1:  6, // 丑年 → 午
+	2:  3, // 寅年 → 卯
+	3:  0, // 卯年 → 子
+	4:  9, // 辰年 → 酉
+	5:  6, // 巳年 → 午
+	6:  3, // 午年 → 卯
+	7:  0, // 未年 → 子
+	8:  9, // 申年 → 酉
+	9:  6, // 酉年 → 午
+	10: 3, // 戌年 → 卯
+	11: 0, // 亥年 → 子
 }
 
 // HUAGAI_TABLE maps year branch index to 华盖 palace index.
-// From iztro decorativeStar.ts getHuagai.
+// Classical rule: 申子辰见辰, 寅午戌见戌, 巳酉丑见丑, 亥卯未见未
 var HUAGAI_TABLE = map[int]int{
-	0:  5,  // 子 -> 巳(5)
-	1:  11, // 丑 -> 亥(11)
-	2:  8,  // 寅 -> 申(8)
-	3:  2,  // 卯 -> 丑(2)
-	4:  8,  // 辰 -> 申(8)
-	5:  2,  // 巳 -> 丑(2)
-	6:  11, // 午 -> 亥(11)
-	7:  5,  // 未 -> 巳(5)
-	8:  2,  // 申 -> 丑(2)
-	9:  8,  // 酉 -> 申(8)
-	10: 11, // 戌 -> 亥(11)
-	11: 5,  // 亥 -> 巳(5)
+	0:  4,  // 子年 → 辰
+	1:  1,  // 丑年 → 丑
+	2:  10, // 寅年 → 戌
+	3:  7,  // 卯年 → 未
+	4:  4,  // 辰年 → 辰
+	5:  1,  // 巳年 → 丑
+	6:  10, // 午年 → 戌
+	7:  7,  // 未年 → 未
+	8:  4,  // 申年 → 辰
+	9:  1,  // 酉年 → 丑
+	10: 10, // 戌年 → 戌
+	11: 7,  // 亥年 → 未
 }
 
 // POUSUI_TABLE maps year branch index to 破碎 (PoSui) palace index.
-// 3-cycle: 巳(5)/丑(1)/酉(9) based on yearBranchIndex % 3
-// From iztro decorativeStar.ts getPosui.
+// Classical rule: 申子辰在辰, 寅午戌在戌, 巳酉丑在丑, 亥卯未在未
 var POUSUI_TABLE = map[int]int{
-	0:  5, // 子年 -> 巳(5)  (0%3=0 -> 巳)
-	1:  1, // 丑年 -> 丑(1)  (1%3=1 -> 丑)
-	2:  9, // 寅年 -> 酉(9)  (2%3=2 -> 酉)
-	3:  5, // 卯年 -> 巳(5)  (0%3=0 -> 巳)
-	4:  1, // 辰年 -> 丑(1)  (1%3=1 -> 丑)
-	5:  9, // 巳年 -> 酉(9)  (2%3=2 -> 酉)
-	6:  5, // 午年 -> 巳(5)
-	7:  1, // 未年 -> 丑(1)
-	8:  9, // 申年 -> 酉(9)
-	9:  5, // 酉年 -> 巳(5)
-	10: 1, // 戌年 -> 丑(1)
-	11: 9, // 亥年 -> 酉(9)
+	0:  4,  // 子年 → 辰
+	1:  1,  // 丑年 → 丑
+	2:  10, // 寅年 → 戌
+	3:  7,  // 卯年 → 未
+	4:  4,  // 辰年 → 辰
+	5:  1,  // 巳年 → 丑
+	6:  10, // 午年 → 戌
+	7:  7,  // 未年 → 未
+	8:  4,  // 申年 → 辰
+	9:  1,  // 酉年 → 丑
+	10: 10, // 戌年 → 戌
+	11: 7,  // 亥年 → 未
 }
 
 // FEILIAN_TABLE maps year branch index to 飞廉 palace index.
-// From iztro decorativeStar.ts getFeilian.
+// Classical rule: 申子辰在寅, 寅午戌在申, 巳酉丑在亥, 亥卯未在巳
 var FEILIAN_TABLE = map[int]int{
-	0:  10, // 子 -> 戌(10)
-	1:  9,  // 丑 -> 酉(9)
-	2:  11, // 寅 -> 亥(11)
-	3:  9,  // 卯 -> 酉(9)
-	4:  11, // 辰 -> 亥(11)
-	5:  10, // 巳 -> 戌(10)
-	6:  10, // 午 -> 戌(10)
-	7:  9,  // 未 -> 酉(9)
-	8:  11, // 申 -> 亥(11)
-	9:  9,  // 酉 -> 酉(9)
-	10: 11, // 戌 -> 亥(11)
-	11: 10, // 亥 -> 戌(10)
+	0:  2,  // 子年 → 寅
+	1:  11, // 丑年 → 亥
+	2:  8,  // 寅年 → 申
+	3:  5,  // 卯年 → 巳
+	4:  2,  // 辰年 → 寅
+	5:  11, // 巳年 → 亥
+	6:  8,  // 午年 → 申
+	7:  5,  // 未年 → 巳
+	8:  2,  // 申年 → 寅
+	9:  11, // 酉年 → 亥
+	10: 8,  // 戌年 → 申
+	11: 5,  // 亥年 → 巳
 }
 
-// YINSHIA_TABLE maps month index (0-based) to 阴煞 palace index.
-// From iztro decorativeStar.ts getYinsha.
-var YINSHIA_TABLE = map[int]int{
-	0:  3,  // 正月(寅) -> 卯(3)
-	1:  11, // 二月(卯) -> 亥(11)
-	2:  8,  // 三月(辰) -> 申(8)
-	3:  5,  // 四月(巳) -> 午(5)
-	4:  2,  // 五月(午) -> 丑(2)
-	5:  0,  // 六月(未) -> 子(0)
-	6:  3,  // 七月(申) -> 卯(3)
-	7:  11, // 八月(酉) -> 亥(11)
-	8:  8,  // 九月(戌) -> 申(8)
-	9:  5,  // 十月(亥) -> 午(5)
-	10: 2,  // 十一月(子) -> 丑(2)
-	11: 0,  // 十二月(丑) -> 子(0)
+// YINSHA_TABLE maps month index (0-based) to 阴煞 palace index.
+// Classical rule: 寅月在卯, 卯月在辰, ..., 丑月在寅 (正月起卯逆数)
+var YINSHA_TABLE = map[int]int{
+	0:  3,  // 正月(寅) → 卯
+	1:  4,  // 二月(卯) → 辰
+	2:  5,  // 三月(辰) → 巳
+	3:  6,  // 四月(巳) → 午
+	4:  7,  // 五月(午) → 未
+	5:  8,  // 六月(未) → 申
+	6:  9,  // 七月(申) → 酉
+	7:  10, // 八月(酉) → 戌
+	8:  11, // 九月(戌) → 亥
+	9:  0,  // 十月(亥) → 子
+	10: 1,  // 十一月(子) → 丑
+	11: 2,  // 十二月(丑) → 寅
 }
 
 // CHANGSHENG_12 names in order (index 0=长生, 11=养).

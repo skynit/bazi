@@ -194,7 +194,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liunian := svc.CalculateLiunian(chart, year)
-		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiunian(liunian, year)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
 			{
@@ -219,7 +219,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liuyue := svc.CalculateLiuyue(chart, month)
-		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiuyue(liuyue, year, month)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
 			{
@@ -249,7 +249,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			month = int(time.Now().Month())
 		}
 		liuri := svc.CalculateLiuri(chart, day)
-		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiuri(liuri, year, month, day)
 		// Convert HourlyAnalysis to []gin.H for JSON
 		hourly := make([]gin.H, len(result.HourlyAnalysis))
@@ -295,7 +295,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		liunian := svc.CalculateLiunian(chart, year)
 		liuyue := svc.CalculateLiuyue(chart, month)
 		liuri := svc.CalculateLiuri(chart, day)
-		interp := ziwei.NewPeriodInterpreter(chart.BirthInfo())
+		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		summary := interp.SummarizeAll(liunian, liuyue, liuri, year, month, day)
 		c.JSON(http.StatusOK, gin.H{"summary": summary})
 

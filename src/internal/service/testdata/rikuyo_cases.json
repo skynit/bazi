@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "description": "日课推算与运势精度测试库",
+  "source": "知识库 /home/skynit/Uni/ming/mingli/05-专题研究/日课推算/",
+  "cases": [
+    {
+      "id": "riku_001",
+      "name": "建除十二神-建日（2024年立春日附近）",
+      "source": "协纪辨方书",
+      "birth_year": 1985,
+      "birth_month": 2,
+      "birth_day": 4,
+      "birth_hour": 12,
+      "query_date": "2024-02-04",
+      "expected": {
+        "jian_chu_should_be": "建或除",
+        "month_zhi": "寅",
+        "favorable": true
+      }
+    },
+    {
+      "id": "riku_002",
+      "name": "黄道黑道日测试（青龙日）",
+      "source": "协纪辨方书",
+      "birth_year": 1985,
+      "birth_month": 5,
+      "birth_day": 1,
+      "birth_hour": 12,
+      "query_date": "2024-05-01",
+      "expected": {
+        "huang_dao_or_hei_dao": "黄道",
+        "favorable": true
+      }
+    },
+    {
+      "id": "riku_003",
+      "name": "彭祖百忌-甲不开仓",
+      "source": "协纪辨方书",
+      "birth_year": 1985,
+      "birth_month": 3,
+      "birth_day": 14,
+      "birth_hour": 12,
+      "query_date": "2024-03-14",
+      "expected": {
+        "today_gan": "甲",
+        "pengzu_gan_taboo": "甲不开仓财物耗散"
+      }
+    },
+    {
+      "id": "riku_004",
+      "name": "日课综合判断-大吉日",
+      "source": "协纪辨方书",
+      "birth_year": 1985,
+      "birth_month": 6,
+      "birth_day": 1,
+      "birth_hour": 12,
+      "query_date": "2024-06-01",
+      "expected": {
+        "overall_verdict_should_be_favorable": true
+      }
+    },
+    {
+      "id": "riku_005",
+      "name": "日课综合判断-欠佳日（破日）",
+      "source": "协纪辨方书",
+      "birth_year": 1985,
+      "birth_month": 7,
+      "birth_day": 15,
+      "birth_hour": 12,
+      "query_date": "2024-07-15",
+      "expected": {
+        "favorable": false
+      }
+    }
+  ]
+}

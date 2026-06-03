@@ -985,16 +985,24 @@ func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 	score := 0
 	desc := ""
 
-	// 大运天干与今日天干的关系
-	todayElem := data.GanElement[queryDateGan(queryDate)]
+	// 大运天干与今日天干的关系（优先检查天干五合）
+	todayGan := queryDateGan(queryDate)
+	todayElem := data.GanElement[todayGan]
 	daYunElem := data.GanElement[daYunGan]
-	if elementGeneratesMap[todayElem] == daYunElem || elementGeneratesMap[daYunElem] == todayElem {
+
+	if stemCombineMap[todayGan] == daYunGan {
+		// 天干五合：气机交融，正面关系
+		score += 8
+		desc += fmt.Sprintf("%s%s合化%s。", todayGan, daYunGan, combineElement[todayGan+daYunGan])
+	} else if elementGeneratesMap[todayElem] == daYunElem || elementGeneratesMap[daYunElem] == todayElem {
 		score += 5
 		desc += "今日与大运相生。"
-	}
-	if elementOvercomesMap[todayElem] == daYunElem {
+	} else if elementOvercomesMap[todayElem] == daYunElem {
 		score -= 5
 		desc += "今日克大运。"
+	} else if elementOvercomesMap[daYunElem] == todayElem {
+		score -= 3
+		desc += "大运克今日。"
 	}
 
 	return DaYunInfluence{

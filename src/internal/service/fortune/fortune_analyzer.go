@@ -100,7 +100,7 @@ func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi 
 		scoreCareer(rel, todayDayZhi, isStrong),
 		scoreWealth(rel, todayDayGan, todayZhiElem),
 		scoreLove(todayDayZhi, userBazi),
-		scoreHealth(todayElem, userElem, isStrong),
+		scoreHealth(todayDayGan, todayDayZhi, todayElem, userElem, isStrong),
 		scoreNoble(todayDayZhi, userBazi),
 		scoreStudy(rel, todayDayGan),
 		scoreInvest(rel, todayDayGan),
@@ -562,14 +562,30 @@ func scoreLove(todayZhi string, bazi *bazipkg.BaziResult) catResult {
 	return catResult{score, finalize(score, "感情运", analysis, advice)}
 }
 
-func scoreHealth(todayElem, userElem string, isStrong bool) catResult {
+func scoreHealth(todayGan, todayZhi, todayElem, userElem string, isStrong bool) catResult {
 	score := 60
 	var analysis, advice string
 
+	// 十二长生阶段（病/死/墓/绝→精力偏弱）
+	stage, stageFav, flexible := calcTwelveStage(todayGan, todayZhi)
+
 	if todayElem == userElem {
 		score += 5
-		analysis = "今日元素与日主相同，身体状态良好，精力充沛。"
-		advice = "适合运动锻炼，保持作息规律。"
+		if !stageFav && (stage == "病" || stage == "死" || stage == "墓" || stage == "绝") {
+			if flexible != "" {
+				analysis = fmt.Sprintf("今日元素与日主相同，但十二长生逢%s位（%s），精力一般。", stage, flexible)
+			} else {
+				analysis = fmt.Sprintf("今日元素与日主相同，但十二长生逢%s位，精力一般，不宜过劳。", stage)
+			}
+			advice = "适度运动，注意休息，保持作息规律。"
+			score -= 3
+		} else if !stageFav {
+			analysis = "今日元素与日主相同，身体状态良好，精力充沛。"
+			advice = "适合运动锻炼，保持作息规律。"
+		} else {
+			analysis = "今日元素与日主相同，身体状态良好，精力充沛。"
+			advice = "适合运动锻炼，保持作息规律。"
+		}
 	} else if elementGenerates[todayElem] == userElem {
 		score += 3
 		analysis = "今日元素生身，精力补充。适合调养身体。"
@@ -786,22 +802,38 @@ func makeLuckyGuide(dayGan, dayZhi, userElem string, like, dislike []string) Luc
 	avoidDirs := map[string]string{"木": "西方", "火": "北方", "土": "东方", "金": "南方", "水": "中央"}
 	faceDirs := map[string]string{"木": "东方", "火": "南方", "土": "中央", "金": "西方", "水": "北方"}
 
-	// 以首选用神(like[0])作为当日开运元素
-	primaryElem := userElem
-	if len(like) > 0 {
-		primaryElem = like[0]
+	// 以喜用神优先；日主五行仅在不忌时才纳入
+	primaryElem := like[0]
+	secondaryElem := userElem
+	// 如果日主五行是忌神，换为第二个喜用神
+	if isUnfavorable(userElem, dislike) {
+		if len(like) > 1 {
+			secondaryElem = like[1]
+		} else {
+			secondaryElem = primaryElem // 只有1个喜神时复用
+		}
 	}
 
 	return LuckyGuide{
-		Colors:           fmt.Sprintf("%s（%s）、%s（%s）", colors[primaryElem], primaryElem, colors[userElem], userElem),
-		Numbers:          fmt.Sprintf("%s；%s", numbers[primaryElem], numbers[userElem]),
+		Colors:           fmt.Sprintf("%s（%s）、%s（%s）", colors[primaryElem], primaryElem, colors[secondaryElem], secondaryElem),
+		Numbers:          fmt.Sprintf("%s；%s", numbers[primaryElem], numbers[secondaryElem]),
 		Actions:          fmt.Sprintf("随身携带%s属性物品；面向%s方工作", primaryElem, faceDirs[primaryElem]),
 		AvoidDir:         avoidDirs[elem],
 		FaceDir:          faceDirs[primaryElem],
-		Outfit:           fmt.Sprintf("%s色上衣+%s色裤子", colors[primaryElem], colors[userElem]),
+		Outfit:           fmt.Sprintf("%s色上衣+%s色裤子", colors[primaryElem], colors[secondaryElem]),
 		FavorableElems:   like,
 		UnfavorableElems: dislike,
 	}
+}
+
+// isUnfavorable 判断五行是否在忌神列表中
+func isUnfavorable(elem string, dislike []string) bool {
+	for _, d := range dislike {
+		if d == elem {
+			return true
+		}
+	}
+	return false
 }
 
 // ── 格式化输出 ───────────────────────────────────────────────

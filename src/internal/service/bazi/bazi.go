@@ -701,7 +701,8 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	}
 
 	// 总分：归一化后按经典权重加权
-	// 经典依据：日主强弱判断"得令50%得地25%得势15%得气10%"
+	// 经典依据：日主强弱判断"得令50% 得地25% 得势15% 得气10%"
+	//   来源：《渊海子平》"月令为提纲"，《滴天髓阐微》旺衰论
 	normLing := lingScore / 3.0                            // lingScore最大3
 	normDi := diScore / 7.0                                // diScore理论最大约7
 	normShi := 1.0 / (1.0 + math.Exp(-shiScore/2.0))      // sigmoid归一化，避免极端值
@@ -710,15 +711,15 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 
 	var verdict string
 	var like, dislike []string
-	// 经典依据：滴天髓"身旺者日主得令得地得势三者居其二以上"
+	// 判定阈值：以 0.5 为中和中心，向两侧阶梯划分
 	switch {
-	case totalScore > 0.60:
+	case totalScore > 0.7:
 		verdict = "身旺"
-	case totalScore > 0.55:
+	case totalScore > 0.5:
 		verdict = "偏旺"
-	case totalScore > 0.45:
+	case totalScore > 0.4:
 		verdict = "中和"
-	case totalScore > 0.40:
+	case totalScore > 0.3:
 		verdict = "偏弱"
 	default:
 		verdict = "身弱"

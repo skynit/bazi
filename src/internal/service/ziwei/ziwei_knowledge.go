@@ -17,25 +17,24 @@ package ziwei
 import (
 	"fmt"
 	"strings"
-
-	"github.com/kaecer68/ziwei-zenith/pkg/basis"
 )
 
 // ──────────────────── Constants ────────────────────
 
 // SI_HUA_TABLE maps each of the 10 heavenly stems to its four transformations.
 // Order: [禄, 权, 科, 忌]
+// Reference: 《天纪-紫微斗数-笔记》
 var SI_HUA_TABLE = map[int][]string{
-	0: {"廉贞", "破军", "武曲", "太阳"}, // 甲
-	1: {"天机", "天梁", "紫微", "太阴"}, // 乙
-	2: {"天梁", "紫微", "天机", "太阳"}, // 丙
-	3: {"太阴", "武曲", "天同", "天机"}, // 丁
-	4: {"天同", "太阳", "武曲", "廉贞"}, // 戊
-	5: {"太阳", "天同", "天梁", "巨门"}, // 己
-	6: {"武曲", "天相", "太阳", "天机"}, // 庚
-	7: {"天相", "天同", "武曲", "紫微"}, // 辛
-	8: {"天梁", "天机", "天同", "太阳"}, // 壬
-	9: {"紫微", "天梁", "天机", "太阴"}, // 癸
+	0: {"廉贞", "破军", "武曲", "太阳"}, // 甲: 甲廉破武阳
+	1: {"天机", "天梁", "紫微", "太阴"}, // 乙: 乙机梁紫阴
+	2: {"天同", "天机", "文昌", "廉贞"}, // 丙: 丙同机昌廉
+	3: {"太阴", "天同", "天机", "巨门"}, // 丁: 丁阴同机巨
+	4: {"贪狼", "太阴", "右弼", "天机"}, // 戊: 戊贪阴右机
+	5: {"武曲", "贪狼", "天梁", "文曲"}, // 己: 己武贪梁曲
+	6: {"太阳", "武曲", "天同", "太阴"}, // 庚: 庚阳武同阴 (含line5435定盘修正)
+	7: {"巨门", "太阳", "文曲", "文昌"}, // 辛: 辛巨阳曲昌
+	8: {"天梁", "紫微", "左辅", "武曲"}, // 壬: 壬梁紫左武
+	9: {"破军", "巨门", "太阴", "贪狼"}, // 癸: 癸破巨阴贪
 }
 
 // STAR_BRIGHTNESS maps star → brightness level → description.
@@ -98,9 +97,9 @@ var TIANMA_TABLE = map[string]int{
 
 // ──────────────────── Palace order (clockwise from 命宫) ────────────────────
 var PALACE_NAMES = []string{
-	"命宮", "兄弟宮", "夫妻宮", "子女宮",
-	"財帛宮", "疾厄宮", "遷移宮", "僕役宮",
-	"官祿宮", "田宅宮", "福德宮", "父母宮",
+	"命宫", "兄弟", "夫妻", "子女",
+	"财帛", "疾厄", "迁移", "交友",
+	"事业", "田宅", "福德", "父母",
 }
 
 // ──────────────────── Sihua Chain Analysis ────────────────────
@@ -140,12 +139,11 @@ type SihuaChainItem struct {
 // AnalyzeSihuaChain performs full sihua chain analysis on a chart.
 // It finds all incoming palaces (not just where stars land) and builds the chain.
 func AnalyzeSihuaChain(chart *ZiWeiChart) *SihuaChainResult {
-	if chart == nil || chart.engineChart == nil {
+	if chart == nil {
 		return nil
 	}
 
-	ec := chart.engineChart
-	yearStem := int(ec.YearPillar.Stem)
+	yearStem := chart.YearStem
 	huaStars, ok := SI_HUA_TABLE[yearStem]
 	if !ok {
 		return nil
@@ -156,15 +154,14 @@ func AnalyzeSihuaChain(chart *ZiWeiChart) *SihuaChainResult {
 	huaKeStar := huaStars[2]
 	huaJiStar := huaStars[3]
 
-	// Build star -> branch map
-	starToBranch := make(map[string]int)
-	branchOfPalace := make(map[int]int) // branch -> palace index
-	for b := 0; b < 12; b++ {
-		if p, ok := ec.Palaces[basis.Branch(b)]; ok {
-			branchOfPalace[int(b)] = int(p)
+	// Build star -> palace index map
+	starToPalaceIdx := make(map[string]int)
+	for i, p := range chart.Palaces {
+		for _, s := range p.MainStars {
+			starToPalaceIdx[s] = i
 		}
-		for _, s := range ec.Stars[basis.Branch(b)] {
-			starToBranch[s.String()] = int(b)
+		for _, s := range p.AuxStars {
+			starToPalaceIdx[s] = i
 		}
 	}
 
@@ -177,20 +174,15 @@ func AnalyzeSihuaChain(chart *ZiWeiChart) *SihuaChainResult {
 			return items
 		}
 
-		fromBranch, found := starToBranch[starName]
+		toPalaceIdx, found := starToPalaceIdx[starName]
 		if !found {
 			return items
 		}
-
-		toPalaceIdx := branchOfPalace[fromBranch]
 		if toPalaceIdx < 0 || toPalaceIdx >= 12 {
 			return items
 		}
 
-		fromPalaceIdx := -1
-		// Find where this star originally came from (its "home" palace)
-		// For sihua, the star transforms in place; we look at the palace it's in
-		fromPalaceIdx = toPalaceIdx
+		fromPalaceIdx := toPalaceIdx
 
 		effect := buildSihuaEffect(starName, huaType, PALACE_NAMES[toPalaceIdx])
 		chainDepth := computeChainDepth(chart, toPalaceIdx, huaType)
@@ -297,18 +289,18 @@ func findIncomingPalaces(chart *ZiWeiChart, starName string, huaType string, tar
 // buildSihuaEffect generates a rule-based effect description.
 func buildSihuaEffect(star, huaType, palace string) string {
 	effects := map[string]string{
-		"命宮":  "直接影响个人运势与性格",
-		"兄弟宮": "影响兄弟姐妹关系与助力",
-		"夫妻宮": "影响婚姻感情与配偶关系",
-		"子女宮": "影响子女缘分与下属关系",
-		"財帛宮": "影响财运与金钱进出",
-		"疾厄宮": "影响身体健康状况",
-		"遷移宮": "影响外出运程与社会形象",
-		"僕役宮": "影响朋友与部属关系",
-		"官祿宮": "影响事业运程与工作成就",
-		"田宅宮": "影响房产运程与家庭环境",
-		"福德宮": "影响精神享受与内心世界",
-		"父母宮": "影响父母缘分与长辈助力",
+		"命宫":  "直接影响个人运势与性格",
+		"兄弟": "影响兄弟姐妹关系与助力",
+		"夫妻": "影响婚姻感情与配偶关系",
+		"子女": "影响子女缘分与下属关系",
+		"财帛": "影响财运与金钱进出",
+		"疾厄": "影响身体健康状况",
+		"迁移": "影响外出运程与社会形象",
+		"交友": "影响朋友与部属关系",
+		"事业": "影响事业运程与工作成就",
+		"田宅": "影响房产运程与家庭环境",
+		"福德": "影响精神享受与内心世界",
+		"父母": "影响父母缘分与长辈助力",
 	}
 	if desc, ok := effects[palace]; ok {
 		return fmt.Sprintf("%s%s飞入%s，%s", star, huaType, palace, desc)
@@ -443,6 +435,24 @@ var patternCheckers = []struct {
 	{"同梁双星", checkTongLiangShuangXing},
 	{"日月夹命", checkRiYueJiaMing},
 	{"辅弼夹印", checkFuBiJiaYin},
+	{"半空折翅格", checkBanKongZheChiGe},
+	{"科权相逢", checkKeQuanXiangFeng},
+	{"权禄相逢", checkQuanLuXiangFeng},
+	{"科权禄三会", checkKeQuanLuSanHui},
+	{"科忌同宫", checkKeJiTongGong},
+	{"禄忌同宫", checkLuJiTongGong},
+	{"魁钺夹贵", checkKuiYueJiaGui},
+	{"羊陀夹杀", checkYangTuoJiaSha},
+	{"廉贞七杀同宫庙旺", checkLianZhenQiShaMiaoWang},
+	{"廉贞七杀同宫落陷", checkLianZhenQiShaLuoXian},
+	{"廉贞破军同宫", checkLianZhenPoJunTongGong},
+	{"廉贞贪狼同宫落陷", checkLianZhenTanLangLuoXian},
+	{"紫府夹权", checkZiFuJiaQuan},
+	{"日月夹财", checkRiYueJiaCai},
+	{"火铃夹命", checkHuoLingJiaMing},
+	{"空劫夹命", checkKongJieJiaMing},
+	{"月朗天门", checkYueLangTianMen},
+	{"日照雷门", checkRiZhaoLeiMen},
 }
 
 func starInPalace(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
@@ -699,15 +709,147 @@ func checkRiYueFanBei(chart *ZiWeiChart) (bool, string) {
 	if chart == nil {
 		return false, ""
 	}
-	// 日月反背: 太阳太阴在迁移宫且太阳在陷地
+	// 日月反背: 太阳太阴均在陷地（或白天月亮、夜间太阳）
+	// 经典依据：《天纪-紫微斗数-笔记》"白天月亮，夜间太阳，为陷"
 	for i, p := range chart.Palaces {
-		if p.Name == "遷移宮" {
-			if starInPalace(chart, i, []string{"太阳", "太阴"}) {
-				if hasBrightness(chart, i, "太阳", []string{"陷", "不"}) {
+		if p.Name == "迁移" {
+			hasSun := starInPalace(chart, i, []string{"太阳"})
+			hasMoon := starInPalace(chart, i, []string{"太阴"})
+			if hasSun && hasMoon {
+				sunFallen := hasBrightness(chart, i, "太阳", []string{"陷", "不"})
+				moonFallen := hasBrightness(chart, i, "太阴", []string{"陷", "不"})
+				if sunFallen || moonFallen {
 					return true, "日月反背"
 				}
 			}
 		}
+	}
+	return false, ""
+}
+
+// checkZiFuJiaQuan 紫府夹权：紫微、天府在命宫左右侧，主有权势
+func checkZiFuJiaQuan(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	leftIdx := (mingIdx + 11) % 12
+	rightIdx := (mingIdx + 1) % 12
+	hasZiweiLeft := starInPalace(chart, leftIdx, []string{"紫微"})
+	hasZiweiRight := starInPalace(chart, rightIdx, []string{"紫微"})
+	hasTianfuLeft := starInPalace(chart, leftIdx, []string{"天府"})
+	hasTianfuRight := starInPalace(chart, rightIdx, []string{"天府"})
+	if (hasZiweiLeft && hasTianfuRight) || (hasTianfuLeft && hasZiweiRight) {
+		return true, "紫府夹权"
+	}
+	return false, ""
+}
+
+// checkRiYueJiaCai 日月夹财：太阳、太阴在命宫（丑、未）左右侧
+func checkRiYueJiaCai(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	leftIdx := (mingIdx + 11) % 12
+	rightIdx := (mingIdx + 1) % 12
+	hasSunL := starInPalace(chart, leftIdx, []string{"太阳"})
+	hasSunR := starInPalace(chart, rightIdx, []string{"太阳"})
+	hasMoonL := starInPalace(chart, leftIdx, []string{"太阴"})
+	hasMoonR := starInPalace(chart, rightIdx, []string{"太阴"})
+	if (hasSunL && hasMoonR) || (hasMoonL && hasSunR) {
+		return true, "日月夹财"
+	}
+	return false, ""
+}
+
+// checkHuoLingJiaMing 火铃夹命：火星、铃星在命宫两侧
+func checkHuoLingJiaMing(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	leftIdx := (mingIdx + 11) % 12
+	rightIdx := (mingIdx + 1) % 12
+	hasHuoL := auxStarInPalace(chart, leftIdx, []string{"火星"})
+	hasHuoR := auxStarInPalace(chart, rightIdx, []string{"火星"})
+	hasLingL := auxStarInPalace(chart, leftIdx, []string{"铃星"})
+	hasLingR := auxStarInPalace(chart, rightIdx, []string{"铃星"})
+	if (hasHuoL && hasLingR) || (hasLingL && hasHuoR) {
+		return true, "火铃夹命"
+	}
+	return false, ""
+}
+
+// checkKongJieJiaMing 空劫夹命：地空、地劫在命宫两侧
+func checkKongJieJiaMing(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	leftIdx := (mingIdx + 11) % 12
+	rightIdx := (mingIdx + 1) % 12
+	hasKongL := auxStarInPalace(chart, leftIdx, []string{"地空"})
+	hasKongR := auxStarInPalace(chart, rightIdx, []string{"地空"})
+	hasJieL := auxStarInPalace(chart, leftIdx, []string{"地劫"})
+	hasJieR := auxStarInPalace(chart, rightIdx, []string{"地劫"})
+	if (hasKongL && hasJieR) || (hasJieL && hasKongR) {
+		return true, "空劫夹命"
+	}
+	return false, ""
+}
+
+// checkYueLangTianMen 月朗天门：命宫在亥，太阴入庙
+func checkYueLangTianMen(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	// 命宫在亥 = 索引 11
+	if mingIdx != 11 {
+		return false, ""
+	}
+	// 太阴入庙（亥、子、丑最好）
+	if starInPalace(chart, mingIdx, []string{"太阴"}) {
+		return true, "月朗天门"
+	}
+	// 太阴在对宫（巳=5）也算
+	if hasOpposition(chart, mingIdx, []string{"太阴"}) {
+		return true, "月朗天门"
+	}
+	return false, ""
+}
+
+// checkRiZhaoLeiMen 日照雷门：命宫在卯，太阳入庙
+func checkRiZhaoLeiMen(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	// 命宫在卯 = 索引 3
+	if mingIdx != 3 {
+		return false, ""
+	}
+	if starInPalace(chart, mingIdx, []string{"太阳"}) {
+		return true, "日照雷门"
 	}
 	return false, ""
 }
@@ -737,7 +879,7 @@ func checkTianMaGongMing(chart *ZiWeiChart) (bool, string) {
 	// 先找命宫索引
 	mingIdx := -1
 	for i, p := range chart.Palaces {
-		if p.Name == "命宮" {
+		if p.Name == "命宫" {
 			mingIdx = i
 			break
 		}
@@ -790,7 +932,7 @@ func checkQingYangRuMing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i, p := range chart.Palaces {
-		if p.Name == "命宮" {
+		if p.Name == "命宫" {
 			if auxStarInPalace(chart, i, []string{"擎羊"}) {
 				return true, "擎羊入命"
 			}
@@ -804,7 +946,7 @@ func checkTuoLuoRuMing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := 0; i < 12; i++ {
-		if chart.Palaces[i].Name == "命宮" {
+		if chart.Palaces[i].Name == "命宫" {
 			if auxStarInPalace(chart, i, []string{"陀罗"}) {
 				return true, "陀罗入命"
 			}
@@ -819,7 +961,7 @@ func checkKongGong(chart *ZiWeiChart) (bool, string) {
 	}
 	for i := 0; i < 12; i++ {
 		p := chart.Palaces[i]
-		if p.Name == "命宮" {
+		if p.Name == "命宫" {
 			if len(p.MainStars) == 0 {
 				return true, "空宫"
 			}
@@ -908,13 +1050,13 @@ func checkJiXiangLiMing(chart *ZiWeiChart) (bool, string) {
 	// 紫微在午宫坐命
 	for i := 0; i < 12; i++ {
 		p := chart.Palaces[i]
-		if p.Name == "命宮" && starInPalace(chart, i, []string{"紫微"}) {
-			// 午宫 is index 6 (遷移宮 is 命宮+6)
-			// Check if 命宮 is 午 (we'd need branch info)
+		if p.Name == "命宫" && starInPalace(chart, i, []string{"紫微"}) {
+			// 午宫 is index 6 (迁移 is 命宫+6)
+			// Check if 命宫 is 午 (we'd need branch info)
 			// For simplicity, check brightness 庙 in 迁移宫
 			for j := 0; j < 12; j++ {
 				p2 := chart.Palaces[j]
-				if p2.Name == "遷移宮" && starInPalace(chart, j, []string{"紫微"}) {
+				if p2.Name == "迁移" && starInPalace(chart, j, []string{"紫微"}) {
 					if hasBrightness(chart, j, "紫微", []string{"庙"}) {
 						return true, "极向离明"
 					}
@@ -965,7 +1107,7 @@ func checkTianFuShouYuan(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := 0; i < 12; i++ {
-		if starInPalace(chart, i, []string{"天府"}) && chart.Palaces[i].Name == "田宅宮" {
+		if starInPalace(chart, i, []string{"天府"}) && chart.Palaces[i].Name == "田宅" {
 			return true, "天府守垣"
 		}
 	}
@@ -1160,7 +1302,7 @@ func checkRiYueJiaMing(chart *ZiWeiChart) (bool, string) {
 	}
 	// 太阳太阴夹命宫
 	for i, p := range chart.Palaces {
-		if p.Name == "命宮" {
+		if p.Name == "命宫" {
 			yangIdx := (i + 11) % 12 // 前一宫
 			yinIdx := (i + 1) % 12   // 后一宫
 			if starInPalace(chart, yangIdx, []string{"太阳"}) && starInPalace(chart, yinIdx, []string{"太阴"}) {
@@ -1177,7 +1319,7 @@ func checkFuBiJiaYin(chart *ZiWeiChart) (bool, string) {
 	}
 	// 左辅右弼夹命宫
 	for i, p := range chart.Palaces {
-		if p.Name == "命宮" {
+		if p.Name == "命宫" {
 			idx1 := (i + 11) % 12
 			idx2 := (i + 1) % 12
 			hasZuo := auxStarInPalace(chart, idx1, []string{"左辅"}) || auxStarInPalace(chart, idx2, []string{"左辅"})
@@ -1352,7 +1494,7 @@ func AnalyzeHeming(chartA, chartB *ZiWeiChart) *HemingResult {
 	}
 
 	// 双宫联参: compare same-name palaces across two charts
-	shuangGongPalaces := []string{"命宮", "夫妻宮", "福德宮", "官祿宮", "財帛宮"}
+	shuangGongPalaces := []string{"命宫", "夫妻", "福德", "事业", "财帛"}
 	for _, palaceName := range shuangGongPalaces {
 		scoreA := computePalaceScore(chartA, palaceName)
 		scoreB := computePalaceScore(chartB, palaceName)
@@ -1474,24 +1616,24 @@ func computeFiveStepScore(chartA, chartB *ZiWeiChart, step int) int {
 	}
 	switch step {
 	case 0: // 命宫互看 - compare life palaces
-		scoreA := computePalaceScore(chartA, "命宮")
-		scoreB := computePalaceScore(chartB, "命宮")
+		scoreA := computePalaceScore(chartA, "命宫")
+		scoreB := computePalaceScore(chartB, "命宫")
 		return (scoreA + scoreB) / 2
 	case 1: // 夫妻宫对冲 - check opposition
-		scoreA := computePalaceScore(chartA, "夫妻宮")
-		scoreB := computePalaceScore(chartB, "夫妻宮")
+		scoreA := computePalaceScore(chartA, "夫妻")
+		scoreB := computePalaceScore(chartB, "夫妻")
 		return (scoreA + scoreB) / 2
 	case 2: // 福德宫共鸣
-		scoreA := computePalaceScore(chartA, "福德宮")
-		scoreB := computePalaceScore(chartB, "福德宮")
+		scoreA := computePalaceScore(chartA, "福德")
+		scoreB := computePalaceScore(chartB, "福德")
 		return (scoreA + scoreB) / 2
 	case 3: // 官禄宫合作
-		scoreA := computePalaceScore(chartA, "官祿宮")
-		scoreB := computePalaceScore(chartB, "官祿宮")
+		scoreA := computePalaceScore(chartA, "事业")
+		scoreB := computePalaceScore(chartB, "事业")
 		return (scoreA + scoreB) / 2
 	case 4: // 财帛宫流通
-		scoreA := computePalaceScore(chartA, "財帛宮")
-		scoreB := computePalaceScore(chartB, "財帛宮")
+		scoreA := computePalaceScore(chartA, "财帛")
+		scoreB := computePalaceScore(chartB, "财帛")
 		return (scoreA + scoreB) / 2
 	}
 	return 50
@@ -1529,8 +1671,8 @@ func classifyYuanFen(chartA, chartB *ZiWeiChart) string {
 		return "普通格"
 	}
 	// 缘分类型 based on stem compatibility
-	stemA := int(chartA.birthInfo.YearPillar.Stem)
-	stemB := int(chartB.birthInfo.YearPillar.Stem)
+	stemA := chartA.YearStem
+	stemB := chartB.YearStem
 
 	// Same stem = 帝旺格 (strongest)
 	if stemA == stemB {
@@ -1556,7 +1698,7 @@ func estimateMarriageTiming(chartA, chartB *ZiWeiChart) string {
 	hasLuA := false
 	hasLuB := false
 	for _, p := range chartA.Palaces {
-		if p.Name == "夫妻宮" {
+		if p.Name == "夫妻" {
 			for _, t := range p.FourHua {
 				if strings.Contains(t, "化禄") {
 					hasLuA = true
@@ -1565,7 +1707,7 @@ func estimateMarriageTiming(chartA, chartB *ZiWeiChart) string {
 		}
 	}
 	for _, p := range chartB.Palaces {
-		if p.Name == "夫妻宮" {
+		if p.Name == "夫妻" {
 			for _, t := range p.FourHua {
 				if strings.Contains(t, "化禄") {
 					hasLuB = true
@@ -1769,12 +1911,12 @@ func ComputeAdjectiveStars(chart *ZiWeiChart) map[int][]string {
 	for i := 0; i < 12; i++ {
 		result[i] = []string{}
 	}
-	if chart.engineChart == nil {
+	if chart.YearBranch < 0 || chart.LunarMonth <= 0 {
 		return result
 	}
 
-	yearBranchIdx := int(chart.engineChart.YearPillar.Branch) % 12
-	monthIdx := int(chart.engineChart.MonthPillar.Branch) % 12
+	yearBranchIdx := chart.YearBranch % 12
+	monthIdx := chart.LunarMonth - 1 // 0-based month index
 
 	// 红鸾: start=卯(1), direction=-1, steps=yearBranchIndex
 	// target = (start - steps + 12) % 12 = (1 - yearBranchIdx + 12) % 12
@@ -1804,7 +1946,7 @@ func ComputeAdjectiveStars(chart *ZiWeiChart) map[int][]string {
 	result[tianxingIdx] = append(result[tianxingIdx], "天刑")
 
 	// 阴煞: per-month lookup
-	yinshaIdx := YINSHIA_TABLE[monthIdx]
+	yinshaIdx := YINSHA_TABLE[monthIdx]
 	result[yinshaIdx] = append(result[yinshaIdx], "阴煞")
 
 	// 破碎: 3-cycle per year branch
@@ -1834,35 +1976,31 @@ func ComputeAdjectiveStars(chart *ZiWeiChart) map[int][]string {
 }
 
 // ComputeTwelveShen computes all 4 twelve-shen systems for each palace.
-// Uses yearBranch and fiveElementClass from chart.birthInfo.
+// Uses yearBranch and fiveElementClass from chart fields.
 // Direction rule: 阳男/阴女 = forward (+i), 阴男/阳女 = backward (-i)
 // Five element class derived from yearStem: 甲(1)→3(木), 乙(2)→3(木), 丙(3)→6(火), 丁(4)→6(火),
 // 戊(5)→5(土), 己(6)→5(土), 庚(7)→4(金), 辛(8)→4(金), 壬(9)→2(水), 癸(10)→2(水)
 func ComputeTwelveShen(chart *ZiWeiChart) [12]struct {
 	Changsheng, Boshi, Jiangqian, Suiqian string
 } {
-	if chart == nil || chart.engineChart == nil {
+	if chart == nil {
 		return [12]struct{ Changsheng, Boshi, Jiangqian, Suiqian string }{}
 	}
 
 	result := [12]struct{ Changsheng, Boshi, Jiangqian, Suiqian string }{}
 
-	// Derive five element class from year stem
-	yearStem := int(chart.birthInfo.YearPillar.Stem) % 10
+	yearStem := chart.YearStem % 10
 	fiveElementClass := map[int]int{0: 3, 1: 3, 2: 6, 3: 6, 4: 5, 5: 5, 6: 4, 7: 4, 8: 2, 9: 2}[yearStem]
 
-	// Direction: based on year branch parity vs gender
-	yearBranchIdx := int(chart.engineChart.YearPillar.Branch) % 12
-	gender := chart.birthInfo.Sex
-	yearBranchYang := yearBranchIdx % 2 // 0=阳, 1=阴
-	genderYang := func() int {
-		if gender == basis.SexMale {
-			return 0
-		}
-		return 1
-	}()
+	yearBranchIdx := chart.YearBranch % 12
+	isMale := chart.birthData != nil && (chart.birthData.Gender == "男" || chart.birthData.Gender == "MALE")
+	yearBranchYang := yearBranchIdx % 2
+	genderYang := 1
+	if isMale {
+		genderYang = 0
+	}
 	direction := 1
-	if yearBranchYang == genderYang {
+	if yearBranchYang != genderYang {
 		direction = -1 // 阴男/阳女 = backward
 	}
 
@@ -1918,4 +2056,262 @@ func getYearBranchGroup(branchIdx int) string {
 		return g
 	}
 	return "寅午戌" // fallback
+}
+
+// ──────────────────── Additional Pattern Checkers ────────────────────
+
+// findPalaceIndex returns the index of a palace by its name, or -1 if not found.
+func findPalaceIndex(chart *ZiWeiChart, name string) int {
+	if chart == nil {
+		return -1
+	}
+	for i, p := range chart.Palaces {
+		if p.Name == name {
+			return i
+		}
+	}
+	return -1
+}
+
+// palaceHasHua returns true if the given palace has a transformation matching huaType
+// (e.g., "化禄", "化权", "化科", "化忌").
+func palaceHasHua(chart *ZiWeiChart, palaceIdx int, huaType string) bool {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
+		return false
+	}
+	for _, h := range chart.Palaces[palaceIdx].FourHua {
+		if strings.Contains(h, huaType) {
+			return true
+		}
+	}
+	return false
+}
+
+// checkBanKongZheChiGe 半空折翅格：
+// 化忌在迁移宫对冲命宫，三方四正无吉星
+func checkBanKongZheChiGe(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	qianYiIdx := (mingIdx + 6) % 12
+	if !palaceHasHua(chart, qianYiIdx, "化忌") {
+		return false, ""
+	}
+	luckyStars := []string{"左辅", "右弼", "文昌", "文曲", "天魁", "天钺"}
+	sanfang := []int{mingIdx, qianYiIdx, (mingIdx + 4) % 12, (mingIdx + 8) % 12}
+	for _, idx := range sanfang {
+		for _, aux := range chart.Palaces[idx].AuxStars {
+			for _, lucky := range luckyStars {
+				if aux == lucky {
+					return false, ""
+				}
+			}
+		}
+	}
+	return true, "半空折翅格"
+}
+
+// checkKeQuanXiangFeng 科权相逢：
+// 化科与化权同宫或会照（三方四正）
+func checkKeQuanXiangFeng(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if palaceHasHua(chart, i, "化科") && palaceHasHua(chart, i, "化权") {
+			return true, "科权相逢"
+		}
+		if palaceHasHua(chart, i, "化科") {
+			for _, j := range []int{(i + 4) % 12, (i + 8) % 12, (i + 6) % 12} {
+				if palaceHasHua(chart, j, "化权") {
+					return true, "科权相逢"
+				}
+			}
+		}
+		if palaceHasHua(chart, i, "化权") {
+			for _, j := range []int{(i + 4) % 12, (i + 8) % 12, (i + 6) % 12} {
+				if palaceHasHua(chart, j, "化科") {
+					return true, "科权相逢"
+				}
+			}
+		}
+	}
+	return false, ""
+}
+
+// checkQuanLuXiangFeng 权禄相逢：
+// 化权与化禄同宫
+func checkQuanLuXiangFeng(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if palaceHasHua(chart, i, "化权") && palaceHasHua(chart, i, "化禄") {
+			return true, "权禄相逢"
+		}
+	}
+	return false, ""
+}
+
+// checkKeQuanLuSanHui 科权禄三会：
+// 命宫三方四正同时见到化科、化权、化禄
+func checkKeQuanLuSanHui(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	sanfang := []int{mingIdx, (mingIdx + 4) % 12, (mingIdx + 6) % 12, (mingIdx + 8) % 12}
+	hasKe, hasQuan, hasLu := false, false, false
+	for _, idx := range sanfang {
+		if palaceHasHua(chart, idx, "化科") {
+			hasKe = true
+		}
+		if palaceHasHua(chart, idx, "化权") {
+			hasQuan = true
+		}
+		if palaceHasHua(chart, idx, "化禄") {
+			hasLu = true
+		}
+	}
+	if hasKe && hasQuan && hasLu {
+		return true, "科权禄三会"
+	}
+	return false, ""
+}
+
+// checkKeJiTongGong 科忌同宫（屠夫命）：
+// 化科与化忌同宫
+func checkKeJiTongGong(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if palaceHasHua(chart, i, "化科") && palaceHasHua(chart, i, "化忌") {
+			return true, "科忌同宫"
+		}
+	}
+	return false, ""
+}
+
+// checkLuJiTongGong 禄忌同宫：
+// 化禄与化忌同宫
+func checkLuJiTongGong(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if palaceHasHua(chart, i, "化禄") && palaceHasHua(chart, i, "化忌") {
+			return true, "禄忌同宫"
+		}
+	}
+	return false, ""
+}
+
+// checkKuiYueJiaGui 魁钺夹贵：
+// 天魁、天钺分别落在命宫两侧的宫位
+func checkKuiYueJiaGui(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	left := (mingIdx + 11) % 12
+	right := (mingIdx + 1) % 12
+	hasKuiLeft := auxStarInPalace(chart, left, []string{"天魁"})
+	hasYueRight := auxStarInPalace(chart, right, []string{"天钺"})
+	hasYueLeft := auxStarInPalace(chart, left, []string{"天钺"})
+	hasKuiRight := auxStarInPalace(chart, right, []string{"天魁"})
+	if (hasKuiLeft && hasYueRight) || (hasYueLeft && hasKuiRight) {
+		return true, "魁钺夹贵"
+	}
+	return false, ""
+}
+
+// checkYangTuoJiaSha 羊陀夹杀：
+// 擎羊、陀罗分别落在命宫两侧的宫位
+func checkYangTuoJiaSha(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	left := (mingIdx + 11) % 12
+	right := (mingIdx + 1) % 12
+	hasYangLeft := auxStarInPalace(chart, left, []string{"擎羊"})
+	hasTuoRight := auxStarInPalace(chart, right, []string{"陀罗"})
+	hasTuoLeft := auxStarInPalace(chart, left, []string{"陀罗"})
+	hasYangRight := auxStarInPalace(chart, right, []string{"擎羊"})
+	if (hasYangLeft && hasTuoRight) || (hasTuoLeft && hasYangRight) {
+		return true, "羊陀夹杀"
+	}
+	return false, ""
+}
+
+// checkLianZhenQiShaMiaoWang 廉贞七杀同宫庙旺：积富
+func checkLianZhenQiShaMiaoWang(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if starInSamePalace(chart, i, "廉贞", "七杀") {
+			if hasBrightness(chart, i, "七杀", []string{"庙", "旺"}) {
+				return true, "廉贞七杀同宫庙旺"
+			}
+		}
+	}
+	return false, ""
+}
+
+// checkLianZhenQiShaLuoXian 廉贞七杀同宫落陷：横死
+func checkLianZhenQiShaLuoXian(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if starInSamePalace(chart, i, "廉贞", "七杀") {
+			if hasBrightness(chart, i, "七杀", []string{"陷", "不"}) {
+				return true, "廉贞七杀同宫落陷"
+			}
+		}
+	}
+	return false, ""
+}
+
+// checkLianZhenPoJunTongGong 廉贞破军同宫：水中做冢
+func checkLianZhenPoJunTongGong(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if starInSamePalace(chart, i, "廉贞", "破军") {
+			return true, "廉贞破军同宫"
+		}
+	}
+	return false, ""
+}
+
+// checkLianZhenTanLangLuoXian 廉贞贪狼同宫落陷：横夭
+func checkLianZhenTanLangLuoXian(chart *ZiWeiChart) (bool, string) {
+	if chart == nil {
+		return false, ""
+	}
+	for i := range chart.Palaces {
+		if starInSamePalace(chart, i, "廉贞", "贪狼") {
+			if hasBrightness(chart, i, "贪狼", []string{"陷", "不"}) {
+				return true, "廉贞贪狼同宫落陷"
+			}
+		}
+	}
+	return false, ""
 }

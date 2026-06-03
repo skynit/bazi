@@ -62,7 +62,7 @@ func TestZiWeiChart_Success(t *testing.T) {
 		Palaces []struct {
 			Name string `json:"name"`
 		} `json:"palaces"`
-		WuxingJu string `json:"wuxingJu"`
+		FiveBureau string `json:"five_bureau"`
 	}
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to unmarshal response: %v", err)
@@ -78,12 +78,12 @@ func TestZiWeiChart_Success(t *testing.T) {
 		}
 	}
 
-	if len(resp.Palaces) > 0 && resp.Palaces[0].Name != "命宮" {
-		t.Errorf("expected first palace to be 命宮, got %s", resp.Palaces[0].Name)
+	if len(resp.Palaces) > 0 && resp.Palaces[0].Name != "命宫" {
+		t.Errorf("expected first palace to be 命宫, got %s", resp.Palaces[0].Name)
 	}
 
-	if resp.WuxingJu == "" {
-		t.Error("WuxingJu is empty")
+	if resp.FiveBureau == "" {
+		t.Error("FiveBureau is empty")
 	}
 }
 

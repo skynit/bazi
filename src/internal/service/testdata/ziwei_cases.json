@@ -1,0 +1,335 @@
+{
+  "version": "1.0",
+  "description": "紫微斗数经典命例测试库 - 用于验证紫微算命算法精准度",
+  "source": "知识库 /home/skynit/Uni/ming/mingli/02-概念体系/紫微斗数/ + 经典格局",
+  "cases": [
+    {
+      "id": "ziwei_001",
+      "name": "紫府同宫格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1968,
+      "month": 5,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "紫府同宫",
+        "five_bureau": "木三局",
+        "key_palaces": {
+          "命宫": "紫微、天府同宫",
+          "财帛": "武曲",
+          "官禄": "廉贞"
+        }
+      }
+    },
+    {
+      "id": "ziwei_002",
+      "name": "紫破同宫格（臣子格）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1980,
+      "month": 11,
+      "day": 8,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "紫破同宫"
+      }
+    },
+    {
+      "id": "ziwei_003",
+      "name": "杀破狼格（变动格）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1990,
+      "month": 3,
+      "day": 20,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "杀破狼格",
+        "key_palaces": {
+          "命宫或迁移": "七杀、破军、贪狼三方会照"
+        }
+      }
+    },
+    {
+      "id": "ziwei_004",
+      "name": "机月同梁格（吏人格）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1985,
+      "month": 8,
+      "day": 10,
+      "hour": 16,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "机月同梁格",
+        "occupation_tendency": "公家单位工作"
+      }
+    },
+    {
+      "id": "ziwei_005",
+      "name": "府相朝垣格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1982,
+      "month": 4,
+      "day": 12,
+      "hour": 8,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "pattern": "府相朝垣"
+      }
+    },
+    {
+      "id": "ziwei_006",
+      "name": "七杀朝斗格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1988,
+      "month": 2,
+      "day": 18,
+      "hour": 6,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "七杀朝斗",
+        "occupation_tendency": "武职显达"
+      }
+    },
+    {
+      "id": "ziwei_007",
+      "name": "日月并明格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1975,
+      "month": 11,
+      "day": 5,
+      "hour": 12,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "pattern": "日月并明"
+      }
+    },
+    {
+      "id": "ziwei_008",
+      "name": "禄马交驰格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1986,
+      "month": 7,
+      "day": 22,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "禄马交驰",
+        "wealth_tendency": "辛苦赚大钱"
+      }
+    },
+    {
+      "id": "ziwei_009",
+      "name": "巨日同宫格（巨富格）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1992,
+      "month": 5,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "巨日同宫",
+        "wealth_tendency": "大生意人、巨富"
+      }
+    },
+    {
+      "id": "ziwei_010",
+      "name": "火贪格（武贵）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1980,
+      "month": 6,
+      "day": 18,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "火贪格",
+        "occupation_tendency": "武职"
+      }
+    },
+    {
+      "id": "ziwei_011",
+      "name": "铃贪格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1991,
+      "month": 6,
+      "day": 20,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "铃贪格"
+      }
+    },
+    {
+      "id": "ziwei_012",
+      "name": "半空折翅格（凶格）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1978,
+      "month": 5,
+      "day": 8,
+      "hour": 4,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "半空折翅格"
+      }
+    },
+    {
+      "id": "ziwei_013",
+      "name": "日月反背格（披星戴月）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1985,
+      "month": 1,
+      "day": 22,
+      "hour": 12,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "pattern": "日月反背",
+        "life_tendency": "工作披星戴月、离开家乡"
+      }
+    },
+    {
+      "id": "ziwei_014",
+      "name": "科权禄三会（一方之主）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1980,
+      "month": 9,
+      "day": 5,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "科权禄三会",
+        "rank_tendency": "一方之主"
+      }
+    },
+    {
+      "id": "ziwei_015",
+      "name": "紫微在子午（帝星当令）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1985,
+      "month": 7,
+      "day": 15,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "main_star": "紫微在子或午",
+        "tendency": "帝星当令"
+      }
+    },
+    {
+      "id": "ziwei_016",
+      "name": "武贪格（武职显达）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1982,
+      "month": 3,
+      "day": 20,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "武贪格"
+      }
+    },
+    {
+      "id": "ziwei_017",
+      "name": "辅弼夹贵格",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1988,
+      "month": 6,
+      "day": 10,
+      "hour": 10,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "pattern": "辅弼夹贵"
+      }
+    },
+    {
+      "id": "ziwei_018",
+      "name": "文昌文曲同宫（丑未方伯）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1986,
+      "month": 12,
+      "day": 8,
+      "hour": 8,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "pattern": "文昌文曲同宫"
+      }
+    },
+    {
+      "id": "ziwei_019",
+      "name": "机梁善谈兵",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1990,
+      "month": 4,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "tendency": "善谈兵、谋略出众"
+      }
+    },
+    {
+      "id": "ziwei_020",
+      "name": "巨门在子午（口舌是非）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1983,
+      "month": 8,
+      "day": 20,
+      "hour": 14,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "main_star": "巨门",
+        "tendency": "口舌是非"
+      }
+    },
+    {
+      "id": "ziwei_021",
+      "name": "天同在亥子（福德宫吉）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1993,
+      "month": 11,
+      "day": 12,
+      "hour": 22,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "main_star": "天同",
+        "tendency": "福气深厚"
+      }
+    },
+    {
+      "id": "ziwei_022",
+      "name": "太阳在庙旺（父星吉）",
+      "source": "天纪-紫微斗数-笔记",
+      "year": 1985,
+      "month": 6,
+      "day": 18,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "main_star": "太阳在庙",
+        "tendency": "父星吉、贵人运"
+      }
+    }
+  ]
+}

@@ -344,10 +344,11 @@ type TongGuanAnalysis struct {
 
 // MissingElementAnalysis 缺失五行分析。
 type MissingElementAnalysis struct {
-	MissingElements []string         `json:"missing_elements"` // 缺失五行
-	RemedyElements  []string         `json:"remedy_elements"`  // 补救五行（生缺失五行的）
-	Severity        string           `json:"severity"`         // 缺失程度：轻微/中等/严重
-	RemedyAdvice    []RemedyAdviceItem `json:"remedy_advice"`  // 补救建议
+	MissingElements []string           `json:"missing_elements"` // 真正缺失的五行（五行分=0，柱中全无）
+	WeakElements    []string           `json:"weak_elements"`    // 偏弱五行（五行分<5但>0，仅藏于地支）
+	RemedyElements  []string           `json:"remedy_elements"`  // 补救五行（生缺失+偏弱五行的）
+	Severity        string             `json:"severity"`         // 缺失程度：轻微/中等/严重
+	RemedyAdvice    []RemedyAdviceItem `json:"remedy_advice"`    // 补救建议
 }
 
 // RemedyAdviceItem 补救建议条目。
@@ -626,17 +627,25 @@ func mapHasKey(m map[string]map[string]string, key1, key2 string) bool {
 }
 
 // FindMissingElements 查找缺失五行。
+// scores 是 calcFiveElements 的输出：天干+5、地支藏干本气+3/中气+2/余气+1。
+// 判断规则：
+//   - score == 0 → 真正缺失（柱中全无）
+//   - 0 < score < 5 → 偏弱（仅藏于地支中气/余气，天干不透）
+//   - score >= 5 → 正常
 func FindMissingElements(scores map[string]int) MissingElementAnalysis {
 	var missing []string
-	normalMin := 5 // 低于此值视为缺失
+	var weak []string
+	normalMin := 5
 
 	for elem, score := range scores {
-		if score < normalMin {
+		if score == 0 {
 			missing = append(missing, elem)
+		} else if score < normalMin {
+			weak = append(weak, elem)
 		}
 	}
 
-	// 补救五行：生缺失五行的
+	// 补救五行：生缺失+偏弱五行的
 	remedyMap := map[string]string{
 		"木": "水",
 		"火": "木",
@@ -654,8 +663,15 @@ func FindMissingElements(scores map[string]int) MissingElementAnalysis {
 			seen[r] = true
 		}
 	}
+	for _, w := range weak {
+		r := remedyMap[w]
+		if r != "" && !seen[r] {
+			remedy = append(remedy, r)
+			seen[r] = true
+		}
+	}
 
-	// 严重程度
+	// 严重程度：基于真正缺失(不是偏弱)
 	severity := "轻微"
 	missingCount := len(missing)
 	if missingCount >= 3 {
@@ -664,11 +680,12 @@ func FindMissingElements(scores map[string]int) MissingElementAnalysis {
 		severity = "中等"
 	}
 
-	// 生成补救建议
-	advice := generateRemedyAdvice(missing)
+	// 生成补救建议（包含缺失和偏弱）
+	advice := generateRemedyAdvice(append(missing, weak...))
 
 	return MissingElementAnalysis{
 		MissingElements: missing,
+		WeakElements:    weak,
 		RemedyElements:  remedy,
 		Severity:        severity,
 		RemedyAdvice:    advice,
@@ -790,9 +807,13 @@ func BuildFlowPatternDesc(flow WuXingFlowAnalysis, tg TongGuanAnalysis, missing 
 	// 平衡情况
 	desc += fmt.Sprintf("%s。", flow.BalanceVerdict)
 
-	// 缺失五行
+	// 缺失五行（柱中全无）
 	if len(missing.MissingElements) > 0 {
 		desc += fmt.Sprintf("缺失%s，需注意补足。", joinElems(missing.MissingElements))
+	}
+	// 偏弱五行（藏支不透）
+	if len(missing.WeakElements) > 0 {
+		desc += fmt.Sprintf("%s偏弱，藏于地支不透，宜加强。", joinElems(missing.WeakElements))
 	}
 
 	return desc

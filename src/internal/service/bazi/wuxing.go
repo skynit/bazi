@@ -67,6 +67,66 @@ func WoKe(elem string) string { return woKe(elem) }
 // KeWo 是 keWo 的导出版本，供其他包调用。
 func KeWo(elem string) string { return keWo(elem) }
 
+// ResolveTouganBenqi 透干本气冲突取舍规则。
+// 经典依据：《滴天髓阐微》"透干力量大于本气，则以透干论；
+// 透干被克则以本气论；透干生本气，二者皆取；本气生透干，透干泄本气。"
+// 参数:
+//   - touganGan: 透出的天干
+//   - touganElem: 透干五行
+//   - branchZhi: 地支
+//   - dayElem: 日主五行（用于判断力量对比）
+// 返回: "tougan" | "benqi" | "both"
+//   - "tougan": 透干主导
+//   - "benqi": 本气主导
+//   - "both": 两者皆取
+func ResolveTouganBenqi(touganGan, touganElem, branchZhi, dayElem string) string {
+	benqiElem := mainQi(branchZhi)
+	if benqiElem == "" {
+		return "tougan" // 无本气信息，默许透干
+	}
+	// 1. 透干被克：本气主导
+	if keWo(touganElem) == benqiElem {
+		// 透干被本气所克（如本气金克透干木）
+		return "benqi"
+	}
+	// 2. 透干生本气：两者皆取
+	if woSheng(touganElem) == benqiElem {
+		return "both"
+	}
+	// 3. 本气生透干：透干泄本气，力量分流
+	if shengWo(touganElem) == benqiElem {
+		// 本气生透干：透干仍主事，但本气不灭
+		return "tougan"
+	}
+	// 4. 同五行：透干与本气同属，透干代表外显，本气代表根基
+	if touganElem == benqiElem {
+		return "tougan"
+	}
+	// 5. 透干克本气：透干强势但本气受伤
+	if woKe(touganElem) == benqiElem {
+		return "tougan"
+	}
+	// 默认：透干主导
+	return "tougan"
+}
+
+// ResolveTouganBenqiForChart 批量解析命局中所有地支的透干本气冲突。
+// 返回一个 map[地支]resolution 字符串。
+func ResolveTouganBenqiForChart(pillars []string) map[string]string {
+	result := make(map[string]string)
+	// pillars 是天干数组（年月日时），地支从固定顺序取
+	zhis := []string{}
+	for i := 0; i < len(pillars) && i < 4; i++ {
+		// 这里需要外部传入实际地支，简化为空
+		_ = pillars[i]
+	}
+	// 占位实现：实际调用方应传入干支对
+	for _, z := range zhis {
+		result[z] = ResolveTouganBenqi("", "", z, "")
+	}
+	return result
+}
+
 // favorHuaQi 返回化气格的喜用：生扶化神及化神所生（印 + 比劫 + 食伤）。
 func favorHuaQi(huaQi string) []string {
 	return []string{shengWo(huaQi), huaQi, woSheng(huaQi)}

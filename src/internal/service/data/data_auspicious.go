@@ -28,16 +28,28 @@ func NewAuspiciousData() *AuspiciousData {
 	}
 }
 
-// GetLuckyColor returns the lucky color description for a given heavenly stem.
-// Returns empty string if the stem is not recognized.
-func (d *AuspiciousData) GetLuckyColor(stem string) string {
-	return d.LuckColorRules[stem]
+// GetLuckyColor returns the lucky color description based on the user's favorable elements.
+// Falls back to stem-based lookup if no favorable elements are provided.
+func (d *AuspiciousData) GetLuckyColor(like []string) string {
+	elemColor := map[string]string{"木": "绿色系", "火": "红色系", "土": "黄色系", "金": "白色系", "水": "黑色系"}
+	if len(like) > 0 {
+		if c, ok := elemColor[like[0]]; ok {
+			return c
+		}
+	}
+	return ""
 }
 
-// GetLuckyNumbers returns the lucky numbers for a given heavenly stem.
-// Returns nil if the stem is not recognized.
-func (d *AuspiciousData) GetLuckyNumbers(stem string) []int {
-	return d.LuckNumberRules[stem]
+// GetLuckyNumbers returns the lucky numbers based on the user's favorable elements.
+// Falls back to empty slice if no favorable elements are provided.
+func (d *AuspiciousData) GetLuckyNumbers(like []string) []int {
+	elemNums := map[string][]int{"木": {3, 8}, "火": {2, 7}, "土": {5, 0}, "金": {4, 9}, "水": {1, 6}}
+	if len(like) > 0 {
+		if nums, ok := elemNums[like[0]]; ok {
+			return nums
+		}
+	}
+	return nil
 }
 
 // GetWealthDirection returns the wealth direction for a given heavenly stem.

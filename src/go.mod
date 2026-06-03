@@ -6,9 +6,10 @@ require (
 	github.com/6tail/tyme4go v1.4.2
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
-	github.com/kaecer68/ziwei-zenith v1.1.0
 	golang.org/x/crypto v0.48.0
 	gorm.io/datatypes v1.2.0
+	gorm.io/driver/mysql v1.5.4
+	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.0
 )
 
@@ -28,7 +29,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kaecer68/lunar-zenith v0.1.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -46,6 +46,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gorm.io/driver/mysql v1.5.4 // indirect
-	gorm.io/driver/sqlite v1.6.0 // indirect
 )

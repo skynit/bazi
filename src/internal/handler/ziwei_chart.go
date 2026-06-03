@@ -15,25 +15,19 @@ type ZiWeiChartHandler struct {
 	Charts  ChartStore
 }
 
-// StarInfoResponse maps a star name + brightness for frontend consumption.
-type StarInfoResponse struct {
-	Name       string `json:"name"`
-	Brightness string `json:"brightness"`
-}
-
-// ZiWeiPalaceResponse is the frontend-compatible palace format.
 type ZiWeiPalaceResponse struct {
-	Name            string             `json:"name"`
-	Branch          string             `json:"branch"`
-	MainStars       []StarInfoResponse `json:"mainStars"`
-	AuxStars        []StarInfoResponse `json:"auxStars"`
-	Sihua           []string           `json:"sihua"`
-	SanfangSizheng  *SanfangResponse   `json:"sanfang_sizheng,omitempty"`
-	AdjectiveStars  []StarInfoResponse `json:"adjective_stars,omitempty"`
-	Changsheng12    string             `json:"changsheng_12,omitempty"`
-	Boshi12         string             `json:"boshi_12,omitempty"`
-	JiangQian12     string             `json:"jiang_qian_12,omitempty"`
-	SuiQian12       string             `json:"sui_qian_12,omitempty"`
+	Name           string           `json:"name"`
+	Branch         string           `json:"branch"`
+	HeavenlyStem   string           `json:"heavenly_stem"`
+	IsBodyPalace   bool             `json:"is_body_palace"`
+	Stars          []ziwei.StarOutput `json:"stars"`
+	FourHua        []string         `json:"four_hua"`
+	AdjectiveStars []string         `json:"adjective_stars,omitempty"`
+	Changsheng12   string           `json:"changsheng_12,omitempty"`
+	Boshi12        string           `json:"boshi_12,omitempty"`
+	JiangQian12    string           `json:"jiang_qian_12,omitempty"`
+	SuiQian12      string           `json:"sui_qian_12,omitempty"`
+	SanfangSizheng *SanfangResponse `json:"sanfang_sizheng,omitempty"`
 }
 
 // SanfangResponse holds the sanfang sizheng data for a palace.
@@ -45,12 +39,17 @@ type SanfangResponse struct {
 
 func mapPalaceToResponse(p *ziwei.PalaceInfo, branch string, sf *ziwei.SanfangSizhengResult) ZiWeiPalaceResponse {
 	resp := ZiWeiPalaceResponse{
-		Name:            p.Name,
-		Branch:          branch,
-		Sihua:           p.FourHua,
-		MainStars:       []StarInfoResponse{},
-		AuxStars:        []StarInfoResponse{},
-		AdjectiveStars:  []StarInfoResponse{},
+		Name:         p.Name,
+		Branch:       branch,
+		HeavenlyStem: p.HeavenlyStem,
+		IsBodyPalace: p.IsBodyPalace,
+		Stars:        p.Stars,
+		FourHua:      p.FourHua,
+		AdjectiveStars: p.AdjectiveStars,
+		Changsheng12:   p.Changsheng12,
+		Boshi12:        p.Boshi12,
+		JiangQian12:    p.JiangQian12,
+		SuiQian12:      p.SuiQian12,
 	}
 	if sf != nil {
 		resp.SanfangSizheng = &SanfangResponse{
@@ -59,27 +58,6 @@ func mapPalaceToResponse(p *ziwei.PalaceInfo, branch string, sf *ziwei.SanfangSi
 			Trine2:   sf.Trine2,
 		}
 	}
-	for _, star := range p.MainStars {
-		b := ""
-		if p.Brightness != nil {
-			b = p.Brightness[star]
-		}
-		resp.MainStars = append(resp.MainStars, StarInfoResponse{Name: star, Brightness: b})
-	}
-	for _, star := range p.AuxStars {
-		b := ""
-		if p.Brightness != nil {
-			b = p.Brightness[star]
-		}
-		resp.AuxStars = append(resp.AuxStars, StarInfoResponse{Name: star, Brightness: b})
-	}
-	for _, star := range p.AdjectiveStars {
-		resp.AdjectiveStars = append(resp.AdjectiveStars, StarInfoResponse{Name: star, Brightness: ""})
-	}
-	resp.Changsheng12 = p.Changsheng12
-	resp.Boshi12 = p.Boshi12
-	resp.JiangQian12 = p.JiangQian12
-	resp.SuiQian12 = p.SuiQian12
 	return resp
 }
 
@@ -118,15 +96,17 @@ func mapChartToResponse(chart *ziwei.ZiWeiChart, lunarMonth, hour int) gin.H {
 	}
 
 	return gin.H{
-		"palaces":         palaces,
-		"mingZhu":         chart.LifeMaster,
-		"shenZhu":         chart.BodyMaster,
-		"bodyPalace":      chart.BodyPalace,
-		"wuxingJu":        chart.FiveBureau,
-		"patterns":        chart.Patterns,
-		"liu_nian_stars":  chart.LiuNianStars,
-		"liu_yue_stars":   chart.LiuYueStars,
-		"liu_ri_stars":    chart.LiuRiStars,
+		"palaces":                        palaces,
+		"life_master":                    chart.LifeMaster,
+		"body_master":                    chart.BodyMaster,
+		"five_bureau":                    chart.FiveBureau,
+		"body_palace":                    chart.BodyPalace,
+		"earthly_branch_of_soul_palace":  chart.EarthlyBranchOfSoulPalace,
+		"earthly_branch_of_body_palace":  chart.EarthlyBranchOfBodyPalace,
+		"patterns":                       chart.Patterns,
+		"liu_nian_stars":                 chart.LiuNianStars,
+		"liu_yue_stars":                  chart.LiuYueStars,
+		"liu_ri_stars":                   chart.LiuRiStars,
 	}
 }
 

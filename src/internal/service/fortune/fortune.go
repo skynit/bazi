@@ -198,9 +198,12 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 	stemRel := stemRelation(userDayStem, dayPillar.Gan)
 	branchRel := branchRelation(userDayBranch, dayPillar.Zhi)
 
+	// 获取用户喜用神（格局优先）
+	like, _, _ := getEffectiveFavor(userChart)
+
 	score := calcScore(stemRel, branchRel, userDayStem, dayPillar.Gan)
-	luckyColor := e.auspicious.GetLuckyColor(dayPillar.Gan)
-	luckyNumbers := e.auspicious.GetLuckyNumbers(dayPillar.Gan)
+	luckyColor := e.auspicious.GetLuckyColor(like)
+	luckyNumbers := e.auspicious.GetLuckyNumbers(like)
 	wealthDir := e.auspicious.GetWealthDirection(dayPillar.Gan)
 	clashZodiac := e.auspicious.GetClashZodiac(dayPillar.Zhi)
 	auspHours := e.auspicious.GetAuspiciousHours(dayPillar.Zhi)

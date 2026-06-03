@@ -3,8 +3,6 @@ package ziwei
 import (
 	"fmt"
 	"strings"
-
-	"github.com/kaecer68/ziwei-zenith/pkg/basis"
 )
 
 // ──────────────────── Period Interpretation Service ────────────────────
@@ -12,12 +10,12 @@ import (
 // PeriodInterpreter analyzes 流年/流月/流日 data and produces
 // human-readable interpretations with ShiShen, relations, scores, and advice.
 type PeriodInterpreter struct {
-	birthInfo basis.BirthInfo
+	birthData *BirthData
 }
 
-// NewPeriodInterpreter creates a PeriodInterpreter with the given birth info.
-func NewPeriodInterpreter(birthInfo basis.BirthInfo) *PeriodInterpreter {
-	return &PeriodInterpreter{birthInfo: birthInfo}
+// NewPeriodInterpreter creates a PeriodInterpreter with the given birth data.
+func NewPeriodInterpreter(bd *BirthData) *PeriodInterpreter {
+	return &PeriodInterpreter{birthData: bd}
 }
 
 // ──────────────────── Result types ────────────────────
@@ -73,7 +71,7 @@ type PeriodSummary struct {
 	Liunian LiunianSummaryItem `json:"liunian"`
 	Liuyue  LiuyueSummaryItem  `json:"liuyue"`
 	Liuri   LiuriSummaryItem   `json:"liuri"`
-	Advice  PeriodAdvice       `json:"advice"`
+	Advice  PeriodAdvice        `json:"advice"`
 }
 
 type LiunianSummaryItem struct {
@@ -106,25 +104,25 @@ type PeriodAdvice struct {
 	Liuri   []string `json:"liuri"`
 }
 
-// stemName returns the Chinese name of a Stem.
-func stemName(s basis.Stem) string {
-	if s >= 0 && int(s) < len(stemNames) {
-		return stemNames[s]
+// stemName returns the Chinese name of a stem by index.
+func stemName(stem int) string {
+	if stem >= 0 && stem < len(StemNames) {
+		return StemNames[stem]
 	}
 	return ""
 }
 
-// branchName returns the Chinese name of a Branch.
-func branchName(b basis.Branch) string {
-	if b >= 0 && int(b) < len(branchNames) {
-		return branchNames[b]
+// branchName returns the Chinese name of a branch by index.
+func branchName(branch int) string {
+	if branch >= 0 && branch < len(BranchNames) {
+		return BranchNames[branch]
 	}
 	return ""
 }
 
 // wuXingStem returns the five-element name for a stem.
-func wuXingStem(s basis.Stem) string {
-	switch s {
+func wuXingStem(stem int) string {
+	switch stem {
 	case 0, 1:
 		return "木"
 	case 2, 3:
@@ -140,8 +138,8 @@ func wuXingStem(s basis.Stem) string {
 }
 
 // wuXingBranch returns the five-element name for a branch.
-func wuXingBranch(b basis.Branch) string {
-	switch b {
+func wuXingBranch(branch int) string {
+	switch branch {
 	case 0, 1:
 		return "水"
 	case 2, 3:
@@ -159,13 +157,13 @@ func wuXingBranch(b basis.Branch) string {
 }
 
 // isYangStem returns true if the stem is yang (甲丙戊庚壬).
-func isYangStem(s basis.Stem) bool {
-	return s == 0 || s == 2 || s == 4 || s == 6 || s == 8
+func isYangStem(stem int) bool {
+	return stem%2 == 0
 }
 
 // stemWuXingIdx returns the 5-element index for stem (0=木, 1=火, 2=土, 3=金, 4=水).
-func stemWuXingIdx(s basis.Stem) int {
-	switch s {
+func stemWuXingIdx(stem int) int {
+	switch stem {
 	case 0, 1:
 		return 0 // 木
 	case 2, 3:
@@ -181,14 +179,13 @@ func stemWuXingIdx(s basis.Stem) int {
 }
 
 // getShiShen returns the ShiShen (十神) name for a given stem vs the day stem.
-func getShiShen(stem, dayStem basis.Stem) string {
-	stemIdx := int(stem)
-	dayIdx := int(dayStem)
+func getShiShen(stem, dayStem int) string {
+	stemIdx := stem
+	dayIdx := dayStem
 
 	stemEle := stemWuXingIdx(stem)
 	dayEle := stemWuXingIdx(dayStem)
 
-	// 同元素：比肩（同阴阳）/ 劫财（异阴阳）
 	if stemEle == dayEle {
 		if stemIdx == dayIdx {
 			return "比肩"
@@ -196,15 +193,10 @@ func getShiShen(stem, dayStem basis.Stem) string {
 		return "劫财"
 	}
 
-	// 五行相生：木(0)→火(1)→土(2)→金(3)→水(4)→木(0)
-	// 印星：stem生day → (stemEle+1)%5 == dayEle
-	// 食伤：day生stem → (dayEle+1)%5 == stemEle
-	// 官杀：stem克day → (stemEle+2)%5 == dayEle  (五行相隔2位为克)
-	// 财星：day克stem → (dayEle+2)%5 == stemEle
-	isSeal := ((stemEle + 1) % 5 == dayEle)   // 印星：stem生day
-	isFood := ((dayEle + 1) % 5 == stemEle)   // 食伤：day生stem
-	isOfficer := ((stemEle + 2) % 5 == dayEle) // 官杀：stem克day
-	isWealth := ((dayEle + 2) % 5 == stemEle)  // 财星：day克stem
+	isSeal := ((stemEle + 1) % 5 == dayEle)
+	isFood := ((dayEle + 1) % 5 == stemEle)
+	isOfficer := ((stemEle + 2) % 5 == dayEle)
+	isWealth := ((dayEle + 2) % 5 == stemEle)
 
 	switch {
 	case isSeal:
@@ -232,7 +224,7 @@ func getShiShen(stem, dayStem basis.Stem) string {
 }
 
 // relationPair returns the relationship description between two branches.
-func relationPair(b1, b2 basis.Branch) string {
+func relationPair(b1, b2 int) string {
 	if b1 == b2 {
 		switch b1 {
 		case 4, 7, 9, 11:
@@ -241,9 +233,8 @@ func relationPair(b1, b2 basis.Branch) string {
 		return "伏吟"
 	}
 
-	pair := int(b1)*100 + int(b2)
+	pair := b1*100 + b2
 	switch {
-	// 六冲: 子-午, 丑-未, 寅-申, 卯-酉, 辰-戌, 巳-亥
 	case pair == 0*100+6 || pair == 6*100+0 ||
 		pair == 1*100+7 || pair == 7*100+1 ||
 		pair == 2*100+8 || pair == 8*100+2 ||
@@ -251,7 +242,6 @@ func relationPair(b1, b2 basis.Branch) string {
 		pair == 4*100+10 || pair == 10*100+4 ||
 		pair == 5*100+11 || pair == 11*100+5:
 		return "六冲"
-	// 六合: 子-丑, 寅-亥, 卯-戌, 辰-酉, 巳-申, 午-未
 	case pair == 0*100+1 || pair == 1*100+0 ||
 		pair == 2*100+11 || pair == 11*100+2 ||
 		pair == 3*100+10 || pair == 10*100+3 ||
@@ -259,28 +249,27 @@ func relationPair(b1, b2 basis.Branch) string {
 		pair == 5*100+8 || pair == 8*100+5 ||
 		pair == 6*100+7 || pair == 7*100+6:
 		return "六合"
-	// 三刑: 寅巳申三刑, 丑戌未三刑, 子卯刑
-	case pair == 2*100+5 || pair == 5*100+2 || // 寅巳
-		pair == 5*100+8 || pair == 8*100+5 || // 巳申
-		pair == 2*100+8 || pair == 8*100+2 || // 寅申
-		pair == 1*100+10 || pair == 10*100+1 || // 丑戌
-		pair == 10*100+7 || pair == 7*100+10 || // 戌未
-		pair == 1*100+7 || pair == 7*100+1 || // 丑未
-		pair == 0*100+3 || pair == 3*100+0: // 子卯
+	case pair == 2*100+5 || pair == 5*100+2 ||
+		pair == 5*100+8 || pair == 8*100+5 ||
+		pair == 2*100+8 || pair == 8*100+2 ||
+		pair == 1*100+10 || pair == 10*100+1 ||
+		pair == 10*100+7 || pair == 7*100+10 ||
+		pair == 1*100+7 || pair == 7*100+1 ||
+		pair == 0*100+3 || pair == 3*100+0:
 		return "三刑"
 	}
 	return ""
 }
 
 // describeRelation creates a Chinese description of how period branch relates to birth branches.
-func (s *PeriodInterpreter) describeRelation(periodBranch basis.Branch) string {
+func (s *PeriodInterpreter) describeRelation(periodBranch int) string {
 	var parts []string
 
-	keyBranches := []basis.Branch{
-		s.birthInfo.YearPillar.Branch,
-		s.birthInfo.MonthPillar.Branch,
-		s.birthInfo.DayPillar.Branch,
-		s.birthInfo.HourPillar.Branch,
+	keyBranches := []int{
+		s.birthData.YearBranch,
+		s.birthData.MonthPillarBranch,
+		s.birthData.DayBranch,
+		s.birthData.HourBranch,
 	}
 
 	for _, bc := range keyBranches {
@@ -306,10 +295,10 @@ func (s *PeriodInterpreter) describeRelation(periodBranch basis.Branch) string {
 }
 
 // evaluateScore returns a 0-100 score based on the stem/branch and birth info.
-func (s *PeriodInterpreter) evaluateScore(stem basis.Stem, periodBranch basis.Branch) int {
+func (s *PeriodInterpreter) evaluateScore(stem int, periodBranch int) int {
 	score := 60
 
-	dayStem := s.birthInfo.DayPillar.Stem
+	dayStem := s.birthData.DayStem
 	shiShen := getShiShen(stem, dayStem)
 
 	switch shiShen {
@@ -321,7 +310,7 @@ func (s *PeriodInterpreter) evaluateScore(stem basis.Stem, periodBranch basis.Br
 		score -= 5
 	}
 
-	rel := relationPair(periodBranch, s.birthInfo.DayPillar.Branch)
+	rel := relationPair(periodBranch, s.birthData.DayBranch)
 	if rel == "六冲" || rel == "自刑" || rel == "伏吟" || rel == "三刑" {
 		score -= 10
 	} else if rel == "六合" {
@@ -338,7 +327,7 @@ func (s *PeriodInterpreter) evaluateScore(stem basis.Stem, periodBranch basis.Br
 }
 
 // healthAdvice returns health advice based on branch wuxing.
-func healthAdvice(branch basis.Branch) string {
+func healthAdvice(branch int) string {
 	switch branch {
 	case 2, 3: // 寅卯 木
 		return "注意肝胆、筋骨、手足"
@@ -358,17 +347,17 @@ func healthAdvice(branch basis.Branch) string {
 
 // AnalyzeLiunian produces a full interpretation for the given 流年.
 func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *LiunianResult {
-	if chart == nil || chart.engineChart == nil {
+	if chart == nil {
 		return nil
 	}
-	ec := chart.engineChart
-	stem := ec.LiuNian.Stem
-	branch := ec.LiuNian.Branch
 
-	ganZhi := stemName(stem) + branchName(branch)
-	shiShen := getShiShen(stem, s.birthInfo.DayPillar.Stem)
-	rel := s.describeRelation(branch)
-	score := s.evaluateScore(stem, branch)
+	liunianStem := (year - 4) % 10
+	liunianBranch := (year - 4) % 12
+
+	ganZhi := stemName(liunianStem) + branchName(liunianBranch)
+	shiShen := getShiShen(liunianStem, s.birthData.DayStem)
+	rel := s.describeRelation(liunianBranch)
+	score := s.evaluateScore(liunianStem, liunianBranch)
 
 	var tone string
 	if score >= 70 {
@@ -393,7 +382,7 @@ func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *Liunian
 	return &LiunianResult{
 		Year:           year,
 		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(stem), shiShen, branchName(branch), wuXingBranch(branch)),
+		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liunianStem), shiShen, branchName(liunianBranch), wuXingBranch(liunianBranch)),
 		ShiShen:        shiShen,
 		RelationToMing: rel,
 		OverallTone:    tone,
@@ -404,18 +393,18 @@ func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *Liunian
 
 // AnalyzeLiuyue produces a full interpretation for the given 流月.
 func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month int) *LiuyueResult {
-	if chart == nil || chart.engineChart == nil {
+	if chart == nil {
 		return nil
 	}
-	ec := chart.engineChart
-	branch := ec.LiuYue
-	// LiuYue stem = (dayStem*2 + month - 1) % 10
-	stem := basis.Stem((int(s.birthInfo.DayPillar.Stem)*2 + (month - 1)) % 10)
 
-	ganZhi := stemName(stem) + branchName(branch)
-	shiShen := getShiShen(stem, s.birthInfo.DayPillar.Stem)
-	rel := s.describeRelation(branch)
-	score := s.evaluateScore(stem, branch)
+	liuyueBranch := (2 + month - 1) % 12
+	dayStem := s.birthData.DayStem
+	liuyueStem := (dayStem*2 + month - 1) % 10
+
+	ganZhi := stemName(liuyueStem) + branchName(liuyueBranch)
+	shiShen := getShiShen(liuyueStem, dayStem)
+	rel := s.describeRelation(liuyueBranch)
+	score := s.evaluateScore(liuyueStem, liuyueBranch)
 
 	var effect string
 	if score >= 65 {
@@ -430,40 +419,38 @@ func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month int) *L
 		Year:           year,
 		Month:          month,
 		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(stem), shiShen, branchName(branch), wuXingBranch(branch)),
+		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuyueStem), shiShen, branchName(liuyueBranch), wuXingBranch(liuyueBranch)),
 		ShiShen:        shiShen,
 		RelationToMing: rel,
 		Effect:         effect,
-		Health:         healthAdvice(branch),
+		Health:         healthAdvice(liuyueBranch),
 		Score:          score,
 	}
 }
 
 // AnalyzeLiuri produces a full interpretation for the given 流日.
 func (s *PeriodInterpreter) AnalyzeLiuri(chart *ZiWeiChart, year, month, day int) *LiuriResult {
-	if chart == nil || chart.engineChart == nil {
+	if chart == nil {
 		return nil
 	}
-	ec := chart.engineChart
-	branch := ec.LiuRi
-	// LiuRi stem = (dayStem * 2 + dayOfMonth - 1) % 10
-	stem := basis.Stem((int(s.birthInfo.DayPillar.Stem)*2 + (day - 1)) % 10)
 
-	ganZhi := stemName(stem) + branchName(branch)
-	shiShen := getShiShen(stem, s.birthInfo.DayPillar.Stem)
-	rel := s.describeRelation(branch)
-	score := s.evaluateScore(stem, branch)
+	liuriBranch := (2 + day - 1) % 12
+	dayStem := s.birthData.DayStem
+	liuriStem := (dayStem*2 + day - 1) % 10
 
-	// 12 时辰 analysis: 0=子时(23-01), 1=丑时(01-03), ..., 11=亥时(21-23)
+	ganZhi := stemName(liuriStem) + branchName(liuriBranch)
+	shiShen := getShiShen(liuriStem, dayStem)
+	rel := s.describeRelation(liuriBranch)
+	score := s.evaluateScore(liuriStem, liuriBranch)
+
 	hourly := make([]HourBlock, 12)
 
 	for i := 0; i < 12; i++ {
-		hourStemIdx := (int(stem)*2 + i) % 10
-		hourStem := basis.Stem(hourStemIdx)
-		hourBranch := basis.Branch(i)
-		hourGanZhi := stemName(hourStem) + branchName(hourBranch)
-		hourScore := s.evaluateScore(hourStem, hourBranch)
-		hourShiShen := getShiShen(hourStem, s.birthInfo.DayPillar.Stem)
+		hourStemIdx := (liuriStem*2 + i) % 10
+		hourBranch := i
+		hourGanZhi := stemName(hourStemIdx) + branchName(hourBranch)
+		hourScore := s.evaluateScore(hourStemIdx, hourBranch)
+		hourShiShen := getShiShen(hourStemIdx, dayStem)
 
 		var effect string
 		if hourScore >= 65 {
@@ -500,12 +487,12 @@ func (s *PeriodInterpreter) AnalyzeLiuri(chart *ZiWeiChart, year, month, day int
 		Month:          month,
 		Day:            day,
 		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(stem), shiShen, branchName(branch), wuXingBranch(branch)),
+		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuriStem), shiShen, branchName(liuriBranch), wuXingBranch(liuriBranch)),
 		ShiShen:        shiShen,
 		RelationToMing: rel,
 		QiZiEffect:     fmt.Sprintf("%s透出%s，对事业财运有影响", shiShen, ganZhi),
 		EmotionalState: emotion,
-		Health:         healthAdvice(branch),
+		Health:         healthAdvice(liuriBranch),
 		Score:          score,
 		HourlyAnalysis: hourly,
 		Summary:        summary,

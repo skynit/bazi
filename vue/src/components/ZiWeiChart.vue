@@ -3,26 +3,37 @@ import { computed } from 'vue'
 
 interface StarInfo {
   name: string
+  type: string
+  scope: string
   brightness: string
 }
 
 interface PalaceData {
   branch: string
   name: string
-  mainStars: StarInfo[]
-  auxStars: StarInfo[]
-  sihua: string[]
+  heavenly_stem: string
+  is_body_palace: boolean
+  stars: StarInfo[]
+  four_hua: string[]
 }
 
 interface Props {
   palaces: PalaceData[]
-  mingZhu: string
-  shenZhu: string
-  wuxingJu: string
+  life_master: string
+  body_master: string
+  five_bureau: string
   patterns: string[]
 }
 
 const props = defineProps<Props>()
+
+function majorStars(p: PalaceData): StarInfo[] {
+  return p.stars.filter(s => s.type === 'major')
+}
+
+function auxStars(p: PalaceData): StarInfo[] {
+  return p.stars.filter(s => s.type !== 'major')
+}
 
 // Traditional star brightness → color (庙=most auspicious ... 陷=weakest)
 const brightnessMeta: Record<string, { bg: string; text: string; label: string }> = {
@@ -87,7 +98,7 @@ function palaceAt(branch: string): PalaceData | undefined {
               v-for="branch in ['巳', '午', '未', '申']"
               :key="'r1-' + branch"
               class="palace-cell"
-              :class="{ 'has-sihua': palaceAt(branch)?.sihua?.length }"
+              :class="{ 'has-sihua': palaceAt(branch)?.four_hua?.length }"
             >
               <template v-if="palaceAt(branch)">
                 <div class="palace-header">
@@ -96,7 +107,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt(branch)?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt(branch)!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -109,17 +120,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}<span class="brightness-dot">{{ starMeta(star.brightness).label }}</span>
                   </span>
                 </div>
-                <div v-if="(palaceAt(branch)?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt(branch)!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt(branch)?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt(branch)!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt(branch)!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt(branch)!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt(branch)!.sihua"
+                    v-for="(sh, si) in palaceAt(branch)!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span
@@ -132,7 +143,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
           <!-- Row 2: 辰 .. center .. 酉 -->
           <div class="palace-row row2">
-            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('辰')?.sihua?.length }">
+            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('辰')?.four_hua?.length }">
               <template v-if="palaceAt('辰')">
                 <div class="palace-header">
                   <span class="palace-name">{{ palaceAt('辰')!.name }}</span>
@@ -140,7 +151,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt('辰')?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt('辰')!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -153,17 +164,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}</span></span
                   >
                 </div>
-                <div v-if="(palaceAt('辰')?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt('辰')!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt('辰')?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt('辰')!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt('辰')!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt('辰')!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt('辰')!.sihua"
+                    v-for="(sh, si) in palaceAt('辰')!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span
@@ -182,22 +193,22 @@ function palaceAt(branch: string): PalaceData | undefined {
                 <div class="center-divider"></div>
                 <div class="center-item">
                   <span class="center-key">命主</span>
-                  <span class="center-val mingzhu">{{ mingZhu }}</span>
+                  <span class="center-val mingzhu">{{ life_master }}</span>
                 </div>
                 <div class="center-item">
                   <span class="center-key">身主</span>
-                  <span class="center-val shenzhu">{{ shenZhu }}</span>
+                  <span class="center-val shenzhu">{{ body_master }}</span>
                 </div>
                 <div class="center-item">
                   <span class="center-key">五行局</span>
-                  <span class="center-val wuxing">{{ wuxingJu }}</span>
+                  <span class="center-val wuxing">{{ five_bureau }}</span>
                 </div>
                 <div class="center-divider"></div>
                 <div class="center-ornament">✦</div>
               </div>
             </div>
 
-            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('酉')?.sihua?.length }">
+            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('酉')?.four_hua?.length }">
               <template v-if="palaceAt('酉')">
                 <div class="palace-header">
                   <span class="palace-name">{{ palaceAt('酉')!.name }}</span>
@@ -205,7 +216,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt('酉')?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt('酉')!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -218,17 +229,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}</span></span
                   >
                 </div>
-                <div v-if="(palaceAt('酉')?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt('酉')!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt('酉')?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt('酉')!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt('酉')!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt('酉')!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt('酉')!.sihua"
+                    v-for="(sh, si) in palaceAt('酉')!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span
@@ -241,7 +252,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
           <!-- Row 3: 卯 .. center .. 戌 -->
           <div class="palace-row row3">
-            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('卯')?.sihua?.length }">
+            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('卯')?.four_hua?.length }">
               <template v-if="palaceAt('卯')">
                 <div class="palace-header">
                   <span class="palace-name">{{ palaceAt('卯')!.name }}</span>
@@ -249,7 +260,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt('卯')?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt('卯')!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -262,17 +273,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}</span></span
                   >
                 </div>
-                <div v-if="(palaceAt('卯')?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt('卯')!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt('卯')?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt('卯')!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt('卯')!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt('卯')!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt('卯')!.sihua"
+                    v-for="(sh, si) in palaceAt('卯')!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span
@@ -303,7 +314,7 @@ function palaceAt(branch: string): PalaceData | undefined {
               </div>
             </div>
 
-            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('戌')?.sihua?.length }">
+            <div class="palace-cell" :class="{ 'has-sihua': palaceAt('戌')?.four_hua?.length }">
               <template v-if="palaceAt('戌')">
                 <div class="palace-header">
                   <span class="palace-name">{{ palaceAt('戌')!.name }}</span>
@@ -311,7 +322,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt('戌')?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt('戌')!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -324,17 +335,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}</span></span
                   >
                 </div>
-                <div v-if="(palaceAt('戌')?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt('戌')!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt('戌')?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt('戌')!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt('戌')!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt('戌')!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt('戌')!.sihua"
+                    v-for="(sh, si) in palaceAt('戌')!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span
@@ -351,7 +362,7 @@ function palaceAt(branch: string): PalaceData | undefined {
               v-for="branch in ['寅', '丑', '子', '亥']"
               :key="'r4-' + branch"
               class="palace-cell"
-              :class="{ 'has-sihua': palaceAt(branch)?.sihua?.length }"
+              :class="{ 'has-sihua': palaceAt(branch)?.four_hua?.length }"
             >
               <template v-if="palaceAt(branch)">
                 <div class="palace-header">
@@ -360,7 +371,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                 </div>
                 <div class="star-section">
                   <span
-                    v-for="(star, si) in palaceAt(branch)?.mainStars || []"
+                    v-for="(star, si) in majorStars(palaceAt(branch)!)"
                     :key="'ms-' + si"
                     class="main-star"
                     :style="{
@@ -373,17 +384,17 @@ function palaceAt(branch: string): PalaceData | undefined {
                     }}</span></span
                   >
                 </div>
-                <div v-if="(palaceAt(branch)?.auxStars || []).length" class="aux-section">
+                <div v-if="auxStars(palaceAt(branch)!).length" class="aux-section">
                   <span
-                    v-for="(star, si) in palaceAt(branch)?.auxStars || []"
+                    v-for="(star, si) in auxStars(palaceAt(branch)!)"
                     :key="'as-' + si"
                     class="aux-star"
                     >{{ star.name }}</span
                   >
                 </div>
-                <div v-if="palaceAt(branch)!.sihua?.length" class="sihua-section">
+                <div v-if="palaceAt(branch)!.four_hua?.length" class="sihua-section">
                   <span
-                    v-for="(sh, si) in palaceAt(branch)!.sihua"
+                    v-for="(sh, si) in palaceAt(branch)!.four_hua"
                     :key="'sh-' + si"
                     class="sihua-tag"
                     >{{ sh }}</span

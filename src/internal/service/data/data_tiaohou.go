@@ -259,12 +259,12 @@ func init() {
 		{XiShen: "甲", JiShen: "癸", Reason: "甲木生火疏土，巳月甲木病地宜重用丙火"},
 	}
 	TiaohouData[4][4] = []TiaohouRule{ // 午月
-		{XiShen: "壬", JiShen: "丙", Reason: "午月己土司权，火旺土焦，壬水润土为先"},
+		{XiShen: "壬", JiShen: "丙", Reason: "午月火极旺土焦，壬水润土为先，丙火为配"},
 		{XiShen: "癸", JiShen: "丙", Reason: "癸水润土调候，午月水气绝地用壬癸并"},
 	}
 	TiaohouData[4][5] = []TiaohouRule{ // 未月
 		{XiShen: "癸", JiShen: "丙", Reason: "未月燥土厚重，癸水滋戊润土为先"},
-		{XiShen: "辛", JiShen: "丁", Reason: "辛金生癸水，润土之功胜过壬水"},
+		{XiShen: "辛", JiShen: "丁", Reason: "辛金生癸水，润土之功胜于壬水"},
 	}
 	TiaohouData[4][6] = []TiaohouRule{ // 申月
 		{XiShen: "丙", JiShen: "丁", Reason: "申月金水相生，丙火温土生身为急"},

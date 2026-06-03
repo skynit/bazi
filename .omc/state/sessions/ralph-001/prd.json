@@ -1,43 +1,141 @@
 {
-  "version": "2.0",
+  "version": "4.0",
   "stories": [
     {
-      "id": "US-101",
+      "id": "US-201",
       "priority": 1,
-      "subject": "深度审查后端算命算法，找出80+错误和精度提升点",
-      "description": "对 /home/skynit/WorkSpace/bazi/src/internal/service/ 所有算命方法代码和数据进行全面审查，交叉比对知识库 /home/skynit/Uni/ming/mingli/ 中的经典文献（穷通宝鉴、三命通会、滴天髓阐微、渊海子平），找出所有能修正算命错误和提升算命精度的地方。至少80处。",
+      "subject": "建立经典命例测试库（八字）",
+      "description": "从知识库 /home/skynit/Uni/ming/mingli/ 提取30+经典命例（来自《三命通会》《滴天髓阐微》《穷通宝鉴》《子平真诠》等），每个命例包含：出生年月日時辰、性别、已知结论（身强/身弱、格局、用神、神煞等）。",
       "passes": true,
       "acceptanceCriteria": [
-        "至少找出80处具体的错误和精度提升点",
-        "每处都标明：涉及文件、具体问题、修正方案、经典依据",
-        "覆盖所有算命模块：身强身弱、十神、神煞、格局、调候、日课、运势计算",
-        "修正方案可直接实施，不含模糊建议"
+        "至少30个经典命例（公历1900-2000年）",
+        "覆盖各种格局类型（正格、从格、专旺格、化气格）",
+        "覆盖各种身强/身弱情况",
+        "覆盖男命/女命",
+        "每个命例标注经典出处和已知结论",
+        "保存为JSON格式测试数据文件"
       ]
     },
     {
-      "id": "US-102",
+      "id": "US-202",
       "priority": 2,
-      "subject": "实施所有修正",
-      "description": "根据 US-101 审查结果，逐一实施修正。每处修正必须保留经典依据注释。",
+      "subject": "建立经典命例测试库（紫微）",
+      "description": "从知识库 /home/skynit/Uni/ming/mingli/02-概念体系/紫微斗数/ 提取20+紫微经典命例。",
       "passes": true,
       "acceptanceCriteria": [
-        "所有80+处修正均已实施",
-        "修正后代码编译通过",
-        "修正后测试通过",
-        "每处修正保留经典文献依据"
+        "至少20个紫微经典命例",
+        "覆盖各种格局（杀破狼、机月同梁、府相朝垣等）",
+        "覆盖各种亮度组合（庙旺利陷）",
+        "每个命例标注经典出处和已知结论"
       ]
     },
     {
-      "id": "US-103",
+      "id": "US-203",
       "priority": 3,
-      "subject": "验证修正效果",
-      "description": "对修正后的代码进行全面验证，确保没有引入新问题。",
+      "subject": "运行八字精度测试",
+      "description": "使用US-201建立的命例库运行八字算命的所有方法（Calculate、GetTiaohou、CalcShenShaByPillars、AnalyzePatternExtended、AnalyzeTenGod、CalcDaYun等），对比实际输出与经典结论。",
       "passes": true,
       "acceptanceCriteria": [
-        "go build 通过",
-        "go test 通过",
-        "关键算法逻辑人工复核",
-        "所有修正均有经典文献支撑"
+        "运行所有30+命例的完整八字计算",
+        "对比每个命例的：身强/身弱判断、格局判定、调候用神、神煞、十神分布",
+        "记录每个命例的准确度评分",
+        "统计整体准确率（目标85%以上）",
+        "生成详细的精度评估报告"
+      ]
+    },
+    {
+      "id": "US-204",
+      "priority": 4,
+      "subject": "运行紫微精度测试",
+      "description": "使用US-202建立的命例库运行紫微算命的所有方法（CalculateChart、AnalyzeSihuaChain、DetectLocalPatterns等），对比实际输出与经典结论。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "运行所有20+命例的完整紫微计算",
+        "对比每个命例的：十四主星位置、亮度、四化、格局判定",
+        "记录每个命例的准确度评分",
+        "统计整体准确率（目标80%以上）",
+        "生成详细的精度评估报告"
+      ]
+    },
+    {
+      "id": "US-205",
+      "priority": 5,
+      "subject": "运行运势/日课精度测试",
+      "description": "测试运势计算（GetDailyFortune、GetWeeklyFortune、GetMonthlyFortune）和日课推算（CalcRikuyo）模块的精度。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "对已知日期的运势结果进行对比",
+        "日课建除十二神、黄道黑道日、彭祖百忌测试",
+        "对每个模块的输出与经典算法对比",
+        "统计整体准确率（目标85%以上）"
+      ]
+    },
+    {
+      "id": "US-206",
+      "priority": 6,
+      "subject": "综合精度评估与改进建议",
+      "description": "汇总所有测试结果，识别精度低于100%的模块和方法，生成改进建议清单。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "汇总八字、紫微、运势、日课四个模块的测试结果",
+        "识别每个模块的准确率",
+        "列出每个模块的精度问题（按严重度排序）",
+        "为每个精度问题提供改进建议和经典依据",
+        "生成综合精度评估报告"
+      ]
+    },
+    {
+      "id": "US-301",
+      "priority": 1,
+      "subject": "修正四化表(SI_HUA_TABLE)4处错误",
+      "description": "round3审计发现四化表4/10天干错误。按《天纪-紫微详解》line 1303-1304标准口诀修正：甲=廉破武阳、乙=机梁紫阴、壬=梁紫左武、癸=破巨阴贪。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "甲: 四化顺序改为 [廉贞, 破军, 武曲, 太阳] (科: 天同→武曲)",
+        "乙: 四化顺序改为 [天机, 天梁, 紫微, 太阴] (禄:紫微→天机, 科:天机→紫微)",
+        "壬: 四化顺序改为 [天梁, 紫微, 左辅, 武曲] (禄:武曲→天梁, 忌:紫微→武曲)",
+        "癸: 四化顺序改为 [破军, 巨门, 太阴, 贪狼] (禄:巨门→破军, 权:破军→巨门)",
+        "go build 通过"
+      ]
+    },
+    {
+      "id": "US-302",
+      "priority": 2,
+      "subject": "修正调候数据3处退行",
+      "description": "round3审计发现data_tiaohou.go中3处调候数据与《穷通宝鉴》原文矛盾：戊土午月(丙→壬)、戊土未月(丙→癸)、壬水丑月(戊→丙)。恢复经典用神顺序。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "戊土午月: 恢复XiShen='壬'为首 (午月火旺土焦，壬水润土为先)",
+        "戊土未月: 恢复XiShen='癸'为首 (未月燥土需润，癸水润土为主)",
+        "壬水丑月: 恢复XiShen='丙'为首 (丑月寒湿需丙火解冻)",
+        "go build 通过"
+      ]
+    },
+    {
+      "id": "US-303",
+      "priority": 3,
+      "subject": "修正身强弱权重比例",
+      "description": "round3审计发现calcBodyStrengthV2权重从经典50/25/15/10改为40/30/20/10。知识库日主强弱判断.md明确记载50/25/15/10。恢复经典权重。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "得令权重恢复为0.50",
+        "得地权重恢复为0.25",
+        "得势权重恢复为0.15",
+        "得气权重恢复为0.10",
+        "go build 通过"
+      ]
+    },
+    {
+      "id": "US-304",
+      "priority": 4,
+      "subject": "验证并修正branchOrder与命主/身主",
+      "description": "round3审计发现branchOrder从寅-first改为子-first，命主/身主数组完全重写。需验证basis.Branch枚举值与branchOrder一致性，并按经典核实命主/身主映射。",
+      "passes": true,
+      "acceptanceCriteria": [
+        "验证branchOrder与basis.Branch枚举值的索引对应关系正确",
+        "如错误则修正branchOrder或computeMingGongBranchZhongZhou计算逻辑",
+        "按《天纪》命主口诀核实lifeMaster/bodyMaster数组",
+        "go build 通过"
       ]
     }
   ]
