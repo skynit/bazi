@@ -94,24 +94,24 @@ onMounted(() => {
       <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
         <defs>
           <radialGradient id="hist-nebula" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#D4A84B" stop-opacity="0.05" />
-            <stop offset="100%" stop-color="#D4A84B" stop-opacity="0" />
+            <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.05" />
+            <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0" />
           </radialGradient>
         </defs>
         <ellipse cx="400" cy="300" rx="350" ry="250" fill="url(#hist-nebula)" />
-        <circle cx="120" cy="100" r="1" fill="#D4A84B" opacity="0.25" />
-        <circle cx="680" cy="80" r="1.2" fill="#D4A84B" opacity="0.35" />
-        <circle cx="720" cy="480" r="1" fill="#D4A84B" opacity="0.25" />
-        <circle cx="60" cy="520" r="0.8" fill="#D4A84B" opacity="0.2" />
-        <circle cx="400" cy="300" r="1.5" fill="#D4A84B" opacity="0.4" />
-        <circle cx="250" cy="180" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="550" cy="400" r="1.3" fill="#D4A84B" opacity="0.35" />
+        <circle cx="120" cy="100" r="1" fill="#cbd5e1" opacity="0.25" />
+        <circle cx="680" cy="80" r="1.2" fill="#cbd5e1" opacity="0.35" />
+        <circle cx="720" cy="480" r="1" fill="#cbd5e1" opacity="0.25" />
+        <circle cx="60" cy="520" r="0.8" fill="#cbd5e1" opacity="0.2" />
+        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.4" />
+        <circle cx="250" cy="180" r="1" fill="#cbd5e1" opacity="0.3" />
+        <circle cx="550" cy="400" r="1.3" fill="#cbd5e1" opacity="0.35" />
         <line
           x1="120"
           y1="100"
           x2="250"
           y2="180"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.4"
           opacity="0.06"
         />
@@ -120,7 +120,7 @@ onMounted(() => {
           y1="80"
           x2="550"
           y2="400"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.4"
           opacity="0.05"
         />
@@ -148,13 +148,13 @@ onMounted(() => {
               cx="30"
               cy="30"
               r="26"
-              stroke="#C41E3A"
+              stroke="#fb7185"
               stroke-width="1"
               stroke-dasharray="3 2"
               opacity="0.4"
             />
-            <line x1="20" y1="20" x2="40" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
-            <line x1="40" y1="20" x2="20" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
+            <line x1="20" y1="20" x2="40" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
+            <line x1="40" y1="20" x2="20" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
           </svg>
         </div>
         <p class="error-text">{{ error }}</p>
@@ -203,7 +203,7 @@ onMounted(() => {
               cx="40"
               cy="40"
               r="35"
-              stroke="#D4A84B"
+              stroke="#cbd5e1"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.3"
@@ -212,16 +212,16 @@ onMounted(() => {
               cx="40"
               cy="40"
               r="20"
-              stroke="#D4A84B"
+              stroke="#cbd5e1"
               stroke-width="0.5"
               stroke-dasharray="1 4"
               opacity="0.2"
             />
-            <circle cx="40" cy="40" r="4" fill="#D4A84B" opacity="0.3" />
-            <circle cx="20" cy="25" r="2" fill="#D4A84B" opacity="0.4" />
-            <circle cx="60" cy="22" r="2.5" fill="#D4A84B" opacity="0.3" />
-            <circle cx="62" cy="55" r="2" fill="#D4A84B" opacity="0.35" />
-            <circle cx="22" cy="58" r="2.5" fill="#D4A84B" opacity="0.3" />
+            <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.4" />
+            <circle cx="60" cy="22" r="2.5" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="62" cy="55" r="2" fill="#cbd5e1" opacity="0.35" />
+            <circle cx="22" cy="58" r="2.5" fill="#cbd5e1" opacity="0.3" />
           </svg>
         </div>
         <p class="empty-title">暂无历史记录</p>
@@ -272,7 +272,7 @@ onMounted(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.35);
+  color: rgba(203, 213, 225, 0.35);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -302,7 +302,7 @@ onMounted(() => {
 .chart-card {
   position: relative;
   background: linear-gradient(160deg, rgba(25, 20, 40, 0.95), rgba(12, 10, 22, 0.98));
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 16px;
   padding: 1rem 1.125rem;
   cursor: pointer;
@@ -313,17 +313,17 @@ onMounted(() => {
 .card-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(212, 168, 75, 0.04), transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(203, 213, 225, 0.04), transparent 70%);
   opacity: 0;
   transition: opacity 0.3s;
 }
 
 .chart-card:hover {
-  border-color: rgba(212, 168, 75, 0.3);
+  border-color: rgba(203, 213, 225, 0.3);
   transform: translateY(-2px);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(212, 168, 75, 0.06);
+    0 0 20px rgba(203, 213, 225, 0.06);
 }
 
 .chart-card:hover .card-glow {
@@ -341,8 +341,8 @@ onMounted(() => {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--gold), #b8860b);
-  color: #0a0815;
+  background: linear-gradient(135deg, var(--accent), #94a3b8);
+  color: #030404;
   font-size: 1rem;
   font-weight: 700;
   display: flex;
@@ -374,11 +374,11 @@ onMounted(() => {
 .meta-tag {
   display: inline-block;
   padding: 0.1rem 0.5rem;
-  background: rgba(212, 168, 75, 0.08);
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  background: rgba(203, 213, 225, 0.08);
+  border: 1px solid rgba(203, 213, 225, 0.1);
   border-radius: 4px;
   font-size: 0.7rem;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
 }
 
 .meta-sep {
@@ -395,7 +395,7 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(212, 168, 75, 0.05);
+  border-top: 1px solid rgba(203, 213, 225, 0.05);
 }
 
 .action-btn {
@@ -405,18 +405,18 @@ onMounted(() => {
   font-size: 0.72rem;
   padding: 0.35rem 0.875rem;
   border-radius: 20px;
-  border: 1px solid rgba(212, 168, 75, 0.15);
-  background: rgba(212, 168, 75, 0.04);
-  color: var(--gold);
+  border: 1px solid rgba(203, 213, 225, 0.15);
+  background: rgba(203, 213, 225, 0.04);
+  color: var(--accent);
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background: rgba(212, 168, 75, 0.1);
-  border-color: rgba(212, 168, 75, 0.3);
-  box-shadow: 0 0 12px rgba(212, 168, 75, 0.1);
+  background: rgba(203, 213, 225, 0.1);
+  border-color: rgba(203, 213, 225, 0.3);
+  box-shadow: 0 0 12px rgba(203, 213, 225, 0.1);
 }
 
 .btn-icon {
@@ -454,7 +454,7 @@ onMounted(() => {
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: white;
   border: none;
   border-radius: 8px;
@@ -462,12 +462,12 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(196, 30, 58, 0.2);
+  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.2);
 }
 
 .btn-retry:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.3);
+  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.3);
 }
 
 /* Pagination */
@@ -481,7 +481,7 @@ onMounted(() => {
 
 .page-btn {
   padding: 0.4rem 1rem;
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  border: 1px solid rgba(203, 213, 225, 0.1);
   background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
   font-size: 0.8rem;
@@ -491,9 +491,9 @@ onMounted(() => {
 }
 
 .page-btn:not(:disabled):hover {
-  border-color: rgba(212, 168, 75, 0.3);
-  color: var(--gold);
-  background: rgba(212, 168, 75, 0.04);
+  border-color: rgba(203, 213, 225, 0.3);
+  color: var(--accent);
+  background: rgba(203, 213, 225, 0.04);
 }
 
 .page-btn:disabled {
@@ -539,21 +539,21 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #d4a84b, #b8860b);
-  color: #0a0815;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  color: #030404;
   font-weight: 700;
   font-size: 0.9rem;
   border: none;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 20px rgba(212, 168, 75, 0.25);
+  box-shadow: 0 4px 20px rgba(203, 213, 225, 0.25);
   text-decoration: none;
   letter-spacing: 1px;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(212, 168, 75, 0.4);
+  box-shadow: 0 8px 32px rgba(203, 213, 225, 0.4);
 }
 </style>

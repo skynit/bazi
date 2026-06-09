@@ -10,11 +10,11 @@ defineProps<{
 }>()
 
 const elementMap: Record<string, { color: string; chinese: string; symbol: string }> = {
-  金: { color: '#FFD700', chinese: '金', symbol: '◇' },
-  木: { color: '#228B22', chinese: '木', symbol: '♠' },
-  水: { color: '#4169E1', chinese: '水', symbol: '⬡' },
-  火: { color: '#DC143C', chinese: '火', symbol: '▲' },
-  土: { color: '#DAA520', chinese: '土', symbol: '◆' },
+  金: { color: '#cbd5e1', chinese: '金', symbol: '◇' },
+  木: { color: '#34d399', chinese: '木', symbol: '♠' },
+  水: { color: '#22d3ee', chinese: '水', symbol: '⬡' },
+  火: { color: '#fb7185', chinese: '火', symbol: '▲' },
+  土: { color: '#fde68a', chinese: '土', symbol: '◆' },
 }
 </script>
 
@@ -67,13 +67,13 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .header-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 75, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.15), transparent);
 }
 
 .header-text {
   font-size: 0.72rem;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
   text-transform: uppercase;
 }
 
@@ -98,7 +98,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 }
 
 .element-card:hover {
-  border-color: rgba(212, 168, 75, 0.2);
+  border-color: rgba(203, 213, 225, 0.2);
   transform: translateY(-2px);
 }
 
@@ -109,7 +109,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .card-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, rgba(212, 168, 75, 0.04), transparent 70%);
+  background: radial-gradient(circle at 50% 30%, rgba(203, 213, 225, 0.04), transparent 70%);
   opacity: 0;
   transition: opacity 0.3s;
 }

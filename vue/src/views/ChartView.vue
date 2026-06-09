@@ -4,6 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import client from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ComputationLog from '../components/ComputationLog.vue'
+import ShinyButton from '../components/ShinyButton.vue'
 
 interface SavedChart {
   id: number
@@ -21,6 +24,8 @@ const isNew = computed(() => route.params.id === 'new')
 const chartData = ref<any>(null)
 const loading = ref(false)
 const error = ref('')
+const showComputation = ref(false)
+const computationDone = ref(false)
 
 const savedCharts = ref<SavedChart[]>([])
 const showPicker = ref(false)
@@ -44,6 +49,9 @@ function tryLoadChart() {
     if (raw) {
       chartData.value = JSON.parse(raw)
       sessionStorage.removeItem('lastChart')
+      // Trigger computation animation for newly submitted chart
+      showComputation.value = true
+      computationDone.value = false
     } else {
       fetchSavedCharts()
     }
@@ -87,6 +95,9 @@ async function selectChart(chart: SavedChart) {
     })
     chartData.value = res.data
     showPicker.value = false
+    // Trigger computation animation
+    showComputation.value = true
+    computationDone.value = false
     // Save as last birth for future use
     localStorage.setItem('bazi_last_birth', JSON.stringify({
       year: chart.birth_year,
@@ -134,80 +145,16 @@ function goFortune() {
 function goZiWei() {
   router.push(`/ziwei/${chartData.value.id}`)
 }
+
+function onComputationComplete(): void {
+  computationDone.value = true
+  showComputation.value = false
+}
 </script>
 <template>
   <div class="chart-page">
-    <!-- Constellation background -->
-    <div class="bg-constellation" aria-hidden="true">
-      <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
-        <defs>
-          <radialGradient id="chart-nebula" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#D4A84B" stop-opacity="0.07" />
-            <stop offset="100%" stop-color="#D4A84B" stop-opacity="0" />
-          </radialGradient>
-          <radialGradient id="chart-nebula2" cx="80%" cy="60%" r="40%">
-            <stop offset="0%" stop-color="#C41E3A" stop-opacity="0.04" />
-            <stop offset="100%" stop-color="#C41E3A" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        <ellipse cx="720" cy="360" rx="700" ry="400" fill="url(#chart-nebula)" />
-        <ellipse cx="1100" cy="500" rx="400" ry="350" fill="url(#chart-nebula2)" />
-        <circle cx="150" cy="120" r="1.2" fill="#D4A84B" opacity="0.35" />
-        <circle cx="600" cy="80" r="0.8" fill="#fff" opacity="0.25" />
-        <circle cx="900" cy="150" r="1" fill="#D4A84B" opacity="0.4" />
-        <circle cx="1200" cy="100" r="1.3" fill="#D4A84B" opacity="0.35" />
-        <circle cx="250" cy="350" r="1.8" fill="#D4A84B" opacity="0.5" filter="url(#star-glow)" />
-        <circle cx="720" cy="450" r="2.2" fill="#D4A84B" opacity="0.6" filter="url(#star-glow)" />
-        <circle cx="1100" cy="380" r="1.5" fill="#D4A84B" opacity="0.45" />
-        <circle cx="500" cy="700" r="1.6" fill="#D4A84B" opacity="0.5" />
-        <circle cx="1000" cy="650" r="1.4" fill="#D4A84B" opacity="0.4" />
-        <circle cx="80" cy="600" r="0.9" fill="#D4A84B" opacity="0.3" />
-        <circle cx="1350" cy="700" r="1.1" fill="#D4A84B" opacity="0.35" />
-        <line
-          x1="250"
-          y1="350"
-          x2="720"
-          y2="450"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.12"
-        />
-        <line
-          x1="720"
-          y1="450"
-          x2="1100"
-          y2="380"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.1"
-        />
-        <line
-          x1="600"
-          y1="80"
-          x2="900"
-          y2="150"
-          stroke="#D4A84B"
-          stroke-width="0.4"
-          opacity="0.08"
-        />
-        <line
-          x1="250"
-          y1="350"
-          x2="500"
-          y2="700"
-          stroke="#D4A84B"
-          stroke-width="0.4"
-          opacity="0.06"
-        />
-        <filter id="star-glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </svg>
-    </div>
+    <!-- Background -->
+    <CosmicGrainBackground />
 
     <!-- Header -->
     <header class="chart-header">
@@ -242,7 +189,7 @@ function goZiWei() {
                 cx="40"
                 cy="40"
                 r="35"
-                stroke="#D4A84B"
+                stroke="#cbd5e1"
                 stroke-width="0.5"
                 stroke-dasharray="2 3"
                 opacity="0.4"
@@ -251,18 +198,18 @@ function goZiWei() {
                 cx="40"
                 cy="40"
                 r="20"
-                stroke="#D4A84B"
+                stroke="#cbd5e1"
                 stroke-width="0.5"
                 stroke-dasharray="1 4"
                 opacity="0.3"
               />
-              <circle cx="40" cy="40" r="4" fill="#D4A84B" opacity="0.3" />
-              <circle cx="20" cy="25" r="2" fill="#D4A84B" opacity="0.6" class="star-pulse" />
+              <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
+              <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.6" class="star-pulse" />
               <circle
                 cx="60"
                 cy="22"
                 r="2.5"
-                fill="#D4A84B"
+                fill="#cbd5e1"
                 opacity="0.5"
                 class="star-pulse"
                 style="animation-delay: 0.3s"
@@ -271,7 +218,7 @@ function goZiWei() {
                 cx="62"
                 cy="55"
                 r="2"
-                fill="#D4A84B"
+                fill="#cbd5e1"
                 opacity="0.4"
                 class="star-pulse"
                 style="animation-delay: 0.6s"
@@ -290,7 +237,7 @@ function goZiWei() {
               cx="40"
               cy="40"
               r="35"
-              stroke="#C41E3A"
+              stroke="#fb7185"
               stroke-width="1"
               stroke-dasharray="4 3"
               opacity="0.4"
@@ -300,7 +247,7 @@ function goZiWei() {
               y1="26"
               x2="54"
               y2="54"
-              stroke="#C41E3A"
+              stroke="#fb7185"
               stroke-width="2.5"
               opacity="0.5"
             />
@@ -309,7 +256,7 @@ function goZiWei() {
               y1="26"
               x2="26"
               y2="54"
-              stroke="#C41E3A"
+              stroke="#fb7185"
               stroke-width="2.5"
               opacity="0.5"
             />
@@ -395,17 +342,19 @@ function goZiWei() {
         </template>
       </div>
 
+      <!-- Computation log animation -->
+      <div v-if="showComputation && !computationDone" class="computation-wrapper">
+        <ComputationLog :chart-data="chartData" @complete="onComputationComplete" />
+      </div>
+
       <!-- Chart display -->
-      <div v-else-if="chartData" class="chart-result">
+      <div v-else-if="chartData && (!showComputation || computationDone)" class="chart-result">
         <BaziChart :chart="chartData" />
 
         <!-- Action buttons -->
         <div class="action-row">
           <div class="action-glow"></div>
-          <button class="btn-primary" @click="goFortune">
-            <span class="btn-icon">✦</span>
-            查看运势
-          </button>
+          <ShinyButton text="查看运势" @click="goFortune" />
           <button class="btn-secondary" @click="goZiWei">
             <span class="btn-icon-secondary">☯</span>
             紫微斗数
@@ -436,22 +385,19 @@ function goZiWei() {
               cx="40"
               cy="40"
               r="35"
-              stroke="#D4A84B"
+              stroke="#cbd5e1"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.3"
             />
-            <circle cx="40" cy="40" r="4" fill="#D4A84B" opacity="0.3" />
-            <circle cx="20" cy="25" r="2" fill="#D4A84B" opacity="0.4" />
-            <circle cx="60" cy="22" r="2.5" fill="#D4A84B" opacity="0.3" />
-            <circle cx="62" cy="55" r="2" fill="#D4A84B" opacity="0.35" />
+            <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.4" />
+            <circle cx="60" cy="22" r="2.5" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="62" cy="55" r="2" fill="#cbd5e1" opacity="0.35" />
           </svg>
         </div>
         <p class="empty-title">未找到命盘</p>
-        <router-link to="/chart/new" class="btn-primary">
-          <span class="btn-icon">✦</span>
-          创建新的命盘
-        </router-link>
+        <ShinyButton text="创建新的命盘" size="md" @click="router.push('/chart/new')" />
       </div>
     </main>
   </div>
@@ -466,25 +412,18 @@ function goZiWei() {
 }
 
 /* Background */
-.bg-constellation {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.constellation-svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
+.computation-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
 }
 
 /* Header */
 .chart-header {
   position: relative;
   z-index: 1;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.08);
   background: rgba(10, 8, 21, 0.6);
   backdrop-filter: blur(20px);
 }
@@ -504,14 +443,14 @@ function goZiWei() {
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
   text-decoration: none;
   transition: color 0.2s;
   letter-spacing: 1px;
 }
 
 .back-link:hover {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .header-title-block {
@@ -521,7 +460,7 @@ function goZiWei() {
 .header-eyebrow {
   font-size: 9px;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
   text-transform: uppercase;
 }
 
@@ -593,7 +532,7 @@ function goZiWei() {
 
 .loading-text {
   font-size: 12px;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
   letter-spacing: 2px;
 }
 
@@ -620,7 +559,7 @@ function goZiWei() {
 
 .btn-retry {
   padding: 0.5rem 1.75rem;
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: white;
   border: none;
   border-radius: 8px;
@@ -628,12 +567,12 @@ function goZiWei() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(196, 30, 58, 0.25);
+  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.25);
 }
 
 .btn-retry:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.35);
+  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.35);
 }
 
 /* New chart state */
@@ -650,11 +589,11 @@ function goZiWei() {
   align-items: center;
   gap: 8px;
   padding: 0.4rem 1rem;
-  background: rgba(212, 168, 75, 0.06);
-  border: 1px solid rgba(212, 168, 75, 0.15);
+  background: rgba(203, 213, 225, 0.06);
+  border: 1px solid rgba(203, 213, 225, 0.15);
   border-radius: 20px;
   font-size: 0.75rem;
-  color: rgba(212, 168, 75, 0.6);
+  color: rgba(203, 213, 225, 0.6);
   letter-spacing: 1px;
 }
 
@@ -662,8 +601,8 @@ function goZiWei() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(212, 168, 75, 0.5);
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(203, 213, 225, 0.5);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -698,7 +637,7 @@ function goZiWei() {
   position: absolute;
   width: 300px;
   height: 60px;
-  background: radial-gradient(circle, rgba(212, 168, 75, 0.06), transparent 70%);
+  background: radial-gradient(circle, rgba(203, 213, 225, 0.06), transparent 70%);
   pointer-events: none;
 }
 
@@ -707,22 +646,22 @@ function goZiWei() {
   align-items: center;
   gap: 8px;
   padding: 0.875rem 2.5rem;
-  background: linear-gradient(135deg, #d4a84b, #b8860b);
-  color: #0a0815;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  color: #030404;
   font-weight: 700;
   font-size: 0.95rem;
   border: none;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 24px rgba(212, 168, 75, 0.25);
+  box-shadow: 0 4px 24px rgba(203, 213, 225, 0.25);
   text-decoration: none;
   letter-spacing: 1px;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 36px rgba(212, 168, 75, 0.4);
+  box-shadow: 0 8px 36px rgba(203, 213, 225, 0.4);
 }
 
 .btn-secondary {
@@ -731,10 +670,10 @@ function goZiWei() {
   gap: 8px;
   padding: 0.875rem 2rem;
   background: transparent;
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 600;
   font-size: 0.95rem;
-  border: 1px solid rgba(212, 168, 75, 0.25);
+  border: 1px solid rgba(203, 213, 225, 0.25);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
@@ -742,9 +681,9 @@ function goZiWei() {
 }
 
 .btn-secondary:hover {
-  border-color: rgba(212, 168, 75, 0.5);
-  background: rgba(212, 168, 75, 0.06);
-  box-shadow: 0 0 20px rgba(212, 168, 75, 0.1);
+  border-color: rgba(203, 213, 225, 0.5);
+  background: rgba(203, 213, 225, 0.06);
+  box-shadow: 0 0 20px rgba(203, 213, 225, 0.1);
 }
 
 .btn-icon {
@@ -772,7 +711,7 @@ function goZiWei() {
 }
 
 .link-text:hover {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 /* Empty state */
@@ -833,11 +772,11 @@ function goZiWei() {
   align-items: center;
   gap: 8px;
   padding: 0.4rem 1rem;
-  background: rgba(212, 168, 75, 0.06);
-  border: 1px solid rgba(212, 168, 75, 0.15);
+  background: rgba(203, 213, 225, 0.06);
+  border: 1px solid rgba(203, 213, 225, 0.15);
   border-radius: 20px;
   font-size: 0.75rem;
-  color: rgba(212, 168, 75, 0.6);
+  color: rgba(203, 213, 225, 0.6);
   letter-spacing: 1px;
 }
 
@@ -858,18 +797,18 @@ function goZiWei() {
 }
 
 .picker-row:hover {
-  border-color: rgba(212, 168, 75, 0.3);
+  border-color: rgba(203, 213, 225, 0.3);
   transform: translateY(-1px);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.2),
-    0 0 16px rgba(212, 168, 75, 0.06);
+    0 0 16px rgba(203, 213, 225, 0.06);
 }
 
 .picker-avatar {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--gold), #b8860b);
+  background: linear-gradient(135deg, var(--accent), #94a3b8);
   color: #0a0815;
   font-size: 1rem;
   font-weight: 700;
@@ -901,13 +840,13 @@ function goZiWei() {
 }
 
 .picker-arrow {
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
   flex-shrink: 0;
   transition: color 0.2s, transform 0.2s;
 }
 
 .picker-row:hover .picker-arrow {
-  color: var(--gold);
+  color: var(--accent);
   transform: translateX(2px);
 }
 
@@ -923,7 +862,7 @@ function goZiWei() {
 .divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 75, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.12), transparent);
 }
 
 .divider-text {
@@ -939,10 +878,10 @@ function goZiWei() {
   gap: 8px;
   padding: 0.75rem 2.5rem;
   background: transparent;
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 600;
   font-size: 0.9rem;
-  border: 1px solid rgba(212, 168, 75, 0.25);
+  border: 1px solid rgba(203, 213, 225, 0.25);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
@@ -950,9 +889,9 @@ function goZiWei() {
 }
 
 .btn-new-chart:hover {
-  border-color: rgba(212, 168, 75, 0.5);
-  background: rgba(212, 168, 75, 0.06);
-  box-shadow: 0 0 20px rgba(212, 168, 75, 0.12);
+  border-color: rgba(203, 213, 225, 0.5);
+  background: rgba(203, 213, 225, 0.06);
+  box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
   transform: translateY(-1px);
 }
 

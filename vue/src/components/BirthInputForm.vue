@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
+import ShinyButton from './ShinyButton.vue'
 
 const router = useRouter()
 const errMsg = ref('')
@@ -89,7 +90,7 @@ async function handleSubmit() {
         <!-- Gender toggle -->
         <div class="gender-toggle">
           <button
-            :class="form.gender === 'male' ? 'btn-gold' : 'btn-ghost'"
+            :class="form.gender === 'male' ? 'btn-tech' : 'btn-ghost'"
             class="toggle-btn"
             @click="form.gender = 'male'"
           >
@@ -97,7 +98,7 @@ async function handleSubmit() {
             男
           </button>
           <button
-            :class="form.gender === 'female' ? 'btn-gold' : 'btn-ghost'"
+            :class="form.gender === 'female' ? 'btn-tech' : 'btn-ghost'"
             class="toggle-btn"
             @click="form.gender = 'female'"
           >
@@ -136,10 +137,7 @@ async function handleSubmit() {
         <p v-if="errMsg" class="error-msg">{{ errMsg }}</p>
 
         <!-- Submit -->
-        <button class="btn-gold btn-submit" :disabled="loading" @click="handleSubmit">
-          <span v-if="loading" class="loading-spinner"></span>
-          <span v-else>✦ {{ loading ? '排盘中...' : '开始排盘' }}</span>
-        </button>
+        <ShinyButton text="启动命运解构" size="lg" :disabled="loading" @click="handleSubmit" />
       </div>
     </div>
   </div>
@@ -167,15 +165,15 @@ async function handleSubmit() {
   justify-content: center;
   height: 70px;
   position: relative;
-  background: linear-gradient(180deg, rgba(212, 168, 75, 0.06), transparent);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  background: linear-gradient(180deg, rgba(203, 213, 225, 0.06), transparent);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.06);
 }
 
 .ornament-ring {
   position: absolute;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 50%;
   animation: ring-pulse 3s ease-in-out infinite;
 }
@@ -194,18 +192,18 @@ async function handleSubmit() {
 
 .ornament-symbol {
   font-size: 1.75rem;
-  color: var(--gold);
-  text-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
   animation: symbol-glow 3s ease-in-out infinite;
 }
 
 @keyframes symbol-glow {
   0%,
   100% {
-    text-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+    text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
   }
   50% {
-    text-shadow: 0 0 35px rgba(212, 168, 75, 0.6);
+    text-shadow: 0 0 35px rgba(203, 213, 225, 0.6);
   }
 }
 
@@ -267,7 +265,7 @@ async function handleSubmit() {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
   text-transform: uppercase;
 }
 

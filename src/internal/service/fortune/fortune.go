@@ -41,10 +41,20 @@ type DailyFortune struct {
 	Ji              []model.YiJiItem     `json:"ji"`
 	ShengKe         ShengKeAnalysis      `json:"sheng_ke"`
 	ElementImages   []model.ElementImage `json:"element_images"`
-	TodayElements   map[string]int       `json:"today_elements"` // 今日五行分布 {金木水火土}
-	SeasonElementAdvice string           `json:"season_element_advice"` // 五行四时调候建议
-	FlowImpact      string               `json:"flow_impact"`          // 流通对日主影响
-	Rikuyo          *RikuyoResult        `json:"rikuyo"`               // 日课推算结果
+	TodayElements   map[string]int       `json:"today_elements"`
+	SeasonElementAdvice string           `json:"season_element_advice"`
+	FlowImpact      string               `json:"flow_impact"`
+	Rikuyo          *RikuyoResult        `json:"rikuyo"`
+	LunarDate       string               `json:"lunar_date"`
+	WeekDay         string               `json:"week_day"`
+	ShengXiao       string               `json:"sheng_xiao"`
+	JiShen          string               `json:"ji_shen"`
+	XiongShen       string               `json:"xiong_shen"`
+	TaiShen         string               `json:"tai_shen"`
+	WuXing          string               `json:"wu_xing"`
+	PengZu          string               `json:"peng_zu"`
+	Gua             string               `json:"gua"`
+	JieQi           string               `json:"jie_qi"`
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
@@ -228,6 +238,9 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 	// 日课推算
 	rikuyo := CalcRikuyo(userChart, queryDate, birthYear)
 
+	// 黄历数据（通过 tyme4go 获取）
+	almanac := getAlmanacData(qYear, qMonth, qDay)
+
 	return &DailyFortune{
 		Date:            queryDate.Format("2006-01-02"),
 		DayPillar:       dayPillar,
@@ -245,6 +258,16 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 		SeasonElementAdvice: getSeasonElementAdvice(userChart.DayPillar.Gan, ec.GetMonth().GetEarthBranch().GetName()),
 		FlowImpact:      analyzeDayFlowImpact(userChart, dayPillar),
 		Rikuyo:          rikuyo,
+		LunarDate:       almanac.LunarDate,
+		WeekDay:         almanac.WeekDay,
+		ShengXiao:       almanac.ShengXiao,
+		JiShen:          almanac.JiShen,
+		XiongShen:       almanac.XiongShen,
+		TaiShen:         almanac.TaiShen,
+		WuXing:          almanac.WuXing,
+		PengZu:          almanac.PengZu,
+		Gua:             almanac.Gua,
+		JieQi:           almanac.JieQi,
 	}
 }
 
@@ -917,4 +940,76 @@ func calcFiveElements(ec *tyme.EightChar) map[string]int {
 		}
 	}
 	return scores
+}
+
+type AlmanacData struct {
+	LunarDate string
+	WeekDay   string
+	ShengXiao string
+	JiShen    string
+	XiongShen string
+	TaiShen   string
+	WuXing    string
+	PengZu    string
+	Gua       string
+	JieQi     string
+}
+
+func getAlmanacData(year, month, day int) AlmanacData {
+	solar, err := tyme.SolarDay{}.FromYmd(year, month, day)
+	if err != nil {
+		return AlmanacData{}
+	}
+
+	lunar := solar.GetLunarDay()
+	scd := solar.GetSixtyCycleDay()
+
+	var lunarStr string
+	lMonth := lunar.GetLunarMonth()
+	lYear := lMonth.GetLunarYear()
+	lunarStr = lYear.GetSixtyCycle().GetHeavenStem().GetName() +
+		lYear.GetSixtyCycle().GetEarthBranch().GetName() + "年" +
+		lMonth.GetName() + lunar.GetName()
+
+	weekName := "星期" + solar.GetWeek().GetName()
+
+	zodiac := tyme.Zodiac{}.FromIndex(scd.GetYear().GetEarthBranch().GetIndex())
+	shengXiao := zodiac.GetName()
+
+	var jiShens, xiongShens []string
+	gods, err := scd.GetGods()
+	if err == nil {
+		for _, g := range gods {
+			if g.GetLuck().GetIndex() == 0 {
+				jiShens = append(jiShens, g.GetName())
+			} else {
+				xiongShens = append(xiongShens, g.GetName())
+			}
+		}
+	}
+
+	taiShen := scd.GetFetusDay().GetName()
+
+	pengZu := tyme.PengZu{}.FromSixtyCycle(scd.GetSixtyCycle()).GetName()
+
+	wuXing := scd.GetSixtyCycle().GetHeavenStem().GetElement().GetName() +
+		scd.GetSixtyCycle().GetEarthBranch().GetElement().GetName()
+
+	nineStar := scd.GetNineStar()
+	gua := nineStar.GetName() + nineStar.GetColor() + nineStar.GetElement().GetName()
+
+	jieQi := solar.GetTerm().GetName()
+
+	return AlmanacData{
+		LunarDate: lunarStr,
+		WeekDay:   weekName,
+		ShengXiao: shengXiao,
+		JiShen:    strings.Join(jiShens, " "),
+		XiongShen: strings.Join(xiongShens, " "),
+		TaiShen:   taiShen,
+		WuXing:    wuXing,
+		PengZu:    pengZu,
+		Gua:       gua,
+		JieQi:     jieQi,
+	}
 }

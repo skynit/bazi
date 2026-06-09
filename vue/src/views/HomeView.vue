@@ -2,11 +2,93 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+
+type WuxingKey = 'mu' | 'huo' | 'tu' | 'jin' | 'shui'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const savedChartId = ref<number | null>(null)
+const currentYongshen = ref<WuxingKey>('mu')
+const mounted = ref(false)
+
+const earthlyBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+/**
+ * 五行主题配置
+ * ⚡️ 坐标重构：将光源精准下放到圆盘底弧（Y: 90% - 98%），使其在屏幕顶部完美显现
+ * ⚡️ 错位混色：引入邻近色（如木局配蔚蓝，火局配妖姬紫），打造极光般高级的数字流动感
+ */
+const wuxingThemes: Record<string, {
+  accentText: string
+  lineColor: string
+  glyphColor: string
+  domeBg: string
+  btnClass: string
+  dotColor: string
+}> = {
+  mu: {
+    accentText: 'text-emerald-400 font-bold tracking-widest drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]',
+    lineColor: 'stroke-emerald-400/50',
+    glyphColor: 'fill-emerald-300 font-medium drop-shadow-[0_0_4px_rgba(52,211,153,0.4)]',
+    domeBg: `
+      radial-gradient(750px circle at 30% 95%, #00ffaa 0%, rgba(0,255,170,0.3) 50%, transparent 100%),
+      radial-gradient(650px circle at 70% 92%, #0ea5e9 0%, rgba(14,165,233,0.2) 50%, transparent 100%),
+      radial-gradient(750px circle at 50% 98%, #10b981 0%, rgba(16,185,129,0.4) 50%, transparent 100%)
+    `,
+    btnClass: 'bg-emerald-400 text-zinc-950 font-bold shadow-[0_10px_35px_rgba(0,255,170,0.5)] hover:bg-emerald-300 hover:scale-[1.02]',
+    dotColor: 'bg-emerald-400 shadow-[0_0_10px_rgba(0,255,170,1)]'
+  },
+  huo: {
+    accentText: 'text-rose-400 font-bold tracking-widest drop-shadow-[0_0_12px_rgba(251,113,133,0.6)]',
+    lineColor: 'stroke-rose-400/50',
+    glyphColor: 'fill-rose-300 font-medium',
+    domeBg: `
+      radial-gradient(750px circle at 25% 95%, #ff3366 0%, rgba(255,51,102,0.3) 50%, transparent 100%),
+      radial-gradient(650px circle at 75% 92%, #a855f7 0%, rgba(168,85,247,0.2) 50%, transparent 100%),
+      radial-gradient(750px circle at 50% 98%, #f43f5e 0%, rgba(244,63,94,0.4) 50%, transparent 100%)
+    `,
+    btnClass: 'bg-rose-400 text-zinc-950 font-bold shadow-[0_10px_35px_rgba(251,113,133,0.5)] hover:bg-rose-300',
+    dotColor: 'bg-rose-400 shadow-[0_0_10px_rgba(255,51,102,1)]'
+  },
+  tu: {
+    accentText: 'text-amber-400 font-bold tracking-widest drop-shadow-[0_0_12px_rgba(252,211,77,0.6)]',
+    lineColor: 'stroke-amber-400/50',
+    glyphColor: 'fill-amber-300 font-medium',
+    domeBg: `
+      radial-gradient(750px circle at 30% 95%, #ffaa00 0%, rgba(255,170,0,0.3) 50%, transparent 100%),
+      radial-gradient(650px circle at 70% 92%, #f97316 0%, rgba(249,115,22,0.2) 50%, transparent 100%),
+      radial-gradient(750px circle at 50% 98%, #d97706 0%, rgba(217,119,6,0.4) 50%, transparent 100%)
+    `,
+    btnClass: 'bg-amber-400 text-zinc-950 font-bold shadow-[0_10px_35px_rgba(252,211,77,0.5)] hover:bg-amber-300',
+    dotColor: 'bg-amber-400 shadow-[0_0_10px_rgba(255,170,0,1)]'
+  },
+  jin: {
+    accentText: 'text-zinc-100 font-bold tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]',
+    lineColor: 'stroke-zinc-300/60',
+    glyphColor: 'fill-zinc-100 font-medium',
+    domeBg: `
+      radial-gradient(750px circle at 25% 95%, #ffffff 0%, rgba(255,255,255,0.4) 50%, transparent 100%),
+      radial-gradient(650px circle at 75% 92%, #e4e4e7 0%, rgba(228,228,231,0.2) 50%, transparent 100%),
+      radial-gradient(750px circle at 50% 98%, #a1a1aa 0%, rgba(161,161,170,0.3) 50%, transparent 100%)
+    `,
+    btnClass: 'bg-zinc-100 text-zinc-950 font-bold shadow-[0_10px_35px_rgba(244,244,245,0.4)] hover:bg-white',
+    dotColor: 'bg-zinc-100 shadow-[0_0_10px_rgba(255,255,255,0.8)]'
+  },
+  shui: {
+    accentText: 'text-cyan-400 font-bold tracking-widest drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]',
+    lineColor: 'stroke-cyan-400/50',
+    glyphColor: 'fill-cyan-300 font-medium',
+    domeBg: `
+      radial-gradient(750px circle at 28% 95%, #00f0ff 0%, rgba(0,240,255,0.4) 50%, transparent 100%),
+      radial-gradient(650px circle at 72% 92%, #3b82f6 0%, rgba(59,130,246,0.2) 50%, transparent 100%),
+      radial-gradient(750px circle at 50% 98%, #1d4ed8 0%, rgba(29,78,216,0.3) 50%, transparent 100%)
+    `,
+    btnClass: 'bg-cyan-400 text-zinc-950 font-bold shadow-[0_10px_35px_rgba(34,211,238,0.5)] hover:bg-cyan-300',
+    dotColor: 'bg-cyan-400 shadow-[0_0_10px_rgba(0,240,255,1)]'
+  }
+}
 
 onMounted(async () => {
   if (authStore.isLoggedIn() && !authStore.user) {
@@ -14,546 +96,292 @@ onMounted(async () => {
   }
   const saved = localStorage.getItem('bazi_last_birth')
   if (saved) {
-    try {
-      savedChartId.value = JSON.parse(saved).chartId || null
-    } catch {}
+    try { savedChartId.value = JSON.parse(saved).chartId || null } catch {}
   }
+  setTimeout(() => mounted.value = true, 100)
 })
 
-function startChart() {
-  router.push('/chart/new')
-}
-
-function continueChart() {
-  if (savedChartId.value) router.push(`/chart/${savedChartId.value}`)
-}
+function startChart() { router.push('/chart/new') }
+function continueChart() { if (savedChartId.value) router.push(`/chart/${savedChartId.value}`) }
 </script>
 
 <template>
-  <div class="home-page">
-    <!-- Animated star-field background -->
-    <div class="star-field" aria-hidden="true">
-      <svg class="stars-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <radialGradient id="nebula-gold" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#D4A84B" stop-opacity="0.08" />
-            <stop offset="100%" stop-color="#D4A84B" stop-opacity="0" />
-          </radialGradient>
-          <radialGradient id="nebula-crimson" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#C41E3A" stop-opacity="0.06" />
-            <stop offset="100%" stop-color="#C41E3A" stop-opacity="0" />
-          </radialGradient>
-          <filter id="star-glow">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <!-- Nebula patches -->
-        <ellipse cx="720" cy="400" rx="600" ry="350" fill="url(#nebula-gold)" />
-        <ellipse cx="200" cy="200" rx="300" ry="250" fill="url(#nebula-crimson)" />
-        <!-- Stars - layer 1 (small) -->
-        <circle cx="120" cy="80" r="1" fill="#D4A84B" opacity="0.4" />
-        <circle cx="340" cy="150" r="0.8" fill="#fff" opacity="0.3" />
-        <circle cx="580" cy="60" r="1.2" fill="#D4A84B" opacity="0.5" />
-        <circle cx="800" cy="120" r="0.7" fill="#fff" opacity="0.25" />
-        <circle cx="1000" cy="50" r="1" fill="#D4A84B" opacity="0.35" />
-        <circle cx="1180" cy="180" r="0.9" fill="#fff" opacity="0.3" />
-        <circle cx="1350" cy="90" r="1.1" fill="#D4A84B" opacity="0.4" />
-        <circle cx="200" cy="350" r="0.6" fill="#fff" opacity="0.2" />
-        <circle cx="450" cy="420" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="650" cy="300" r="0.8" fill="#fff" opacity="0.35" />
-        <circle cx="900" cy="380" r="1.3" fill="#D4A84B" opacity="0.45" />
-        <circle cx="1100" cy="320" r="0.7" fill="#fff" opacity="0.2" />
-        <circle cx="1280" cy="450" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="80" cy="600" r="0.9" fill="#D4A84B" opacity="0.35" />
-        <circle cx="300" cy="700" r="1.1" fill="#fff" opacity="0.3" />
-        <circle cx="520" cy="620" r="0.7" fill="#D4A84B" opacity="0.4" />
-        <circle cx="750" cy="750" r="1" fill="#fff" opacity="0.25" />
-        <circle cx="980" cy="680" r="0.8" fill="#D4A84B" opacity="0.3" />
-        <circle cx="1200" cy="720" r="1.2" fill="#fff" opacity="0.35" />
-        <circle cx="1400" cy="600" r="0.9" fill="#D4A84B" opacity="0.4" />
-        <!-- Stars - layer 2 (medium, brighter) -->
-        <circle cx="250" cy="200" r="1.5" fill="#D4A84B" opacity="0.6" filter="url(#star-glow)" />
-        <circle cx="720" cy="450" r="2" fill="#D4A84B" opacity="0.7" filter="url(#star-glow)" />
-        <circle cx="1150" cy="300" r="1.5" fill="#D4A84B" opacity="0.5" filter="url(#star-glow)" />
-        <circle cx="500" cy="800" r="1.8" fill="#D4A84B" opacity="0.6" filter="url(#star-glow)" />
-        <circle cx="1000" cy="600" r="1.6" fill="#D4A84B" opacity="0.55" filter="url(#star-glow)" />
-        <!-- Constellation lines -->
-        <line
-          x1="720"
-          y1="450"
-          x2="900"
-          y2="380"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.15"
-        />
-        <line
-          x1="900"
-          y1="380"
-          x2="1000"
-          y2="50"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.1"
-        />
-        <line
-          x1="720"
-          y1="450"
-          x2="1150"
-          y2="300"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.12"
-        />
-        <line
-          x1="250"
-          y1="200"
-          x2="720"
-          y2="450"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.1"
-        />
-        <line
-          x1="500"
-          y1="800"
-          x2="750"
-          y2="750"
-          stroke="#D4A84B"
-          stroke-width="0.5"
-          opacity="0.08"
-        />
-      </svg>
+  <div class="home-page" :class="{ visible: mounted }">
+    <CosmicGrainBackground :yongshen="currentYongshen" />
+
+    <div class="astrolabe-canopy-layer">
+      <div
+        class="astrolabe-dome"
+        :style="{ '--dome-bg': wuxingThemes[currentYongshen]?.domeBg }"
+      >
+        <div class="sharp-blade-dots"></div>
+        <svg viewBox="0 0 800 800" class="w-full h-full font-serif relative z-10">
+          <g class="animate-[spin_240s_linear_infinite]" style="transform-origin:400px 400px">
+            <circle cx="400" cy="400" r="385" :class="wuxingThemes[currentYongshen]?.lineColor" stroke-width="0.5" fill="none" />
+            <g v-for="(branch, index) in earthlyBranches" :key="branch" :transform="`rotate(${index * 30} 400 400)`">
+              <line x1="400" y1="775" x2="400" y2="785" :class="wuxingThemes[currentYongshen]?.lineColor" stroke-width="0.75" />
+              <text x="400" y="758" text-anchor="middle" :class="wuxingThemes[currentYongshen]?.glyphColor" font-size="13">
+                {{ branch }}
+              </text>
+            </g>
+          </g>
+        </svg>
+      </div>
     </div>
 
-    <!-- Diagonal accent line -->
-    <div class="diagonal-accent" aria-hidden="true"></div>
-
-    <!-- Main content -->
-    <div class="hero-content">
-      <!-- Symbol with glow -->
-      <div class="symbol-wrapper animate-in">
-        <div class="symbol-glow"></div>
-        <div class="symbol-ring"></div>
-        <div class="symbol">☯</div>
+    <main class="hero-main">
+      <div class="status-badge">
+        <span class="status-dot" :class="wuxingThemes[currentYongshen]?.dotColor"></span>
+        <span class="uppercase tracking-widest text-zinc-400">
+          SYSTEM STATUS: <span :class="wuxingThemes[currentYongshen]?.accentText">{{ currentYongshen }}局 ACTIVE</span>
+        </span>
       </div>
 
-      <!-- Title block -->
-      <div class="title-block animate-in delay-1">
+      <div class="title-block">
         <div class="eyebrow">
           <span class="eyebrow-line"></span>
-          <span class="eyebrow-text">ZiWei · BaZi Fortune</span>
+          Ziwei · Bazi Fullstack Reality
           <span class="eyebrow-line"></span>
         </div>
-        <h1 class="hero-title">八字<span class="title-accent">命理</span></h1>
-        <p class="hero-sub">命与运</p>
+        <h1 class="hero-title">
+          以数字之理<br />
+          <span class="title-accent">解构命运之网</span>
+        </h1>
+        <p class="hero-sub">See Further · Think Deeper · Act Faster</p>
       </div>
 
-      <!-- CTA buttons -->
-      <div class="cta-group animate-in delay-2">
-        <button class="btn-primary" @click="startChart">
-          <span class="btn-icon">✦</span>
-          开始排盘
+      <div class="cta-group">
+        <button @click="startChart" :class="wuxingThemes[currentYongshen]?.btnClass" class="btn-primary-base">
+          启动命运解构
         </button>
-        <button v-if="savedChartId" class="btn-secondary" @click="continueChart">
-          <span class="btn-icon-secondary">↻</span>
+        <button v-if="savedChartId" @click="continueChart" class="btn-secondary">
           继续上次
         </button>
       </div>
-
-      <!-- Feature pills -->
-      <div class="features animate-in delay-3">
-        <div class="feature-pill">
-          <span class="pill-dot"></span>
-          命盘分析
-        </div>
-        <div class="pill-sep">·</div>
-        <div class="feature-pill">
-          <span class="pill-dot"></span>
-          运势解读
-        </div>
-        <div class="pill-sep">·</div>
-        <div class="feature-pill">
-          <span class="pill-dot"></span>
-          紫微斗数
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom gradient fade -->
-    <div class="bottom-fade" aria-hidden="true"></div>
+    </main>
   </div>
 </template>
 
 <style scoped>
 .home-page {
   position: relative;
-  min-height: calc(100vh - 56px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: #010201;
+  color: #f4f4f5;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Star field ── */
-.star-field {
+.home-page.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.astrolabe-canopy-layer {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.stars-svg {
-  width: 100%;
-  height: 100%;
+.astrolabe-dome {
+  width: 1500px;
+  height: 1500px;
   position: absolute;
-  inset: 0;
+  top: -70vw;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: #010201; 
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 1);
 }
 
-/* ── Diagonal accent ── */
-.diagonal-accent {
+/* 光晕主体 */
+.astrolabe-dome::before {
+  content: '';
   position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 60%;
-  height: 140%;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    rgba(212, 168, 75, 0.018) 40%,
-    rgba(212, 168, 75, 0.03) 60%,
-    transparent 100%
-  );
-  transform: skewX(-8deg);
+  inset: -10%; 
+  background: var(--dome-bg);
+  filter: blur(60px); /* 适度降低模糊半径，防止高饱和色彩被过度稀释 */
+  opacity: 0.88; /* 增强色彩通透度 */
   z-index: 0;
   pointer-events: none;
+  transition: background 1s ease;
 }
 
-/* ── Bottom fade ── */
-.bottom-fade {
+/* ⚡️ 修复后的暗角融合：改为线性向下过渡，让顶部（虚无区）深邃，底弧（可见区）彻底释放光芒 */
+.astrolabe-dome::after {
+  content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  background: linear-gradient(to top, var(--bg), transparent);
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(1, 2, 1, 0.9) 0%,
+    rgba(1, 2, 1, 0.4) 70%,
+    transparent 100%
+  );
   z-index: 1;
   pointer-events: none;
 }
 
-/* ── Hero content ── */
-.hero-content {
-  position: relative;
+/* 颗粒纹理层 */
+.sharp-blade-dots {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='razorGrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.99' numOctaves='1' result='noise'/%3E%3CfeColorMatrix type='matrix' values='-100 0 0 0 72 -100 0 0 0 72 -100 0 0 0 72 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23razorGrain)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.52;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.hero-main {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding: 40px 24px;
-  max-width: 680px;
-  gap: 32px;
+  max-width: 800px;
+  gap: 48px;
+  margin-top: 120px;
+  transform: translateZ(0);
 }
 
-/* ── Symbol ── */
-.symbol-wrapper {
-  position: relative;
-  display: flex;
+.status-badge {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 120px;
-  height: 120px;
-  animation: float 5s ease-in-out infinite;
+  gap: 10px;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  font-size: 10px;
+  font-family: monospace;
+  backdrop-filter: blur(8px);
 }
 
-.symbol-glow {
-  position: absolute;
-  inset: 0;
+.status-dot {
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 168, 75, 0.12) 0%, transparent 70%);
-  animation: pulse-glow 3s ease-in-out infinite;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.symbol-ring {
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 1px solid rgba(212, 168, 75, 0.15);
-  animation: ring-expand 3s ease-in-out infinite;
-}
-
-@keyframes ring-expand {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.15;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 0.3;
-  }
-}
-
-.symbol {
-  font-size: 4rem;
-  color: var(--gold);
-  text-shadow:
-    0 0 40px rgba(212, 168, 75, 0.5),
-    0 0 80px rgba(212, 168, 75, 0.2);
-  line-height: 1;
-  animation: symbol-pulse 3s ease-in-out infinite;
-}
-
-@keyframes symbol-pulse {
-  0%,
-  100% {
-    text-shadow:
-      0 0 40px rgba(212, 168, 75, 0.5),
-      0 0 80px rgba(212, 168, 75, 0.2);
-  }
-  50% {
-    text-shadow:
-      0 0 60px rgba(212, 168, 75, 0.7),
-      0 0 120px rgba(212, 168, 75, 0.3);
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-/* ── Title block ── */
 .title-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
 }
 
 .eyebrow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  font-size: 10px;
+  font-family: monospace;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #444446;
 }
 
 .eyebrow-line {
   display: block;
-  width: 40px;
+  width: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 75, 0.4));
-}
-
-.eyebrow-line:last-child {
-  background: linear-gradient(90deg, rgba(212, 168, 75, 0.4), transparent);
-}
-
-.eyebrow-text {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.45);
-  text-transform: uppercase;
+  background: rgba(63, 63, 70, 0.3);
 }
 
 .hero-title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: 4.5rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 8px;
+  font-size: 3.8rem;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  color: #f4f4f5;
   margin: 0;
-  line-height: 1.1;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+  padding-left: 0.25em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.95);
 }
 
 .title-accent {
-  color: var(--gold);
-  text-shadow: 0 0 40px rgba(212, 168, 75, 0.4);
+  display: block;
+  margin-top: 8px;
+  color: #ffffff;
 }
 
 .hero-sub {
-  font-size: 1rem;
-  color: var(--muted);
-  letter-spacing: 2px;
+  font-size: 11px;
+  color: #52525b;
+  letter-spacing: 0.4em;
   margin: 0;
+  font-family: monospace;
+  text-transform: uppercase;
 }
 
-/* ── CTA group ── */
-.cta-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 48px;
-  background: linear-gradient(135deg, #d4a84b, #b8860b);
-  color: #0a0815;
-  font-weight: 700;
-  font-size: 1rem;
+.btn-primary-base {
+  width: 210px;
+  padding: 14px 0;
   border: none;
   border-radius: 50px;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow:
-    0 4px 24px rgba(212, 168, 75, 0.3),
-    0 0 0 1px rgba(212, 168, 75, 0.2);
-  letter-spacing: 2px;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(212, 168, 75, 0.45);
-}
-
-.btn-primary:hover::before {
-  left: 100%;
-}
-
-.btn-icon {
-  font-size: 0.8rem;
-  animation: spin-slow 8s linear infinite;
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.btn-primary-base:hover {
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 36px;
-  background: transparent;
-  color: rgba(212, 168, 75, 0.55);
-  font-weight: 500;
-  font-size: 0.9rem;
-  border: 1px solid rgba(212, 168, 75, 0.15);
+  width: 210px;
+  padding: 14px 0;
+  background: rgba(255, 255, 255, 0.03);
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
-  letter-spacing: 1px;
 }
 
 .btn-secondary:hover {
-  color: var(--gold);
-  border-color: rgba(212, 168, 75, 0.4);
-  background: rgba(212, 168, 75, 0.05);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.btn-icon-secondary {
-  font-size: 1rem;
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(0.9); }
 }
 
-/* ── Feature pills ── */
-.features {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+@media (max-width: 1024px) {
+  .astrolabe-dome { width: 1300px; height: 1300px; top: -65vw; }
+  .hero-main { margin-top: 80px; }
+  .hero-title { font-size: 2.8rem; }
 }
 
-.feature-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.18);
-  letter-spacing: 1px;
-  opacity: 0;
-  animation: fadeUp 0.6s ease both;
-}
-
-.feature-pill:nth-child(1) {
-  animation-delay: 0.9s;
-  opacity: 0;
-}
-.feature-pill:nth-child(3) {
-  animation-delay: 1.1s;
-  opacity: 0;
-}
-.feature-pill:nth-child(5) {
-  animation-delay: 1.3s;
-  opacity: 0;
-}
-
-.pill-dot {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(212, 168, 75, 0.3);
-}
-
-.pill-sep {
-  color: rgba(255, 255, 255, 0.08);
-  font-size: 12px;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ── Responsive ── */
-@media (max-width: 600px) {
-  .hero-title {
-    font-size: 3rem;
-    letter-spacing: 4px;
-  }
-  .symbol-wrapper {
-    width: 90px;
-    height: 90px;
-  }
-  .symbol {
-    font-size: 3rem;
-  }
+@media (max-width: 640px) {
+  .astrolabe-dome { width: 900px; height: 900px; top: -85vw; }
+  .hero-main { margin-top: 60px; gap: 36px; }
+  .hero-title { font-size: 2.1rem; letter-spacing: 0.15em; }
 }
 </style>

@@ -18,31 +18,31 @@ const props = defineProps<{
 }>()
 
 const ganElement: Record<string, { name: string; elemColor: string }> = {
-  甲: { name: '木', elemColor: '#228B22' },
-  乙: { name: '木', elemColor: '#228B22' },
-  丙: { name: '火', elemColor: '#DC143C' },
-  丁: { name: '火', elemColor: '#DC143C' },
-  戊: { name: '土', elemColor: '#DAA520' },
-  己: { name: '土', elemColor: '#DAA520' },
-  庚: { name: '金', elemColor: '#FFD700' },
-  辛: { name: '金', elemColor: '#FFD700' },
-  壬: { name: '水', elemColor: '#4169E1' },
-  癸: { name: '水', elemColor: '#4169E1' },
+  甲: { name: '木', elemColor: '#34d399' },
+  乙: { name: '木', elemColor: '#34d399' },
+  丙: { name: '火', elemColor: '#fb7185' },
+  丁: { name: '火', elemColor: '#fb7185' },
+  戊: { name: '土', elemColor: '#fde68a' },
+  己: { name: '土', elemColor: '#fde68a' },
+  庚: { name: '金', elemColor: '#cbd5e1' },
+  辛: { name: '金', elemColor: '#cbd5e1' },
+  壬: { name: '水', elemColor: '#22d3ee' },
+  癸: { name: '水', elemColor: '#22d3ee' },
 }
 
 const zhiElement: Record<string, { name: string; elemColor: string }> = {
-  寅: { name: '木', elemColor: '#228B22' },
-  卯: { name: '木', elemColor: '#228B22' },
-  巳: { name: '火', elemColor: '#DC143C' },
-  午: { name: '火', elemColor: '#DC143C' },
-  辰: { name: '土', elemColor: '#DAA520' },
-  戌: { name: '土', elemColor: '#DAA520' },
-  丑: { name: '土', elemColor: '#DAA520' },
-  未: { name: '土', elemColor: '#DAA520' },
-  申: { name: '金', elemColor: '#FFD700' },
-  酉: { name: '金', elemColor: '#FFD700' },
-  亥: { name: '水', elemColor: '#4169E1' },
-  子: { name: '水', elemColor: '#4169E1' },
+  寅: { name: '木', elemColor: '#34d399' },
+  卯: { name: '木', elemColor: '#34d399' },
+  巳: { name: '火', elemColor: '#fb7185' },
+  午: { name: '火', elemColor: '#fb7185' },
+  辰: { name: '土', elemColor: '#fde68a' },
+  戌: { name: '土', elemColor: '#fde68a' },
+  丑: { name: '土', elemColor: '#fde68a' },
+  未: { name: '土', elemColor: '#fde68a' },
+  申: { name: '金', elemColor: '#cbd5e1' },
+  酉: { name: '金', elemColor: '#cbd5e1' },
+  亥: { name: '水', elemColor: '#22d3ee' },
+  子: { name: '水', elemColor: '#22d3ee' },
 }
 
 const pillars = computed(() => [
@@ -90,7 +90,7 @@ function relationSummary(detail: string): string {
 }
 
 const elemColor = (e: string) =>
-  ({ 金: '#FFD700', 木: '#228B22', 水: '#4169E1', 火: '#DC143C', 土: '#DAA520' })[e] || '#999'
+  ({ 金: '#cbd5e1', 木: '#34d399', 水: '#22d3ee', 火: '#fb7185', 土: '#fde68a' })[e] || '#999'
 
 const pillarLabel = (k: string) => ({ year: '年柱', month: '月柱', day: '日柱', hour: '时柱' }[k] || k)
 
@@ -118,10 +118,10 @@ const globalShenSha = computed(() => (props.chart.global_shen_sha || []).map(par
 const showSummary = computed(() => !!props.chart.shen_sha_summary)
 
 const pillarShenShaColor = (p: string) =>
-  ({ day: 'var(--gold)', year: '#5BA4CF', month: '#60B89A', hour: '#A182CF' }[p] || '#888')
+  ({ day: 'var(--accent)', year: '#5BA4CF', month: '#60B89A', hour: '#A182CF' }[p] || '#888')
 
 const pillarShenShaBg = (p: string) =>
-  ({ day: 'rgba(212,168,75,0.07)', year: 'rgba(91,164,207,0.06)', month: 'rgba(96,184,154,0.06)', hour: 'rgba(161,130,207,0.06)' }[p] || 'rgba(255,255,255,0.02)')
+  ({ day: 'rgba(203,213,225,0.07)', year: 'rgba(91,164,207,0.06)', month: 'rgba(96,184,154,0.06)', hour: 'rgba(161,130,207,0.06)' }[p] || 'rgba(255,255,255,0.02)')
 
 function strengthLevel(total: number): string {
   if (total <= 0) return 'none'
@@ -149,8 +149,8 @@ const fiveElementsOption = computed(() => {
   const total = Object.values(fe as Record<string, number>).reduce((s, v) => s + v, 0)
   if (total === 0) return null
 
-  // 五行配色 — 珠宝色调，呼应项目金色/深色基调
-  const barColors = ['#2ECC71', '#E74C3C', '#D4A84B', '#FFD700', '#3498DB']
+  // 五行配色 — 科技色盘
+  const barColors = ['#34d399', '#fb7185', '#fde68a', '#cbd5e1', '#22d3ee']
   const labels = ['木', '火', '土', '金', '水']
 
   return {
@@ -159,7 +159,7 @@ const fiveElementsOption = computed(() => {
     xAxis: {
       type: 'category',
       data: labels,
-      axisLine: { lineStyle: { color: 'rgba(212,168,75,0.2)' } },
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
       axisTick: { show: false },
       axisLabel: {
         color: 'rgba(240,237,228,0.75)',
@@ -218,8 +218,8 @@ const fiveElementsOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(10,8,21,0.95)',
-      borderColor: 'rgba(212,168,75,0.3)',
+      backgroundColor: 'rgba(3,4,4,0.95)',
+      borderColor: 'rgba(255,255,255,0.1)',
       borderWidth: 1,
       padding: [8, 14],
       textStyle: {
@@ -230,7 +230,7 @@ const fiveElementsOption = computed(() => {
       },
       formatter: (params: any[]) => {
         const p = params[0]
-        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：<span style="color:#D4A84B;font-weight:700">${p.value}</span> 分`
+        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：<span style="color:#cbd5e1;font-weight:700">${p.value}</span> 分`
       },
     },
     animationDuration: 900,
@@ -269,18 +269,18 @@ const chartTabs = [
 
 const tenGodChartOptions = computed(() => {
   const data = props.chart.ten_god_proportion || []
-  // 10 ten gods — warm gold/crimson palette, matching BaZi aesthetic
+  // 10 ten gods — cold-tone tech palette
   const barColors = [
-    '#D4A84B', // 比肩 - gold
-    '#E8C97A', // 劫财 - light gold
+    '#cbd5e1', // 比肩 - chrome silver
+    '#94a3b8', // 劫财 - slate
     '#9B72CF', // 食神 - purple
     '#C85FCF', // 伤官 - magenta
-    '#4A7FBF', // 正财 - steel blue
-    '#2E5A8F', // 偏财 - deep blue
-    '#7B9E87', // 正官 - sage green
-    '#5A7A62', // 七杀 - dark sage
-    '#C93C3C', // 正印 - crimson
-    '#A02020', // 偏印 - deep red
+    '#60a5fa', // 正财 - blue
+    '#3b82f6', // 偏财 - deep blue
+    '#34d399', // 正官 - emerald
+    '#059669', // 七杀 - dark emerald
+    '#fb7185', // 正印 - rose
+    '#e11d48', // 偏印 - deep rose
   ]
   return {
     backgroundColor: 'transparent',
@@ -291,8 +291,8 @@ const tenGodChartOptions = computed(() => {
         const p = params[0]
         return `<span style="color:${p.color};font-weight:700">${p.name}</span>：${p.value}%`
       },
-      backgroundColor: 'rgba(15,12,8,0.92)',
-      borderColor: 'rgba(212,168,75,0.25)',
+      backgroundColor: 'rgba(3,4,4,0.92)',
+      borderColor: 'rgba(255,255,255,0.08)',
       borderWidth: 1,
       padding: [6, 10],
       textStyle: { color: 'rgba(255,255,255,0.75)', fontSize: 12 },
@@ -307,7 +307,7 @@ const tenGodChartOptions = computed(() => {
     xAxis: {
       type: 'category',
       data: data.map((d: any) => d.name),
-      axisLine: { lineStyle: { color: 'rgba(212,168,75,0.15)' } },
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
       axisTick: { show: false },
       axisLabel: {
         color: 'rgba(255,255,255,0.5)',
@@ -365,7 +365,7 @@ const tenGodChartOptions = computed(() => {
         emphasis: {
           itemStyle: {
             shadowBlur: 20,
-            shadowColor: '#D4A84B66',
+            shadowColor: '#cbd5e166',
           },
         },
       },
@@ -382,15 +382,15 @@ const tenGodChartOptions = computed(() => {
     <!-- Constellation decoration -->
     <div class="chart-bg" aria-hidden="true">
       <svg viewBox="0 0 600 200" preserveAspectRatio="xMidYMid slice" class="bg-svg">
-        <circle cx="50" cy="30" r="1" fill="#D4A84B" opacity="0.2" />
-        <circle cx="550" cy="40" r="1.2" fill="#D4A84B" opacity="0.25" />
-        <circle cx="300" cy="100" r="1.5" fill="#D4A84B" opacity="0.15" />
+        <circle cx="50" cy="30" r="1" fill="#cbd5e1" opacity="0.2" />
+        <circle cx="550" cy="40" r="1.2" fill="#cbd5e1" opacity="0.25" />
+        <circle cx="300" cy="100" r="1.5" fill="#cbd5e1" opacity="0.15" />
         <line
           x1="50"
           y1="30"
           x2="300"
           y2="100"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.3"
           opacity="0.05"
         />
@@ -399,7 +399,7 @@ const tenGodChartOptions = computed(() => {
           y1="40"
           x2="300"
           y2="100"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.3"
           opacity="0.05"
         />
@@ -413,49 +413,172 @@ const tenGodChartOptions = computed(() => {
         <h2 class="chart-title">八字命盘</h2>
       </div>
 
-      <!-- Four pillars grid -->
-      <div class="pillars-grid">
-        <div v-for="pillar in pillars" :key="pillar.key" class="pillar-col">
-          <!-- Pillar label -->
-          <div class="pillar-label">{{ pillar.label }}</div>
-
-          <!-- Gan -->
-          <div class="pillar-gan" :style="{ color: ganElement[pillar.gan]?.elemColor }">
-            <div class="gan-char">{{ pillar.gan }}</div>
-            <div
-              class="elem-tag"
-              :style="{
-                background: ganElement[pillar.gan]?.elemColor + '22',
-                color: ganElement[pillar.gan]?.elemColor,
-                borderColor: ganElement[pillar.gan]?.elemColor + '44',
-              }"
-            >
-              {{ ganElement[pillar.gan]?.name }}
+      <!-- Four pillars bento grid -->
+      <div class="pillars-bento">
+        <!-- 年柱卡片 -->
+        <div
+          class="bento-card bento-small"
+          :class="'bento-hover-' + ganElement[pillars[0].gan]?.name"
+        >
+          <div class="bento-label">{{ pillars[0].label }}</div>
+          <div class="bento-body">
+            <div class="bento-gan" :style="{ color: ganElement[pillars[0].gan]?.elemColor }">
+              <span class="bento-char">{{ pillars[0].gan }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: ganElement[pillars[0].gan]?.elemColor + '22',
+                  color: ganElement[pillars[0].gan]?.elemColor,
+                  borderColor: ganElement[pillars[0].gan]?.elemColor + '44',
+                }"
+              >{{ ganElement[pillars[0].gan]?.name }}</span>
             </div>
-          </div>
-
-          <!-- Zhi -->
-          <div class="pillar-zhi" :style="{ color: zhiElement[pillar.zhi]?.elemColor }">
-            <div class="zhi-char">{{ pillar.zhi }}</div>
-            <div
-              class="elem-tag"
-              :style="{
-                background: zhiElement[pillar.zhi]?.elemColor + '22',
-                color: zhiElement[pillar.zhi]?.elemColor,
-                borderColor: zhiElement[pillar.zhi]?.elemColor + '44',
-              }"
-            >
-              {{ zhiElement[pillar.zhi]?.name }}
+            <div class="bento-zhi" :style="{ color: zhiElement[pillars[0].zhi]?.elemColor }">
+              <span class="bento-char">{{ pillars[0].zhi }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: zhiElement[pillars[0].zhi]?.elemColor + '22',
+                  color: zhiElement[pillars[0].zhi]?.elemColor,
+                  borderColor: zhiElement[pillars[0].zhi]?.elemColor + '44',
+                }"
+              >{{ zhiElement[pillars[0].zhi]?.name }}</span>
             </div>
+            <span v-if="chart.ten_gods?.year" class="bento-god-tag">{{ chart.ten_gods.year }}</span>
           </div>
-
-          <!-- ShengXiao + Empties from pillar_details -->
-          <div v-if="pillarDetails[pillar.idx]" class="pillar-sub">
-            <span class="sheng-xiao-tag">{{ pillarDetails[pillar.idx].sheng_xiao }}</span>
-            <span v-if="pillarDetails[pillar.idx].empties[0]" class="empties-tag">
-              空{{ pillarDetails[pillar.idx].empties[0] }}{{ pillarDetails[pillar.idx].empties[1] }}
+          <div v-if="pillarDetails[0]" class="bento-sub">
+            <span class="sheng-xiao-tag">{{ pillarDetails[0].sheng_xiao }}</span>
+            <span v-if="pillarDetails[0].empties[0]" class="empties-tag">
+              空{{ pillarDetails[0].empties[0] }}{{ pillarDetails[0].empties[1] }}
             </span>
           </div>
+        </div>
+
+        <!-- 月柱卡片 -->
+        <div
+          class="bento-card bento-small"
+          :class="'bento-hover-' + ganElement[pillars[1].gan]?.name"
+        >
+          <div class="bento-label">{{ pillars[1].label }}</div>
+          <div class="bento-body">
+            <div class="bento-gan" :style="{ color: ganElement[pillars[1].gan]?.elemColor }">
+              <span class="bento-char">{{ pillars[1].gan }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: ganElement[pillars[1].gan]?.elemColor + '22',
+                  color: ganElement[pillars[1].gan]?.elemColor,
+                  borderColor: ganElement[pillars[1].gan]?.elemColor + '44',
+                }"
+              >{{ ganElement[pillars[1].gan]?.name }}</span>
+            </div>
+            <div class="bento-zhi" :style="{ color: zhiElement[pillars[1].zhi]?.elemColor }">
+              <span class="bento-char">{{ pillars[1].zhi }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: zhiElement[pillars[1].zhi]?.elemColor + '22',
+                  color: zhiElement[pillars[1].zhi]?.elemColor,
+                  borderColor: zhiElement[pillars[1].zhi]?.elemColor + '44',
+                }"
+              >{{ zhiElement[pillars[1].zhi]?.name }}</span>
+            </div>
+            <span v-if="chart.ten_gods?.month" class="bento-god-tag">{{ chart.ten_gods.month }}</span>
+          </div>
+          <div v-if="pillarDetails[1]" class="bento-sub">
+            <span class="sheng-xiao-tag">{{ pillarDetails[1].sheng_xiao }}</span>
+            <span v-if="pillarDetails[1].empties[0]" class="empties-tag">
+              空{{ pillarDetails[1].empties[0] }}{{ pillarDetails[1].empties[1] }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 日柱主卡片 (col-span-2, 流光边框) -->
+        <div class="bento-card bento-day-wrapper">
+          <div class="bento-day-beam" aria-hidden="true"></div>
+          <div
+            class="bento-day-inner"
+            :class="'bento-hover-' + ganElement[pillars[2].gan]?.name"
+          >
+            <div class="bento-label bento-day-label">{{ pillars[2].label }}</div>
+            <div class="bento-day-body">
+              <div class="bento-day-gan" :style="{ color: ganElement[pillars[2].gan]?.elemColor }">
+                <span class="bento-day-char">{{ pillars[2].gan }}</span>
+                <span
+                  class="elem-tag elem-tag-lg"
+                  :style="{
+                    background: ganElement[pillars[2].gan]?.elemColor + '22',
+                    color: ganElement[pillars[2].gan]?.elemColor,
+                    borderColor: ganElement[pillars[2].gan]?.elemColor + '44',
+                  }"
+                >{{ ganElement[pillars[2].gan]?.name }}</span>
+              </div>
+              <div class="bento-day-divider"></div>
+              <div class="bento-day-zhi" :style="{ color: zhiElement[pillars[2].zhi]?.elemColor }">
+                <span class="bento-day-char">{{ pillars[2].zhi }}</span>
+                <span
+                  class="elem-tag elem-tag-lg"
+                  :style="{
+                    background: zhiElement[pillars[2].zhi]?.elemColor + '22',
+                    color: zhiElement[pillars[2].zhi]?.elemColor,
+                    borderColor: zhiElement[pillars[2].zhi]?.elemColor + '44',
+                  }"
+                >{{ zhiElement[pillars[2].zhi]?.name }}</span>
+              </div>
+              <span v-if="chart.ten_gods?.day" class="bento-god-tag bento-god-tag-day">{{ chart.ten_gods.day }}</span>
+            </div>
+            <div v-if="pillarDetails[2]" class="bento-sub bento-day-sub">
+              <span class="sheng-xiao-tag">{{ pillarDetails[2].sheng_xiao }}</span>
+              <span v-if="pillarDetails[2].empties[0]" class="empties-tag">
+                空{{ pillarDetails[2].empties[0] }}{{ pillarDetails[2].empties[1] }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 时柱卡片 -->
+        <div
+          class="bento-card bento-small"
+          :class="'bento-hover-' + ganElement[pillars[3].gan]?.name"
+        >
+          <div class="bento-label">{{ pillars[3].label }}</div>
+          <div class="bento-body">
+            <div class="bento-gan" :style="{ color: ganElement[pillars[3].gan]?.elemColor }">
+              <span class="bento-char">{{ pillars[3].gan }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: ganElement[pillars[3].gan]?.elemColor + '22',
+                  color: ganElement[pillars[3].gan]?.elemColor,
+                  borderColor: ganElement[pillars[3].gan]?.elemColor + '44',
+                }"
+              >{{ ganElement[pillars[3].gan]?.name }}</span>
+            </div>
+            <div class="bento-zhi" :style="{ color: zhiElement[pillars[3].zhi]?.elemColor }">
+              <span class="bento-char">{{ pillars[3].zhi }}</span>
+              <span
+                class="elem-tag"
+                :style="{
+                  background: zhiElement[pillars[3].zhi]?.elemColor + '22',
+                  color: zhiElement[pillars[3].zhi]?.elemColor,
+                  borderColor: zhiElement[pillars[3].zhi]?.elemColor + '44',
+                }"
+              >{{ zhiElement[pillars[3].zhi]?.name }}</span>
+            </div>
+            <span v-if="chart.ten_gods?.hour" class="bento-god-tag">{{ chart.ten_gods.hour }}</span>
+          </div>
+          <div v-if="pillarDetails[3]" class="bento-sub">
+            <span class="sheng-xiao-tag">{{ pillarDetails[3].sheng_xiao }}</span>
+            <span v-if="pillarDetails[3].empties[0]" class="empties-tag">
+              空{{ pillarDetails[3].empties[0] }}{{ pillarDetails[3].empties[1] }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 五行雷达图 (中) -->
+        <div v-if="fiveElementsOption" class="bento-card bento-radar">
+          <div class="bento-label">五行分布</div>
+          <v-chart class="bento-radar-chart" :option="fiveElementsOption" autoresize />
         </div>
       </div>
 
@@ -524,12 +647,7 @@ const tenGodChartOptions = computed(() => {
 
         <!-- ═══ Tab: 命盘总览 (overview) ═══ -->
         <div v-show="activeTab === 'overview'" class="tab-content">
-          <!-- Five Elements bar chart -->
-          <div v-if="fiveElementsOption" class="analysis-block">
-            <div class="block-title">五行分布</div>
-            <span class="block-desc">木火土金水五行在四柱中的力量分布，反映命局的能量结构</span>
-            <v-chart class="five-elem-chart" :option="fiveElementsOption" autoresize />
-          </div>
+          <!-- Five Elements chart moved to Bento Grid -->
 
           <!-- Ten Gods -->
           <div v-if="chart.ten_gods" class="analysis-block">
@@ -884,7 +1002,7 @@ const tenGodChartOptions = computed(() => {
             </template>
             <div v-if="globalShenSha.length" class="analysis-block">
               <div class="shen-sha-group-title">
-                <span class="shen-sha-group-dot" style="background: var(--gold)"></span>
+                <span class="shen-sha-group-dot" style="background: var(--accent)"></span>
                 全局组合神煞
                 <span class="shen-sha-group-role">· 多柱配合</span>
               </div>
@@ -893,9 +1011,9 @@ const tenGodChartOptions = computed(() => {
                   v-for="sha in globalShenSha"
                   :key="sha.name + sha.target + sha.desc"
                   class="shen-sha-row"
-                  :style="{ background: 'rgba(212,168,75,0.07)' }"
+                  :style="{ background: 'rgba(203,213,225,0.07)' }"
                 >
-                  <span class="shen-sha-name" :style="{ color: 'var(--gold)' }">{{ sha.name }}</span>
+                  <span class="shen-sha-name" :style="{ color: 'var(--accent)' }">{{ sha.name }}</span>
                   <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
                   <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
                 </article>
@@ -1018,8 +1136,8 @@ const tenGodChartOptions = computed(() => {
 
 /* Header */
 .chart-header {
-  background: linear-gradient(180deg, rgba(212, 168, 75, 0.06), transparent);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
+  background: linear-gradient(180deg, rgba(203,213,225,0.04), transparent);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: 1rem 1.25rem;
   text-align: center;
 }
@@ -1027,7 +1145,7 @@ const tenGodChartOptions = computed(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.35);
+  color: rgba(203,213,225,0.35);
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -1041,64 +1159,169 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 3px;
 }
 
-/* Pillars grid */
-.pillars-grid {
+/* Pillars bento grid */
+.pillars-bento {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.pillar-col {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  border-right: 1px solid rgba(212, 168, 75, 0.06);
-  transition: background 0.3s;
+.bento-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  transition: box-shadow 0.3s, background 0.3s;
+  position: relative;
+  overflow: hidden;
 }
 
-.pillar-col:last-child {
-  border-right: none;
+.bento-card.bento-small:hover,
+.bento-card.bento-day-inner:hover {
+  background: rgba(255,255,255,0.04);
 }
 
-.pillar-col:hover {
-  background: rgba(212, 168, 75, 0.03);
-}
+/* Hover 五行微光 */
+.bento-hover-木:hover { box-shadow: inset 0 0 30px rgba(52,211,153,0.07); }
+.bento-hover-火:hover { box-shadow: inset 0 0 30px rgba(251,113,133,0.07); }
+.bento-hover-土:hover { box-shadow: inset 0 0 30px rgba(253,230,138,0.07); }
+.bento-hover-金:hover { box-shadow: inset 0 0 30px rgba(203,213,225,0.07); }
+.bento-hover-水:hover { box-shadow: inset 0 0 30px rgba(34,211,238,0.07); }
 
-.pillar-label {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 0.35rem 0;
-  font-size: 0.68rem;
-  color: var(--muted);
+.bento-label {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.4);
   letter-spacing: 1px;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
-.pillar-gan {
-  padding: 0.65rem 0.5rem;
+.bento-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
-  background: linear-gradient(180deg, rgba(212, 168, 75, 0.04), transparent);
+  gap: 0.35rem;
 }
 
-.pillar-zhi {
-  padding: 0.65rem 0.5rem;
+.bento-gan,
+.bento-zhi {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
+  gap: 0.15rem;
 }
 
-.gan-char,
-.zhi-char {
+.bento-char {
   font-family: var(--font-serif), serif;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   line-height: 1;
   text-shadow: 0 0 12px currentColor;
+}
+
+/* 日柱主卡片 — col-span-2 流光边框 */
+.bento-day-wrapper {
+  grid-column: span 2;
+  padding: 0;
+  border: none;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.bento-day-beam {
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #22d3ee 8%,
+    transparent 16%
+  );
+  animation: bento-beam-rotate 4s linear infinite;
+  z-index: 0;
+}
+
+@keyframes bento-beam-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.bento-day-inner {
+  position: relative;
+  z-index: 1;
+  margin: 1.5px;
+  background: rgba(10,10,14,0.97);
+  border-radius: 11px;
+  padding: 0.75rem 1rem;
+  transition: box-shadow 0.3s, background 0.3s;
+}
+
+.bento-day-label {
+  text-align: center;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.bento-day-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.bento-day-gan,
+.bento-day-zhi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.bento-day-char {
+  font-family: var(--font-serif), serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.bento-day-divider {
+  width: 1px;
+  height: 3.5rem;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+
+.elem-tag-lg {
+  font-size: 0.68rem;
+  padding: 0.15rem 0.5rem;
+}
+
+.bento-day-sub {
+  margin-top: 0.25rem;
+}
+
+/* 五行雷达图卡片 */
+.bento-radar {
+  display: flex;
+  flex-direction: column;
+}
+
+.bento-radar-chart {
+  height: 148px;
+  width: 100%;
+}
+
+.bento-sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  margin-top: 0.25rem;
 }
 
 .elem-tag {
@@ -1111,6 +1334,26 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 0.5px;
 }
 
+.bento-god-tag {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.2rem;
+}
+
+.bento-god-tag-day {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(203,213,225,0.08);
+  border-color: rgba(203,213,225,0.15);
+  color: #cbd5e1;
+}
+
 /* ===== 天干地支关系 — 紧凑内联布局 ===== */
 
 .ganzhi-analysis {
@@ -1119,7 +1362,7 @@ const tenGodChartOptions = computed(() => {
 
 .relations-section {
   padding: 0.4rem 1rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  border-bottom: 1px solid rgba(255,255,255, 0.06);
 }
 
 .relations-title {
@@ -1137,8 +1380,8 @@ const tenGodChartOptions = computed(() => {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 6px rgba(212, 168, 75, 0.4);
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(203,213,225, 0.3);
 }
 
 .relations-title-dot.zhi-dot {
@@ -1243,7 +1486,7 @@ const tenGodChartOptions = computed(() => {
   text-align: center;
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
+  border-bottom: 1px solid rgba(255,255,255, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1252,7 +1495,7 @@ const tenGodChartOptions = computed(() => {
 
 .no-rel-icon {
   font-size: 0.5rem;
-  color: rgba(212, 168, 75, 0.25);
+  color: rgba(255,255,255, 0.25);
 }
 
 /* Analysis sections */
@@ -1267,7 +1510,7 @@ const tenGodChartOptions = computed(() => {
 .chart-tabs {
   display: flex;
   gap: 0.25rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.1);
+  border-bottom: 1px solid rgba(255,255,255, 0.1);
   padding: 0 1.25rem;
   overflow-x: auto;
   scrollbar-width: none;
@@ -1286,8 +1529,8 @@ const tenGodChartOptions = computed(() => {
   white-space: nowrap;
   transition: all 0.3s;
 }
-.tab-btn:hover { color: rgba(212, 168, 75, 0.7); }
-.tab-btn.active { color: #D4A84B; border-bottom-color: #D4A84B; }
+.tab-btn:hover { color: rgba(255,255,255, 0.7); }
+.tab-btn.active { color: #cbd5e1; border-bottom-color: #cbd5e1; }
 .tab-content {
   display: flex;
   flex-direction: column;
@@ -1297,7 +1540,7 @@ const tenGodChartOptions = computed(() => {
 .block-title {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   letter-spacing: 1px;
   margin-bottom: 0.5rem;
 }
@@ -1310,12 +1553,6 @@ const tenGodChartOptions = computed(() => {
   margin-top: -0.3rem;
   margin-bottom: 0.5rem;
   letter-spacing: 0.3px;
-}
-
-/* Five elements chart */
-.five-elem-chart {
-  height: 148px;
-  width: 100%;
 }
 
 /* Ten gods */
@@ -1332,7 +1569,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.4rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
-  border: 1px solid rgba(212, 168, 75, 0.06);
+  border: 1px solid rgba(255,255,255, 0.06);
 }
 
 .god-pillar {
@@ -1344,7 +1581,7 @@ const tenGodChartOptions = computed(() => {
 .god-name {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--crimson);
+  color: #fb7185;
 }
 
 /* NaYin */
@@ -1394,13 +1631,13 @@ const tenGodChartOptions = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.15);
+  border-bottom: 1px solid rgba(255,255,255, 0.15);
 }
 
 .nayin-detail-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .nayin-detail-elem {
@@ -1432,7 +1669,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .nayin-energy {
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -1446,10 +1683,10 @@ const tenGodChartOptions = computed(() => {
 .nayin-judgment-tag {
   font-size: 0.7rem;
   padding: 0.15rem 0.5rem;
-  background: rgba(212, 168, 75, 0.08);
-  border: 1px solid rgba(212, 168, 75, 0.15);
+  background: rgba(255,255,255, 0.08);
+  border: 1px solid rgba(255,255,255, 0.15);
   border-radius: 3px;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 /* DaYun — 时间轴风格 */
@@ -1485,8 +1722,8 @@ const tenGodChartOptions = computed(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 8px rgba(212, 168, 75, 0.4);
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(203,213,225, 0.3);
   flex-shrink: 0;
   margin: 0 auto;
   position: relative;
@@ -1499,7 +1736,7 @@ const tenGodChartOptions = computed(() => {
   left: 50%;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, rgba(212, 168, 75, 0.3), rgba(212, 168, 75, 0.08));
+  background: linear-gradient(90deg, rgba(203,213,225, 0.2), rgba(203,213,225, 0.05));
   transform: translateY(-50%);
 }
 
@@ -1510,8 +1747,8 @@ const tenGodChartOptions = computed(() => {
   gap: 0;
   margin-top: 0.4rem;
   padding: 0.35rem 0.5rem;
-  background: rgba(212, 168, 75, 0.05);
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  background: rgba(203,213,225, 0.04);
+  border: 1px solid rgba(203,213,225, 0.1);
   border-radius: 6px;
 }
 
@@ -1519,7 +1756,7 @@ const tenGodChartOptions = computed(() => {
   font-family: var(--font-serif), serif;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   line-height: 1.2;
 }
 
@@ -1533,7 +1770,7 @@ const tenGodChartOptions = computed(() => {
 
 /* Element Detail Table */
 .element-detail-table {
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  border: 1px solid rgba(255,255,255, 0.1);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1546,7 +1783,7 @@ const tenGodChartOptions = computed(() => {
   font-size: 0.65rem;
   color: var(--muted);
   letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
+  border-bottom: 1px solid rgba(255,255,255, 0.08);
 }
 
 .ed-row {
@@ -1554,7 +1791,7 @@ const tenGodChartOptions = computed(() => {
   grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 0.4rem 0.75rem;
   font-size: 0.78rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.04);
+  border-bottom: 1px solid rgba(255,255,255, 0.04);
 }
 
 .ed-row:last-child {
@@ -1587,7 +1824,7 @@ const tenGodChartOptions = computed(() => {
 .bs-verdict {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .bs-tags {
@@ -1611,9 +1848,9 @@ const tenGodChartOptions = computed(() => {
 }
 
 .bs-dislike-label {
-  background: rgba(196, 30, 58, 0.1);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.2);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.2);
 }
 
 .bs-like {
@@ -1628,9 +1865,9 @@ const tenGodChartOptions = computed(() => {
 .bs-dislike {
   font-size: 0.72rem;
   padding: 0.15rem 0.5rem;
-  background: rgba(196, 30, 58, 0.06);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.12);
+  background: rgba(251, 113, 133, 0.06);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.12);
   border-radius: 4px;
 }
 
@@ -1650,7 +1887,7 @@ const tenGodChartOptions = computed(() => {
 .pattern-name {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   letter-spacing: 0.05em;
 }
 
@@ -1710,9 +1947,9 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-avoid .pattern-elem-label {
-  background: rgba(196, 30, 58, 0.1);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.2);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.2);
 }
 
 .pattern-elem-tag {
@@ -1728,9 +1965,9 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-elem-tag.avoid {
-  background: rgba(196, 30, 58, 0.06);
-  color: var(--crimson);
-  border: 1px solid rgba(196, 30, 58, 0.12);
+  background: rgba(251, 113, 133, 0.06);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.12);
 }
 
 .ming-gong-detail {
@@ -1748,7 +1985,7 @@ const tenGodChartOptions = computed(() => {
 .ming-gong-ganzhi {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   letter-spacing: 0.15em;
 }
 
@@ -1776,14 +2013,14 @@ const tenGodChartOptions = computed(() => {
 
 .shensha-badge.shensha-ji {
   background: rgba(196, 164, 75, 0.18);
-  color: var(--gold);
-  border: 1px solid rgba(212, 168, 75, 0.25);
+  color: var(--accent);
+  border: 1px solid rgba(255,255,255, 0.25);
 }
 
 .shensha-badge.shensha-xiong {
-  background: rgba(196, 30, 58, 0.14);
+  background: rgba(251, 113, 133, 0.14);
   color: #f87171;
-  border: 1px solid rgba(196, 30, 58, 0.22);
+  border: 1px solid rgba(251, 113, 133, 0.22);
 }
 
 .shensha-desc {
@@ -1796,21 +2033,21 @@ const tenGodChartOptions = computed(() => {
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.6;
-  border-left: 2px solid rgba(212, 168, 75, 0.25);
+  border-left: 2px solid rgba(255,255,255, 0.25);
   padding-left: 0.6rem;
 }
 
 .tiaohou-source {
   font-size: 0.65rem;
-  color: rgba(212,168,75,0.55);
+  color: rgba(203,213,225,0.55);
   font-weight: 400;
   margin-left: 0.4rem;
   font-style: italic;
 }
 
 .tiaohou-card {
-  background: rgba(212,168,75,0.06);
-  border: 1px solid rgba(212,168,75,0.18);
+  background: rgba(203,213,225,0.06);
+  border: 1px solid rgba(203,213,225,0.18);
   border-radius: 10px;
   padding: 1rem 1.1rem;
   margin-top: 0.4rem;
@@ -1827,7 +2064,7 @@ const tenGodChartOptions = computed(() => {
 .tiaohou-stem {
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .tiaohou-arrow {
@@ -1842,7 +2079,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-divider {
-  color: rgba(212,168,75,0.35);
+  color: rgba(203,213,225,0.35);
   margin: 0 0.2rem;
 }
 
@@ -1877,13 +2114,13 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-xi {
-  color: #5CBA7F;
+  color: #34d399;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .tiaohou-ji {
-  color: #CF5C5C;
+  color: #fb7185;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1894,7 +2131,6 @@ const tenGodChartOptions = computed(() => {
 }
 
 .ri-zhu-text,
-.tiao-hou-text,
 .jin-bu-huan-text,
 .season-text {
   font-size: 0.82rem;
@@ -1904,25 +2140,16 @@ const tenGodChartOptions = computed(() => {
   margin: 0;
 }
 
-/* Pillar sub info (shengxiao + empties) */
-.pillar-sub {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  padding: 0.25rem 0.25rem;
-  border-top: 1px solid rgba(212, 168, 75, 0.04);
-}
 
 .sheng-xiao-tag {
   font-size: 0.6rem;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(255,255,255, 0.5);
   letter-spacing: 1px;
 }
 
 .empties-tag {
   font-size: 0.55rem;
-  color: rgba(196, 30, 58, 0.5);
+  color: rgba(251, 113, 133, 0.5);
 }
 
 /* ShenSha list */
@@ -1940,7 +2167,7 @@ const tenGodChartOptions = computed(() => {
   min-height: 2.1rem;
   padding: 0.35rem 0.65rem;
   background: rgba(255, 255, 255, 0.028);
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  border: 1px solid rgba(255,255,255, 0.1);
   border-radius: 7px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
@@ -1949,7 +2176,7 @@ const tenGodChartOptions = computed(() => {
   font-family: var(--font-serif), serif;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
@@ -1961,8 +2188,8 @@ const tenGodChartOptions = computed(() => {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgba(212, 168, 75, 0.1);
-  border: 1px solid rgba(212, 168, 75, 0.18);
+  background: rgba(255,255,255, 0.1);
+  border: 1px solid rgba(255,255,255, 0.18);
   color: rgba(240, 237, 228, 0.86);
   font-size: 0.68rem;
   font-weight: 700;
@@ -2004,7 +2231,7 @@ const tenGodChartOptions = computed(() => {
 
 /* ShenSha summary */
 .shen-sha-summary-block {
-  border-top: 1px solid rgba(212, 168, 75, 0.08);
+  border-top: 1px solid rgba(255,255,255, 0.08);
   margin-top: 0.5rem;
   padding-top: 0.75rem;
 }
@@ -2037,18 +2264,18 @@ const tenGodChartOptions = computed(() => {
   content: '–';
   position: absolute;
   left: 0;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(255,255,255, 0.3);
 }
 
 .ten-god-chart-wrap {
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(255,255,255, 0.12);
   border-radius: 10px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(212,168,75,0.03) 0%, transparent 100%),
+    linear-gradient(180deg, rgba(203,213,225,0.03) 0%, transparent 100%),
     rgba(255, 255, 255, 0.015);
   padding: 0.75rem 0.5rem 0.5rem;
-  box-shadow: inset 0 1px 0 rgba(212,168,75,0.08);
+  box-shadow: inset 0 1px 0 rgba(203,213,225,0.08);
 }
 
 .ten-god-chart {
@@ -2056,21 +2283,21 @@ const tenGodChartOptions = computed(() => {
   height: 220px;
 }
 .ten-god-tabs {
-  --el-color-primary: #D4A84B;
+  --el-color-primary: #cbd5e1;
 }
 .ten-god-tabs .el-tabs__item {
   color: rgba(255,255,255,0.55);
   font-size: 13px;
 }
 .ten-god-tabs .el-tabs__item.is-active {
-  color: #D4A84B;
+  color: #cbd5e1;
 }
 .ten-god-tabs .el-tabs__nav-wrap::after {
-  background: rgba(212,168,75,0.1);
+  background: rgba(255,255,255,0.06);
 }
 .tg-summary {
-  background: rgba(212,168,75,0.06);
-  border: 1px solid rgba(212,168,75,0.12);
+  background: rgba(203,213,225,0.06);
+  border: 1px solid rgba(203,213,225,0.12);
   border-radius: 10px;
   padding: 1rem 1.25rem;
   font-size: 14px;
@@ -2089,7 +2316,7 @@ const tenGodChartOptions = computed(() => {
 }
 .tg-god-card {
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(212,168,75,0.1);
+  border: 1px solid rgba(203,213,225,0.1);
   border-radius: 10px;
   padding: 0.875rem 1rem;
 }
@@ -2102,7 +2329,7 @@ const tenGodChartOptions = computed(() => {
 .tg-god-name {
   font-weight: 600;
   font-size: 14px;
-  color: #D4A84B;
+  color: #cbd5e1;
 }
 .tg-god-pct {
   font-size: 13px;
@@ -2117,7 +2344,7 @@ const tenGodChartOptions = computed(() => {
 .tg-god-advice {
   font-size: 12px;
   line-height: 1.6;
-  color: rgba(212,168,75,0.7);
+  color: rgba(203,213,225,0.7);
 }
 
 /* WuXingFlow 五行流通 */
@@ -2126,7 +2353,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.75rem;
   background: rgba(255,255,255,0.015);
   border-radius: 8px;
-  border: 1px solid rgba(212,168,75,0.06);
+  border: 1px solid rgba(203,213,225,0.06);
 }
 .wf-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .wf-label { font-size: 0.65rem; color: var(--muted); }
@@ -2134,15 +2361,15 @@ const tenGodChartOptions = computed(() => {
 .wf-type { font-size: 0.7rem; color: var(--muted); padding: 0.1rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 4px; }
 .wf-status { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 4px; }
 .wf-smooth { color: #4ade80; background: rgba(74,222,128,0.1); }
-.wf-blocked { color: #f08080; background: rgba(196,30,58,0.1); }
+.wf-blocked { color: #fb7185; background: rgba(251,113,133,0.1); }
 .wf-paths { display: flex; flex-direction: column; gap: 0.25rem; }
 .wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(255,255,255,0.6); }
-.wf-path-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+.wf-path-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 .wf-blocked-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
-.wf-blocked-label { color: #f08080; font-size: 0.65rem; }
+.wf-blocked-label { color: #fb7185; font-size: 0.65rem; }
 .wf-blocked-elem { font-weight: 600; }
 .wf-verdict { font-size: 0.72rem; color: rgba(255,255,255,0.5); font-style: italic; }
-.wf-advice { font-size: 0.72rem; color: var(--gold); opacity: 0.8; }
+.wf-advice { font-size: 0.72rem; color: var(--accent); opacity: 0.8; }
 
 /* TongGuan 通关用神 */
 .tong-guan-card {
@@ -2150,7 +2377,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.75rem;
   background: rgba(255,255,255,0.015);
   border-radius: 8px;
-  border: 1px solid rgba(212,168,75,0.06);
+  border: 1px solid rgba(203,213,225,0.06);
 }
 .tg-elem { font-size: 1.4rem; font-weight: 900; font-family: var(--font-serif); }
 .tg-desc { font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5; }
@@ -2161,17 +2388,17 @@ const tenGodChartOptions = computed(() => {
   padding: 0.75rem;
   background: rgba(255,255,255,0.015);
   border-radius: 8px;
-  border: 1px solid rgba(212,168,75,0.06);
+  border: 1px solid rgba(203,213,225,0.06);
 }
 .me-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 .me-label { font-size: 0.65rem; color: var(--muted); min-width: 28px; }
 .me-tag { font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.4rem; border: 1px solid; border-radius: 4px; }
-.me-missing { background: rgba(196,30,58,0.06); }
+.me-missing { background: rgba(251,113,133,0.06); }
 .me-remedy { background: rgba(74,222,128,0.06); }
 .me-severity { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.25rem; }
-.me-轻微 { color: #D4A84B; background: rgba(212,168,75,0.1); }
-.me-中等 { color: #f08080; background: rgba(196,30,58,0.1); }
-.me-严重 { color: #C41E3A; background: rgba(196,30,58,0.2); }
+.me-轻微 { color: #cbd5e1; background: rgba(203,213,225,0.1); }
+.me-中等 { color: #fb7185; background: rgba(251,113,133,0.1); }
+.me-严重 { color: #fb7185; background: rgba(251,113,133,0.2); }
 
 /* DaYunFlow 流年运势 */
 .dayun-flow-list {
@@ -2193,7 +2420,7 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-flow-item:hover {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(212, 168, 75, 0.1);
+  border-color: rgba(255,255,255, 0.1);
 }
 
 .df-left {
@@ -2216,7 +2443,7 @@ const tenGodChartOptions = computed(() => {
   font-family: var(--font-serif), serif;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--accent);
   letter-spacing: 1px;
 }
 
@@ -2244,7 +2471,7 @@ const tenGodChartOptions = computed(() => {
 
 .df-增强 { border-left: 3px solid rgba(74, 222, 128, 0.4); }
 .df-减弱 { border-left: 3px solid rgba(248, 113, 113, 0.4); }
-.df-不变 { border-left: 3px solid rgba(212, 168, 75, 0.2); }
+.df-不变 { border-left: 3px solid rgba(255,255,255, 0.2); }
 
 .df-impact {
   font-size: 0.72rem;
@@ -2256,10 +2483,10 @@ const tenGodChartOptions = computed(() => {
 <style>
 /* NaYin popover — dark theme to match app */
 .nayin-popover {
-  background: #0a0815 !important;
-  border: 1px solid rgba(212, 168, 75, 0.15) !important;
+  background: #030404 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
   border-radius: 10px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(212, 168, 75, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(203,213,225, 0.08) !important;
   padding: 14px 16px !important;
   color: #f0ede4;
 }

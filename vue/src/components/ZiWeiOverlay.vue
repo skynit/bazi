@@ -55,10 +55,10 @@ watch(() => props.liunianChart?.year, (y) => {
 
 // Gold palette for 本命盘
 const goldMeta: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#C41E3A,#8B0000)', text: '#fff' },
+  '庙': { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fff' },
   '旺': { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fff' },
-  '得': { bg: 'linear-gradient(135deg,#DAA520,#B8860B)', text: '#fff' },
-  '利': { bg: 'linear-gradient(135deg,#228B22,#006400)', text: '#fff' },
+  '得': { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#fff' },
+  '利': { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#fff' },
   '平': { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fff' },
   '不': { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fff' },
   '陷': { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#aaa' },
@@ -246,8 +246,6 @@ function liunianStarsAt(b: string): string[] {
               class="zw-star zw-star-gold"
               :style="{ background: baseMeta(star.brightness).bg }"
             >{{ star.name }}</span>
-          </div>
-          <div v-if="palaceSihua(basePalaceAt(branch)).length" class="zw-sihua">
             <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
           </div>
           <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
@@ -427,8 +425,6 @@ function liunianStarsAt(b: string): string[] {
               class="zw-star zw-star-gold"
               :style="{ background: baseMeta(star.brightness).bg }"
             >{{ star.name }}</span>
-          </div>
-          <div v-if="palaceSihua(basePalaceAt(branch)).length" class="zw-sihua">
             <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
           </div>
           <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
@@ -539,7 +535,7 @@ function liunianStarsAt(b: string): string[] {
 .zw-overlay {
   width: 100%;
   background: linear-gradient(160deg, rgba(20,14,35,0.95) 0%, rgba(8,5,15,0.98) 100%);
-  border: 1px solid rgba(212,168,75,0.1);
+  border: 1px solid rgba(203, 213, 225,0.1);
   border-radius: 16px;
   padding: 1.25rem;
   box-shadow: 0 20px 80px rgba(0,0,0,0.5);
@@ -554,7 +550,7 @@ function liunianStarsAt(b: string): string[] {
 .zw-toggle {
   display: flex;
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(212,168,75,0.1);
+  border: 1px solid rgba(203, 213, 225,0.1);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -570,12 +566,12 @@ function liunianStarsAt(b: string): string[] {
   letter-spacing: 0.5px;
 }
 .zw-tab:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.04); }
-.zw-tab.is-active { background: rgba(212,168,75,0.12); color: #D4A84B; }
+.zw-tab.is-active { background: rgba(203, 213, 225,0.12); color: #cbd5e1; }
 .zw-tab-dot {
   width: 7px; height: 7px; border-radius: 50%;
   flex-shrink: 0;
 }
-.zw-dot-gold { background: #D4A84B; box-shadow: 0 0 8px rgba(212,168,75,0.5); }
+.zw-dot-gold { background: #cbd5e1; box-shadow: 0 0 8px rgba(203, 213, 225,0.5); }
 .zw-dot-purple { background: #8E6DBB; box-shadow: 0 0 8px rgba(142,109,187,0.5); }
 .zw-year-select { display: flex; align-items: center; gap: 0.5rem; }
 .zw-year-label { font-size: 0.78rem; color: rgba(255,255,255,0.35); letter-spacing: 1px; }
@@ -601,7 +597,7 @@ function liunianStarsAt(b: string): string[] {
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 2px;
   background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(212,168,75,0.08);
+  border: 1px solid rgba(203, 213, 225,0.08);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -618,10 +614,10 @@ function liunianStarsAt(b: string): string[] {
   overflow: visible;
 }
 .zw-svg-line {
-  animation: zw-line-draw 0.4s ease-out both;
+  animation: zw-line-draw 0.4s ease-out both, zw-pulse 2.5s ease-in-out 0.4s infinite;
 }
 .zw-svg-line-opp {
-  animation: zw-line-draw-opp 0.35s ease-out both;
+  animation: zw-line-draw-opp 0.35s ease-out both, zw-pulse-opp 2.5s ease-in-out 0.35s infinite;
 }
 @keyframes zw-line-draw {
   from { stroke-dashoffset: 120; opacity: 0; }
@@ -631,13 +627,6 @@ function liunianStarsAt(b: string): string[] {
   from { stroke-dashoffset: 120; opacity: 0; }
   to { stroke-dashoffset: 0; opacity: 1; }
 }
-
-.zw-svg-line {
-  animation: zw-line-draw 0.4s ease-out both, zw-pulse 2.5s ease-in-out 0.4s infinite;
-}
-.zw-svg-line-opp {
-  animation: zw-line-draw-opp 0.35s ease-out both, zw-pulse-opp 2.5s ease-in-out 0.35s infinite;
-}
 @keyframes zw-pulse {
   0%, 100% { opacity: 0.85; }
   50% { opacity: 0.55; }
@@ -645,10 +634,6 @@ function liunianStarsAt(b: string): string[] {
 @keyframes zw-pulse-opp {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 0.6; }
-}
-@keyframes zw-line-draw-opp {
-  from { stroke-dashoffset: 120; opacity: 0; }
-  to { stroke-dashoffset: 0; opacity: 1; }
 }
 
 /* ── Cell ── */
@@ -671,14 +656,14 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-palace-name {
   font-size: 0.7rem; font-weight: 800;
-  color: #D4A84B; letter-spacing: 1px;
+  color: #cbd5e1; letter-spacing: 1px;
 }
 .zw-branch {
-  font-size: 0.58rem; color: rgba(212,168,75,0.3);
+  font-size: 0.58rem; color: rgba(203, 213, 225,0.3);
 }
 
 /* Stars */
-.zw-stars { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.zw-stars { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; flex: 1 1 auto; }
 .zw-star {
   display: inline-block;
   border-radius: 4px;
@@ -699,22 +684,21 @@ function liunianStarsAt(b: string): string[] {
 }
 
 /* Sihua */
-.zw-sihua { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin-top: 2px; }
 .zw-sihua-tag {
   font-size: 0.58rem; font-weight: 700;
   padding: 1px 5px;
-  background: rgba(196,30,58,0.15);
-  border: 1px solid rgba(196,30,58,0.3);
+  background: rgba(251, 113, 133,0.15);
+  border: 1px solid rgba(251, 113, 133,0.3);
   border-radius: 20px;
-  color: #C41E3A;
+  color: #fb7185;
 }
 
 /* Overlay stars */
 .zw-overlay-stars {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  margin-top: 4px;
+  display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px;
+  margin-top: auto;
   padding-top: 4px;
-  border-top: 1px dashed rgba(142,109,187,0.2);
+  border-top: 1px dashed rgba(142,109,187,0.25);
   width: 100%;
 }
 .zw-overlay-label {
@@ -722,6 +706,8 @@ function liunianStarsAt(b: string): string[] {
   color: rgba(142,109,187,0.5);
   letter-spacing: 2px;
   text-transform: uppercase;
+  width: 100%;
+  text-align: center;
   margin-bottom: 1px;
 }
 
@@ -751,8 +737,8 @@ function liunianStarsAt(b: string): string[] {
   gap: 6px;
   padding: 0.75rem;
   position: relative; overflow: hidden;
-  border-left: 1px solid rgba(212,168,75,0.06);
-  border-right: 1px solid rgba(212,168,75,0.06);
+  border-left: 1px solid rgba(203, 213, 225,0.06);
+  border-right: 1px solid rgba(203, 213, 225,0.06);
 }
 .zw-center-overlay {
   background: linear-gradient(180deg, rgba(50,40,80,0.9) 0%, rgba(25,20,50,0.95) 100%);
@@ -761,7 +747,7 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-center-glow {
   position: absolute; inset: 0;
-  background: radial-gradient(circle, rgba(212,168,75,0.06), transparent 70%);
+  background: radial-gradient(circle, rgba(203, 213, 225,0.06), transparent 70%);
   pointer-events: none;
 }
 .zw-center-overlay .zw-center-glow {
@@ -770,8 +756,8 @@ function liunianStarsAt(b: string): string[] {
 .zw-center-title {
   font-family: var(--font-serif);
   font-size: 0.78rem; font-weight: 800;
-  color: #D4A84B; letter-spacing: 2px;
-  text-shadow: 0 0 20px rgba(212,168,75,0.3);
+  color: #cbd5e1; letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(203, 213, 225,0.3);
   position: relative;
 }
 .zw-center-overlay .zw-center-title {
@@ -788,13 +774,13 @@ function liunianStarsAt(b: string): string[] {
 .zw-legend {
   display: flex; justify-content: center; gap: 2rem;
   margin-top: 1rem; padding-top: 0.75rem;
-  border-top: 1px solid rgba(212,168,75,0.06);
+  border-top: 1px solid rgba(203, 213, 225,0.06);
 }
 .zw-legend-item { display: flex; align-items: center; gap: 0.5rem; }
 .zw-legend-swatch {
   width: 10px; height: 10px; border-radius: 3px;
 }
-.zw-swatch-gold { background: linear-gradient(135deg, #DAA520, #B8860B); box-shadow: 0 0 8px rgba(212,168,75,0.4); }
+.zw-swatch-gold { background: linear-gradient(135deg, #cbd5e1, #94a3b8); box-shadow: 0 0 8px rgba(203, 213, 225,0.4); }
 .zw-swatch-purple { background: linear-gradient(135deg, #8E6DBB, #6B5B95); box-shadow: 0 0 8px rgba(142,109,187,0.4); }
 .zw-swatch-focused { background: rgba(142, 109, 187, 0.5); border: 1px solid rgba(142, 109, 187, 0.7); }
 .zw-swatch-opposite { background: rgba(186, 130, 255, 0.4); border: 1px solid rgba(186, 130, 255, 0.6); }
@@ -821,5 +807,5 @@ function liunianStarsAt(b: string): string[] {
 
 /* Twelve stars */
 .zw-twelve { display: flex; justify-content: center; margin-top: 1px; }
-.zw-twelve-tag { font-size: 0.5rem; color: #D4A84B; background: rgba(212,168,75,0.08); padding: 0px 3px; border-radius: 2px; }
+.zw-twelve-tag { font-size: 0.5rem; color: #cbd5e1; background: rgba(203, 213, 225,0.08); padding: 0px 3px; border-radius: 2px; }
 </style>

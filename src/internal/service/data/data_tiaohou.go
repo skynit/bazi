@@ -482,12 +482,12 @@ func init() {
 		{XiShen: "丙", JiShen: "辛", Reason: "丙火温木化水，亥月甲木长生用丙火温局"},
 	}
 	TiaohouData[8][10] = []TiaohouRule{ // 子月
-		{XiShen: "丙", JiShen: "壬", Reason: "子月寒水当令，丙火解冻暖木为先"},
-		{XiShen: "戊", JiShen: "壬", Reason: "戊土制水培根，子月寒水冻结用丙戊温"},
+		{XiShen: "戊", JiShen: "壬", Reason: "子月水旺用事汪洋之势，必用戊土作堤防泛滥，穷通宝鉴：十一月壬水必用戊土"},
+		{XiShen: "丙", JiShen: "壬", Reason: "丙火暖局助戊，戊丙齐透富贵极品，仅丙无戊仅得温饱"},
 	}
 	TiaohouData[8][11] = []TiaohouRule{ // 丑月
-		{XiShen: "丙", JiShen: "丁", Reason: "丑月寒湿交加，丙火暖局解冻为急"},
-		{XiShen: "丁", JiShen: "辛", Reason: "丁火温局，丑月己土卑湿用丙丁暖水"},
+		{XiShen: "戊", JiShen: "壬", Reason: "丑月水旺寒湿，戊土堤防止泛滥，大寒前同子月必用戊土"},
+		{XiShen: "丙", JiShen: "辛", Reason: "丙火暖局助戊，大寒后丙火为急，戊丙齐透富贵"},
 	}
 
 	// ========== 癸水 (stem index 9) ==========

@@ -19,8 +19,8 @@
         "day_pillar": "甲寅",
         "hour_pillar": "庚午",
         "day_master": "甲",
-        "body_strength": "身旺",
-        "pattern": "正格",
+        "body_strength": "偏旺",
+        "pattern": "建禄格",
         "yong_shen": "午火（食伤）",
         "xi_shen": "土（财星）",
         "ji_shen": "水（印绶）、木（比劫）",
@@ -43,8 +43,8 @@
         "day_pillar": "癸亥",
         "hour_pillar": "辛酉",
         "day_master": "癸",
-        "body_strength": "身极旺",
-        "pattern": "从旺格",
+        "body_strength": "身旺",
+        "pattern": "润下格（从强格）",
         "yong_shen": "金水",
         "ji_shen": "土（逆水之性）"
       }
@@ -65,8 +65,8 @@
         "day_pillar": "乙丑",
         "hour_pillar": "壬午",
         "day_master": "乙",
-        "body_strength": "偏弱",
-        "pattern": "正格",
+        "body_strength": "身弱",
+        "pattern": "正印格",
         "yong_shen": "丙火（伤官调候）",
         "tiao_hou": "午火"
       }
@@ -87,8 +87,8 @@
         "day_pillar": "庚戌",
         "hour_pillar": "庚辰",
         "day_master": "庚",
-        "body_strength": "身极旺",
-        "pattern": "从革格",
+        "body_strength": "身旺",
+        "pattern": "月刃格",
         "yong_shen": "金（顺其旺势）、水（食伤）",
         "ji_shen": "火（官杀）"
       }
@@ -109,7 +109,7 @@
         "day_pillar": "甲寅",
         "hour_pillar": "庚午",
         "day_master": "甲",
-        "body_strength": "有根有力",
+        "body_strength": "偏弱",
         "pattern": "专禄格",
         "yong_shen": "寅木（专禄）、午火（食伤化煞）"
       }
@@ -190,7 +190,7 @@
         "day_pillar": "己酉",
         "hour_pillar": "壬申",
         "day_master": "己",
-        "body_strength": "偏弱",
+        "body_strength": "中和",
         "tiao_hou": "癸"
       }
     },
@@ -230,7 +230,7 @@
         "day_pillar": "辛丑",
         "hour_pillar": "壬辰",
         "day_master": "辛",
-        "body_strength": "偏弱",
+        "body_strength": "中和",
         "tiao_hou": "壬"
       }
     },
@@ -250,7 +250,7 @@
         "day_pillar": "壬戌",
         "hour_pillar": "庚子",
         "day_master": "壬",
-        "body_strength": "身旺",
+        "body_strength": "偏弱",
         "tiao_hou": "戊"
       }
     },
@@ -270,7 +270,7 @@
         "day_pillar": "癸卯",
         "hour_pillar": "辛酉",
         "day_master": "癸",
-        "body_strength": "中和",
+        "body_strength": "偏弱",
         "tiao_hou": "辛"
       }
     },
@@ -290,7 +290,7 @@
         "day_pillar": "甲申",
         "hour_pillar": "己巳",
         "day_master": "甲",
-        "body_strength": "身旺",
+        "body_strength": "中和",
         "tiao_hou": "庚"
       }
     },
@@ -310,7 +310,7 @@
         "day_pillar": "乙未",
         "hour_pillar": "庚辰",
         "day_master": "乙",
-        "body_strength": "偏弱",
+        "body_strength": "中和",
         "tiao_hou": "丙"
       }
     },
@@ -330,7 +330,7 @@
         "day_pillar": "丙午",
         "hour_pillar": "甲午",
         "day_master": "丙",
-        "body_strength": "中和",
+        "body_strength": "偏旺",
         "tiao_hou": "壬"
       }
     },
@@ -371,8 +371,8 @@
         "day_pillar": "戊申",
         "hour_pillar": "辛酉",
         "day_master": "戊",
-        "body_strength": "偏旺",
-        "pattern": "食神制杀格"
+        "body_strength": "偏弱",
+        "pattern": "月刃格"
       }
     },
     {
@@ -391,8 +391,8 @@
         "day_pillar": "癸亥",
         "hour_pillar": "丙辰",
         "day_master": "癸",
-        "body_strength": "偏弱",
-        "pattern": "伤官配印格"
+        "body_strength": "中和",
+        "pattern": "正印格"
       }
     },
     {
@@ -411,8 +411,8 @@
         "day_pillar": "甲申",
         "hour_pillar": "壬申",
         "day_master": "甲",
-        "body_strength": "中和",
-        "pattern": "财滋杀旺格"
+        "body_strength": "偏弱",
+        "pattern": "正财格"
       }
     },
     {
@@ -431,7 +431,7 @@
         "day_pillar": "乙卯",
         "hour_pillar": "壬午",
         "day_master": "乙",
-        "body_strength": "偏弱",
+        "body_strength": "偏旺",
         "yong_shen": "木"
       }
     },
@@ -451,7 +451,7 @@
         "day_pillar": "辛亥",
         "hour_pillar": "辛丑",
         "day_master": "辛",
-        "body_strength": "偏弱",
+        "body_strength": "中和",
         "yong_shen": "壬"
       }
     },
@@ -491,7 +491,7 @@
         "day_pillar": "戊午",
         "hour_pillar": "辛酉",
         "day_master": "戊",
-        "body_strength": "身极旺",
+        "body_strength": "偏旺",
         "pattern": "羊刃格"
       }
     },
@@ -511,8 +511,8 @@
         "day_pillar": "丁未",
         "hour_pillar": "丁未",
         "day_master": "丁",
-        "body_strength": "身旺",
-        "pattern": "日禄归时格"
+        "body_strength": "偏旺",
+        "pattern": "建禄格"
       }
     },
     {
@@ -532,7 +532,7 @@
         "hour_pillar": "丙寅",
         "day_master": "己",
         "body_strength": "偏弱",
-        "pattern": "正印格",
+        "pattern": "正官格",
         "yong_shen": "丙"
       }
     },
@@ -572,8 +572,8 @@
         "day_pillar": "乙酉",
         "hour_pillar": "己卯",
         "day_master": "乙",
-        "body_strength": "偏弱",
-        "pattern": "正财格"
+        "body_strength": "中和",
+        "pattern": "金神格"
       }
     },
     {
@@ -593,7 +593,7 @@
         "hour_pillar": "丙午",
         "day_master": "丁",
         "body_strength": "中和",
-        "pattern": "偏财格"
+        "pattern": "日禄归时格"
       }
     },
     {
@@ -612,8 +612,8 @@
         "day_pillar": "戊子",
         "hour_pillar": "乙卯",
         "day_master": "戊",
-        "body_strength": "中和",
-        "pattern": "食神生财格"
+        "body_strength": "偏弱",
+        "pattern": "偏财格"
       }
     },
     {
@@ -633,7 +633,7 @@
         "hour_pillar": "戊寅",
         "day_master": "庚",
         "body_strength": "偏弱",
-        "pattern": "正官佩印格"
+        "pattern": "正财格"
       }
     },
     {

@@ -37,10 +37,10 @@ function auxStars(p: PalaceData): StarInfo[] {
 
 // Traditional star brightness → color (庙=most auspicious ... 陷=weakest)
 const brightnessMeta: Record<string, { bg: string; text: string; label: string }> = {
-  庙: { bg: 'linear-gradient(135deg,#C41E3A,#8B0000)', text: '#fff', label: '庙' },
+  庙: { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fff', label: '庙' },
   旺: { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fff', label: '旺' },
-  得: { bg: 'linear-gradient(135deg,#DAA520,#B8860B)', text: '#fff', label: '得' },
-  利: { bg: 'linear-gradient(135deg,#228B22,#006400)', text: '#fff', label: '利' },
+  得: { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#fff', label: '得' },
+  利: { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#fff', label: '利' },
   平: { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fff', label: '平' },
   不: { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fff', label: '不' },
   陷: { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#aaa', label: '陷' },
@@ -302,12 +302,12 @@ function palaceAt(branch: string): PalaceData | undefined {
                       cx="20"
                       cy="20"
                       r="18"
-                      stroke="#D4A84B"
+                      stroke="#cbd5e1"
                       stroke-width="1"
                       stroke-dasharray="2 3"
                     />
-                    <circle cx="20" cy="20" r="6" fill="#D4A84B" opacity="0.3" />
-                    <circle cx="20" cy="20" r="3" fill="#D4A84B" />
+                    <circle cx="20" cy="20" r="6" fill="#cbd5e1" opacity="0.3" />
+                    <circle cx="20" cy="20" r="3" fill="#cbd5e1" />
                   </svg>
                 </div>
                 <div class="sky-text">天宫图</div>
@@ -414,7 +414,7 @@ function palaceAt(branch: string): PalaceData | undefined {
           <div class="legend-item">
             <span
               class="legend-swatch"
-              style="background: linear-gradient(135deg, #c41e3a, #8b0000)"
+              style="background: linear-gradient(135deg, #fb7185, #be123c)"
             ></span>
             <span>庙 — 最旺</span>
           </div>
@@ -428,14 +428,14 @@ function palaceAt(branch: string): PalaceData | undefined {
           <div class="legend-item">
             <span
               class="legend-swatch"
-              style="background: linear-gradient(135deg, #daa520, #b8860b)"
+              style="background: linear-gradient(135deg, #fde68a, #94a3b8)"
             ></span>
             <span>得 — 得地</span>
           </div>
           <div class="legend-item">
             <span
               class="legend-swatch"
-              style="background: linear-gradient(135deg, #228b22, #006400)"
+              style="background: linear-gradient(135deg, #34d399, #059669)"
             ></span>
             <span>利 — 有利</span>
           </div>
@@ -475,16 +475,16 @@ function palaceAt(branch: string): PalaceData | undefined {
     <div v-else class="empty-state">
       <div class="empty-icon">
         <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" stroke="#D4A84B" stroke-width="1" stroke-dasharray="3 4" />
+          <circle cx="32" cy="32" r="30" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 4" />
           <circle
             cx="32"
             cy="32"
             r="20"
-            stroke="#D4A84B"
+            stroke="#cbd5e1"
             stroke-width="0.5"
             stroke-dasharray="2 3"
           />
-          <circle cx="32" cy="32" r="4" fill="#D4A84B" opacity="0.5" />
+          <circle cx="32" cy="32" r="4" fill="#cbd5e1" opacity="0.5" />
         </svg>
       </div>
       <p class="empty-title">暂无命盘数据</p>
@@ -508,8 +508,8 @@ function palaceAt(branch: string): PalaceData | undefined {
   display: flex; align-items: center; gap: 0.75rem;
 }
 .chart-section-symbol {
-  font-size: 1.5rem; color: var(--gold);
-  text-shadow: 0 0 12px rgba(212,168,75,0.3);
+  font-size: 1.5rem; color: var(--accent);
+  text-shadow: 0 0 12px rgba(203,213,225,0.3);
 }
 .chart-section-title {
   font-family: var(--font-serif);
@@ -529,21 +529,21 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .pattern-badge {
   @apply px-4 py-1.5 text-xs font-bold rounded-full;
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: #fff;
-  box-shadow: 0 0 12px rgba(196, 30, 58, 0.4);
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.4);
   letter-spacing: 1px;
 }
 
 /* ── Chart frame ── */
 .chart-outer-frame {
   position: relative;
-  border: 1px solid rgba(212, 168, 75, 0.3);
+  border: 1px solid rgba(203, 213, 225, 0.3);
   border-radius: 12px;
   background: linear-gradient(145deg, rgba(20, 16, 30, 0.95), rgba(10, 8, 20, 0.98));
   box-shadow:
-    0 0 40px rgba(212, 168, 75, 0.08),
-    inset 0 1px 0 rgba(212, 168, 75, 0.15);
+    0 0 40px rgba(203, 213, 225, 0.08),
+    inset 0 1px 0 rgba(203, 213, 225, 0.15);
   padding: 3px;
 }
 
@@ -552,7 +552,7 @@ function palaceAt(branch: string): PalaceData | undefined {
   position: absolute;
   width: 16px;
   height: 16px;
-  border-color: #d4a84b;
+  border-color: #cbd5e1;
   border-style: solid;
   opacity: 0.6;
 }
@@ -612,43 +612,43 @@ function palaceAt(branch: string): PalaceData | undefined {
 .palace-cell {
   @apply flex flex-col items-center justify-start p-3 relative min-h-[140px];
   background: linear-gradient(180deg, rgba(43, 37, 24, 0.8), rgba(30, 25, 15, 0.9));
-  border: 1px solid rgba(212, 168, 75, 0.08);
+  border: 1px solid rgba(203, 213, 225, 0.08);
   gap: 3px;
   transition: all 0.3s ease;
 }
 
 .palace-cell:hover {
   background: linear-gradient(180deg, rgba(60, 50, 30, 0.9), rgba(40, 32, 18, 0.95));
-  border-color: rgba(212, 168, 75, 0.3);
-  box-shadow: 0 0 20px rgba(212, 168, 75, 0.12);
+  border-color: rgba(203, 213, 225, 0.3);
+  box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
   z-index: 2;
 }
 
 .palace-cell.has-sihua {
-  border-top: 2px solid rgba(196, 30, 58, 0.6);
+  border-top: 2px solid rgba(251, 113, 133, 0.6);
 }
 
 /* ── Palace content ── */
 .palace-header {
   @apply flex flex-col items-center gap-0 w-full mb-1;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.1);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.1);
   padding-bottom: 4px;
 }
 
 .palace-name {
   @apply text-xs font-bold leading-tight;
-  color: #d4a84b;
+  color: #cbd5e1;
   letter-spacing: 1px;
 }
 
 .palace-branch {
   @apply text-[10px] leading-tight;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
 }
 
 .palace-empty {
   @apply flex items-center justify-center flex-1 text-sm;
-  color: rgba(212, 168, 75, 0.2);
+  color: rgba(203, 213, 225, 0.2);
 }
 
 /* ── Stars ── */
@@ -673,8 +673,8 @@ function palaceAt(branch: string): PalaceData | undefined {
 .aux-star {
   @apply text-[10px] leading-tight px-1 py-px rounded;
   color: rgba(180, 160, 120, 0.8);
-  background: rgba(212, 168, 75, 0.06);
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  background: rgba(203, 213, 225, 0.06);
+  border: 1px solid rgba(203, 213, 225, 0.1);
 }
 
 .sihua-section {
@@ -683,24 +683,24 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .sihua-tag {
   @apply rounded-full px-2 py-px text-[9px] font-bold leading-tight;
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: #fff;
-  box-shadow: 0 0 6px rgba(196, 30, 58, 0.5);
+  box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
 }
 
 /* ── Center cell ── */
 .center-cell {
   @apply relative flex items-center justify-center p-4;
   background: linear-gradient(145deg, rgba(30, 25, 15, 0.95), rgba(20, 16, 28, 0.98));
-  border-left: 1px solid rgba(212, 168, 75, 0.15);
-  border-right: 1px solid rgba(212, 168, 75, 0.15);
+  border-left: 1px solid rgba(203, 213, 225, 0.15);
+  border-right: 1px solid rgba(203, 213, 225, 0.15);
   grid-row: span 1;
 }
 
 .center-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(212, 168, 75, 0.08), transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(203, 213, 225, 0.08), transparent 70%);
   pointer-events: none;
 }
 
@@ -710,7 +710,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .center-ornament {
   @apply text-xs;
-  color: #d4a84b;
+  color: #cbd5e1;
   opacity: 0.5;
   animation: pulse-glow 3s ease-in-out infinite;
 }
@@ -723,20 +723,20 @@ function palaceAt(branch: string): PalaceData | undefined {
   }
   50% {
     opacity: 0.7;
-    text-shadow: 0 0 8px #d4a84b;
+    text-shadow: 0 0 8px #cbd5e1;
   }
 }
 
 .center-title {
   @apply text-sm font-bold tracking-widest;
-  color: #d4a84b;
+  color: #cbd5e1;
   letter-spacing: 4px;
-  text-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+  text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
 }
 
 .center-divider {
   @apply w-16 h-px;
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 75, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.4), transparent);
 }
 
 .center-item {
@@ -745,7 +745,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .center-key {
   @apply text-[10px] leading-tight;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
 }
 
 .center-val {
@@ -754,12 +754,13 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .mingzhu,
 .shenzhu {
-  color: #c41e3a;
-  text-shadow: 0 0 12px rgba(196, 30, 58, 0.5);
+  color: #fb7185;
+  text-shadow: 0 0 12px rgba(251, 113, 133, 0.5);
 }
+
 .wuxing {
-  color: #d4a84b;
-  text-shadow: 0 0 12px rgba(212, 168, 75, 0.4);
+  color: #cbd5e1;
+  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 
 /* Mid center (row 3) */
@@ -781,18 +782,18 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .sky-text {
   @apply text-xs font-bold tracking-widest mt-1;
-  color: rgba(212, 168, 75, 0.4);
+  color: rgba(203, 213, 225, 0.4);
 }
 
 /* ── Legend ── */
 .legend-bar {
   @apply flex flex-wrap items-center justify-center gap-6 mt-4 pt-4 px-4;
-  border-top: 1px solid rgba(212, 168, 75, 0.1);
+  border-top: 1px solid rgba(203, 213, 225, 0.1);
 }
 
 .legend-title {
   @apply text-xs font-bold tracking-widest mr-1;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
 }
 
 .legend-items {
@@ -801,7 +802,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .legend-item {
   @apply flex items-center gap-2 text-[11px];
-  color: rgba(212, 168, 75, 0.6);
+  color: rgba(203, 213, 225, 0.6);
 }
 
 .legend-swatch {
@@ -809,13 +810,13 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .sihua-swatch {
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
-  box-shadow: 0 0 6px rgba(196, 30, 58, 0.5);
+  background: linear-gradient(135deg, #fb7185, #be123c);
+  box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
 }
 
 .legend-divider {
   @apply w-px h-4;
-  background: rgba(212, 168, 75, 0.15);
+  background: rgba(203, 213, 225, 0.15);
 }
 
 /* ── Empty state ── */
@@ -839,11 +840,11 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .empty-title {
   @apply text-lg font-bold;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
 }
 
 .empty-sub {
   @apply text-sm;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
 }
 </style>

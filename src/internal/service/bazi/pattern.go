@@ -76,9 +76,9 @@ func AnalyzePatternExtended(pillars []model.Pillar, monthZhi string, scores map[
 		return *pat
 	}
 
-	// 4. 复合格局（食神制杀/伤官配印/财滋杀旺/食神生财/正官佩印）
-	// 优先级高于八格：透干/地支十神组合明确时，直接定为复合格局
-	if pat := checkCompoundGe(pillars, dayGan); pat != nil {
+	// 4. 金神格（乙酉/己巳/癸酉日柱特殊格局，经典优先级高于八格）
+	// 经典依据：《渊海子平》"乙酉、己巳、癸酉三日为金神"
+	if pat := checkJinShenGe(dayGan, dayZhi, pillars); pat != nil {
 		return *pat
 	}
 
@@ -89,24 +89,34 @@ func AnalyzePatternExtended(pillars []model.Pillar, monthZhi string, scores map[
 	if pat := checkZhuanLuGe(dayGan, dayZhi, monthZhi); pat != nil {
 		return *pat
 	}
-	if pat := checkRiLuGuiShiGe(dayGan, hourZhi); pat != nil {
+	if pat := checkRiLuGuiShiGe(dayGan, hourZhi, pillars); pat != nil {
 		return *pat
 	}
 	if pat := checkYangRenGe(dayGan, dayZhi, monthZhi); pat != nil {
 		return *pat
 	}
 
-	// 6. 八格（透干优先，本气/中气兜底）
+	// 6. 八格（月令本气透干优先，透干次之，本气兜底）
+	// 经典依据：《子平真诠》"月令提纲为定格之本"
+	// 改进1：月令本气透干时优先取八格
+	// 改进2：月令本气不透时，透干取格但月令十神同五行透干优先
 	if pat := checkBaGe(pillars, monthZhi); pat != nil {
 		return *pat
 	}
 
-	// 7. 两神成像（八格无法定局时再判）
+	// 7. 复合格局（食神制杀/伤官配印/财滋杀旺/食神生财/正官佩印）
+	// 优先级低于八格：月令本气可成八格时不应被复合格局截胡
+	// 改进：复合格局需月令本气十神与格名匹配
+	if pat := checkCompoundGe(pillars, dayGan, monthZhi); pat != nil {
+		return *pat
+	}
+
+	// 8. 两神成像（八格无法定局时再判）
 	if pat := checkLiangShenChengXiang(scores); pat != nil {
 		return *pat
 	}
 
-	// 8. 特殊日柱
+	// 9. 其他特殊日柱（魁罡/三奇/日德）
 	if pat := checkKuiGangGe(dayGan, dayZhi); pat != nil {
 		return *pat
 	}
@@ -414,17 +424,26 @@ func checkZhuanLuGe(dayGan, dayZhi, monthZhi string) *PatternAnalysis {
 	}
 }
 
-// checkRiLuGuiShiGe 日禄归时格：时支为日主之禄。
+// checkRiLuGuiShiGe 日禄归时格：时支为日主之禄，且柱中不见正官透干。
 // 经典依据：《子平真诠》"日禄归时格，柱中不见官星，则专取此格"。
-func checkRiLuGuiShiGe(dayGan, hourZhi string) *PatternAnalysis {
+func checkRiLuGuiShiGe(dayGan, hourZhi string, pillars []model.Pillar) *PatternAnalysis {
 	if hourZhi != luShenZhi[dayGan] {
 		return nil
+	}
+	// 柱中天干透出正官则不成立（官星破禄）
+	for i, p := range pillars {
+		if i == 2 {
+			continue
+		}
+		if ClassifyTenGod(p.Gan, dayGan, false) == "正官" {
+			return nil
+		}
 	}
 	dayElem := data.GanElement[dayGan]
 	return &PatternAnalysis{
 		PatternName:         "日禄归时格",
 		PatternType:         "正格",
-		Description:         fmt.Sprintf("日主%s禄在时支%s，为日禄归时格。喜食伤生财、财官流通，忌印比劫夺。", dayGan, hourZhi),
+		Description:         fmt.Sprintf("日主%s禄在时支%s，且天干不见正官破禄，为日禄归时格。喜食伤生财、财官流通，忌印比劫夺。", dayGan, hourZhi),
 		FavorableElements:   []string{woSheng(dayElem), woKe(dayElem), keWo(dayElem)},
 		UnfavorableElements: []string{shengWo(dayElem), dayElem},
 	}
@@ -448,23 +467,24 @@ func checkYangRenGe(dayGan, dayZhi, monthZhi string) *PatternAnalysis {
 	}
 }
 
-// checkJinShenGe 金神格：日柱为乙/己，且月/时柱见己。
-// 经典依据：《渊海子平》"乙日己时为金神，己日乙时亦同例"。
+// checkJinShenGe 金神格：日柱为乙酉/己巳/癸酉
+// 经典依据：《渊海子平》"金神者，乙酉、己巳、癸酉三日是也"
+// 金神格喜火炼，忌水金过旺，火乡必显
 func checkJinShenGe(dayGan, dayZhi string, pillars []model.Pillar) *PatternAnalysis {
-	if dayGan != "乙" && dayGan != "己" {
-		return nil
+	jinShenDays := map[string]bool{
+		"乙酉": true,
+		"己巳": true,
+		"癸酉": true,
 	}
-	// 检查月干或时干是否有"己"（金神标识）
-	hasJiShen := pillars[1].Gan == "己" || pillars[3].Gan == "己"
-	if !hasJiShen {
+	dayPillar := dayGan + dayZhi
+	if !jinShenDays[dayPillar] {
 		return nil
 	}
 	dayElem := data.GanElement[dayGan]
-	// 金神格喜火炼（食伤为火）忌水金过旺
 	return &PatternAnalysis{
 		PatternName:         "金神格",
 		PatternType:         "特殊格局",
-		Description:         fmt.Sprintf("日柱%s%s为金神格，《渊海子平》载金神入火乡必显。喜火炼金、食伤泄秀，忌水土过旺。", dayGan, dayZhi),
+		Description:         fmt.Sprintf("日柱%s为金神格，《渊海子平》载金神入火乡必显。喜火炼金、食伤泄秀，忌水土过旺。", dayPillar),
 		FavorableElements:   []string{woSheng(dayElem)},
 		UnfavorableElements: []string{shengWo(dayElem), keWo(dayElem)},
 	}
@@ -643,6 +663,11 @@ func checkCongHuaGe(pillars []model.Pillar, monthZhi string, scores map[string]i
 		if data.GanElement[p.Gan] == keHua {
 			return nil
 		}
+	}
+
+	// 日主不旺条件：日主五行得分占比 < 25%（从化要求日主无力，否则为正化而非从化）
+	if total > 0 && float64(scores[dayElem])/float64(total) >= 0.25 {
+		return nil
 	}
 
 	return &PatternAnalysis{
@@ -913,9 +938,12 @@ func checkCongErGe(pillars []model.Pillar, scores map[string]int) *PatternAnalys
 }
 
 // checkBaGe 八格判定。
-// 透干优先：年/月/时干任一透出"非比劫"十神时，按优先级取格（官>食伤>财>印）。
-// 透干无显著十神时，按月支本气/中气取格。
 // 经典依据：《子平真诠》"月令提纲为定格之本，月支本气透干者即取以为格"。
+// 规则：
+//   0. 月令本气透干 → 本气取格（最优先）
+//   1. 月令本气不透 → 月令同五行透干取格（如月令正财不透，偏财透→偏财格）
+//   2. 月令十神无透 → 其他柱透干按官杀>食伤>财>印取格
+//   3. 无透干 → 月令本气非比劫时取格（兜底）
 func checkBaGe(pillars []model.Pillar, monthZhi string) *PatternAnalysis {
 	if len(pillars) < 4 {
 		return nil
@@ -927,10 +955,55 @@ func checkBaGe(pillars []model.Pillar, monthZhi string) *PatternAnalysis {
 		return nil
 	}
 
-	// 透干优先级：官杀 > 食伤 > 财 > 印
-	tgPriority := []string{"正官", "七杀", "食神", "伤官", "正财", "偏财", "正印", "偏印"}
+	// 0. 月令本气透干优先
+	benQiGan := monthZhiBenQi(monthZhi)
+	benQiTG := ClassifyTenGod(benQiGan, dayGan, false)
+	if benQiTG != "" && benQiTG != "比肩" && benQiTG != "劫财" {
+		for i, p := range pillars {
+			if i == 2 {
+				continue
+			}
+			if p.Gan == benQiGan {
+				patternName, _ := patternFromTenGod(benQiTG)
+				if patternName != "" {
+					return buildBaGeResult(patternName, dayGan, monthZhi, benQiTG, dayElem, true)
+				}
+			}
+		}
+	}
 
-	// 1. 透干优先：月干透出官/食/财/印时最强，其次时干，再年干
+	// 2. 月令本气不透但有偏正互换透干 → 互换透干取格
+	// 允许：正财↔偏财、正印↔偏印、食神↔伤官
+	// 不允许：正官↔七杀（官杀虽同类但取格不同，不可越权）
+	benQiElem := data.GanElement[benQiGan]
+	if benQiElem != "" && benQiTG != "" && benQiTG != "比肩" && benQiTG != "劫财" && benQiTG != "正官" && benQiTG != "七杀" {
+		benQiCategory := tenGodCategory(benQiTG)
+		for i, p := range pillars {
+			if i == 2 {
+				continue
+			}
+			stemTG := ClassifyTenGod(p.Gan, dayGan, i == 2)
+			stemCategory := tenGodCategory(stemTG)
+			if stemTG != "" && stemCategory == benQiCategory && stemTG != benQiTG {
+				patternName, _ := patternFromTenGod(stemTG)
+				if patternName != "" {
+					return buildBaGeResult(patternName, dayGan, monthZhi, stemTG, dayElem, true)
+				}
+			}
+		}
+	}
+
+	// 3. 月令本气不透也无同五行透干 → 月令本气非比劫时直接取格
+	// 经典依据：《子平真诠》"月支本气虽不透干，亦可取以为格"
+	if benQiTG != "" && benQiTG != "比肩" && benQiTG != "劫财" {
+		patternName, _ := patternFromTenGod(benQiTG)
+		if patternName != "" {
+			return buildBaGeResult(patternName, dayGan, monthZhi, benQiTG, dayElem, false)
+		}
+	}
+
+	// 4. 月令本气为比劫或无本气 → 其他柱透干按优先级取格
+	tgPriority := []string{"正官", "七杀", "食神", "伤官", "正财", "偏财", "正印", "偏印"}
 	stemPositions := []int{1, 3, 0} // 月、时、年
 	for _, tg := range tgPriority {
 		for _, idx := range stemPositions {
@@ -940,16 +1013,6 @@ func checkBaGe(pillars []model.Pillar, monthZhi string) *PatternAnalysis {
 			stemTG := ClassifyTenGod(pillars[idx].Gan, dayGan, idx == 2)
 			if stemTG != tg {
 				continue
-			}
-			// 月干透出与月支本气一致：本气取格（最强）
-			if idx == 1 {
-				mainStem := mainQi(monthZhi)
-				if mainStem != "" && data.GanElement[pillars[idx].Gan] == data.GanElement[stemFromQi(mainStem)] {
-					patternName, _ := patternFromTenGod(tg)
-					if patternName != "" {
-						return buildBaGeResult(patternName, dayGan, monthZhi, tg, dayElem, true)
-					}
-				}
 			}
 			patternName, _ := patternFromTenGod(tg)
 			if patternName != "" {
@@ -1054,10 +1117,40 @@ func geUnfavorable(dayElem, mainTG string) []string {
 	return nil
 }
 
+// monthZhiBenQi 返回月支本气天干
+// 经典依据：寅本气甲、卯本气乙、辰本气戊、巳本气丙、午本气丁、未本气己、申本气庚、酉本气辛、戌本气戊、亥本气壬、子本气癸、丑本气己
+var monthZhiBenQiMap = map[string]string{
+	"寅": "甲", "卯": "乙", "辰": "戊", "巳": "丙", "午": "丁", "未": "己",
+	"申": "庚", "酉": "辛", "戌": "戊", "亥": "壬", "子": "癸", "丑": "己",
+}
+
+func monthZhiBenQi(zhi string) string {
+	if gan, ok := monthZhiBenQiMap[zhi]; ok {
+		return gan
+	}
+	return ""
+}
+
+// tenGodCategory 返回十神类别：官/杀→官杀, 财→财, 印→印, 食/伤→食伤
+func tenGodCategory(tg string) string {
+	switch tg {
+	case "正官", "七杀":
+		return "官杀"
+	case "正财", "偏财":
+		return "财"
+	case "正印", "偏印":
+		return "印"
+	case "食神", "伤官":
+		return "食伤"
+	default:
+		return ""
+	}
+}
+
 // checkCompoundGe 复合格局判定。
-// 经典依据：《子平真诠》"相神有力方能成格"。
+// 经典依据：《子平真诠》"相神有力方能成格"，且月令本气必须为格名所涉十神。
 // 检测：食神制杀 / 伤官配印 / 财滋杀旺 / 食神生财 / 正官佩印。
-func checkCompoundGe(pillars []model.Pillar, dayGan string) *PatternAnalysis {
+func checkCompoundGe(pillars []model.Pillar, dayGan, monthZhi string) *PatternAnalysis {
 	if len(pillars) < 4 {
 		return nil
 	}
@@ -1066,35 +1159,55 @@ func checkCompoundGe(pillars []model.Pillar, dayGan string) *PatternAnalysis {
 		return nil
 	}
 
+	// 月令本气十神：关键约束，复合格局需月令十神与格名匹配
+	monthBenQi := monthZhiBenQi(monthZhi)
+	monthTenGod := ClassifyTenGod(monthBenQi, dayGan, false)
+
 	// 计算各十神所在柱（基于藏干+天干）
 	pairs := samePillarPairs(pillars, dayGan)
 
-	// 食神制杀：食神与七杀在同柱或紧贴
-	if (hasPair(pairs, "食神", "七杀") || hasAdjacentPair(pillars, dayGan, "食神", "七杀")) &&
-		!hasPair(pairs, "正印", "七杀") {
+	// 食神制杀：食神与七杀在同柱或紧贴，且七杀必须透干，月令为食神或七杀
+	shaTouGan := false
+	for i, p := range pillars {
+		if i == 2 {
+			continue
+		}
+		if ClassifyTenGod(p.Gan, dayGan, false) == "七杀" {
+			shaTouGan = true
+			break
+		}
+	}
+	if shaTouGan &&
+		(hasPair(pairs, "食神", "七杀") || hasAdjacentPair(pillars, dayGan, "食神", "七杀")) &&
+		!hasPair(pairs, "正印", "七杀") &&
+		(monthTenGod == "食神" || monthTenGod == "七杀") {
 		return buildCompound("食神制杀格", dayGan, dayElem,
 			[]string{woSheng(dayElem)}, []string{dayElem, shengWo(dayElem), woKe(dayElem)})
 	}
-	// 伤官配印：伤官与印星（正印或偏印）同柱或紧贴
-	if hasPair(pairs, "伤官", "正印") || hasPair(pairs, "伤官", "偏印") ||
-		hasAdjacentPair(pillars, dayGan, "伤官", "正印") || hasAdjacentPair(pillars, dayGan, "伤官", "偏印") {
+	// 伤官配印：伤官与印星（正印或偏印）同柱或紧贴，月令为伤官或印星
+	if (hasPair(pairs, "伤官", "正印") || hasPair(pairs, "伤官", "偏印") ||
+		hasAdjacentPair(pillars, dayGan, "伤官", "正印") || hasAdjacentPair(pillars, dayGan, "伤官", "偏印")) &&
+		(monthTenGod == "伤官" || monthTenGod == "正印" || monthTenGod == "偏印") {
 		return buildCompound("伤官配印格", dayGan, dayElem,
 			[]string{shengWo(dayElem), dayElem}, []string{woKe(dayElem), keWo(dayElem)})
 	}
-	// 财滋杀旺：财星与七杀在同柱（财生杀）
-	if hasPair(pairs, "正财", "七杀") || hasPair(pairs, "偏财", "七杀") {
+	// 财滋杀旺：财星与七杀在同柱（财生杀），月令为财星或七杀
+	if (hasPair(pairs, "正财", "七杀") || hasPair(pairs, "偏财", "七杀")) &&
+		(monthTenGod == "正财" || monthTenGod == "偏财" || monthTenGod == "七杀") {
 		return buildCompound("财滋杀旺格", dayGan, dayElem,
 			[]string{woKe(dayElem), keWo(dayElem)}, []string{shengWo(dayElem), dayElem})
 	}
-	// 食神生财：食神与财星在同柱或紧贴
-	if hasPair(pairs, "食神", "正财") || hasPair(pairs, "食神", "偏财") ||
-		hasAdjacentPair(pillars, dayGan, "食神", "正财") || hasAdjacentPair(pillars, dayGan, "食神", "偏财") {
+	// 食神生财：食神与财星在同柱或紧贴，月令为食神或财星
+	if (hasPair(pairs, "食神", "正财") || hasPair(pairs, "食神", "偏财") ||
+		hasAdjacentPair(pillars, dayGan, "食神", "正财") || hasAdjacentPair(pillars, dayGan, "食神", "偏财")) &&
+		(monthTenGod == "食神" || monthTenGod == "正财" || monthTenGod == "偏财") {
 		return buildCompound("食神生财格", dayGan, dayElem,
 			[]string{woSheng(dayElem), woKe(dayElem)}, []string{keWo(dayElem), dayElem})
 	}
-	// 正官佩印：正官与印星（正印或偏印）同柱或紧贴
-	if hasPair(pairs, "正官", "正印") || hasPair(pairs, "正官", "偏印") ||
-		hasAdjacentPair(pillars, dayGan, "正官", "正印") || hasAdjacentPair(pillars, dayGan, "正官", "偏印") {
+	// 正官佩印：正官与印星（正印或偏印）同柱或紧贴，月令为正官或印星
+	if (hasPair(pairs, "正官", "正印") || hasPair(pairs, "正官", "偏印") ||
+		hasAdjacentPair(pillars, dayGan, "正官", "正印") || hasAdjacentPair(pillars, dayGan, "正官", "偏印")) &&
+		(monthTenGod == "正官" || monthTenGod == "正印" || monthTenGod == "偏印") {
 		return buildCompound("正官佩印格", dayGan, dayElem,
 			[]string{shengWo(dayElem), dayElem}, []string{woKe(dayElem), keWo(dayElem)})
 	}

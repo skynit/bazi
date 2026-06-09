@@ -28,6 +28,7 @@ const route = useRoute()
 const data = ref<WeeklyResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
+const chartId = ref<string | number>('')
 
 const trendData = computed<TrendPoint[]>(() => {
   if (!data.value?.element_trend) return []
@@ -55,21 +56,21 @@ function todayStr(): string {
 
 function scoreColor(score: number): string {
   if (score >= 80) return '#4ADE80'
-  if (score >= 60) return 'var(--gold)'
-  return 'var(--crimson)'
+  if (score >= 60) return 'var(--accent)'
+  return 'var(--danger)'
 }
 
 async function fetchWeekly() {
-  const chartId = route.query.chart_id
-  if (!chartId) {
-    error.value = '请提供 chart_id 参数'
-    loading.value = false
-    return
+  let cid: string | number | null = route.query.chart_id as string | null
+  if (!cid) {
+    try { const s = localStorage.getItem('bazi_last_birth'); if (s) cid = JSON.parse(s).chartId } catch {}
+    if (!cid) { error.value = '请先创建命盘'; loading.value = false; return }
   }
+  chartId.value = cid
 
   try {
     const { data: res } = await client.post<WeeklyResponse>('/fortune/weekly', {
-      chart_id: Number(chartId),
+      chart_id: Number(chartId.value),
       start_date: todayStr(),
     })
     data.value = res
@@ -90,17 +91,17 @@ onMounted(() => {
     <!-- Constellation background -->
     <div class="bg-constellation" aria-hidden="true">
       <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
-        <circle cx="100" cy="80" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="600" cy="60" r="1.2" fill="#D4A84B" opacity="0.35" />
-        <circle cx="700" cy="400" r="1" fill="#D4A84B" opacity="0.25" />
-        <circle cx="200" cy="500" r="0.8" fill="#D4A84B" opacity="0.2" />
-        <circle cx="400" cy="300" r="1.5" fill="#D4A84B" opacity="0.4" />
+        <circle cx="100" cy="80" r="1" fill="#cbd5e1" opacity="0.3" />
+        <circle cx="600" cy="60" r="1.2" fill="#cbd5e1" opacity="0.35" />
+        <circle cx="700" cy="400" r="1" fill="#cbd5e1" opacity="0.25" />
+        <circle cx="200" cy="500" r="0.8" fill="#cbd5e1" opacity="0.2" />
+        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.4" />
         <line
           x1="100"
           y1="80"
           x2="400"
           y2="300"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.4"
           opacity="0.06"
         />
@@ -116,19 +117,19 @@ onMounted(() => {
               cx="30"
               cy="30"
               r="25"
-              stroke="#D4A84B"
+              stroke="#cbd5e1"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.4"
             />
-            <circle cx="30" cy="30" r="12" stroke="#D4A84B" stroke-width="0.5" opacity="0.3" />
-            <circle cx="30" cy="30" r="3" fill="#D4A84B" opacity="0.3" />
-            <circle cx="15" cy="20" r="2" fill="#D4A84B" opacity="0.5" class="star-pulse" />
+            <circle cx="30" cy="30" r="12" stroke="#cbd5e1" stroke-width="0.5" opacity="0.3" />
+            <circle cx="30" cy="30" r="3" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="15" cy="20" r="2" fill="#cbd5e1" opacity="0.5" class="star-pulse" />
             <circle
               cx="45"
               cy="18"
               r="2"
-              fill="#D4A84B"
+              fill="#cbd5e1"
               opacity="0.4"
               class="star-pulse"
               style="animation-delay: 0.3s"
@@ -147,17 +148,17 @@ onMounted(() => {
             cx="30"
             cy="30"
             r="26"
-            stroke="#C41E3A"
+            stroke="#fb7185"
             stroke-width="1"
             stroke-dasharray="3 2"
             opacity="0.4"
           />
-          <line x1="20" y1="20" x2="40" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
-          <line x1="40" y1="20" x2="20" y2="40" stroke="#C41E3A" stroke-width="2" opacity="0.5" />
+          <line x1="20" y1="20" x2="40" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
+          <line x1="40" y1="20" x2="20" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
         </svg>
       </div>
       <p class="error-text">{{ error }}</p>
-      <button class="btn-retry" @click="fetchWeekly">重新加载</button>
+      <router-link to="/chart/new" class="btn-retry">去排盘</router-link>
     </div>
 
     <template v-else-if="data">
@@ -198,7 +199,7 @@ onMounted(() => {
         </div>
 
         <div class="bottom-nav">
-          <router-link :to="`/fortune?chart_id=${route.query.chart_id}`" class="nav-link">
+          <router-link :to="`/fortune?chart_id=${chartId}`" class="nav-link">
             查看今日运势 →
           </router-link>
         </div>
@@ -285,7 +286,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 12px;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
   letter-spacing: 2px;
 }
 
@@ -313,7 +314,7 @@ onMounted(() => {
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, #c41e3a, #8b0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: white;
   border: none;
   border-radius: 8px;
@@ -321,12 +322,12 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(196, 30, 58, 0.2);
+  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.2);
 }
 
 .btn-retry:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.3);
+  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.3);
 }
 
 /* Header */
@@ -338,7 +339,7 @@ onMounted(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.35);
+  color: rgba(203, 213, 225, 0.35);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -369,7 +370,7 @@ onMounted(() => {
 .score-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(212, 168, 75, 0.06), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(203, 213, 225, 0.06), transparent 70%);
   pointer-events: none;
 }
 
@@ -409,7 +410,7 @@ onMounted(() => {
   color: var(--text);
   margin: 0 0 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.1);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.1);
   letter-spacing: 1px;
 }
 
@@ -421,7 +422,7 @@ onMounted(() => {
 
 .day-card {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(212, 168, 75, 0.08);
+  border: 1px solid rgba(203, 213, 225, 0.08);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   display: flex;
@@ -431,8 +432,8 @@ onMounted(() => {
 }
 
 .day-card:hover {
-  border-color: rgba(212, 168, 75, 0.2);
-  background: rgba(212, 168, 75, 0.03);
+  border-color: rgba(203, 213, 225, 0.2);
+  background: rgba(203, 213, 225, 0.03);
 }
 
 .day-card-left {
@@ -448,8 +449,8 @@ onMounted(() => {
 .day-pillar {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--crimson);
-  text-shadow: 0 0 10px rgba(196, 30, 58, 0.3);
+  color: var(--danger);
+  text-shadow: 0 0 10px rgba(251, 113, 133, 0.3);
   min-width: 48px;
   text-align: center;
 }
@@ -472,7 +473,7 @@ onMounted(() => {
 }
 
 .nav-link {
-  color: var(--gold);
+  color: var(--accent);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
@@ -480,6 +481,6 @@ onMounted(() => {
 }
 
 .nav-link:hover {
-  text-shadow: 0 0 12px rgba(212, 168, 75, 0.4);
+  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 </style>

@@ -30,11 +30,11 @@ const props = withDefaults(
 )
 
 const elementSeries = [
-  { key: 'metal' as const, name: '金', color: '#FFD700' },
-  { key: 'wood' as const, name: '木', color: '#228B22' },
-  { key: 'water' as const, name: '水', color: '#4169E1' },
-  { key: 'fire' as const, name: '火', color: '#DC143C' },
-  { key: 'earth' as const, name: '土', color: '#DAA520' },
+  { key: 'metal' as const, name: '金', color: '#cbd5e1' },
+  { key: 'wood' as const, name: '木', color: '#34d399' },
+  { key: 'water' as const, name: '水', color: '#22d3ee' },
+  { key: 'fire' as const, name: '火', color: '#fb7185' },
+  { key: 'earth' as const, name: '土', color: '#fde68a' },
 ]
 
 const option = computed(() => {
@@ -47,8 +47,8 @@ const option = computed(() => {
       type: 'line',
       yAxisIndex: 0,
       data: scores,
-      lineStyle: { color: '#C41E3A', width: 2.5 },
-      itemStyle: { color: '#C41E3A' },
+      lineStyle: { color: '#fb7185', width: 2.5 },
+      itemStyle: { color: '#fb7185' },
       symbol: 'circle',
       symbolSize: 6,
       smooth: true,
@@ -76,13 +76,13 @@ const option = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'cross' },
-      backgroundColor: 'rgba(10, 8, 21, 0.9)',
-      borderColor: 'rgba(212, 168, 75, 0.2)',
+      backgroundColor: 'rgba(3, 4, 4, 0.9)',
+      borderColor: 'rgba(203, 213, 225, 0.2)',
       textStyle: { color: '#F0EDE4', fontSize: 11 },
     },
     legend: {
       bottom: 0,
-      textStyle: { color: 'rgba(212,168,75,0.5)', fontSize: 10 },
+      textStyle: { color: 'rgba(203,213,225,0.5)', fontSize: 10 },
       itemWidth: 12,
       itemHeight: 8,
     },
@@ -98,7 +98,7 @@ const option = computed(() => {
           return val
         },
       },
-      axisLine: { lineStyle: { color: 'rgba(212, 168, 75, 0.1)' } },
+      axisLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.1)' } },
       axisTick: { show: false },
     },
     yAxis: [
@@ -109,7 +109,7 @@ const option = computed(() => {
         max: 100,
         interval: 20,
         axisLabel: { fontSize: 10, color: 'rgba(139, 131, 120, 0.6)' },
-        splitLine: { lineStyle: { color: 'rgba(212, 168, 75, 0.06)', type: 'dashed' } },
+        splitLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.06)', type: 'dashed' } },
         axisLine: { show: false },
         axisTick: { show: false },
       },
@@ -139,7 +139,7 @@ const option = computed(() => {
             cx="50"
             cy="50"
             r="42"
-            stroke="#D4A84B"
+            stroke="#cbd5e1"
             stroke-width="0.5"
             stroke-dasharray="2 3"
             opacity="0.25"
@@ -148,18 +148,18 @@ const option = computed(() => {
             cx="50"
             cy="50"
             r="28"
-            stroke="#D4A84B"
+            stroke="#cbd5e1"
             stroke-width="0.5"
             stroke-dasharray="1 4"
             opacity="0.18"
           />
-          <circle cx="50" cy="50" r="5" fill="#D4A84B" opacity="0.2" />
-          <circle cx="25" cy="32" r="2.5" fill="#D4A84B" opacity="0.4" class="star-pulse" />
+          <circle cx="50" cy="50" r="5" fill="#cbd5e1" opacity="0.2" />
+          <circle cx="25" cy="32" r="2.5" fill="#cbd5e1" opacity="0.4" class="star-pulse" />
           <circle
             cx="75"
             cy="28"
             r="3"
-            fill="#D4A84B"
+            fill="#cbd5e1"
             opacity="0.35"
             class="star-pulse"
             style="animation-delay: 0.4s"
@@ -168,7 +168,7 @@ const option = computed(() => {
             cx="78"
             cy="68"
             r="2"
-            fill="#D4A84B"
+            fill="#cbd5e1"
             opacity="0.3"
             class="star-pulse"
             style="animation-delay: 0.8s"
@@ -177,7 +177,7 @@ const option = computed(() => {
             cx="22"
             cy="72"
             r="3"
-            fill="#D4A84B"
+            fill="#cbd5e1"
             opacity="0.35"
             class="star-pulse"
             style="animation-delay: 1.2s"
@@ -187,7 +187,7 @@ const option = computed(() => {
             y1="32"
             x2="50"
             y2="50"
-            stroke="#D4A84B"
+            stroke="#cbd5e1"
             stroke-width="0.4"
             opacity="0.08"
           />
@@ -196,7 +196,7 @@ const option = computed(() => {
             y1="28"
             x2="50"
             y2="50"
-            stroke="#D4A84B"
+            stroke="#cbd5e1"
             stroke-width="0.4"
             opacity="0.06"
           />
@@ -225,7 +225,7 @@ const option = computed(() => {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed rgba(212, 168, 75, 0.12);
+  border: 1px dashed rgba(203, 213, 225, 0.12);
   border-radius: 12px;
   gap: 0.75rem;
 }
@@ -261,7 +261,7 @@ const option = computed(() => {
 .empty-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(212, 168, 75, 0.4);
+  color: rgba(203, 213, 225, 0.4);
   margin: 0;
   letter-spacing: 1px;
 }

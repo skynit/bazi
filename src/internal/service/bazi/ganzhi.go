@@ -241,6 +241,13 @@ func interpretZhiSanHui(zhi1, zhi2, label1, label2 string) string {
 	return base + "\n" + body
 }
 
+func interpretZhiFuYin(zhi, label1, label2 string) string {
+	element := ZhiWuXing[zhi]
+	base := fmt.Sprintf("%s%s伏吟", zhi, zhi)
+	body := fmt.Sprintf("【%s与%s的共鸣】%s与%s地支同见%s，为伏吟。%s气重复出现，暗示该领域的能量加倍，既有深厚根基，也有难以摆脱的循环。", label1, label2, label1, label2, zhi, element)
+	return base + "\n" + body
+}
+
 func interpretZhiGeneric(relType, zhi1, zhi2, label1, label2 string) string {
 	base := fmt.Sprintf("%s%s%s", zhi1, zhi2, relType)
 	body := fmt.Sprintf("【%s与%s的%s关系】代表%s与%s之间存在矛盾、变动或潜在的不和谐因素，需注意相关领域的沟通与健康。", label1, label2, relType, pillarMeaning[label1], pillarMeaning[label2])
@@ -477,6 +484,11 @@ func calcGanPairRelations(label1, gan1, label2, gan2 string) []GanRelation {
 
 func calcZhiPairRelations(label1, zhi1, label2, zhi2 string) []ZhiRelation {
 	var rels []ZhiRelation
+
+	if zhi1 == zhi2 {
+		detail := interpretZhiFuYin(zhi1, label1, label2)
+		rels = append(rels, ZhiRelation{label1, label2, "伏吟", detail})
+	}
 
 	// 六冲
 	if zhiLiuChong[zhi1] == zhi2 {

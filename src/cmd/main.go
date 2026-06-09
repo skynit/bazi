@@ -9,47 +9,27 @@ import (
 	"bazi/internal/service/fortune"
 	"bazi/internal/service/ziwei"
 	"bazi/internal/store"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-// memUserStore persists users in memory (auth only — user accounts use in-memory store).
-type memUserStore struct {
-	mu    sync.Mutex
-	users map[uint]*model.User
-	next  uint
-}
-
-func newMemUserStore() *memUserStore { return &memUserStore{users: map[uint]*model.User{}, next: 1} }
-func (s *memUserStore) Create(u *model.User) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	u.ID = s.next
-	s.next++
-	s.users[u.ID] = u
-	return nil
-}
-func (s *memUserStore) FindByUsername(name string) (*model.User, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, u := range s.users {
-		if u.Username == name {
-			return u, nil
-		}
+func seedAdminIfEmpty(us *store.DBUserStore) {
+	existing, _ := us.FindByUsername("admin")
+	if existing != nil {
+		return
 	}
-	return nil, nil
-}
-func (s *memUserStore) FindByID(id uint) (*model.User, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if u, ok := s.users[id]; ok {
-		return u, nil
+	admin := &model.User{Username: "admin", Email: "admin@bazi.com"}
+	if err := admin.SetPassword("admin"); err != nil {
+		log.Printf("Failed to hash admin password: %v", err)
+		return
 	}
-	return nil, nil
+	if err := us.Create(admin); err != nil {
+		log.Printf("Failed to seed admin user: %v", err)
+		return
+	}
+	log.Println("Seeded default admin user (username=admin, password=admin)")
 }
 
 func main() {
@@ -59,11 +39,9 @@ func main() {
 	db := initDatabase(cfg)
 	cs := store.NewDBChartStore(db)
 	fs := store.NewDBFortuneStore(db)
+	us := store.NewDBUserStore(db)
 
-	us := newMemUserStore()
-	// Seed admin account
-	hash, _ := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	us.Create(&model.User{Username: "admin", Email: "admin@bazi.com", PasswordHash: string(hash)})
+	seedAdminIfEmpty(us)
 
 	baziSvc := &bazi.BaziService{}
 	parser := &bazi.InputParser{}

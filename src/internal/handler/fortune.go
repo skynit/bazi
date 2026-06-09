@@ -73,7 +73,17 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 	}
 	resp := model.FortuneResponse{
 		SolarDate:       fortune.Date,
+		LunarDate:       fortune.LunarDate,
 		DayGanZhi:       fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
+		WeekDay:         fortune.WeekDay,
+		ShengXiao:       fortune.ShengXiao,
+		JiShen:          fortune.JiShen,
+		XiongShen:       fortune.XiongShen,
+		TaiShen:         fortune.TaiShen,
+		WuXing:          fortune.WuXing,
+		PengZu:          fortune.PengZu,
+		Gua:             fortune.Gua,
+		JieQi:           fortune.JieQi,
 		ElementImages:   fortune.ElementImages,
 		Score:           fortune.Score,
 		LuckyColor:      fortune.LuckyColor,

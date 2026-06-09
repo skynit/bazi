@@ -1,9 +1,9 @@
 package bazi
 
 import (
+	"bazi/internal/model"
 	"testing"
 
-	"bazi/internal/model"
 )
 
 // Verify 稼穑格 rejects when hidden stems contain 克破(木)

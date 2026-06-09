@@ -138,26 +138,26 @@ function toggle() {
 .interpretation-card {
   @apply rounded-xl border overflow-hidden;
   background: var(--glass);
-  border-color: rgba(212, 168, 75, 0.12);
+  border-color: rgba(203, 213, 225, 0.12);
   backdrop-filter: blur(12px);
 }
 
 .interpretation-card:hover {
-  border-color: rgba(212, 168, 75, 0.25);
+  border-color: rgba(203, 213, 225, 0.25);
 }
 
 .card-header {
   @apply flex items-center justify-between p-4 cursor-pointer select-none;
-  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.08);
 }
 
 .expanded .card-header {
-  border-bottom-color: rgba(212, 168, 75, 0.15);
+  border-bottom-color: rgba(203, 213, 225, 0.15);
 }
 
 .card-title {
   @apply text-base font-bold m-0;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .card-subtitle {
@@ -167,7 +167,7 @@ function toggle() {
 
 .toggle-icon {
   @apply text-sm;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .card-body {
@@ -176,7 +176,7 @@ function toggle() {
 
 .reading-section {
   @apply pb-3 border-b border-dashed;
-  border-color: rgba(212, 168, 75, 0.08);
+  border-color: rgba(203, 213, 225, 0.08);
 }
 
 .reading-section:last-child {
@@ -185,11 +185,11 @@ function toggle() {
 
 .section-heading {
   @apply flex items-center gap-1.5 text-sm font-bold mb-2 m-0;
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .section-marker {
-  color: var(--crimson);
+  color: var(--danger);
   font-size: 12px;
 }
 
@@ -207,20 +207,20 @@ function toggle() {
 }
 
 .main-star {
-  background-color: rgba(196, 30, 58, 0.15);
+  background-color: rgba(251, 113, 133, 0.15);
   color: #f08080;
-  border: 1px solid rgba(196, 30, 58, 0.25);
+  border: 1px solid rgba(251, 113, 133, 0.25);
 }
 
 .aux-star {
-  background-color: rgba(212, 168, 75, 0.08);
-  color: var(--gold);
-  border: 1px solid rgba(212, 168, 75, 0.2);
+  background-color: rgba(203, 213, 225, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(203, 213, 225, 0.2);
 }
 
 .sihua-star {
   background-color: rgba(218, 165, 32, 0.1);
-  color: #daa520;
+  color: #fde68a;
   border: 1px solid rgba(218, 165, 32, 0.2);
 }
 

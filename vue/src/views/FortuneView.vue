@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import DailyFortune from '../components/DailyFortune.vue'
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
 
 interface HiddenStemGod {
   stem: string
@@ -128,6 +129,7 @@ const fortune = ref<FortuneData | null>(null)
 const loading = ref(true)
 const error = ref('')
 const mounted = ref(false)
+const chartId = ref<string | number>('')
 
 function todayStr() {
   const d = new Date()
@@ -135,13 +137,14 @@ function todayStr() {
 }
 
 async function fetchFortune() {
-  let chartId = route.query.chart_id
-  if (!chartId) {
-    try { const s = localStorage.getItem('bazi_last_birth'); if (s) chartId = JSON.parse(s).chartId } catch {}
-    if (!chartId) { error.value = '请先创建命盘'; loading.value = false; return }
+  let cid: string | number | null = route.query.chart_id as string | null
+  if (!cid) {
+    try { const s = localStorage.getItem('bazi_last_birth'); if (s) cid = JSON.parse(s).chartId } catch {}
+    if (!cid) { error.value = '请先创建命盘'; loading.value = false; return }
   }
+  chartId.value = cid
   try {
-    const { data } = await client.post('/fortune', { chart_id: Number(chartId), query_date: todayStr() })
+    const { data } = await client.post('/fortune', { chart_id: Number(chartId.value), query_date: todayStr() })
     fortune.value = data
   } catch (e: any) { error.value = e.response?.data?.error || '加载运势失败' }
   finally { loading.value = false }
@@ -151,14 +154,14 @@ onMounted(() => { fetchFortune(); setTimeout(() => mounted.value = true, 100) })
 
 function scoreColor(s: number) {
   if (s >= 80) return '#4ADE80'
-  if (s >= 60) return '#D4A84B'
-  return '#C41E3A'
+  if (s >= 60) return '#cbd5e1'
+  return '#fb7185'
 }
 
 function scoreGlow(s: number) {
   if (s >= 80) return '#4ADE8060'
-  if (s >= 60) return '#D4A84B60'
-  return '#C41E3A60'
+  if (s >= 60) return '#cbd5e160'
+  return '#fb718560'
 }
 
 function scoreWord(s: number) {
@@ -175,64 +178,8 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 <template>
   <div class="fortune-page">
 
-    <!-- ── Noise grain overlay ── -->
-    <svg class="noise-overlay" aria-hidden="true" style="display:none">
-      <filter id="noise">
-        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-        <feColorMatrix type="saturate" values="0" />
-      </filter>
-      <rect width="100%" height="100%" filter="url(#noise)" opacity="0.04" />
-    </svg>
-
-    <!-- ── Starfield + nebula background ── -->
-    <div class="bg-layer" aria-hidden="true">
-      <div class="nebula nebula-1"></div>
-      <div class="nebula nebula-2"></div>
-      <div class="nebula nebula-3"></div>
-      <div class="stars-layer">
-        <svg class="stars-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <radialGradient id="bg-gold-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#D4A84B" stop-opacity="0.18" />
-              <stop offset="100%" stop-color="#D4A84B" stop-opacity="0" />
-            </radialGradient>
-          </defs>
-          <circle cx="0" cy="0" r="400" fill="url(#bg-gold-glow)" transform="translate(400,200)" />
-          <circle cx="0" cy="0" r="280" fill="url(#bg-gold-glow)" transform="translate(1100,600)" />
-          <!-- Stars -->
-          <circle cx="80" cy="60" r="1.2" fill="#fff" opacity="0.4" />
-          <circle cx="220" cy="140" r="0.8" fill="#D4A84B" opacity="0.5" />
-          <circle cx="400" cy="80" r="1.5" fill="#fff" opacity="0.3" />
-          <circle cx="560" cy="180" r="1" fill="#D4A84B" opacity="0.4" />
-          <circle cx="720" cy="90" r="2" fill="#D4A84B" opacity="0.6" class="star-blink" />
-          <circle cx="900" cy="130" r="0.7" fill="#fff" opacity="0.25" />
-          <circle cx="1040" cy="60" r="1.3" fill="#D4A84B" opacity="0.45" />
-          <circle cx="1200" cy="160" r="1" fill="#fff" opacity="0.35" />
-          <circle cx="1380" cy="80" r="1.5" fill="#D4A84B" opacity="0.5" />
-          <circle cx="160" cy="320" r="1" fill="#D4A84B" opacity="0.3" />
-          <circle cx="380" cy="420" r="1.8" fill="#fff" opacity="0.2" class="star-blink" style="animation-delay:1s" />
-          <circle cx="580" cy="360" r="0.6" fill="#D4A84B" opacity="0.4" />
-          <circle cx="820" cy="450" r="1.2" fill="#D4A84B" opacity="0.55" class="star-blink" style="animation-delay:2s" />
-          <circle cx="1060" cy="380" r="0.9" fill="#fff" opacity="0.3" />
-          <circle cx="1280" cy="440" r="1.4" fill="#D4A84B" opacity="0.4" />
-          <circle cx="260" cy="600" r="1" fill="#D4A84B" opacity="0.3" />
-          <circle cx="500" cy="700" r="0.8" fill="#fff" opacity="0.2" />
-          <circle cx="740" cy="640" r="1.6" fill="#D4A84B" opacity="0.5" class="star-blink" style="animation-delay:0.5s" />
-          <circle cx="980" cy="720" r="1.2" fill="#fff" opacity="0.25" />
-          <circle cx="1200" cy="660" r="0.7" fill="#D4A84B" opacity="0.35" />
-          <circle cx="400" cy="820" r="1" fill="#D4A84B" opacity="0.4" />
-          <circle cx="660" cy="860" r="1.4" fill="#fff" opacity="0.2" class="star-blink" style="animation-delay:3s" />
-          <circle cx="900" cy="800" r="0.9" fill="#D4A84B" opacity="0.3" />
-          <!-- Constellation lines -->
-          <line x1="80" y1="60" x2="400" y2="80" stroke="#D4A84B" stroke-width="0.4" opacity="0.15" />
-          <line x1="400" y1="80" x2="720" y2="90" stroke="#D4A84B" stroke-width="0.4" opacity="0.12" />
-          <line x1="720" y1="90" x2="1040" y2="60" stroke="#D4A84B" stroke-width="0.3" opacity="0.1" />
-          <line x1="260" y1="600" x2="500" y2="700" stroke="#D4A84B" stroke-width="0.4" opacity="0.1" />
-          <line x1="500" y1="700" x2="740" y2="640" stroke="#D4A84B" stroke-width="0.3" opacity="0.08" />
-          <line x1="380" y1="420" x2="580" y2="360" stroke="#D4A84B" stroke-width="0.3" opacity="0.08" />
-        </svg>
-      </div>
-    </div>
+    <!-- ── Background ── -->
+    <CosmicGrainBackground />
 
     <!-- ── Loading ── -->
     <div v-if="loading" class="loading-state">
@@ -402,6 +349,15 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
           </div>
         </aside>
       </div>
+
+      <div class="fortune-nav">
+        <router-link :to="`/fortune/weekly?chart_id=${chartId}`" class="fortune-nav-link">
+          本周运势 →
+        </router-link>
+        <router-link :to="`/fortune/monthly?chart_id=${chartId}`" class="fortune-nav-link">
+          本月运势 →
+        </router-link>
+      </div>
     </main>
   </div>
 </template>
@@ -410,7 +366,7 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 /* ── Page ── */
 .fortune-page {
   min-height: 100vh;
-  background: #030208;
+  background: #030404;
   position: relative;
   overflow-x: hidden;
 }
@@ -418,18 +374,18 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 /* ── Background layers ── */
 .bg-layer {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: #030208;
+  background: #030404;
 }
 .nebula {
   position: absolute; border-radius: 50%; filter: blur(80px);
 }
 .nebula-1 {
   width: 800px; height: 800px; top: -300px; right: -200px;
-  background: radial-gradient(circle, rgba(196,30,58,0.12) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(251, 113, 133,0.12) 0%, transparent 65%);
 }
 .nebula-2 {
   width: 600px; height: 600px; bottom: -200px; left: -150px;
-  background: radial-gradient(circle, rgba(212,168,75,0.1) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(203, 213, 225,0.1) 0%, transparent 65%);
 }
 .nebula-3 {
   width: 400px; height: 400px; top: 30%; left: 20%;
@@ -450,19 +406,19 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 .loading-orbs { position: relative; width: 100px; height: 100px; }
 .l-orb {
   position: absolute; inset: 0; border-radius: 50%;
-  border: 1px solid rgba(212,168,75,0.25);
+  border: 1px solid rgba(203, 213, 225,0.25);
   animation: l-spin linear infinite;
 }
-.l-orb-2 { inset: 15px; border-color: rgba(212,168,75,0.15); animation-duration: 5s; animation-direction: reverse; }
-.l-orb-3 { inset: 30px; border-color: rgba(212,168,75,0.08); animation-duration: 8s; }
+.l-orb-2 { inset: 15px; border-color: rgba(203, 213, 225,0.15); animation-duration: 5s; animation-direction: reverse; }
+.l-orb-3 { inset: 30px; border-color: rgba(203, 213, 225,0.08); animation-duration: 8s; }
 .l-core {
   position: absolute; inset: 40px; border-radius: 50%;
-  background: rgba(212,168,75,0.12);
+  background: rgba(203, 213, 225,0.12);
   animation: l-pulse 2s ease-in-out infinite;
 }
 @keyframes l-spin { to { transform: rotate(360deg); } }
 @keyframes l-pulse { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(1.6);opacity:0.8} }
-.loading-text { color: rgba(212,168,75,0.35); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; }
+.loading-text { color: rgba(203, 213, 225,0.35); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; }
 
 /* ── Error ── */
 .error-state {
@@ -471,17 +427,17 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   align-items: center; justify-content: center;
   min-height: 100vh; gap: 1.5rem;
 }
-.error-sigil { font-size: 4rem; color: #C41E3A; opacity: 0.5; }
+.error-sigil { font-size: 4rem; color: #fb7185; opacity: 0.5; }
 .error-text { color: rgba(255,255,255,0.4); font-size: 0.95rem; }
 .retry-btn {
   padding: 0.7rem 2rem;
-  background: linear-gradient(135deg, #C41E3A, #8B0000);
+  background: linear-gradient(135deg, #fb7185, #be123c);
   color: #fff; border: none; border-radius: 8px;
   font-size: 0.85rem; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(196,30,58,0.3);
+  box-shadow: 0 4px 20px rgba(251, 113, 133,0.3);
   transition: all 0.3s;
 }
-.retry-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(196,30,58,0.5); }
+.retry-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(251, 113, 133,0.5); }
 
 /* ── Empty ── */
 .empty-state {
@@ -490,18 +446,18 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   align-items: center; justify-content: center;
   min-height: 100vh; gap: 1.5rem;
 }
-.empty-sigil { font-size: 4rem; color: rgba(212,168,75,0.12); }
+.empty-sigil { font-size: 4rem; color: rgba(203, 213, 225,0.12); }
 .empty-title { color: rgba(255,255,255,0.3); font-size: 1.1rem; }
 .go-chart-btn {
   padding: 0.8rem 2.5rem;
-  background: linear-gradient(135deg, #D4A84B, #B8860B);
-  color: #030208; font-weight: 800; border: none;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  color: #030404; font-weight: 800; border: none;
   border-radius: 50px; cursor: pointer; text-decoration: none;
   font-size: 0.9rem; letter-spacing: 1px;
-  box-shadow: 0 4px 30px rgba(212,168,75,0.4);
+  box-shadow: 0 4px 30px rgba(203, 213, 225,0.4);
   transition: all 0.3s;
 }
-.go-chart-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 50px rgba(212,168,75,0.6); }
+.go-chart-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 50px rgba(203, 213, 225,0.6); }
 
 /* ── Main ── */
 .fortune-main {
@@ -516,19 +472,19 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 /* ── Hero panel ── */
 .hero-panel {
   background: linear-gradient(160deg, rgba(20,14,35,0.9) 0%, rgba(8,5,15,0.95) 100%);
-  border: 1px solid rgba(212,168,75,0.12);
+  border: 1px solid rgba(203, 213, 225,0.12);
   border-radius: 20px;
   padding: 2.5rem;
   margin-bottom: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,75,0.06);
+  box-shadow: 0 20px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(203, 213, 225,0.06);
 }
 .hero-panel::before {
   content: '';
   position: absolute; left: 0; top: 0; bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #D4A84B, #C41E3A, #D4A84B);
+  background: linear-gradient(180deg, #cbd5e1, #fb7185, #cbd5e1);
   border-radius: 2px;
   opacity: 0.6;
 }
@@ -536,7 +492,7 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   content: '';
   position: absolute; top: -50%; right: -10%;
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(212,168,75,0.04), transparent 60%);
+  background: radial-gradient(circle, rgba(203, 213, 225,0.04), transparent 60%);
   pointer-events: none;
 }
 .hero-inner { display: flex; align-items: center; gap: 3rem; }
@@ -547,32 +503,32 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   width: 180px; height: 180px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #1a1530 0%, #050308 100%);
-  border: 2px solid rgba(212,168,75,0.2);
+  border: 2px solid rgba(203, 213, 225,0.2);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative;
   box-shadow:
-    0 0 0 1px rgba(212,168,75,0.05),
-    0 0 60px var(--sg, rgba(212,168,75,0.2)),
-    0 0 120px var(--sg, rgba(212,168,75,0.1)),
+    0 0 0 1px rgba(203, 213, 225,0.05),
+    0 0 60px var(--sg, rgba(203, 213, 225,0.2)),
+    0 0 120px var(--sg, rgba(203, 213, 225,0.1)),
     inset 0 0 60px rgba(0,0,0,0.6);
 }
 .sphere-ring {
   position: absolute; border-radius: 50%;
-  border: 1px solid rgba(212,168,75,0.06);
+  border: 1px solid rgba(203, 213, 225,0.06);
   animation: ring-spin linear infinite;
 }
 .sphere-ring-1 { inset: -12px; animation-duration: 20s; }
-.sphere-ring-2 { inset: -24px; animation-duration: 35s; animation-direction: reverse; border-color: rgba(196,30,58,0.05); }
-.sphere-ring-3 { inset: -40px; animation-duration: 50s; border-color: rgba(212,168,75,0.03); }
+.sphere-ring-2 { inset: -24px; animation-duration: 35s; animation-direction: reverse; border-color: rgba(251, 113, 133,0.05); }
+.sphere-ring-3 { inset: -40px; animation-duration: 50s; border-color: rgba(203, 213, 225,0.03); }
 @keyframes ring-spin { to { transform: rotate(360deg); } }
 .sphere-glow-a {
   position: absolute; inset: -30px; border-radius: 50%;
-  background: radial-gradient(circle, var(--sg, rgba(212,168,75,0.15)) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--sg, rgba(203, 213, 225,0.15)) 0%, transparent 70%);
   animation: glow-pulse 3s ease-in-out infinite;
 }
 .sphere-glow-b {
   position: absolute; inset: 10%; border-radius: 50%;
-  background: radial-gradient(circle, var(--sc, #D4A84B) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--sc, #cbd5e1) 0%, transparent 70%);
   opacity: 0.06;
   animation: glow-inner 4s ease-in-out infinite;
 }
@@ -581,9 +537,9 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 .sphere-value {
   font-family: var(--font-serif);
   font-size: 4rem; font-weight: 900;
-  color: var(--sc, #D4A84B);
+  color: var(--sc, #cbd5e1);
   line-height: 1; position: relative; z-index: 2;
-  text-shadow: 0 0 60px var(--sg, rgba(212,168,75,0.4)), 0 0 20px var(--sc, #D4A84B);
+  text-shadow: 0 0 60px var(--sg, rgba(203, 213, 225,0.4)), 0 0 20px var(--sc, #cbd5e1);
   transition: color 0.6s, text-shadow 0.6s;
   letter-spacing: -2px;
 }
@@ -598,14 +554,14 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 .hero-text { flex: 1; }
 .hero-date-row { margin-bottom: 0.75rem; }
 .date-label {
-  font-size: 0.78rem; color: rgba(212,168,75,0.5);
+  font-size: 0.78rem; color: rgba(203, 213, 225,0.5);
   letter-spacing: 3px; text-transform: uppercase;
 }
 .hero-pillar-display {
   display: flex; align-items: baseline; gap: 0.75rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(212,168,75,0.08);
+  border-bottom: 1px solid rgba(203, 213, 225,0.08);
 }
 .pillar-prefix {
   font-size: 0.78rem; color: rgba(255,255,255,0.3); letter-spacing: 2px;
@@ -613,17 +569,17 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 .pillar-value {
   font-family: var(--font-serif);
   font-size: 2.5rem; font-weight: 900;
-  color: #D4A84B; letter-spacing: 4px;
-  text-shadow: 0 0 40px rgba(212,168,75,0.35);
+  color: #cbd5e1; letter-spacing: 4px;
+  text-shadow: 0 0 40px rgba(203, 213, 225,0.35);
 }
 .hero-summary {
   font-size: 0.88rem; color: rgba(255,255,255,0.55);
   line-height: 1.8; margin: 0 0 0.75rem;
-  border-left: 2px solid rgba(212,168,75,0.15);
+  border-left: 2px solid rgba(203, 213, 225,0.15);
   padding-left: 0.75rem;
 }
 .hero-tip {
-  font-size: 0.8rem; color: #D4A84B; font-weight: 600;
+  font-size: 0.8rem; color: #cbd5e1; font-weight: 600;
   margin: 0; opacity: 0.85;
 }
 
@@ -638,15 +594,15 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   flex-shrink: 0;
   padding: 0.55rem 1.1rem;
   background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(212,168,75,0.1);
+  border: 1px solid rgba(203, 213, 225,0.1);
   border-radius: 50px;
   display: flex; align-items: center; gap: 0.5rem;
   transition: all 0.3s;
   animation: chip-in 0.5s ease both;
 }
 @keyframes chip-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-.cat-chip:hover { background: rgba(212,168,75,0.08); border-color: rgba(212,168,75,0.3); }
-.cat-chip.cat-hot { border-color: rgba(212,168,75,0.25); background: rgba(212,168,75,0.05); }
+.cat-chip:hover { background: rgba(203, 213, 225,0.08); border-color: rgba(203, 213, 225,0.3); }
+.cat-chip.cat-hot { border-color: rgba(203, 213, 225,0.25); background: rgba(203, 213, 225,0.05); }
 .chip-name { font-size: 0.72rem; color: rgba(255,255,255,0.4); letter-spacing: 0.5px; }
 .chip-stars { font-size: 0.78rem; font-weight: 800; color: rgba(255,255,255,0.75); }
 
@@ -667,15 +623,15 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   padding: 1.25rem;
   position: relative; overflow: hidden;
 }
-.panel-accent-gold { border-color: rgba(212,168,75,0.15); }
+.panel-accent-gold { border-color: rgba(203, 213, 225,0.15); }
 .panel-accent-gold::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(212,168,75,0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(203, 213, 225,0.4), transparent);
 }
-.panel-accent-crimson { border-color: rgba(196,30,58,0.12); }
+.panel-accent-crimson { border-color: rgba(251, 113, 133,0.12); }
 .panel-accent-crimson::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(196,30,58,0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(251, 113, 133,0.35), transparent);
 }
 .panel-header {
   display: flex; align-items: center; gap: 0.5rem;
@@ -683,11 +639,11 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   padding-bottom: 0.6rem;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-.panel-icon { font-size: 0.85rem; color: rgba(212,168,75,0.4); }
+.panel-icon { font-size: 0.85rem; color: rgba(203, 213, 225,0.4); }
 .panel-title {
   font-family: var(--font-serif);
   font-size: 0.78rem; font-weight: 700;
-  color: #D4A84B; margin: 0; letter-spacing: 2px;
+  color: #cbd5e1; margin: 0; letter-spacing: 2px;
 }
 .guide-item {
   display: flex; flex-direction: column; gap: 0.2rem;
@@ -707,7 +663,7 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   font-size: 0.82rem; color: rgba(255,255,255,0.8);
   font-weight: 500; display: flex; align-items: center; gap: 0.4rem;
 }
-.guide-value-xl { color: #D4A84B; font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 20px rgba(212,168,75,0.3); }
+.guide-value-xl { color: #cbd5e1; font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 20px rgba(203, 213, 225,0.3); }
 .color-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); flex-shrink: 0; }
 .five-elements { display: flex; gap: 0.35rem; }
 .el-badge {
@@ -721,16 +677,16 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   transition: all 0.3s;
 }
 .el-badge.el-fav {
-  color: #D4A84B;
-  background: rgba(212,168,75,0.1);
-  border-color: rgba(212,168,75,0.35);
-  box-shadow: 0 0 20px rgba(212,168,75,0.15), inset 0 0 10px rgba(212,168,75,0.05);
-  text-shadow: 0 0 10px rgba(212,168,75,0.4);
+  color: #cbd5e1;
+  background: rgba(203, 213, 225,0.1);
+  border-color: rgba(203, 213, 225,0.35);
+  box-shadow: 0 0 20px rgba(203, 213, 225,0.15), inset 0 0 10px rgba(203, 213, 225,0.05);
+  text-shadow: 0 0 10px rgba(203, 213, 225,0.4);
 }
 .el-badge.el-dis {
-  color: rgba(196,30,58,0.6);
-  background: rgba(196,30,58,0.06);
-  border-color: rgba(196,30,58,0.2);
+  color: rgba(251, 113, 133,0.6);
+  background: rgba(251, 113, 133,0.06);
+  border-color: rgba(251, 113, 133,0.2);
 }
 
 /* ── Responsive ── */
@@ -742,5 +698,23 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   .pillar-value { font-size: 2rem; }
   .main-grid { grid-template-columns: 1fr; }
   .fortune-main { padding: 1.5rem 1rem 4rem; }
+}
+
+/* ── Fortune nav ── */
+.fortune-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 0 0;
+}
+.fortune-nav-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.fortune-nav-link:hover {
+  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 </style>

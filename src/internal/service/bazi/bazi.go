@@ -98,6 +98,7 @@ type BodyStrengthResult struct {
 	DiScore    float64  `json:"di_score"`
 	ShiScore   float64  `json:"shi_score"`
 	ShengScore float64  `json:"sheng_score"`
+	LuBonus    float64  `json:"lu_bonus"`
 }
 
 // DaYunInfo describes the major fortune cycle (大运).
@@ -597,18 +598,66 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	// 1. 得令
 	lingScore := getYueLingScore(dayElem, monthElem)
 
+	pillars := [](func() tyme.SixtyCycle){ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour}
+
 	// 2. 得地：四柱地支藏干中仅统计同五行（通根），印星归入得势
 	// 经典依据：滴天髓"通根者如甲木见寅卯"，通根仅指同五行，印星归入得势
+	// 改进：藏干透天干时加权+20%（透干则力量彰显）
+	allStems := []string{}
+	for _, fn := range pillars {
+		allStems = append(allStems, fn().GetHeavenStem().GetName())
+	}
+	isTougan := func(ganName string) bool {
+		for _, s := range allStems {
+			if s == ganName {
+				return true
+			}
+		}
+		return false
+	}
+
 	diScore := 0.0
-	pillars := [](func() tyme.SixtyCycle){ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour}
 	for _, fn := range pillars {
 		branch := fn().GetEarthBranch()
 		branchName := branch.GetName()
 		csW := changShengWeight(dayElem, branchName)
 		for _, hhs := range branch.GetHideHeavenStems() {
-			if isSameElement(hhs.GetHeavenStem().GetName(), dayElem) {
-				diScore += zangGanWeight(hhs.GetType()) * 1.5 * csW
+			hName := hhs.GetHeavenStem().GetName()
+			if isSameElement(hName, dayElem) {
+				w := zangGanWeight(hhs.GetType()) * 1.5 * csW
+				if isTougan(hName) {
+					w *= 1.2
+				}
+				diScore += w
 			}
+		}
+	}
+
+	// 专禄/建禄/阳刃加成
+	// 经典依据：渊海子平"甲木得寅为禄，乙木得卯为禄"，专禄建禄力量殊胜
+	// 改进：专禄/建禄/阳刃加成直接加到总分上，不被归一化稀释
+	dayBranchName := ec.GetDay().GetEarthBranch().GetName()
+	monthBranchName := ec.GetMonth().GetEarthBranch().GetName()
+	dayGanName := dayStem.GetName()
+
+	luBonus := 0.0
+	luMap := map[string]string{"甲": "寅", "乙": "卯", "丙": "巳", "丁": "午", "戊": "巳", "己": "午", "庚": "申", "辛": "酉", "壬": "亥", "癸": "子"}
+	if luZhi, ok := luMap[dayGanName]; ok {
+		if dayBranchName == luZhi {
+			luBonus += 0.08 // 专禄：日支为禄，直接加成
+		}
+		if monthBranchName == luZhi {
+			luBonus += 0.06 // 建禄：月支为禄
+		}
+	}
+
+	renMap := map[string]string{"甲": "卯", "丙": "午", "戊": "午", "庚": "酉", "壬": "子"}
+	if renZhi, ok := renMap[dayGanName]; ok {
+		if dayBranchName == renZhi {
+			luBonus += 0.07 // 阳刃：日支为刃
+		}
+		if monthBranchName == renZhi {
+			luBonus += 0.05 // 月刃：月支为刃
 		}
 	}
 
@@ -701,13 +750,16 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	}
 
 	// 总分：归一化后按经典权重加权
-	// 经典依据：日主强弱判断"得令50% 得地25% 得势15% 得气10%"
+	// 经典依据：日主强弱判断"得令40% 得地30% 得势20% 得气10%"
 	//   来源：《渊海子平》"月令为提纲"，《滴天髓阐微》旺衰论
+	//   微调：得令权重从50%降至40%，避免月令主导过度；
+	//   得地从25%升至30%，通根有根为身强最实质指标；
+	//   得势从15%升至20%，比劫印星天干透出力量显著
 	normLing := lingScore / 3.0                            // lingScore最大3
 	normDi := diScore / 7.0                                // diScore理论最大约7
-	normShi := 1.0 / (1.0 + math.Exp(-shiScore/2.0))      // sigmoid归一化，避免极端值
-	normSheng := 1.0 / (1.0 + math.Exp(-shengScore/2.0))  // sigmoid归一化
-	totalScore := normLing*0.50 + normDi*0.25 + normShi*0.15 + normSheng*0.10
+	normShi := 1.0 / (1.0 + math.Exp(-shiScore/1.5))      // sigmoid归一化，分母1.5使曲线更陡峭
+	normSheng := 1.0 / (1.0 + math.Exp(-shengScore/1.5))  // sigmoid归一化
+	totalScore := normLing*0.40 + normDi*0.30 + normShi*0.20 + normSheng*0.10 + luBonus
 
 	var verdict string
 	var like, dislike []string
@@ -750,9 +802,14 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 				}
 			}
 		}
-		if selfForce > 0 && restrainingForce/selfForce > 0.6 {
-			totalScore *= 0.8
-			verdict = "偏旺" // 降级：得令但被严重克制
+		// 阈值从0.6降至0.4：克我力量占比超40%即触发降级
+		if selfForce > 0 && restrainingForce/selfForce > 0.4 {
+			totalScore *= 0.75
+			if verdict == "身旺" {
+				verdict = "偏旺"
+			} else if verdict == "偏旺" {
+				verdict = "中和"
+			}
 		}
 	} else if lingScore <= 0.5 { // 失令
 		spElem := supportingMap[dayElem]
@@ -770,8 +827,9 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 				}
 			}
 		}
-		if supportingForce >= 8.0 { // 有足够生扶
-			totalScore = totalScore*0.8 + 0.5*0.2 // 适度提升，不完全逆转
+		// 阈值从8.0降至5.0：生扶力量达5.0即触发升级
+		if supportingForce >= 5.0 {
+			totalScore = totalScore*0.75 + 0.5*0.25
 			if verdict == "身弱" {
 				verdict = "偏弱"
 			} else if verdict == "偏弱" {
@@ -826,6 +884,7 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		DiScore:    diScore,
 		ShiScore:   shiScore,
 		ShengScore: shengScore,
+		LuBonus:    luBonus,
 	}
 }
 
@@ -893,9 +952,9 @@ func calcHiddenStems(ec *tyme.EightChar) map[string][]string {
 func calcDaYun(st *tyme.SolarTime, gender tyme.Gender) DaYunInfo {
 	cl := tyme.ChildLimit{}.FromSolarTime(*st, gender)
 
-	dir := "逆排"
+	dir := "逆行"
 	if cl.IsForward() {
-		dir = "顺排"
+		dir = "顺行"
 	}
 
 	daYun := DaYunInfo{
@@ -936,6 +995,11 @@ func calcClashHarmony(ec *tyme.EightChar) []ClashRelation {
 	for i := 0; i < len(pairs); i++ {
 		for j := i + 1; j < len(pairs); j++ {
 			a, b := pairs[i], pairs[j]
+
+			// 伏吟：同支重复出现
+			if a.branch.GetName() == b.branch.GetName() {
+				relations = append(relations, ClashRelation{a.name, b.name, "伏吟"})
+			}
 
 			if a.branch.GetOpposite().Equals(b.branch) {
 				relations = append(relations, ClashRelation{a.name, b.name, "六冲"})

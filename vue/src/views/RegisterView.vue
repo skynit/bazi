@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const form = ref({ username: '', email: '', password: '', confirm: '' })
 const loading = ref(false)
@@ -24,7 +25,8 @@ async function handleRegister() {
   error.value = ''
   try {
     await auth.register(username, email, password)
-    router.push('/')
+    const redirect = (route.query.redirect as string) || '/'
+    router.push(redirect)
   } catch (e: any) {
     error.value = e.response?.data?.error || '注册失败'
   } finally {
@@ -40,25 +42,25 @@ async function handleRegister() {
       <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
         <defs>
           <radialGradient id="reg-nebula" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#D4A84B" stop-opacity="0.06" />
-            <stop offset="100%" stop-color="#D4A84B" stop-opacity="0" />
+            <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.06" />
+            <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0" />
           </radialGradient>
         </defs>
         <ellipse cx="400" cy="300" rx="350" ry="250" fill="url(#reg-nebula)" />
-        <circle cx="100" cy="150" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="680" cy="100" r="1.2" fill="#D4A84B" opacity="0.4" />
-        <circle cx="700" cy="480" r="1" fill="#D4A84B" opacity="0.3" />
-        <circle cx="80" cy="400" r="0.8" fill="#D4A84B" opacity="0.25" />
-        <circle cx="400" cy="300" r="1.5" fill="#D4A84B" opacity="0.5" />
-        <circle cx="250" cy="220" r="1" fill="#D4A84B" opacity="0.35" />
-        <circle cx="580" cy="420" r="1.3" fill="#D4A84B" opacity="0.4" />
+        <circle cx="100" cy="150" r="1" fill="#cbd5e1" opacity="0.3" />
+        <circle cx="680" cy="100" r="1.2" fill="#cbd5e1" opacity="0.4" />
+        <circle cx="700" cy="480" r="1" fill="#cbd5e1" opacity="0.3" />
+        <circle cx="80" cy="400" r="0.8" fill="#cbd5e1" opacity="0.25" />
+        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.5" />
+        <circle cx="250" cy="220" r="1" fill="#cbd5e1" opacity="0.35" />
+        <circle cx="580" cy="420" r="1.3" fill="#cbd5e1" opacity="0.4" />
         <circle cx="620" cy="180" r="0.9" fill="#fff" opacity="0.2" />
         <line
           x1="100"
           y1="150"
           x2="250"
           y2="220"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.4"
           opacity="0.08"
         />
@@ -67,7 +69,7 @@ async function handleRegister() {
           y1="100"
           x2="580"
           y2="420"
-          stroke="#D4A84B"
+          stroke="#cbd5e1"
           stroke-width="0.4"
           opacity="0.06"
         />
@@ -214,10 +216,10 @@ async function handleRegister() {
   width: 100%;
   max-width: 420px;
   background: linear-gradient(160deg, rgba(25, 20, 40, 0.95), rgba(12, 10, 22, 0.98));
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 24px;
   box-shadow:
-    0 0 80px rgba(212, 168, 75, 0.06),
+    0 0 80px rgba(203, 213, 225, 0.06),
     0 25px 60px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
@@ -229,15 +231,15 @@ async function handleRegister() {
   justify-content: center;
   height: 80px;
   position: relative;
-  background: linear-gradient(180deg, rgba(212, 168, 75, 0.06), transparent);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.06);
+  background: linear-gradient(180deg, rgba(203, 213, 225, 0.06), transparent);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.06);
 }
 
 .ornament-ring {
   position: absolute;
   width: 50px;
   height: 50px;
-  border: 1px solid rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 50%;
   animation: ring-pulse 3s ease-in-out infinite;
 }
@@ -256,18 +258,18 @@ async function handleRegister() {
 
 .ornament-symbol {
   font-size: 2rem;
-  color: var(--gold);
-  text-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
   animation: symbol-glow 3s ease-in-out infinite;
 }
 
 @keyframes symbol-glow {
   0%,
   100% {
-    text-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+    text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
   }
   50% {
-    text-shadow: 0 0 35px rgba(212, 168, 75, 0.6);
+    text-shadow: 0 0 35px rgba(203, 213, 225, 0.6);
   }
 }
 
@@ -285,7 +287,7 @@ async function handleRegister() {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(212, 168, 75, 0.4);
+  color: rgba(203, 213, 225, 0.4);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -322,7 +324,7 @@ async function handleRegister() {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 1px;
-  color: rgba(212, 168, 75, 0.5);
+  color: rgba(203, 213, 225, 0.5);
   text-transform: uppercase;
 }
 
@@ -336,7 +338,7 @@ async function handleRegister() {
   position: absolute;
   left: 14px;
   font-size: 12px;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
   pointer-events: none;
   z-index: 1;
 }
@@ -345,7 +347,7 @@ async function handleRegister() {
   width: 100%;
   padding: 13px 44px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(212, 168, 75, 0.1);
+  border: 1px solid rgba(203, 213, 225, 0.1);
   border-radius: 10px;
   color: var(--text);
   font-size: 14px;
@@ -355,8 +357,8 @@ async function handleRegister() {
 }
 
 .field-input:focus {
-  border-color: rgba(212, 168, 75, 0.4);
-  box-shadow: 0 0 0 3px rgba(212, 168, 75, 0.06);
+  border-color: rgba(203, 213, 225, 0.4);
+  box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.06);
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -369,7 +371,7 @@ async function handleRegister() {
   right: 14px;
   background: none;
   border: none;
-  color: rgba(212, 168, 75, 0.3);
+  color: rgba(203, 213, 225, 0.3);
   cursor: pointer;
   font-size: 14px;
   padding: 0;
@@ -377,7 +379,7 @@ async function handleRegister() {
 }
 
 .toggle-password:hover {
-  color: rgba(212, 168, 75, 0.6);
+  color: rgba(203, 213, 225, 0.6);
 }
 
 /* ── Error ── */
@@ -386,8 +388,8 @@ async function handleRegister() {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: rgba(196, 30, 58, 0.08);
-  border: 1px solid rgba(196, 30, 58, 0.2);
+  background: rgba(251, 113, 133, 0.08);
+  border: 1px solid rgba(251, 113, 133, 0.2);
   border-radius: 8px;
   font-size: 13px;
   color: #e05a5a;
@@ -402,8 +404,8 @@ async function handleRegister() {
   width: 100%;
   padding: 14px;
   margin-top: 8px;
-  background: linear-gradient(135deg, #d4a84b, #b8860b);
-  color: #0a0815;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+  color: #030404;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 3px;
@@ -411,7 +413,7 @@ async function handleRegister() {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(212, 168, 75, 0.25);
+  box-shadow: 0 4px 20px rgba(203, 213, 225, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -420,7 +422,7 @@ async function handleRegister() {
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(212, 168, 75, 0.4);
+  box-shadow: 0 8px 32px rgba(203, 213, 225, 0.4);
 }
 
 .btn-submit:disabled {
@@ -433,7 +435,7 @@ async function handleRegister() {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(10, 8, 21, 0.3);
-  border-top-color: #0a0815;
+  border-top-color: #030404;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -452,7 +454,7 @@ async function handleRegister() {
   gap: 8px;
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid rgba(212, 168, 75, 0.06);
+  border-top: 1px solid rgba(203, 213, 225, 0.06);
 }
 
 .footer-text {
@@ -466,13 +468,13 @@ async function handleRegister() {
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--gold);
+  color: var(--accent);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .footer-link:hover {
-  text-shadow: 0 0 12px rgba(212, 168, 75, 0.4);
+  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 
 .footer-arrow {

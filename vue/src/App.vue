@@ -32,10 +32,18 @@ const authStore = useAuthStore()
               <span class="nav-dot"></span>
               历史
             </router-link>
-            <router-link to="/fortune" class="nav-link">
-              <span class="nav-dot"></span>
-              运势
-            </router-link>
+            <div class="nav-dropdown">
+              <router-link to="/fortune" class="nav-link nav-dropdown-trigger">
+                <span class="nav-dot"></span>
+                运势
+                <span class="dropdown-arrow">▾</span>
+              </router-link>
+              <div class="dropdown-menu">
+                <router-link to="/fortune" class="dropdown-item">今日运势</router-link>
+                <router-link to="/fortune/weekly" class="dropdown-item">本周运势</router-link>
+                <router-link to="/fortune/monthly" class="dropdown-item">本月运势</router-link>
+              </div>
+            </div>
             <div class="nav-divider"></div>
             <div class="user-chip">
               <div class="user-avatar">{{ authStore.user?.username?.charAt(0).toUpperCase() }}</div>
@@ -67,15 +75,15 @@ const authStore = useAuthStore()
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(10, 8, 21, 0.85);
+  background: rgba(3, 4, 4, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(212, 168, 75, 0.08);
+  border-bottom: 1px solid rgba(203, 213, 225, 0.06);
   transition: border-color 0.3s ease;
 }
 
 .app-header:hover {
-  border-bottom-color: rgba(212, 168, 75, 0.15);
+  border-bottom-color: rgba(203, 213, 225, 0.1);
 }
 
 .header-inner {
@@ -109,7 +117,7 @@ const authStore = useAuthStore()
 .logo-ring {
   position: absolute;
   inset: -3px;
-  border: 1px solid rgba(212, 168, 75, 0.2);
+  border: 1px solid rgba(203, 213, 225, 0.2);
   border-radius: 50%;
   animation: logo-spin 12s linear infinite;
 }
@@ -118,8 +126,8 @@ const authStore = useAuthStore()
 
 .logo-icon {
   font-size: 1.4rem;
-  color: var(--gold);
-  text-shadow: 0 0 12px rgba(212, 168, 75, 0.4);
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 
 .logo-text {
@@ -140,7 +148,7 @@ const authStore = useAuthStore()
 .logo-sub {
   font-size: 9px;
   letter-spacing: 2px;
-  color: rgba(212, 168, 75, 0.4);
+  color: rgba(203, 213, 225, 0.4);
   text-transform: uppercase;
 }
 
@@ -170,26 +178,26 @@ const authStore = useAuthStore()
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(212, 168, 75, 0.3);
+  background: rgba(203, 213, 225, 0.3);
   transition: all 0.2s ease;
 }
 
 .nav-link:hover {
-  color: var(--gold);
-  background: rgba(212, 168, 75, 0.05);
+  color: var(--accent);
+  background: rgba(203, 213, 225, 0.05);
 }
 
 .nav-link:hover .nav-dot {
-  background: var(--gold);
-  box-shadow: 0 0 6px rgba(212, 168, 75, 0.5);
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(203, 213, 225, 0.5);
 }
 
 .nav-link.router-link-active {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .nav-link.router-link-active .nav-dot {
-  background: var(--gold);
+  background: var(--accent);
 }
 
 .nav-divider {
@@ -197,6 +205,54 @@ const authStore = useAuthStore()
   height: 20px;
   background: rgba(255,255,255,0.08);
   margin: 0 4px;
+}
+
+/* ── Dropdown ── */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  margin-left: 2px;
+  opacity: 0.5;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 120px;
+  padding: 6px 0;
+  background: rgba(15, 12, 28, 0.96);
+  border: 1px solid rgba(203, 213, 225, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+}
+
+.nav-dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.dropdown-item:hover {
+  color: var(--accent);
+  background: rgba(203, 213, 225, 0.06);
+}
+
+.dropdown-item.router-link-active {
+  color: var(--accent);
 }
 
 /* ── User chip ── */
@@ -207,14 +263,14 @@ const authStore = useAuthStore()
   padding: 4px 10px 4px 4px;
   border-radius: 20px;
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(212,168,75,0.08);
+  border: 1px solid rgba(203, 213, 225, 0.06);
 }
 
 .user-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), #B8860B);
+  background: linear-gradient(135deg, var(--accent), #94a3b8);
   color: #0A0815;
   font-size: 11px;
   font-weight: 700;
@@ -225,7 +281,7 @@ const authStore = useAuthStore()
 
 .user-name {
   font-size: 12px;
-  color: rgba(212,168,75,0.6);
+  color: rgba(203,213,225,0.6);
   font-weight: 500;
 }
 
@@ -241,8 +297,8 @@ const authStore = useAuthStore()
 }
 
 .logout-btn:hover {
-  color: var(--crimson);
-  background: rgba(196,30,58,0.08);
+  color: var(--danger);
+  background: rgba(251,113,133,0.08);
 }
 
 .nav-register {
