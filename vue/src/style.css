@@ -262,11 +262,11 @@ select.input-dark {
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -289,22 +289,31 @@ select.input-dark {
 }
 
 .animate-in {
-  animation: fadeUp 0.6s ease both;
+  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .delay-1 {
-  animation-delay: 0.1s;
+  animation-delay: 0.08s;
 }
 .delay-2 {
-  animation-delay: 0.2s;
+  animation-delay: 0.16s;
 }
 .delay-3 {
-  animation-delay: 0.3s;
+  animation-delay: 0.24s;
 }
 .delay-4 {
-  animation-delay: 0.4s;
+  animation-delay: 0.32s;
 }
 .delay-5 {
-  animation-delay: 0.5s;
+  animation-delay: 0.4s;
+}
+.delay-6 {
+  animation-delay: 0.48s;
+}
+.delay-7 {
+  animation-delay: 0.56s;
+}
+.delay-8 {
+  animation-delay: 0.64s;
 }
 
 .skeleton {

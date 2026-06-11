@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
 
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+
 interface BirthChart {
   id: number
   name: string
@@ -89,43 +91,7 @@ onMounted(() => {
 
 <template>
   <div class="history-page">
-    <!-- Constellation background -->
-    <div class="bg-constellation" aria-hidden="true">
-      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
-        <defs>
-          <radialGradient id="hist-nebula" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.05" />
-            <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        <ellipse cx="400" cy="300" rx="350" ry="250" fill="url(#hist-nebula)" />
-        <circle cx="120" cy="100" r="1" fill="#cbd5e1" opacity="0.25" />
-        <circle cx="680" cy="80" r="1.2" fill="#cbd5e1" opacity="0.35" />
-        <circle cx="720" cy="480" r="1" fill="#cbd5e1" opacity="0.25" />
-        <circle cx="60" cy="520" r="0.8" fill="#cbd5e1" opacity="0.2" />
-        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.4" />
-        <circle cx="250" cy="180" r="1" fill="#cbd5e1" opacity="0.3" />
-        <circle cx="550" cy="400" r="1.3" fill="#cbd5e1" opacity="0.35" />
-        <line
-          x1="120"
-          y1="100"
-          x2="250"
-          y2="180"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.06"
-        />
-        <line
-          x1="680"
-          y1="80"
-          x2="550"
-          y2="400"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.05"
-        />
-      </svg>
-    </div>
+    <CosmicGrainBackground />
 
     <div class="page-inner">
       <div class="history-header">
@@ -243,20 +209,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.bg-constellation {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.constellation-svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-}
-
 .page-inner {
   position: relative;
   z-index: 1;
@@ -301,7 +253,7 @@ onMounted(() => {
 
 .chart-card {
   position: relative;
-  background: linear-gradient(160deg, rgba(25, 20, 40, 0.95), rgba(12, 10, 22, 0.98));
+  background: linear-gradient(160deg, rgba(12, 12, 14, 0.92), rgba(6, 6, 8, 0.96));
   border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 16px;
   padding: 1rem 1.125rem;

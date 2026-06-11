@@ -611,14 +611,14 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .palace-cell {
   @apply flex flex-col items-center justify-start p-3 relative min-h-[140px];
-  background: linear-gradient(180deg, rgba(43, 37, 24, 0.8), rgba(30, 25, 15, 0.9));
+  background: linear-gradient(180deg, rgba(12, 12, 14, 0.85), rgba(6, 6, 8, 0.92));
   border: 1px solid rgba(203, 213, 225, 0.08);
   gap: 3px;
   transition: all 0.3s ease;
 }
 
 .palace-cell:hover {
-  background: linear-gradient(180deg, rgba(60, 50, 30, 0.9), rgba(40, 32, 18, 0.95));
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 12, 16, 0.96));
   border-color: rgba(203, 213, 225, 0.3);
   box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
   z-index: 2;
@@ -691,7 +691,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 /* ── Center cell ── */
 .center-cell {
   @apply relative flex items-center justify-center p-4;
-  background: linear-gradient(145deg, rgba(30, 25, 15, 0.95), rgba(20, 16, 28, 0.98));
+  background: linear-gradient(145deg, rgba(6, 6, 8, 0.95), rgba(3, 4, 4, 0.98));
   border-left: 1px solid rgba(203, 213, 225, 0.15);
   border-right: 1px solid rgba(203, 213, 225, 0.15);
   grid-row: span 1;

@@ -638,14 +638,14 @@ function liunianStarsAt(b: string): string[] {
 
 /* ── Cell ── */
 .zw-cell {
-  background: linear-gradient(180deg, rgba(43,37,24,0.85) 0%, rgba(30,25,15,0.9) 100%);
+  background: linear-gradient(180deg, rgba(12,12,14,0.85) 0%, rgba(6,6,8,0.92) 100%);
   min-height: 110px;
   padding: 0.6rem 0.4rem;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   position: relative;
   transition: background 0.3s;
 }
-.zw-cell:hover { background: linear-gradient(180deg, rgba(60,50,30,0.9) 0%, rgba(40,32,18,0.95) 100%); }
+.zw-cell:hover { background: linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(12,12,16,0.96) 100%); }
 .zw-cell-overlay { background: linear-gradient(180deg, rgba(30,25,45,0.85) 0%, rgba(20,15,35,0.9) 100%); }
 .zw-cell-overlay:hover { background: linear-gradient(180deg, rgba(40,35,60,0.9) 0%, rgba(25,20,45,0.95) 100%); }
 
@@ -730,7 +730,7 @@ function liunianStarsAt(b: string): string[] {
 
 /* ── Center ── */
 .zw-center {
-  background: linear-gradient(180deg, rgba(43,37,24,0.9) 0%, rgba(20,16,28,0.95) 100%);
+  background: linear-gradient(180deg, rgba(12,12,14,0.9) 0%, rgba(3,4,4,0.95) 100%);
   grid-row: span 2;
   grid-column: span 2;
   display: flex; flex-direction: column; align-items: center; justify-content: center;

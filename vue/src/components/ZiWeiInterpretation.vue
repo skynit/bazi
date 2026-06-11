@@ -219,9 +219,9 @@ function toggle() {
 }
 
 .sihua-star {
-  background-color: rgba(218, 165, 32, 0.1);
+  background-color: rgba(253, 230, 138, 0.1);
   color: #fde68a;
-  border: 1px solid rgba(218, 165, 32, 0.2);
+  border: 1px solid rgba(253, 230, 138, 0.2);
 }
 
 .sanfang-star {

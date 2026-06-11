@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import client from '../api/client'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
 
 const route = useRoute()
 
@@ -365,6 +366,8 @@ const sihuaChainGroups = computed(() => {
 
 <template>
   <div class="ziwei-page">
+    <CosmicGrainBackground />
+
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <el-skeleton animated>
@@ -703,12 +706,14 @@ const sihuaChainGroups = computed(() => {
 <style scoped>
 @reference "tailwindcss";
 .ziwei-page {
-  @apply min-h-screen;
+  @apply min-h-screen relative;
   background-color: var(--bg);
 }
 
 .loading-state {
   @apply flex items-center justify-center min-h-[60vh];
+  position: relative;
+  z-index: 1;
 }
 
 .loading-spinner {
@@ -719,6 +724,8 @@ const sihuaChainGroups = computed(() => {
 
 .error-state {
   @apply flex items-center justify-center min-h-[60vh];
+  position: relative;
+  z-index: 1;
 }
 
 .error-card {
@@ -727,6 +734,8 @@ const sihuaChainGroups = computed(() => {
 
 .page-content {
   @apply max-w-5xl mx-auto px-4 py-6;
+  position: relative;
+  z-index: 1;
 }
 
 /* Birth info bar */
@@ -972,7 +981,7 @@ const sihuaChainGroups = computed(() => {
 .fly-effect { color:var(--muted); font-size:0.65rem; flex:1; }
 .fly-from { font-size:0.6rem; color:#93c5fd; background:rgba(96,165,250,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
 .fly-chain { font-size:0.6rem; color:#86efac; background:rgba(74,222,128,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
-.fly-affinity { font-size:0.6rem; color:#c4a84b; background:rgba(203, 213, 225,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
+.fly-affinity { font-size:0.6rem; color:#fde68a; background:rgba(253,230,138,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
 .sihua-chain-section { margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.05); }
 .chain-title { font-size:0.72rem; color:var(--muted); margin:0 0 0.5rem; font-weight:600; }
 .sihua-empty-group { font-size:0.68rem; color:var(--muted); padding:0.2rem 0.4rem; opacity:0.4; }

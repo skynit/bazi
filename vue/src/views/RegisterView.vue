@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -37,44 +39,7 @@ async function handleRegister() {
 
 <template>
   <div class="register-page">
-    <!-- Background constellation -->
-    <div class="bg-constellation" aria-hidden="true">
-      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
-        <defs>
-          <radialGradient id="reg-nebula" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.06" />
-            <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0" />
-          </radialGradient>
-        </defs>
-        <ellipse cx="400" cy="300" rx="350" ry="250" fill="url(#reg-nebula)" />
-        <circle cx="100" cy="150" r="1" fill="#cbd5e1" opacity="0.3" />
-        <circle cx="680" cy="100" r="1.2" fill="#cbd5e1" opacity="0.4" />
-        <circle cx="700" cy="480" r="1" fill="#cbd5e1" opacity="0.3" />
-        <circle cx="80" cy="400" r="0.8" fill="#cbd5e1" opacity="0.25" />
-        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.5" />
-        <circle cx="250" cy="220" r="1" fill="#cbd5e1" opacity="0.35" />
-        <circle cx="580" cy="420" r="1.3" fill="#cbd5e1" opacity="0.4" />
-        <circle cx="620" cy="180" r="0.9" fill="#fff" opacity="0.2" />
-        <line
-          x1="100"
-          y1="150"
-          x2="250"
-          y2="220"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.08"
-        />
-        <line
-          x1="680"
-          y1="100"
-          x2="580"
-          y2="420"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.06"
-        />
-      </svg>
-    </div>
+    <CosmicGrainBackground />
 
     <!-- Register card -->
     <div class="register-card animate-in">
@@ -194,28 +159,13 @@ async function handleRegister() {
   overflow: hidden;
 }
 
-/* ── Background constellation ── */
-.bg-constellation {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.constellation-svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-}
-
 /* ── Card ── */
 .register-card {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 420px;
-  background: linear-gradient(160deg, rgba(25, 20, 40, 0.95), rgba(12, 10, 22, 0.98));
+  background: linear-gradient(160deg, rgba(12, 12, 14, 0.92), rgba(6, 6, 8, 0.96));
   border: 1px solid rgba(203, 213, 225, 0.12);
   border-radius: 24px;
   box-shadow:

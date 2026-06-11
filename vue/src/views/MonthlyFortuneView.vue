@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import FortuneChart, { type TrendPoint } from '../components/FortuneChart.vue'
+import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
 
 interface ElementImage {
   element: string
@@ -96,34 +97,7 @@ onMounted(() => {
 
 <template>
   <div class="monthly-page">
-    <!-- Constellation background -->
-    <div class="bg-constellation" aria-hidden="true">
-      <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" class="constellation-svg">
-        <circle cx="80" cy="100" r="1" fill="#cbd5e1" opacity="0.3" />
-        <circle cx="650" cy="80" r="1.2" fill="#cbd5e1" opacity="0.35" />
-        <circle cx="720" cy="480" r="1" fill="#cbd5e1" opacity="0.25" />
-        <circle cx="180" cy="520" r="0.8" fill="#cbd5e1" opacity="0.2" />
-        <circle cx="400" cy="300" r="1.5" fill="#cbd5e1" opacity="0.4" />
-        <line
-          x1="80"
-          y1="100"
-          x2="400"
-          y2="300"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.06"
-        />
-        <line
-          x1="650"
-          y1="80"
-          x2="400"
-          y2="300"
-          stroke="#cbd5e1"
-          stroke-width="0.4"
-          opacity="0.05"
-        />
-      </svg>
-    </div>
+    <CosmicGrainBackground />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
@@ -235,20 +209,6 @@ onMounted(() => {
   background: var(--bg);
   position: relative;
   overflow: hidden;
-}
-
-.bg-constellation {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.constellation-svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
 }
 
 .page-inner {
