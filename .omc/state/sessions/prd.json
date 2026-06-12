@@ -1,0 +1,63 @@
+{
+  "title": "全站页面背景升级：从CSS/SVG迁移到WebGL Shader质感背景",
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "创建通用ShaderBackground组件",
+      "description": "创建一个可复用的ShaderBackground.vue组件，封装@paper-design/shaders的ShaderMount，支持多种shader类型和五行主题切换，替代CosmicGrainBackground",
+      "priority": 1,
+      "passes": true,
+      "acceptanceCriteria": [
+        "ShaderBackground.vue组件存在于src/components/目录",
+        "组件接受shaderType prop（支持grainGradient、dithering、dotGrid等）",
+        "组件接受yongshen prop（支持mu/huo/tu/jin/shui五行切换）",
+        "组件在onMounted时正确初始化ShaderMount，onUnmounted时dispose",
+        "五行切换时调用setUniforms更新shader参数，颜色平滑过渡",
+        "组件不依赖外部图片输入"
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "为各页面配置差异化shader类型和主题",
+      "description": "不同页面使用不同shader效果：登录/注册用dithering（质感纹理），排盘/紫微用grainGradient（流动渐变），运势页用dotGrid（点阵节奏），历史页用grainGradient，配合各页面五行主题色",
+      "priority": 2,
+      "passes": true,
+      "acceptanceCriteria": [
+        "LoginView和RegisterView使用dithering shader",
+        "ChartView和ZiWeiView使用grainGradient shader",
+        "FortuneView/WeeklyFortuneView/MonthlyFortuneView使用dotGrid shader",
+        "HistoryView使用grainGradient shader",
+        "每个页面的yongshen prop根据用户数据动态传递（有则传，无则默认mu）",
+        "所有页面移除CosmicGrainBackground导入和使用"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "统一五行主题色体系",
+      "description": "确保ShaderBackground中的五行颜色与HomeView中已有的wuxingThemes保持一致，各shader类型正确映射五行色彩参数",
+      "priority": 3,
+      "passes": true,
+      "acceptanceCriteria": [
+        "ShaderBackground中的五行颜色与HomeView的wuxingThemes完全一致",
+        "grainGradient shader使用shaderBase+shaderGlow+黑色作为4色配置",
+        "dithering shader使用accentHex作为前景色，深色作为背景色",
+        "dotGrid shader使用accentHex作为点阵色，深色作为底色",
+        "切换五行时颜色过渡流畅，无闪烁"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "页面CSS适配与验证",
+      "description": "调整各页面CSS确保shader背景正确叠加：z-index层级、页面容器定位、前景内容层级，确保视觉一致性和可读性",
+      "priority": 4,
+      "passes": true,
+      "acceptanceCriteria": [
+        "所有页面shader canvas层正确铺满容器（absolute inset-0）",
+        "前景内容z-index高于shader层",
+        "页面文字在shader背景上清晰可读（必要时叠加暗色遮罩）",
+        "移动端响应式正常，shader不导致横向滚动",
+        "npm run build编译通过无错误"
+      ]
+    }
+  ]
+}

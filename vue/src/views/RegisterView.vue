@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -39,7 +39,7 @@ async function handleRegister() {
 
 <template>
   <div class="register-page">
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <!-- Register card -->
     <div class="register-card animate-in">

@@ -3,16 +3,14 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import {
-  GrainGradientShapes,
-  ShaderFitOptions,
   ShaderMount,
-  getShaderColorFromString,
-  getShaderNoiseTexture,
-  grainGradientFragmentShader,
-  type ShaderMountUniforms
+  grainGradientFragmentShader
 } from '@paper-design/shaders'
-
-type WuxingKey = 'mu' | 'huo' | 'tu' | 'jin' | 'shui'
+import {
+  type WuxingKey,
+  wuxingThemes,
+  createShaderUniforms
+} from '../composables/useWuxingThemes'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -30,62 +28,6 @@ const wuxingCycle: Array<{ key: WuxingKey; label: string }> = [
   { key: 'shui', label: '水' }
 ]
 
-type WuxingTheme = {
-  accentRgb: string
-  accentHex: string
-  accentDark: string
-  buttonText: string
-  shaderBase: string
-  shaderGlow: string
-}
-
-function createTheme(theme: WuxingTheme): WuxingTheme {
-  return theme
-}
-
-const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
-  mu: createTheme({
-    accentRgb: '34, 211, 153',
-    accentHex: '#34d399',
-    accentDark: '#059669',
-    buttonText: '#00140e',
-    shaderBase: '#147b33',
-    shaderGlow: '#43dfabcf'
-  }),
-  huo: createTheme({
-    accentRgb: '251, 113, 133',
-    accentHex: '#fb7185',
-    accentDark: '#e11d48',
-    buttonText: '#190005',
-    shaderBase: '#7f1d1d',
-    shaderGlow: '#fb7185cf'
-  }),
-  tu: createTheme({
-    accentRgb: '252, 211, 77',
-    accentHex: '#fcd34d',
-    accentDark: '#d97706',
-    buttonText: '#1a1000',
-    shaderBase: '#7c4f08',
-    shaderGlow: '#fcd34dcf'
-  }),
-  jin: createTheme({
-    accentRgb: '226, 232, 240',
-    accentHex: '#e2e8f0',
-    accentDark: '#94a3b8',
-    buttonText: '#030404',
-    shaderBase: '#334155',
-    shaderGlow: '#e2e8f0cf'
-  }),
-  shui: createTheme({
-    accentRgb: '34, 211, 238',
-    accentHex: '#22d3ee',
-    accentDark: '#2563eb',
-    buttonText: '#001116',
-    shaderBase: '#075985',
-    shaderGlow: '#22d3eecf'
-  })
-}
-
 const homeThemeStyles = computed(() => {
   const key = currentYongshen.value
   const theme = wuxingThemes[key]
@@ -97,35 +39,7 @@ const homeThemeStyles = computed(() => {
   }
 })
 
-const shaderNoiseTexture = getShaderNoiseTexture()
 let shaderMount: ShaderMount | null = null
-
-function createShaderUniforms(theme: WuxingTheme): ShaderMountUniforms {
-  return {
-    u_colorBack: getShaderColorFromString('#000000'),
-    u_colors: [
-      getShaderColorFromString(theme.shaderBase),
-      getShaderColorFromString(theme.shaderGlow),
-      getShaderColorFromString('#000000'),
-      getShaderColorFromString('#000000')
-    ],
-    u_colorsCount: 4,
-    u_softness: 1,
-    u_intensity: 1,
-    u_noise: 0,
-    u_shape: GrainGradientShapes.sphere,
-    u_noiseTexture: shaderNoiseTexture,
-    u_fit: ShaderFitOptions.cover,
-    u_scale: 0.88,
-    u_rotation: 360,
-    u_originX: 0.5,
-    u_originY: 0.5,
-    u_offsetX: 0.06,
-    u_offsetY: 0,
-    u_worldWidth: 0,
-    u_worldHeight: 0
-  }
-}
 
 onMounted(async () => {
   if (authStore.isLoggedIn() && !authStore.user) {
@@ -141,7 +55,7 @@ onMounted(async () => {
     shaderMount = new ShaderMount(
       shaderHost.value,
       grainGradientFragmentShader,
-      createShaderUniforms(wuxingThemes[currentYongshen.value]),
+      createShaderUniforms('grainGradient', currentYongshen.value),
       { alpha: true, antialias: true },
       2,
       0,
@@ -160,7 +74,7 @@ function startChart() { router.push('/chart/new') }
 function continueChart() { if (savedChartId.value) router.push(`/chart/${savedChartId.value}`) }
 function switchYongshen(key: WuxingKey) {
   currentYongshen.value = key
-  shaderMount?.setUniforms(createShaderUniforms(wuxingThemes[key]))
+  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key))
 }
 </script>
 

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import DailyFortune from '../components/DailyFortune.vue'
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 
 interface HiddenStemGod {
   stem: string
@@ -179,7 +179,7 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   <div class="fortune-page">
 
     <!-- ── Background ── -->
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <!-- ── Loading ── -->
     <div v-if="loading" class="loading-state">
@@ -370,31 +370,6 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   position: relative;
   overflow-x: hidden;
 }
-
-/* ── Background layers ── */
-.bg-layer {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: #030404;
-}
-.nebula {
-  position: absolute; border-radius: 50%; filter: blur(80px);
-}
-.nebula-1 {
-  width: 800px; height: 800px; top: -300px; right: -200px;
-  background: radial-gradient(circle, rgba(251, 113, 133,0.12) 0%, transparent 65%);
-}
-.nebula-2 {
-  width: 600px; height: 600px; bottom: -200px; left: -150px;
-  background: radial-gradient(circle, rgba(203, 213, 225,0.1) 0%, transparent 65%);
-}
-.nebula-3 {
-  width: 400px; height: 400px; top: 30%; left: 20%;
-  background: radial-gradient(circle, rgba(60,40,140,0.07) 0%, transparent 65%);
-}
-.stars-layer { position: absolute; inset: 0; }
-.stars-svg { width: 100%; height: 100%; }
-.star-blink { animation: star-blink 3s ease-in-out infinite; }
-@keyframes star-blink { 0%,100%{opacity:0.15} 50%{opacity:0.7} }
 
 /* ── Loading ── */
 .loading-state {

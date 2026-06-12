@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import client from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 import ComputationLog from '../components/ComputationLog.vue'
 import ShinyButton from '../components/ShinyButton.vue'
 
@@ -154,7 +154,7 @@ function onComputationComplete(): void {
 <template>
   <div class="chart-page">
     <!-- Background -->
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <!-- Header -->
     <header class="chart-header">

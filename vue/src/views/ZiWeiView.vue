@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import client from '../api/client'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 
 const route = useRoute()
 
@@ -366,7 +366,7 @@ const sihuaChainGroups = computed(() => {
 
 <template>
   <div class="ziwei-page">
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">

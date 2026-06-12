@@ -1,0 +1,150 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ShaderMount } from '@paper-design/shaders'
+import {
+  type WuxingKey,
+  type ShaderType,
+  bgImages,
+  getShaderFragment,
+  createShaderUniforms,
+  getShaderSpeed
+} from '../composables/useWuxingThemes'
+
+const props = withDefaults(defineProps<{
+  yongshen?: WuxingKey
+  shaderType?: ShaderType
+  overlayOpacity?: number
+}>(), {
+  yongshen: 'mu',
+  shaderType: 'grainGradient',
+  overlayOpacity: 0.4
+})
+
+const shaderHost = ref<HTMLDivElement | null>(null)
+const loaded = ref(false)
+let shaderMount: ShaderMount | null = null
+let currentImage: HTMLImageElement | null = null
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(img)
+    img.src = src
+  })
+}
+
+const shaderMountConfig = {
+  alpha: true,
+  antialias: true
+} as const
+const shaderMinPixelRatio = Math.min(window.devicePixelRatio || 2, 2)
+const shaderMaxPixels = 4096 * 4096
+
+async function mountHalftoneCmyk() {
+  if (!shaderHost.value) return
+
+  shaderMount?.dispose()
+  shaderMount = null
+  loaded.value = false
+
+  const src = bgImages[props.yongshen]
+  currentImage = await loadImage(src)
+
+  if (!shaderHost.value) return
+
+  shaderMount = new ShaderMount(
+    shaderHost.value,
+    getShaderFragment(props.shaderType),
+    createShaderUniforms(props.shaderType, props.yongshen, currentImage),
+    shaderMountConfig,
+    getShaderSpeed(props.shaderType),
+    0,
+    shaderMinPixelRatio,
+    shaderMaxPixels
+  )
+  loaded.value = true
+}
+
+function mountShader() {
+  if (!shaderHost.value) return
+  shaderMount = new ShaderMount(
+    shaderHost.value,
+    getShaderFragment(props.shaderType),
+    createShaderUniforms(props.shaderType, props.yongshen),
+    shaderMountConfig,
+    getShaderSpeed(props.shaderType),
+    0,
+    shaderMinPixelRatio,
+    shaderMaxPixels
+  )
+  loaded.value = true
+}
+
+onMounted(() => {
+  if (props.shaderType === 'halftoneCmyk') {
+    mountHalftoneCmyk()
+  } else {
+    mountShader()
+  }
+})
+
+onUnmounted(() => {
+  shaderMount?.dispose()
+  shaderMount = null
+})
+
+watch(() => props.yongshen, () => {
+  if (props.shaderType === 'halftoneCmyk') {
+    mountHalftoneCmyk()
+  } else {
+    shaderMount?.setUniforms(createShaderUniforms(props.shaderType, props.yongshen))
+  }
+})
+
+const overlayStyle = computed(() => ({
+  opacity: props.overlayOpacity
+}))
+</script>
+
+<template>
+  <div class="shader-bg-container">
+    <div ref="shaderHost" class="shader-canvas-host" aria-hidden="true"></div>
+    <div class="shader-overlay" :style="overlayStyle"></div>
+  </div>
+</template>
+
+<style scoped>
+.shader-bg-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #030404;
+}
+
+.shader-canvas-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.shader-canvas-host :deep(canvas) {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.shader-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 22% 4%, transparent 0%, rgba(0,0,0,.02) 40%, rgba(0,0,0,.18) 76%, rgba(0,0,0,.5) 100%),
+    linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.04) 58%, rgba(0,0,0,.5) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.03) 44%, rgba(0,0,0,.62) 100%);
+  pointer-events: none;
+}
+</style>

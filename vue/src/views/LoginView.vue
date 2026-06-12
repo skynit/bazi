@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -34,7 +34,7 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <!-- Login card -->
     <div class="login-card animate-in">

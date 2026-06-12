@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
 
-import CosmicGrainBackground from '../components/CosmicGrainBackground.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
 
 interface BirthChart {
   id: number
@@ -91,7 +91,7 @@ onMounted(() => {
 
 <template>
   <div class="history-page">
-    <CosmicGrainBackground />
+    <ShaderBackground shader-type="spiral" />
 
     <div class="page-inner">
       <div class="history-header">
