@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@paper-design/shaders": "^0.0.76",
     "axios": "^1.7.0",
     "cobe": "^2.0.1",
     "echarts": "^5.5.0",
