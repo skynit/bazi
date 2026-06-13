@@ -138,21 +138,21 @@ function toggle() {
 .interpretation-card {
   @apply rounded-xl border overflow-hidden;
   background: var(--glass);
-  border-color: rgba(203, 213, 225, 0.12);
+  border-color: var(--line-strong);
   backdrop-filter: blur(12px);
 }
 
 .interpretation-card:hover {
-  border-color: rgba(203, 213, 225, 0.25);
+  border-color: var(--line-focus);
 }
 
 .card-header {
   @apply flex items-center justify-between p-4 cursor-pointer select-none;
-  border-bottom: 1px solid rgba(203, 213, 225, 0.08);
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .expanded .card-header {
-  border-bottom-color: rgba(203, 213, 225, 0.15);
+  border-bottom-color: var(--line-strong);
 }
 
 .card-title {
@@ -176,7 +176,7 @@ function toggle() {
 
 .reading-section {
   @apply pb-3 border-b border-dashed;
-  border-color: rgba(203, 213, 225, 0.08);
+  border-color: var(--line-subtle);
 }
 
 .reading-section:last-child {
@@ -207,33 +207,62 @@ function toggle() {
 }
 
 .main-star {
+  background-color: rgba(251, 113, 133, 0.12);
+  color: var(--crimson);
+  border: 1px solid rgba(251, 113, 133, 0.2);
+}
+
+:global(.dark) .main-star {
   background-color: rgba(251, 113, 133, 0.15);
   color: #f08080;
-  border: 1px solid rgba(251, 113, 133, 0.25);
+  border-color: rgba(251, 113, 133, 0.25);
 }
 
 .aux-star {
-  background-color: rgba(203, 213, 225, 0.08);
+  background-color: var(--accent-dim);
   color: var(--accent);
-  border: 1px solid rgba(203, 213, 225, 0.2);
+  border: 1px solid var(--line-subtle);
+}
+
+:global(.dark) .aux-star {
+  background-color: rgba(203, 213, 225, 0.08);
+  border-color: rgba(203, 213, 225, 0.2);
 }
 
 .sihua-star {
+  background-color: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+
+:global(.dark) .sihua-star {
   background-color: rgba(253, 230, 138, 0.1);
   color: #fde68a;
-  border: 1px solid rgba(253, 230, 138, 0.2);
+  border-color: rgba(253, 230, 138, 0.2);
 }
 
 .sanfang-star {
+  background-color: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+:global(.dark) .sanfang-star {
   background-color: rgba(34, 139, 34, 0.1);
   color: #90ee90;
-  border: 1px solid rgba(34, 139, 34, 0.2);
+  border-color: rgba(34, 139, 34, 0.2);
 }
 
 .pattern-star {
+  background-color: rgba(126, 34, 206, 0.1);
+  color: #7c3aed;
+  border: 1px solid rgba(126, 34, 206, 0.2);
+}
+
+:global(.dark) .pattern-star {
   background-color: rgba(128, 0, 128, 0.1);
   color: #da90d0;
-  border: 1px solid rgba(128, 0, 128, 0.2);
+  border-color: rgba(128, 0, 128, 0.2);
 }
 
 /* Expand/collapse transition */

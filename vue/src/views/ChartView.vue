@@ -5,7 +5,6 @@ import client from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
 import ComputationLog from '../components/ComputationLog.vue'
-import ShaderBackground from '../components/ShaderBackground.vue'
 import { Button } from '@/components/ui/button'
 
 interface SavedChart {
@@ -153,8 +152,6 @@ function onComputationComplete(): void {
 </script>
 <template>
   <div class="chart-page">
-    <ShaderBackground yongshen="mu" shader-type="grainGradient" :overlay-opacity="0.64" />
-
     <!-- Header -->
     <header class="chart-header">
       <div class="header-inner">
@@ -424,7 +421,7 @@ function onComputationComplete(): void {
   z-index: 2;
   border-bottom: 1px solid var(--line-subtle);
   background: var(--glass-nav);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
 }
 
 .header-inner {

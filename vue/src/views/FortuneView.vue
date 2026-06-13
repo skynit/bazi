@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import DailyFortune from '../components/DailyFortune.vue'
-import ShaderBackground from '../components/ShaderBackground.vue'
 
 interface HiddenStemGod {
   stem: string
@@ -177,8 +176,6 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 
 <template>
   <div class="fortune-page">
-
-    <ShaderBackground yongshen="jin" shader-type="grainGradient" :overlay-opacity="0.7" />
 
     <!-- ── Loading ── -->
     <div v-if="loading" class="loading-state">

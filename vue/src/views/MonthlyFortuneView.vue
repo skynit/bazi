@@ -3,7 +3,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import FortuneChart, { type TrendPoint } from '../components/FortuneChart.vue'
-import ShaderBackground from '../components/ShaderBackground.vue'
 
 interface ElementImage {
   element: string
@@ -97,8 +96,6 @@ onMounted(() => {
 
 <template>
   <div class="monthly-page">
-    <ShaderBackground yongshen="tu" shader-type="grainGradient" :overlay-opacity="0.66" />
-
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="loading-inner">

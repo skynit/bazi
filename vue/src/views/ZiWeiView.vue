@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
-import ShaderBackground from '../components/ShaderBackground.vue'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
 
@@ -366,8 +365,6 @@ const sihuaChainGroups = computed(() => {
 
 <template>
   <div class="ziwei-page">
-    <ShaderBackground yongshen="huo" shader-type="grainGradient" :overlay-opacity="0.72" />
-
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <el-skeleton animated>
@@ -729,7 +726,8 @@ const sihuaChainGroups = computed(() => {
 }
 
 .error-card {
-  @apply bg-white rounded-lg shadow-md p-8 text-center max-w-sm;
+  @apply rounded-lg shadow-md p-8 text-center max-w-sm;
+  background: var(--surface-0);
 }
 
 .page-content {
@@ -837,20 +835,20 @@ const sihuaChainGroups = computed(() => {
 .palace-pill {
   display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
   padding: 0.5rem 0.5rem;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(203, 213, 225,0.06);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-subtle);
   border-radius: 8px;
   cursor: pointer; transition: all 0.2s;
   font-family: var(--font-sans);
 }
 .palace-pill:hover {
-  background: rgba(203, 213, 225,0.05);
-  border-color: rgba(203, 213, 225,0.2);
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+  border-color: var(--line-focus);
   transform: translateY(-1px);
 }
 .palace-pill.active {
   border-color: var(--text-soft);
-  background: rgba(203, 213, 225,0.08);
+  background: var(--line-strong);
 }
 .palace-pill.body-palace {
   border-color: rgba(139, 75, 75, 0.4);
@@ -878,9 +876,8 @@ const sihuaChainGroups = computed(() => {
 
 .period-card {
   @apply rounded-md border p-3;
-  background-color: var(--color-bazi-paper);
-  border-color: rgba(43, 58, 66, 0.1);
-  background: rgba(255,255,255,0.03);
+  background: color-mix(in oklab, var(--accent) 5%, transparent);
+  border-color: var(--line-subtle);
 }
 
 .period-header {
@@ -912,14 +909,14 @@ const sihuaChainGroups = computed(() => {
 
 .sihua-table th {
   @apply text-left p-2 font-bold text-xs;
-  background-color: var(--color-bazi-paper);
+  background: var(--surface-2);
   color: var(--color-bazi-blue);
-  border-bottom: 2px solid rgba(43, 58, 66, 0.15);
+  border-bottom: 2px solid var(--line-strong);
 }
 
 .sihua-table td {
   @apply p-2 border-b;
-  border-color: rgba(43, 58, 66, 0.05);
+  border-color: var(--line-subtle);
 }
 
 .sihua-badge {
@@ -927,29 +924,29 @@ const sihuaChainGroups = computed(() => {
 }
 
 .sihua-lu {
-  background-color: rgba(251, 113, 133, 0.15);
-  color: var(--color-bazi-red);
+  background: rgba(22,163,74,0.1);
+  color: #16a34a;
 }
 
 .sihua-quan {
-  background-color: rgba(43, 58, 66, 0.12);
+  background-color: var(--line-strong);
   color: var(--color-bazi-blue);
 }
 
 .sihua-ke {
-  background-color: rgba(34, 139, 34, 0.12);
-  color: #34d399;
+  background-color: rgba(37,99,235,0.1);
+  color: #2563eb;
 }
 
 .sihua-ji {
-  background-color: rgba(26, 26, 26, 0.1);
-  color: var(--color-bazi-ink);
+  background-color: rgba(220,38,38,0.08);
+  color: #dc2626;
 }
 
 .tab-desc { font-size:0.72rem; color:var(--text-muted); margin:0 0 1rem; font-style:italic; }
 .dayun-timeline { display:flex; flex-direction:column; gap:0.5rem; }
-.dayun-card { display:flex; gap:0.75rem; padding:0.625rem 0.75rem; background:rgba(255,255,255,0.015); border:1px solid rgba(203, 213, 225,0.05); border-radius:8px; }
-.dayun-card.is-current { border-color:rgba(203, 213, 225,0.2); background:rgba(203, 213, 225,0.04); }
+.dayun-card { display:flex; gap:0.75rem; padding:0.625rem 0.75rem; background:color-mix(in oklab, var(--accent) 4%, transparent); border:1px solid var(--line-subtle); border-radius:8px; }
+.dayun-card.is-current { border-color:var(--line-focus); background:var(--line-subtle); }
 .dayun-age-badge { min-width:60px; text-align:center; }
 .age-primary { display:block; font-size:0.8rem; font-weight:700; color:var(--accent); }
 .age-unit { font-size:0.58rem; color:var(--text-muted); }
@@ -957,80 +954,113 @@ const sihuaChainGroups = computed(() => {
 .dayun-palace { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:0.125rem; }
 .dayun-desc { font-size:0.68rem; color:var(--text-muted); margin:0 0 0.25rem; }
 .dayun-stars { display:flex; flex-wrap:wrap; gap:0.2rem; }
-.star-chip { padding:0.08rem 0.35rem; font-size:0.62rem; background:rgba(251, 113, 133,0.08); color:var(--danger); border-radius:3px; border:1px solid rgba(251, 113, 133,0.12); }
-.palace-strip { display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0.6rem; border-bottom:1px solid rgba(255,255,255,0.025); }
+.star-chip { padding:0.08rem 0.35rem; font-size:0.62rem; background:rgba(220,38,38,0.08); color:var(--danger); border-radius:3px; border:1px solid rgba(220,38,38,0.12); }
+.palace-strip { display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0.6rem; border-bottom:1px solid var(--line-subtle); }
 .palace-strip-sm { padding:0.25rem 0.4rem; }
 .palace-strip-header { display:flex; align-items:center; gap:0.3rem; min-width:68px; }
 .strip-name { font-size:0.72rem; font-weight:600; color:var(--text); }
 .strip-branch { font-size:0.58rem; color:var(--text-muted); }
 .palace-strip-stars { display:flex; align-items:center; gap:0.25rem; flex-wrap:wrap; flex:1; }
-.strip-main-star { padding:0.06rem 0.3rem; font-size:0.62rem; font-weight:600; background:rgba(203, 213, 225,0.08); color:var(--accent); border-radius:3px; }
-.strip-main-star.dim { color:var(--text-muted); background:rgba(255,255,255,0.02); }
+.strip-main-star { padding:0.06rem 0.3rem; font-size:0.62rem; font-weight:600; background:var(--line-strong); color:var(--accent); border-radius:3px; }
+.strip-main-star.dim { color:var(--text-muted); background:var(--accent-dim); }
 .strip-main-star small { font-size:0.5rem; opacity:0.5; }
 .strip-aux-star { font-size:0.58rem; color: var(--text-soft); }
-.strip-sihua { padding:0.06rem 0.3rem; font-size:0.58rem; background:rgba(251, 113, 133,0.08); color:var(--danger); border-radius:3px; }
+.strip-sihua { padding:0.06rem 0.3rem; font-size:0.58rem; background:rgba(220,38,38,0.08); color:var(--danger); border-radius:3px; }
 .strip-empty { font-size:0.58rem; color:var(--text-muted); opacity:0.3; }
 .sihua-groups { display:flex; flex-direction:column; gap:0.625rem; }
 .sihua-group-badge { display:inline-block; padding:0.15rem 0.5rem; font-size:0.68rem; font-weight:700; border-radius:4px; margin-bottom:0.25rem; }
-.sihua-lu { background:rgba(74,222,128,0.1); color:#4ade80; }
-.sihua-quan { background:rgba(203, 213, 225,0.1); color:var(--accent); }
-.sihua-ke { background:rgba(96,165,250,0.1); color:#60a5fa; }
-.sihua-ji { background:rgba(251, 113, 133,0.1); color:var(--danger); }
+.sihua-lu { background:rgba(22,163,74,0.1); color:#16a34a; }
+.sihua-quan { background:rgba(71,85,105,0.1); color:#475569; }
+.sihua-ke { background:rgba(37,99,235,0.1); color:#2563eb; }
+.sihua-ji { background:rgba(220,38,38,0.08); color:#dc2626; }
 .sihua-group-items { display:flex; flex-direction:column; gap:0.2rem; }
-.sihua-fly-item { display:flex; align-items:center; gap:0.4rem; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.012); border-radius:5px; font-size:0.72rem; }
+.sihua-fly-item { display:flex; align-items:center; gap:0.4rem; padding:0.3rem 0.5rem; background:color-mix(in oklab, var(--accent) 3%, transparent); border-radius:5px; font-size:0.72rem; }
 .fly-star { font-weight:600; color:var(--text); }
 .fly-arrow { color:var(--text-muted); font-size:0.65rem; }
 .fly-palace { color:var(--accent); font-weight:500; }
 .fly-effect { color:var(--text-muted); font-size:0.65rem; flex:1; }
-.fly-from { font-size:0.6rem; color:#93c5fd; background:rgba(96,165,250,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
-.fly-chain { font-size:0.6rem; color:#86efac; background:rgba(74,222,128,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
-.fly-affinity { font-size:0.6rem; color:#fde68a; background:rgba(253,230,138,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
-.sihua-chain-section { margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.05); }
+.fly-from { font-size:0.6rem; color:#2563eb; background:rgba(37,99,235,0.08); padding:0.05rem 0.25rem; border-radius:3px; }
+.fly-chain { font-size:0.6rem; color:#16a34a; background:rgba(22,163,74,0.08); padding:0.05rem 0.25rem; border-radius:3px; }
+.fly-affinity { font-size:0.6rem; color:#a16207; background:rgba(161,98,7,0.08); padding:0.05rem 0.25rem; border-radius:3px; }
+.sihua-chain-section { margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--line-subtle); }
 .chain-title { font-size:0.72rem; color:var(--text-muted); margin:0 0 0.5rem; font-weight:600; }
 .sihua-empty-group { font-size:0.68rem; color:var(--text-muted); padding:0.2rem 0.4rem; opacity:0.4; }
 
 /* Interpretation tab styles */
 .interp-tab { display:flex; flex-direction:column; gap:0.75rem; }
-.interp-card { background:var(--glass); border:1px solid rgba(203, 213, 225,0.1); border-radius:12px; overflow:hidden; }
-.interp-header { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:rgba(203, 213, 225,0.06); border-bottom:1px solid rgba(203, 213, 225,0.1); }
+.interp-card { background:var(--glass); border:1px solid var(--line-strong); border-radius:12px; overflow:hidden; }
+.interp-header { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:var(--line-subtle); border-bottom:1px solid var(--line-strong); }
 .interp-year { font-size:0.9rem; font-weight:700; color:var(--accent); font-family:var(--font-serif); }
 .interp-ganZhi { font-size:0.85rem; color:var(--text); font-weight:600; }
 .interp-score { font-size:0.8rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:6px; margin-left:auto; }
-.score-good { background:rgba(74,222,128,0.12); color:#4ade80; }
-.score-bad { background:rgba(251, 113, 133,0.12); color:#f08080; }
+.score-good { background:rgba(22,163,74,0.1); color:#16a34a; }
+.score-bad { background:rgba(220,38,38,0.08); color:#dc2626; }
 .interp-section { padding:0.75rem 1rem; display:flex; flex-direction:column; gap:0.4rem; }
 .interp-row { display:flex; gap:0.5rem; font-size:0.78rem; line-height:1.5; }
 .interp-label { min-width:70px; font-weight:600; color:var(--text-muted); }
 .interp-value { color:var(--text); flex:1; }
-.interp-value.danger { color:#f08080; }
+.interp-value.danger { color:#dc2626; }
 .interp-row.tip .interp-value { color:var(--accent); font-style:italic; }
 .interp-subtitle { font-size:0.75rem; font-weight:700; color:var(--accent); margin:0 0 0.5rem; }
-.interp-summary { font-size:0.72rem; color:var(--text-muted); padding:0.5rem 1rem; background:rgba(203, 213, 225,0.04); border-top:1px dashed rgba(203, 213, 225,0.1); font-style:italic; }
+.interp-summary { font-size:0.72rem; color:var(--text-muted); padding:0.5rem 1rem; background:var(--line-subtle); border-top:1px dashed var(--line-strong); font-style:italic; }
 .hourly-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:0.375rem; }
 .hour-block { display:flex; flex-direction:column; gap:0.15rem; padding:0.4rem 0.5rem; border-radius:6px; font-size:0.68rem; }
-.hour-good { background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.15); }
-.hour-neutral { background:rgba(203, 213, 225,0.05); border:1px solid rgba(203, 213, 225,0.1); }
-.hour-bad { background:rgba(251, 113, 133,0.08); border:1px solid rgba(251, 113, 133,0.15); }
+.hour-good { background:rgba(22,163,74,0.08); border:1px solid rgba(22,163,74,0.15); }
+.hour-neutral { background:var(--line-subtle); border:1px solid var(--line-strong); }
+.hour-bad { background:rgba(220,38,38,0.06); border:1px solid rgba(220,38,38,0.12); }
 .hour-time { font-weight:700; color:var(--accent); }
 
 /* Adjective stars 形容星 */
-.strip-adj-star { font-size:0.56rem; color:var(--text-muted); padding:0.05rem 0.25rem; background:rgba(161,130,207,0.06); border-radius:3px; }
+.strip-adj-star { font-size:0.56rem; color:var(--text-muted); padding:0.05rem 0.25rem; background:rgba(109,40,217,0.06); border-radius:3px; }
 
 /* Twelve stars 十二星 */
 .strip-twelve-stars { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.15rem; }
 .twelve-tag { font-size:0.52rem; padding:0.04rem 0.25rem; border-radius:3px; }
-.twelve-cs { color: var(--accent); background:rgba(203, 213, 225,0.08); }
-.twelve-bs { color:#60a5fa; background:rgba(96,165,250,0.08); }
-.twelve-jq { color:#4ade80; background:rgba(74,222,128,0.08); }
-.twelve-sq { color:#f08080; background:rgba(251, 113, 133,0.08); }
+.twelve-cs { color: #0f766e; background:rgba(15,118,110,0.08); }
+.twelve-bs { color:#2563eb; background:rgba(37,99,235,0.08); }
+.twelve-jq { color:#16a34a; background:rgba(22,163,74,0.08); }
+.twelve-sq { color:#dc2626; background:rgba(220,38,38,0.08); }
 
 /* Sanfang Sizheng 三方四正 */
 .strip-sanfang { display:flex; align-items:center; gap:0.3rem; margin-top:0.15rem; font-size:0.55rem; }
 .sf-label { color:var(--text-muted); font-weight:600; }
-.sf-item { color:#2563eb; padding:0.03rem 0.2rem; background:rgba(96,165,250,0.08); border-radius:3px; }
+.sf-item { color:#2563eb; padding:0.03rem 0.2rem; background:rgba(37,99,235,0.08); border-radius:3px; }
 .hour-effect { color:var(--text); line-height:1.3; }
 .hour-score { font-size:0.62rem; margin-top:0.1rem; }
-.hour-good .hour-score { color:#4ade80; }
+.hour-good .hour-score { color:#16a34a; }
 .hour-neutral .hour-score { color:var(--text-muted); }
-.hour-bad .hour-score { color:#f08080; }
+.hour-bad .hour-score { color:#dc2626; }
+
+/* ── Dark-mode overrides ── */
+:global(.dark) {
+  .sihua-lu { background:rgba(74,222,128,0.1); color:#4ade80; }
+  .sihua-quan { background:rgba(203, 213, 225,0.1); color:var(--accent); }
+  .sihua-ke { background:rgba(96,165,250,0.1); color:#60a5fa; }
+  .sihua-ji { background:rgba(251, 113, 133,0.1); color:var(--danger); }
+
+  .star-chip { background:rgba(251, 113, 133,0.08); border-color:rgba(251, 113, 133,0.12); }
+  .strip-sihua { background:rgba(251, 113, 133,0.08); }
+  .strip-adj-star { background:rgba(161,130,207,0.06); }
+
+  .twelve-cs { color: var(--accent); background:rgba(203, 213, 225,0.08); }
+  .twelve-bs { color:#60a5fa; background:rgba(96,165,250,0.08); }
+  .twelve-jq { color:#4ade80; background:rgba(74,222,128,0.08); }
+  .twelve-sq { color:#f08080; background:rgba(251, 113, 133,0.08); }
+
+  .sf-item { color:#2563eb; background:rgba(96,165,250,0.08); }
+
+  .fly-from { color:#93c5fd; background:rgba(96,165,250,0.1); }
+  .fly-chain { color:#86efac; background:rgba(74,222,128,0.1); }
+  .fly-affinity { color:#fde68a; background:rgba(253,230,138,0.1); }
+
+  .hour-good { background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.15); }
+  .hour-bad { background:rgba(251, 113, 133,0.08); border-color:rgba(251, 113, 133,0.15); }
+  .hour-good .hour-score { color:#4ade80; }
+  .hour-bad .hour-score { color:#f08080; }
+
+  .score-good { background:rgba(74,222,128,0.12); color:#4ade80; }
+  .score-bad { background:rgba(251, 113, 133,0.12); color:#f08080; }
+
+  .interp-value.danger { color:#f08080; }
+}
 </style>

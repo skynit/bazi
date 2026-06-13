@@ -166,7 +166,6 @@ function isXiongShenSha(name: string): boolean {
 const fiveElementsOption = computed(() => {
   themeVersion.value
   const textColor = cssVar('--text', '#0f1712')
-  const mutedColor = cssVar('--text-muted', '#5a6a5e')
   const softColor = cssVar('--text-soft', 'rgba(15, 23, 18, 0.44)')
   const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
   const tooltipBg = cssVar('--surface-1', '#ffffff')

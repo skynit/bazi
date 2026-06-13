@@ -2,9 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
-import ShaderBackground from '../components/ShaderBackground.vue'
-
-
 interface BirthChart {
   id: number
   name: string
@@ -91,8 +88,6 @@ onMounted(() => {
 
 <template>
   <div class="history-page">
-    <ShaderBackground yongshen="shui" shader-type="grainGradient" :overlay-opacity="0.68" />
-
     <div class="page-inner">
       <div class="history-header">
         <div class="header-eyebrow">BaZi Fortune</div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 interface StarInfo {
   name: string
@@ -35,8 +35,34 @@ function auxStars(p: PalaceData): StarInfo[] {
   return p.stars.filter(s => s.type !== 'major')
 }
 
-// Traditional star brightness → color (庙=most auspicious ... 陷=weakest)
-const brightnessMeta: Record<string, { bg: string; text: string; label: string }> = {
+const isDark = ref(document.documentElement.classList.contains('dark'))
+let themeObserver: MutationObserver | null = null
+
+onMounted(() => {
+  themeObserver = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
+})
+
+// Light-mode brightness palette (brighter, more contrast on light bg)
+const brightnessMetaLight: Record<string, { bg: string; text: string; label: string }> = {
+  庙: { bg: 'linear-gradient(135deg,#e11d48,#be123c)', text: '#fffaf8', label: '庙' },
+  旺: { bg: 'linear-gradient(135deg,#ea580c,#c2410c)', text: '#fffaf8', label: '旺' },
+  得: { bg: 'linear-gradient(135deg,#eab308,#a16207)', text: '#fffaf8', label: '得' },
+  利: { bg: 'linear-gradient(135deg,#16a34a,#15803d)', text: '#fffaf8', label: '利' },
+  平: { bg: 'linear-gradient(135deg,#6b7280,#4b5563)', text: '#fffaf8', label: '平' },
+  不: { bg: 'linear-gradient(135deg,#0e7490,#0c5a74)', text: '#fffaf8', label: '不' },
+  陷: { bg: 'linear-gradient(135deg,#44403c,#292524)', text: '#e7e5e4', label: '陷' },
+}
+
+// Dark-mode brightness palette (original)
+const brightnessMetaDark: Record<string, { bg: string; text: string; label: string }> = {
   庙: { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8', label: '庙' },
   旺: { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fffaf8', label: '旺' },
   得: { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#10140f', label: '得' },
@@ -47,7 +73,8 @@ const brightnessMeta: Record<string, { bg: string; text: string; label: string }
 }
 
 function starMeta(brightness: string) {
-  return brightnessMeta[brightness] || brightnessMeta['陷']
+  const meta = isDark.value ? brightnessMetaDark : brightnessMetaLight
+  return meta[brightness] || meta['陷']
 }
 
 // Build branch → palace lookup
@@ -411,54 +438,12 @@ function palaceAt(branch: string): PalaceData | undefined {
       <div class="legend-bar">
         <div class="legend-title">星曜亮度</div>
         <div class="legend-items">
-          <div class="legend-item">
+          <div v-for="(key, idx) in ['庙','旺','得','利','平','不','陷']" :key="idx" class="legend-item">
             <span
               class="legend-swatch"
-              style="background: linear-gradient(135deg, #fb7185, #be123c)"
+              :style="{ background: starMeta(key).bg }"
             ></span>
-            <span>庙 — 最旺</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #ff8c00, #cc5500)"
-            ></span>
-            <span>旺 — 旺盛</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #fde68a, #94a3b8)"
-            ></span>
-            <span>得 — 得地</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #34d399, #059669)"
-            ></span>
-            <span>利 — 有利</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #808080, #696969)"
-            ></span>
-            <span>平 — 中平</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #5f9ea0, #4682b4)"
-            ></span>
-            <span>不 — 不得</span>
-          </div>
-          <div class="legend-item">
-            <span
-              class="legend-swatch"
-              style="background: linear-gradient(135deg, #2b3a42, #1a252e)"
-            ></span>
-            <span>陷 — 陷失</span>
+            <span>{{ key }} — {{ ['最旺','旺盛','得地','有利','中平','不得','陷失'][idx] }}</span>
           </div>
         </div>
         <div class="legend-divider"></div>
@@ -509,6 +494,10 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 .chart-section-symbol {
   font-size: 1.5rem; color: var(--accent);
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+
+:global(.dark) .chart-section-symbol {
   text-shadow: 0 0 12px rgba(203,213,225,0.3);
 }
 .chart-section-title {
@@ -529,22 +518,30 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .pattern-badge {
   @apply px-4 py-1.5 text-xs font-bold rounded-full;
-  background: linear-gradient(135deg, #fb7185, #be123c);
+  background: linear-gradient(135deg, var(--crimson), #be123c);
   color: var(--destructive-foreground);
-  box-shadow: 0 0 12px rgba(251, 113, 133, 0.4);
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.25);
   letter-spacing: 1px;
+}
+
+:global(.dark) .pattern-badge {
+  box-shadow: 0 0 12px rgba(251, 113, 133, 0.4);
 }
 
 /* ── Chart frame ── */
 .chart-outer-frame {
   position: relative;
-  border: 1px solid rgba(203, 213, 225, 0.3);
+  border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: linear-gradient(145deg, rgba(20, 16, 30, 0.95), rgba(10, 8, 20, 0.98));
+  background: var(--surface-1);
   box-shadow:
     0 0 40px rgba(203, 213, 225, 0.08),
-    inset 0 1px 0 rgba(203, 213, 225, 0.15);
+    inset 0 1px 0 var(--line-subtle);
   padding: 3px;
+}
+
+:global(.dark) .chart-outer-frame {
+  background: linear-gradient(145deg, rgba(20, 16, 30, 0.95), rgba(10, 8, 20, 0.98));
 }
 
 /* Decorative corners */
@@ -582,9 +579,13 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .chart-inner {
-  background: rgba(10, 8, 20, 0.9);
+  background: var(--surface-0);
   border-radius: 10px;
   overflow: hidden;
+}
+
+:global(.dark) .chart-inner {
+  background: rgba(10, 8, 20, 0.9);
 }
 
 /* ── Palace rows & cells ── */
@@ -611,27 +612,42 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .palace-cell {
   @apply flex flex-col items-center justify-start p-3 relative min-h-[140px];
-  background: linear-gradient(180deg, rgba(12, 12, 14, 0.85), rgba(6, 6, 8, 0.92));
-  border: 1px solid rgba(203, 213, 225, 0.08);
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
   gap: 3px;
   transition: all 0.3s ease;
 }
 
 .palace-cell:hover {
+  background: var(--surface-3);
+  border-color: var(--line-focus);
+  box-shadow: 0 0 20px var(--accent-dim);
+  z-index: 2;
+}
+
+:global(.dark) .palace-cell {
+  background: linear-gradient(180deg, rgba(12, 12, 14, 0.85), rgba(6, 6, 8, 0.92));
+  border-color: rgba(203, 213, 225, 0.08);
+}
+
+:global(.dark) .palace-cell:hover {
   background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 12, 16, 0.96));
   border-color: var(--text-soft);
   box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
-  z-index: 2;
 }
 
 .palace-cell.has-sihua {
   border-top: 2px solid rgba(251, 113, 133, 0.6);
 }
 
+:global(.dark) .palace-cell.has-sihua {
+  border-top-color: rgba(251, 113, 133, 0.6);
+}
+
 /* ── Palace content ── */
 .palace-header {
   @apply flex flex-col items-center gap-0 w-full mb-1;
-  border-bottom: 1px solid rgba(203, 213, 225, 0.1);
+  border-bottom: 1px solid var(--line-subtle);
   padding-bottom: 4px;
 }
 
@@ -659,6 +675,10 @@ function palaceAt(branch: string): PalaceData | undefined {
 .main-star {
   @apply inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-sm leading-tight;
   white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+:global(.dark) .main-star {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
@@ -673,8 +693,13 @@ function palaceAt(branch: string): PalaceData | undefined {
 .aux-star {
   @apply text-[10px] leading-tight px-1 py-px rounded;
   color: var(--text-muted);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-subtle);
+}
+
+:global(.dark) .aux-star {
   background: rgba(203, 213, 225, 0.06);
-  border: 1px solid rgba(203, 213, 225, 0.1);
+  border-color: rgba(203, 213, 225, 0.1);
 }
 
 .sihua-section {
@@ -683,25 +708,39 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .sihua-tag {
   @apply rounded-full px-2 py-px text-[9px] font-bold leading-tight;
-  background: linear-gradient(135deg, #fb7185, #be123c);
+  background: linear-gradient(135deg, var(--crimson), #be123c);
   color: var(--destructive-foreground);
+  box-shadow: 0 0 6px rgba(251, 113, 133, 0.3);
+}
+
+:global(.dark) .sihua-tag {
   box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
 }
 
 /* ── Center cell ── */
 .center-cell {
   @apply relative flex items-center justify-center p-4;
-  background: linear-gradient(145deg, rgba(6, 6, 8, 0.95), rgba(3, 4, 4, 0.98));
-  border-left: 1px solid rgba(203, 213, 225, 0.15);
-  border-right: 1px solid rgba(203, 213, 225, 0.15);
+  background: var(--surface-1);
+  border-left: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line-strong);
   grid-row: span 1;
+}
+
+:global(.dark) .center-cell {
+  background: linear-gradient(145deg, rgba(6, 6, 8, 0.95), rgba(3, 4, 4, 0.98));
+  border-left-color: rgba(203, 213, 225, 0.15);
+  border-right-color: rgba(203, 213, 225, 0.15);
 }
 
 .center-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(203, 213, 225, 0.08), transparent 70%);
+  background: radial-gradient(ellipse at center, var(--accent-dim), transparent 70%);
   pointer-events: none;
+}
+
+:global(.dark) .center-glow {
+  background: radial-gradient(ellipse at center, rgba(203, 213, 225, 0.08), transparent 70%);
 }
 
 .center-inner {
@@ -731,11 +770,19 @@ function palaceAt(branch: string): PalaceData | undefined {
   @apply text-sm font-bold tracking-widest;
   color: var(--accent);
   letter-spacing: 4px;
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+
+:global(.dark) .center-title {
   text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
 }
 
 .center-divider {
   @apply w-16 h-px;
+  background: linear-gradient(90deg, transparent, var(--line-focus), transparent);
+}
+
+:global(.dark) .center-divider {
   background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.4), transparent);
 }
 
@@ -754,17 +801,30 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .mingzhu,
 .shenzhu {
-  color: #fb7185;
+  color: var(--crimson);
+  text-shadow: 0 0 12px rgba(251, 113, 133, 0.3);
+}
+
+:global(.dark) .mingzhu,
+:global(.dark) .shenzhu {
   text-shadow: 0 0 12px rgba(251, 113, 133, 0.5);
 }
 
 .wuxing {
   color: var(--accent);
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+
+:global(.dark) .wuxing {
   text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 
 /* Mid center (row 3) */
 .center-cell-mid {
+  background: var(--surface-2);
+}
+
+:global(.dark) .center-cell-mid {
   background: linear-gradient(145deg, rgba(15, 12, 25, 0.98), rgba(20, 16, 30, 0.95));
 }
 
@@ -788,7 +848,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 /* ── Legend ── */
 .legend-bar {
   @apply flex flex-wrap items-center justify-center gap-6 mt-4 pt-4 px-4;
-  border-top: 1px solid rgba(203, 213, 225, 0.1);
+  border-top: 1px solid var(--line-subtle);
 }
 
 .legend-title {
@@ -810,13 +870,17 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .sihua-swatch {
-  background: linear-gradient(135deg, #fb7185, #be123c);
+  background: linear-gradient(135deg, var(--crimson), #be123c);
+  box-shadow: 0 0 6px rgba(251, 113, 133, 0.3);
+}
+
+:global(.dark) .sihua-swatch {
   box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
 }
 
 .legend-divider {
   @apply w-px h-4;
-  background: rgba(203, 213, 225, 0.15);
+  background: var(--line-strong);
 }
 
 /* ── Empty state ── */

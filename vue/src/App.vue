@@ -36,8 +36,8 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
         <nav
           class="flex items-center justify-between h-14 rounded-full border px-4 sm:px-5 lg:px-6 transition-all duration-300"
           :class="scrolled
-            ? 'bg-[var(--nav-bg)] backdrop-blur-xl border-[var(--nav-border)] shadow-[var(--shadow-sm)]'
-            : 'bg-[var(--nav-bg-idle)] backdrop-blur-xl border-transparent'"
+            ? 'bg-[var(--nav-bg)] backdrop-blur-md border-[var(--nav-border)] shadow-[var(--shadow-sm)]'
+            : 'bg-[var(--nav-bg-idle)] backdrop-blur-md border-transparent'"
         >
           <!-- Logo (left) -->
           <router-link to="/" class="flex items-center gap-3 text-decoration-none">

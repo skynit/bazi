@@ -290,7 +290,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--text-soft) transparent;
   color-scheme: light;
@@ -328,7 +327,6 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   line-height: 1.6;
-  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* ── Ambient glow (jadense-style) ── */
@@ -342,7 +340,7 @@ body::before {
     radial-gradient(1100px circle at 15% 20%, var(--glow-primary, rgba(52,211,153,0.08)) 0%, transparent 55%),
     radial-gradient(900px circle at 85% 25%, var(--glow-secondary, rgba(125,211,252,0.05)) 0%, transparent 58%),
     radial-gradient(800px circle at 85% 78%, var(--glow-accent, rgba(212,250,232,0.04)) 0%, transparent 60%);
-  transition: opacity 0.4s ease;
+  will-change: auto;
 }
 
 /* ── Vignette overlay ── */
@@ -356,21 +354,21 @@ body::after {
     linear-gradient(180deg, rgba(250,251,248,0.04) 0%, rgba(250,251,248,0.08) 44%, rgba(250,251,248,0.14) 100%),
     var(--grain);
   opacity: 0.12;
-  transition: opacity 0.4s ease;
+  will-change: auto;
 }
 
 .dark body::after {
   background:
-    linear-gradient(180deg, rgba(8,10,8,0.12) 0%, rgba(8,10,8,0.30) 44%, rgba(8,10,8,0.50) 100%),
+    linear-gradient(180deg, rgba(8,10,8,0.06) 0%, rgba(8,10,8,0.10) 44%, rgba(8,10,8,0.16) 100%),
     var(--grain);
-  opacity: 0.25;
+  opacity: 0.08;
 }
 
 /* ── Glass utilities ── */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur-xl));
-  -webkit-backdrop-filter: blur(var(--glass-blur-xl));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 0;
   border-radius: 20px;
   box-shadow: 0 0 0 1px var(--line-strong), var(--shadow-md);
@@ -439,13 +437,12 @@ body::after {
   border: 0;
   border-radius: 14px;
   box-shadow: 0 0 0 1px var(--line-strong), var(--shadow-xs);
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, background-color 0.18s ease-out;
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
 }
 
 .glass-card:hover {
   box-shadow: 0 0 0 1px var(--accent), var(--shadow-md);
   transform: translateY(-2px);
-  background: var(--glass-bg-hover);
 }
 
 /* Touch device fallback */

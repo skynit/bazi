@@ -6,9 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
-import ShaderBackground from '../components/ShaderBackground.vue'
-
-
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -38,8 +35,6 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
-    <ShaderBackground yongshen="mu" shader-type="grainGradient" :overlay-opacity="0.74" />
-
     <Card class="login-card animate-in w-full max-w-[var(--container-sm)] relative z-10
       rounded-[1.5rem] border-0
       [box-shadow:0_0_0_1px_var(--line-strong),var(--shadow-lg)]

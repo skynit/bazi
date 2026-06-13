@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 interface StarInfo {
   name: string
@@ -48,13 +48,34 @@ const emit = defineEmits<{
 const mode = ref<'base' | 'overlay'>('base')
 const selectedYear = ref<number>(new Date().getFullYear())
 
-// Sync selectedYear when prop changes (e.g., after year switch)
-watch(() => props.liunianChart?.year, (y) => {
-  if (y) selectedYear.value = y
-}, { immediate: true })
+const isDark = ref(document.documentElement.classList.contains('dark'))
+let themeObserver: MutationObserver | null = null
 
-// Gold palette for 本命盘
-const goldMeta: Record<string, { bg: string; text: string }> = {
+onMounted(() => {
+  themeObserver = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
+})
+
+// Gold palette for 本命盘 — light mode
+const goldMetaLight: Record<string, { bg: string; text: string }> = {
+  '庙': { bg: 'linear-gradient(135deg,#e11d48,#be123c)', text: '#fffaf8' },
+  '旺': { bg: 'linear-gradient(135deg,#ea580c,#c2410c)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#eab308,#a16207)', text: '#fffaf8' },
+  '利': { bg: 'linear-gradient(135deg,#16a34a,#15803d)', text: '#fffaf8' },
+  '平': { bg: 'linear-gradient(135deg,#6b7280,#4b5563)', text: '#fffaf8' },
+  '不': { bg: 'linear-gradient(135deg,#0e7490,#0c5a74)', text: '#fffaf8' },
+  '陷': { bg: 'linear-gradient(135deg,#44403c,#292524)', text: '#e7e5e4' },
+}
+
+// Gold palette for 本命盘 — dark mode
+const goldMetaDark: Record<string, { bg: string; text: string }> = {
   '庙': { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8' },
   '旺': { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fffaf8' },
   '得': { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#10140f' },
@@ -64,8 +85,19 @@ const goldMeta: Record<string, { bg: string; text: string }> = {
   '陷': { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#dbe4e8' },
 }
 
-// Purple palette for 流年盘
-const purpleMeta: Record<string, { bg: string; text: string }> = {
+// Purple palette for 流年盘 — light mode
+const purpleMetaLight: Record<string, { bg: string; text: string }> = {
+  '庙': { bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', text: '#fffaf8' },
+  '旺': { bg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#a78bfa,#8b5cf6)', text: '#1a1030' },
+  '利': { bg: 'linear-gradient(135deg,#6d28d9,#5b21b6)', text: '#fffaf8' },
+  '平': { bg: 'linear-gradient(135deg,#6b5b95,#5a4a84)', text: '#fffaf8' },
+  '不': { bg: 'linear-gradient(135deg,#5b4a84,#4a3a7a)', text: '#fffaf8' },
+  '陷': { bg: 'linear-gradient(135deg,#3d3060,#2d2050)', text: '#d4c8f0' },
+}
+
+// Purple palette for 流年盘 — dark mode
+const purpleMetaDark: Record<string, { bg: string; text: string }> = {
   '庙': { bg: 'linear-gradient(135deg,#7B2D8B,#4B0082)', text: '#fffaf8' },
   '旺': { bg: 'linear-gradient(135deg,#9B59B6,#8E44AD)', text: '#fffaf8' },
   '得': { bg: 'linear-gradient(135deg,#8E6DBB,#6B5B95)', text: '#fffaf8' },
@@ -76,16 +108,23 @@ const purpleMeta: Record<string, { bg: string; text: string }> = {
 }
 
 function baseMeta(brightness: string) {
-  return goldMeta[brightness] || goldMeta['陷']
+  const meta = isDark.value ? goldMetaDark : goldMetaLight
+  return meta[brightness] || meta['陷']
 }
 
 function overlayMeta(brightness: string) {
-  return purpleMeta[brightness] || purpleMeta['陷']
+  const meta = isDark.value ? purpleMetaDark : purpleMetaLight
+  return meta[brightness] || meta['陷']
 }
 
 function onYearChange() {
   emit('year-change', selectedYear.value)
 }
+
+// Sync selectedYear when prop changes (e.g., after year switch)
+watch(() => props.liunianChart?.year, (y) => {
+  if (y) selectedYear.value = y
+}, { immediate: true })
 
 const baseLookup = computed<Record<string, PalaceData>>(() => {
   const m: Record<string, PalaceData> = {}
@@ -534,10 +573,14 @@ function liunianStarsAt(b: string): string[] {
 /* ── Page ── */
 .zw-overlay {
   width: 100%;
-  background: linear-gradient(160deg, rgba(20,14,35,0.95) 0%, rgba(8,5,15,0.98) 100%);
-  border: 1px solid rgba(203, 213, 225,0.1);
+  background: var(--surface-1);
+  border: 1px solid var(--line-subtle);
   border-radius: 16px;
   padding: 1.25rem;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.12);
+}
+:global(.dark) .zw-overlay {
+  background: linear-gradient(160deg, rgba(20,14,35,0.95) 0%, rgba(8,5,15,0.98) 100%);
   box-shadow: 0 20px 80px rgba(0,0,0,0.5);
 }
 
@@ -549,8 +592,8 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-toggle {
   display: flex;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(203, 213, 225,0.1);
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -565,27 +608,32 @@ function liunianStarsAt(b: string): string[] {
   cursor: pointer; transition: all 0.3s;
   letter-spacing: 0.5px;
 }
-.zw-tab:hover { color: var(--text-muted); background: rgba(255,255,255,0.04); }
-.zw-tab.is-active { background: rgba(203, 213, 225,0.12); color: var(--accent); }
+.zw-tab:hover { color: var(--text-muted); background: var(--glass-bg-hover); }
+.zw-tab.is-active { background: var(--glass-bg-hover); color: var(--accent); }
 .zw-tab-dot {
   width: 7px; height: 7px; border-radius: 50%;
   flex-shrink: 0;
 }
-.zw-dot-gold { background: #cbd5e1; box-shadow: 0 0 8px rgba(203, 213, 225,0.5); }
-.zw-dot-purple { background: #8E6DBB; box-shadow: 0 0 8px rgba(142,109,187,0.5); }
+.zw-dot-gold { background: var(--text-muted); box-shadow: 0 0 8px color-mix(in oklab, var(--text-muted) 50%, transparent); }
+.zw-dot-purple { background: var(--accent); box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 50%, transparent); }
 .zw-year-select { display: flex; align-items: center; gap: 0.5rem; }
 .zw-year-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 1px; }
 .zw-select {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(142,109,187,0.25);
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
   border-radius: 8px;
-  color: #8E6DBB;
+  color: var(--accent);
   font-size: 0.82rem; font-weight: 700;
   padding: 0.35rem 0.75rem;
   cursor: pointer; outline: none;
   transition: border-color 0.3s;
 }
-.zw-select:hover { border-color: rgba(142,109,187,0.45); }
+:global(.dark) .zw-select {
+  border-color: rgba(142,109,187,0.25);
+  color: #8E6DBB;
+}
+.zw-select:hover { border-color: var(--line-focus); }
+:global(.dark) .zw-select:hover { border-color: rgba(142,109,187,0.45); }
 
 /* ── Grid ── */
 .zw-grid-wrap {
@@ -596,12 +644,16 @@ function liunianStarsAt(b: string): string[] {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 2px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(203, 213, 225,0.08);
+  background: var(--surface-0);
+  border: 1px solid var(--line-subtle);
   border-radius: 8px;
   overflow: hidden;
 }
-.zw-grid-overlay { background: rgba(20,15,40,0.6); border-color: rgba(142,109,187,0.12); }
+:global(.dark) .zw-grid {
+  background: rgba(0,0,0,0.4);
+}
+.zw-grid-overlay { background: var(--surface-2); border-color: var(--line-subtle); }
+:global(.dark) .zw-grid-overlay { background: rgba(20,15,40,0.6); border-color: rgba(142,109,187,0.12); }
 
 /* SVG overlay for connection lines */
 .zw-svg-overlay {
@@ -638,16 +690,22 @@ function liunianStarsAt(b: string): string[] {
 
 /* ── Cell ── */
 .zw-cell {
-  background: linear-gradient(180deg, rgba(12,12,14,0.85) 0%, rgba(6,6,8,0.92) 100%);
+  background: var(--surface-2);
   min-height: 110px;
   padding: 0.6rem 0.4rem;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   position: relative;
   transition: background 0.3s;
 }
-.zw-cell:hover { background: linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(12,12,16,0.96) 100%); }
-.zw-cell-overlay { background: linear-gradient(180deg, rgba(30,25,45,0.85) 0%, rgba(20,15,35,0.9) 100%); }
-.zw-cell-overlay:hover { background: linear-gradient(180deg, rgba(40,35,60,0.9) 0%, rgba(25,20,45,0.95) 100%); }
+:global(.dark) .zw-cell {
+  background: linear-gradient(180deg, rgba(12,12,14,0.85) 0%, rgba(6,6,8,0.92) 100%);
+}
+.zw-cell:hover { background: var(--surface-3); }
+:global(.dark) .zw-cell:hover { background: linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(12,12,16,0.96) 100%); }
+.zw-cell-overlay { background: color-mix(in oklab, var(--accent) 8%, var(--surface-2)); }
+:global(.dark) .zw-cell-overlay { background: linear-gradient(180deg, rgba(30,25,45,0.85) 0%, rgba(20,15,35,0.9) 100%); }
+.zw-cell-overlay:hover { background: color-mix(in oklab, var(--accent) 12%, var(--surface-3)); }
+:global(.dark) .zw-cell-overlay:hover { background: linear-gradient(180deg, rgba(40,35,60,0.9) 0%, rgba(25,20,45,0.95) 100%); }
 
 /* Cell header */
 .zw-cell-header {
@@ -687,10 +745,10 @@ function liunianStarsAt(b: string): string[] {
 .zw-sihua-tag {
   font-size: 0.58rem; font-weight: 700;
   padding: 1px 5px;
-  background: rgba(251, 113, 133,0.15);
-  border: 1px solid rgba(251, 113, 133,0.3);
+  background: color-mix(in oklab, var(--crimson) 15%, transparent);
+  border: 1px solid color-mix(in oklab, var(--crimson) 30%, transparent);
   border-radius: 20px;
-  color: #fb7185;
+  color: var(--crimson);
 }
 
 /* Overlay stars */
@@ -698,7 +756,7 @@ function liunianStarsAt(b: string): string[] {
   display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px;
   margin-top: auto;
   padding-top: 4px;
-  border-top: 1px dashed rgba(142,109,187,0.25);
+  border-top: 1px dashed var(--line-subtle);
   width: 100%;
 }
 .zw-overlay-label {
@@ -715,14 +773,14 @@ function liunianStarsAt(b: string): string[] {
 .zw-liuyao {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
   margin-top: 3px; padding-top: 3px;
-  border-top: 1px dashed rgba(142,109,187,0.15);
+  border-top: 1px dashed color-mix(in oklab, var(--accent) 15%, var(--line-subtle));
   width: 100%;
 }
 .zw-liuyao-chip {
   font-size: 0.52rem; font-weight: 600;
   padding: 0px 4px;
-  background: rgba(142,109,187,0.08);
-  border: 1px solid rgba(142,109,187,0.2);
+  background: color-mix(in oklab, var(--accent) 8%, var(--glass-bg));
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--line-subtle));
   border-radius: 3px;
   color: var(--accent);
   white-space: nowrap;
@@ -730,82 +788,103 @@ function liunianStarsAt(b: string): string[] {
 
 /* ── Center ── */
 .zw-center {
-  background: linear-gradient(180deg, rgba(12,12,14,0.9) 0%, rgba(3,4,4,0.95) 100%);
+  background: var(--surface-1);
   grid-row: span 2;
   grid-column: span 2;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 6px;
   padding: 0.75rem;
   position: relative; overflow: hidden;
-  border-left: 1px solid rgba(203, 213, 225,0.06);
-  border-right: 1px solid rgba(203, 213, 225,0.06);
+  border-left: 1px solid var(--line-subtle);
+  border-right: 1px solid var(--line-subtle);
+}
+:global(.dark) .zw-center {
+  background: linear-gradient(180deg, rgba(12,12,14,0.9) 0%, rgba(3,4,4,0.95) 100%);
+  border-left-color: rgba(203, 213, 225,0.06);
+  border-right-color: rgba(203, 213, 225,0.06);
 }
 .zw-center-overlay {
+  background: var(--surface-2);
+  border-left-color: var(--line-subtle);
+  border-right-color: var(--line-subtle);
+}
+:global(.dark) .zw-center-overlay {
   background: linear-gradient(180deg, rgba(50,40,80,0.9) 0%, rgba(25,20,50,0.95) 100%);
   border-left-color: rgba(142,109,187,0.1);
   border-right-color: rgba(142,109,187,0.1);
 }
 .zw-center-glow {
   position: absolute; inset: 0;
-  background: radial-gradient(circle, rgba(203, 213, 225,0.06), transparent 70%);
+  background: radial-gradient(circle, color-mix(in oklab, var(--text-muted) 6%, transparent), transparent 70%);
   pointer-events: none;
 }
+:global(.dark) .zw-center-glow {
+  background: radial-gradient(circle, rgba(203, 213, 225,0.06), transparent 70%);
+}
 .zw-center-overlay .zw-center-glow {
+  background: radial-gradient(circle, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%);
+}
+:global(.dark) .zw-center-overlay .zw-center-glow {
   background: radial-gradient(circle, rgba(142,109,187,0.08), transparent 70%);
 }
 .zw-center-title {
   font-family: var(--font-serif);
   font-size: 0.78rem; font-weight: 800;
   color: var(--accent); letter-spacing: 2px;
-  text-shadow: 0 0 20px rgba(203, 213, 225,0.3);
+  text-shadow: 0 0 20px color-mix(in oklab, var(--accent) 30%, transparent);
   position: relative;
 }
 .zw-center-overlay .zw-center-title {
+  color: #6d28d9;
+  text-shadow: 0 0 20px color-mix(in oklab, var(--accent) 40%, transparent);
+}
+:global(.dark) .zw-center-overlay .zw-center-title {
   color: #8E6DBB;
   text-shadow: 0 0 20px rgba(142,109,187,0.4);
 }
 .zw-center-row { display: flex; flex-direction: column; align-items: center; gap: 0; position: relative; }
 .zw-center-lbl { font-size: 0.55rem; color: var(--text-soft); letter-spacing: 1px; text-transform: uppercase; }
 .zw-center-val { font-size: 0.78rem; font-weight: 800; color: var(--text); }
-.zw-year-val { color: #8E6DBB; font-size: 0.9rem; text-shadow: 0 0 15px rgba(142,109,187,0.4); }
+.zw-year-val { color: var(--accent); font-size: 0.9rem; text-shadow: 0 0 15px color-mix(in oklab, var(--accent) 40%, transparent); }
+:global(.dark) .zw-year-val { color: #8E6DBB; text-shadow: 0 0 15px rgba(142,109,187,0.4); }
 
 
 /* ── Legend ── */
 .zw-legend {
   display: flex; justify-content: center; gap: 2rem;
   margin-top: 1rem; padding-top: 0.75rem;
-  border-top: 1px solid rgba(203, 213, 225,0.06);
+  border-top: 1px solid var(--line-subtle);
 }
 .zw-legend-item { display: flex; align-items: center; gap: 0.5rem; }
 .zw-legend-swatch {
   width: 10px; height: 10px; border-radius: 3px;
 }
-.zw-swatch-gold { background: linear-gradient(135deg, #cbd5e1, #94a3b8); box-shadow: 0 0 8px rgba(203, 213, 225,0.4); }
-.zw-swatch-purple { background: linear-gradient(135deg, #8E6DBB, #6B5B95); box-shadow: 0 0 8px rgba(142,109,187,0.4); }
-.zw-swatch-focused { background: rgba(142, 109, 187, 0.5); border: 1px solid rgba(142, 109, 187, 0.7); }
-.zw-swatch-opposite { background: rgba(186, 130, 255, 0.4); border: 1px solid rgba(186, 130, 255, 0.6); }
-.zw-swatch-surrounded { background: rgba(206, 168, 255, 0.25); border: 1px solid rgba(206, 168, 255, 0.5); }
+.zw-swatch-gold { background: linear-gradient(135deg, var(--text-muted), var(--text-dim)); box-shadow: 0 0 8px color-mix(in oklab, var(--text-muted) 40%, transparent); }
+.zw-swatch-purple { background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 70%, var(--text-dim))); box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 40%, transparent); }
+.zw-swatch-focused { background: color-mix(in oklab, var(--accent) 50%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 70%, transparent); }
+.zw-swatch-opposite { background: color-mix(in oklab, var(--accent) 40%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent); }
+.zw-swatch-surrounded { background: color-mix(in oklab, var(--accent) 25%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 50%, transparent); }
 .zw-legend-text { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 1px; }
 
 /* Body palace */
-.zw-cell-body { border: 1px solid rgba(139, 75, 75, 0.3); }
+.zw-cell-body { border: 1px solid color-mix(in oklab, var(--crimson) 30%, var(--line-subtle)); }
 .zw-body-tag { font-size: 0.48rem; font-weight: 700; background: rgba(251, 113, 133, 0.12); color: var(--danger); padding: 0px 3px; border-radius: 2px; margin-left: 2px; }
 
 /* ── Sanfang Sizheng highlight ── */
 .zw-focused {
-  background: rgba(142, 109, 187, 0.2) !important;
-  box-shadow: inset 0 0 20px rgba(142, 109, 187, 0.12);
+  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 12%, transparent);
 }
 .zw-opposite {
-  background: rgba(186, 130, 255, 0.2) !important;
-  box-shadow: inset 0 0 20px rgba(186, 130, 255, 0.1);
+  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 10%, transparent);
 }
 .zw-surrounded {
-  background: rgba(206, 168, 255, 0.12) !important;
-  box-shadow: inset 0 0 20px rgba(206, 168, 255, 0.06);
+  background: color-mix(in oklab, var(--accent) 12%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 6%, transparent);
 }
 
 /* Twelve stars */
 .zw-twelve { display: flex; justify-content: center; margin-top: 1px; }
-.zw-twelve-tag { font-size: 0.5rem; color: var(--accent); background: rgba(203, 213, 225,0.08); padding: 0px 3px; border-radius: 2px; }
+.zw-twelve-tag { font-size: 0.5rem; color: var(--accent); background: var(--glass-bg); padding: 0px 3px; border-radius: 2px; }
 </style>
