@@ -143,7 +143,7 @@ const jiItems = computed(() => {
       <div class="df-lucky-cell glass-card">
         <div class="lc-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M16 2L21 12H30L23 18L26 28L16 22L6 28L9 18L2 12H11L16 2Z" stroke="#fb7185" stroke-width="1.3" opacity="0.45" />
+            <path d="M16 2L21 12H30L23 18L26 28L16 22L6 28L9 18L2 12H11L16 2Z" stroke="currentColor" stroke-width="1.3" opacity="0.45" />
           </svg>
         </div>
         <span class="lc-lbl">冲煞</span>
@@ -510,7 +510,7 @@ const jiItems = computed(() => {
                   <circle cx="45" cy="45" r="42" stroke="currentColor" stroke-width="0.6" stroke-dasharray="2 4" opacity="0.2" />
                   <circle cx="45" cy="45" r="28" stroke="currentColor" stroke-width="0.6" stroke-dasharray="1 5" opacity="0.15" />
                   <circle cx="45" cy="45" r="8" fill="currentColor" opacity="0.2" />
-                  <circle cx="45" cy="45" r="13" fill="none" stroke="#fb7185" stroke-width="0.5" opacity="0.3" />
+                  <circle cx="45" cy="45" r="13" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
                   <circle cx="22" cy="24" r="2.5" fill="currentColor" opacity="0.45" class="df-star-pulse" style="animation-delay:0s" />
                   <circle cx="68" cy="22" r="2" fill="currentColor" opacity="0.35" class="df-star-pulse" style="animation-delay:0.6s" />
                   <circle cx="70" cy="66" r="2.5" fill="currentColor" opacity="0.4" class="df-star-pulse" style="animation-delay:1.2s" />
@@ -624,7 +624,7 @@ const jiItems = computed(() => {
   transition: all 0.25s;
 }
 .df-hour-chip:hover { background: rgba(203, 213, 225,0.1); border-color: rgba(203, 213, 225,0.25); color: var(--accent); }
-.df-hour-dot { width: 4px; height: 4px; border-radius: 50%; background: #cbd5e1; box-shadow: 0 0 6px rgba(203, 213, 225,0.7); flex-shrink: 0; }
+.df-hour-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); flex-shrink: 0; }
 .df-el-bars { display: flex; flex-direction: column; gap: 0.35rem; }
 .df-el-row { display: flex; align-items: center; gap: 0.4rem; }
 .df-el-name { width: 14px; font-size: 0.65rem; font-weight: 800; color: var(--text-soft); flex-shrink: 0; }

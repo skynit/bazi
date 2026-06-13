@@ -8,17 +8,25 @@ const authStore = useAuthStore()
 const scrolled = ref(false)
 const isDark = ref(document.documentElement.classList.contains('dark'))
 
+function applyTheme(nextDark: boolean) {
+  isDark.value = nextDark
+  document.documentElement.classList.toggle('dark', nextDark)
+  document.documentElement.style.colorScheme = nextDark ? 'dark' : 'light'
+  localStorage.setItem('theme', nextDark ? 'dark' : 'light')
+}
+
 function onScroll() {
   scrolled.value = window.scrollY > 20
 }
 
 function toggleTheme() {
-  isDark.value = !isDark.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  applyTheme(!isDark.value)
 }
 
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
+onMounted(() => {
+  document.documentElement.style.colorScheme = isDark.value ? 'dark' : 'light'
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 </script>
 <template>

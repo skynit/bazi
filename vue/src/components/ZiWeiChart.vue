@@ -672,7 +672,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .aux-star {
   @apply text-[10px] leading-tight px-1 py-px rounded;
-  color: rgba(180, 160, 120, 0.8);
+  color: var(--text-muted);
   background: rgba(203, 213, 225, 0.06);
   border: 1px solid rgba(203, 213, 225, 0.1);
 }
@@ -723,7 +723,7 @@ function palaceAt(branch: string): PalaceData | undefined {
   }
   50% {
     opacity: 0.7;
-    text-shadow: 0 0 8px #cbd5e1;
+    text-shadow: 0 0 8px var(--accent);
   }
 }
 

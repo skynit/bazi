@@ -703,7 +703,7 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-overlay-label {
   font-size: 0.55rem; font-weight: 700;
-  color: rgba(142,109,187,0.5);
+  color: var(--text-soft);
   letter-spacing: 2px;
   text-transform: uppercase;
   width: 100%;
@@ -724,7 +724,7 @@ function liunianStarsAt(b: string): string[] {
   background: rgba(142,109,187,0.08);
   border: 1px solid rgba(142,109,187,0.2);
   border-radius: 3px;
-  color: #b39ddb;
+  color: var(--accent);
   white-space: nowrap;
 }
 
@@ -789,7 +789,7 @@ function liunianStarsAt(b: string): string[] {
 
 /* Body palace */
 .zw-cell-body { border: 1px solid rgba(139, 75, 75, 0.3); }
-.zw-body-tag { font-size: 0.48rem; font-weight: 700; background: rgba(139, 75, 75, 0.2); color: rgba(255, 180, 180, 0.8); padding: 0px 3px; border-radius: 2px; margin-left: 2px; }
+.zw-body-tag { font-size: 0.48rem; font-weight: 700; background: rgba(251, 113, 133, 0.12); color: var(--danger); padding: 0px 3px; border-radius: 2px; margin-left: 2px; }
 
 /* ── Sanfang Sizheng highlight ── */
 .zw-focused {

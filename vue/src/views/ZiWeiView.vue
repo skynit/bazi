@@ -864,11 +864,11 @@ const sihuaChainGroups = computed(() => {
   font-size: 0.58rem; color: var(--text-muted);
 }
 .body-badge {
-  font-size: 0.5rem; background: rgba(139, 75, 75, 0.25); color: rgba(255, 200, 200, 0.8);
+  font-size: 0.5rem; background: rgba(251, 113, 133, 0.12); color: var(--danger);
   padding: 0.05rem 0.25rem; border-radius: 3px; font-weight: 600;
 }
 .body-palace .palace-pill-name {
-  color: rgba(255, 200, 200, 0.9);
+  color: var(--danger);
 }
 
 /* Period lists */
@@ -1014,7 +1014,7 @@ const sihuaChainGroups = computed(() => {
 .hour-time { font-weight:700; color:var(--accent); }
 
 /* Adjective stars 形容星 */
-.strip-adj-star { font-size:0.56rem; color:rgba(161,130,207,0.6); padding:0.05rem 0.25rem; background:rgba(161,130,207,0.06); border-radius:3px; }
+.strip-adj-star { font-size:0.56rem; color:var(--text-muted); padding:0.05rem 0.25rem; background:rgba(161,130,207,0.06); border-radius:3px; }
 
 /* Twelve stars 十二星 */
 .strip-twelve-stars { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.15rem; }
@@ -1027,7 +1027,7 @@ const sihuaChainGroups = computed(() => {
 /* Sanfang Sizheng 三方四正 */
 .strip-sanfang { display:flex; align-items:center; gap:0.3rem; margin-top:0.15rem; font-size:0.55rem; }
 .sf-label { color:var(--text-muted); font-weight:600; }
-.sf-item { color:rgba(96,165,250,0.5); padding:0.03rem 0.2rem; background:rgba(96,165,250,0.05); border-radius:3px; }
+.sf-item { color:#2563eb; padding:0.03rem 0.2rem; background:rgba(96,165,250,0.08); border-radius:3px; }
 .hour-effect { color:var(--text); line-height:1.3; }
 .hour-score { font-size:0.62rem; margin-top:0.1rem; }
 .hour-good .hour-score { color:#4ade80; }

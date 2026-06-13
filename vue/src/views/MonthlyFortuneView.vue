@@ -139,13 +139,13 @@ onMounted(() => {
             cx="30"
             cy="30"
             r="26"
-            stroke="#fb7185"
+            stroke="currentColor"
             stroke-width="1"
             stroke-dasharray="3 2"
             opacity="0.4"
           />
-          <line x1="20" y1="20" x2="40" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
-          <line x1="40" y1="20" x2="20" y2="40" stroke="#fb7185" stroke-width="2" opacity="0.5" />
+          <line x1="20" y1="20" x2="40" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
+          <line x1="40" y1="20" x2="20" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
         </svg>
       </div>
       <p class="error-text">{{ error }}</p>

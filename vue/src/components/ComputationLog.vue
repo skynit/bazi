@@ -150,7 +150,7 @@ onMounted(() => {
 
 .log-text {
   font-size: 0.78rem;
-  color: rgba(244, 244, 245, 0.55);
+  color: var(--text-muted);
   line-height: 1.6;
   white-space: pre-wrap;
 }

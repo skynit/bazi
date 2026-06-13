@@ -105,12 +105,12 @@ onUnmounted(() => { if (globe) globe.destroy() })
 <template>
   <div class="relative w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] flex items-center justify-center select-none">
 
-    <div class="absolute inset-0 border border-zinc-800/20 rounded-full pointer-events-none scale-105 border-dashed animate-[spin_200s_linear_infinite]"></div>
-    <div class="absolute w-[85%] h-[85%] border border-zinc-700/10 rounded-full pointer-events-none"></div>
+    <div class="absolute inset-0 border border-[var(--line-strong)] rounded-full pointer-events-none scale-105 border-dashed animate-[spin_200s_linear_infinite]"></div>
+    <div class="absolute w-[85%] h-[85%] border border-[var(--line-subtle)] rounded-full pointer-events-none"></div>
 
     <canvas ref="canvasRef" class="w-full h-full bg-transparent opacity-75 mix-blend-screen cursor-grab active:cursor-grabbing transition-all duration-1000" :class="wuxingThemes[props.yongshen]?.dropShadow" />
 
-    <div class="absolute bottom-4 bg-zinc-950/90 border border-zinc-800 backdrop-blur-md px-4 py-1.5 rounded-full text-[11px] font-mono tracking-widest text-zinc-400 z-20 flex items-center gap-2">
+    <div class="absolute bottom-4 bg-[var(--surface-1)]/90 border border-[var(--line-strong)] backdrop-blur-md px-4 py-1.5 rounded-full text-[11px] font-mono tracking-widest text-[var(--text-muted)] shadow-[var(--shadow-sm)] z-20 flex items-center gap-2">
       <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="wuxingThemes[props.yongshen]?.accentText || 'bg-zinc-500'"></span>
       SYS_STATUS: <span class="font-bold uppercase" :class="wuxingThemes[props.yongshen]?.accentText">{{ props.yongshen }} ACTIVE</span>
     </div>

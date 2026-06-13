@@ -236,7 +236,7 @@ function onComputationComplete(): void {
               cx="40"
               cy="40"
               r="35"
-              stroke="#fb7185"
+              stroke="currentColor"
               stroke-width="1"
               stroke-dasharray="4 3"
               opacity="0.4"
@@ -246,7 +246,7 @@ function onComputationComplete(): void {
               y1="26"
               x2="54"
               y2="54"
-              stroke="#fb7185"
+              stroke="currentColor"
               stroke-width="2.5"
               opacity="0.5"
             />
@@ -255,7 +255,7 @@ function onComputationComplete(): void {
               y1="26"
               x2="26"
               y2="54"
-              stroke="#fb7185"
+              stroke="currentColor"
               stroke-width="2.5"
               opacity="0.5"
             />
