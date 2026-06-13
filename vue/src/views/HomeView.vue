@@ -8,6 +8,7 @@ import {
 } from '@paper-design/shaders'
 import {
   type WuxingKey,
+  type ShaderThemeMode,
   wuxingThemes,
   createShaderUniforms
 } from '../composables/useWuxingThemes'
@@ -19,6 +20,7 @@ const savedChartId = ref<number | null>(null)
 const currentYongshen = ref<WuxingKey>('mu')
 const mounted = ref(false)
 const shaderHost = ref<HTMLDivElement | null>(null)
+const themeMode = ref<ShaderThemeMode>(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
 
 const wuxingCycle: Array<{ key: WuxingKey; label: string }> = [
   { key: 'mu', label: '木' },
@@ -40,14 +42,15 @@ const homeThemeStyles = computed(() => {
 })
 
 let shaderMount: ShaderMount | null = null
+let themeObserver: MutationObserver | null = null
 
 onMounted(async () => {
   if (authStore.isLoggedIn() && !authStore.user) {
-    await authStore.fetchMe().catch(() => {})
+    await authStore.fetchMe().catch(() => { })
   }
   const saved = localStorage.getItem('bazi_last_birth')
   if (saved) {
-    try { savedChartId.value = JSON.parse(saved).chartId || null } catch {}
+    try { savedChartId.value = JSON.parse(saved).chartId || null } catch { }
   }
   setTimeout(() => mounted.value = true, 100)
 
@@ -55,17 +58,25 @@ onMounted(async () => {
     shaderMount = new ShaderMount(
       shaderHost.value,
       grainGradientFragmentShader,
-      createShaderUniforms('grainGradient', currentYongshen.value),
+      createShaderUniforms('grainGradient', currentYongshen.value, undefined, themeMode.value),
       { alpha: true, antialias: true },
       2,
       0,
-      1.5,
-      3200 * 1800
+      Math.min(window.devicePixelRatio || 1, 2),
+      undefined
     )
   }
+
+  themeObserver = new MutationObserver(() => {
+    themeMode.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    shaderMount?.setUniforms(createShaderUniforms('grainGradient', currentYongshen.value, undefined, themeMode.value))
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
 
 onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
   shaderMount?.dispose()
   shaderMount = null
 })
@@ -74,13 +85,13 @@ function startChart() { router.push('/chart/new') }
 function continueChart() { if (savedChartId.value) router.push(`/chart/${savedChartId.value}`) }
 function switchYongshen(key: WuxingKey) {
   currentYongshen.value = key
-  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key))
+  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
 }
 </script>
 
 <template>
+  <div ref="shaderHost" class="home-grain-shader" aria-hidden="true"></div>
   <div class="home-page" :class="{ visible: mounted }" :style="homeThemeStyles">
-    <div ref="shaderHost" class="home-grain-shader" aria-hidden="true"></div>
 
     <!-- 前景内容区域 -->
     <main class="hero-main">
@@ -91,10 +102,9 @@ function switchYongshen(key: WuxingKey) {
           <span class="eyebrow-line"></span>
         </div>
         <h1 class="hero-title">
-          以天干地支<br />
-          <span class="title-accent">推演命局流转</span>
+          天干地支<br />
+          <span class="title-accent">推演</span>
         </h1>
-        <p class="hero-sub">See Further · Think Deeper · Act Faster</p>
       </div>
 
       <div class="cta-group">
@@ -107,13 +117,8 @@ function switchYongshen(key: WuxingKey) {
       </div>
 
       <div class="element-rail" aria-label="五行切换">
-        <button
-          v-for="item in wuxingCycle"
-          :key="item.key"
-          type="button"
-          :class="{ active: currentYongshen === item.key }"
-          @click="switchYongshen(item.key)"
-        >
+        <button v-for="item in wuxingCycle" :key="item.key" type="button"
+          :class="{ active: currentYongshen === item.key }" @click="switchYongshen(item.key)">
           {{ item.label }}
         </button>
       </div>
@@ -131,10 +136,9 @@ function switchYongshen(key: WuxingKey) {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  overflow: hidden;
   padding: clamp(64px, 9vh, 92px) 24px 72px;
-  background: #000;
-  color: #f4f4f5;
+  background: transparent;
+  color: var(--text);
   opacity: 0;
   transform: translateY(-2px);
   transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -145,34 +149,32 @@ function switchYongshen(key: WuxingKey) {
   transform: translateY(0);
 }
 
-.home-page::after {
+/* .home-page::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 22% 4%, transparent 0%, rgba(0,0,0,.02) 40%, rgba(0,0,0,.18) 76%, rgba(0,0,0,.5) 100%),
-    linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.04) 58%, rgba(0,0,0,.5) 100%),
-    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.03) 44%, rgba(0,0,0,.62) 100%);
+    radial-gradient(ellipse at 22% 4%, transparent 0%, rgba(0, 0, 0, .02) 40%, rgba(0, 0, 0, .18) 76%, rgba(0, 0, 0, .5) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .04) 58%, rgba(0, 0, 0, .5) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .03) 44%, rgba(0, 0, 0, .62) 100%);
   pointer-events: none;
-  z-index: 5;
-}
+  z-index: -5;
+} */
 
 .home-grain-shader {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
-  display: block;
   pointer-events: none;
-  mix-blend-mode: normal;
-  opacity: 1;
-  filter: contrast(1.04) saturate(1.02);
 }
 
 .home-grain-shader :deep(canvas) {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
+
 
 .hero-main {
   position: relative;
@@ -203,7 +205,7 @@ function switchYongshen(key: WuxingKey) {
   font-family: var(--font-mono), monospace;
   letter-spacing: 0.45em;
   text-transform: uppercase;
-  color: rgba(235,255,248,.38);
+  color: color-mix(in oklab, var(--text) 48%, transparent);
 }
 
 .eyebrow-line {
@@ -218,13 +220,13 @@ function switchYongshen(key: WuxingKey) {
   font-size: clamp(3.4rem, 6.25vw, 6.2rem);
   font-weight: 400;
   letter-spacing: 0.2em;
-  color: rgba(255,255,255,.99);
+  color: var(--text);
   margin: 0;
   line-height: 1.26;
   padding-left: 0.2em;
   text-shadow:
-    0 2px 10px rgba(0,0,0,.66),
-    0 20px 60px rgba(0,0,0,.62);
+    0 2px 10px color-mix(in oklab, var(--bg) 54%, transparent),
+    0 20px 60px color-mix(in oklab, var(--bg) 58%, transparent);
 }
 
 .title-accent {
@@ -233,17 +235,17 @@ function switchYongshen(key: WuxingKey) {
   color: rgba(var(--jade-accent-rgb), .88);
   text-shadow:
     0 0 20px rgba(var(--jade-accent-rgb), .16),
-    0 16px 54px rgba(0,0,0,.78);
+    0 16px 54px rgba(0, 0, 0, .78);
 }
 
 .hero-sub {
   max-width: 760px;
   font-family: var(--font-serif), serif;
   font-size: clamp(1.1rem, 2.35vw, 2rem);
-  color: rgba(245,255,251,.92);
+  color: var(--text);
   letter-spacing: 0.035em;
   margin: 0;
-  text-shadow: 0 3px 26px rgba(0,0,0,.76);
+  text-shadow: 0 3px 26px rgba(0, 0, 0, .76);
 }
 
 .cta-group {
@@ -267,7 +269,7 @@ function switchYongshen(key: WuxingKey) {
   cursor: pointer;
   box-shadow:
     0 12px 38px rgba(var(--jade-accent-rgb), .42),
-    inset 0 1px 0 rgba(255,255,255,.22);
+    inset 0 1px 0 rgba(255, 255, 255, .22);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -278,12 +280,12 @@ function switchYongshen(key: WuxingKey) {
 .btn-secondary {
   width: 168px;
   padding: 13px 0;
-  background: rgba(255,255,255,.02);
-  color: rgba(235,255,249,.72);
+  background: rgba(255, 255, 255, .02);
+  color: var(--text-muted);
   font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: 0.08em;
-  border: 1px solid rgba(217,255,241,.16);
+  border: 1px solid var(--line-strong);
   border-radius: 50px;
   cursor: pointer;
   backdrop-filter: blur(12px);
@@ -291,9 +293,9 @@ function switchYongshen(key: WuxingKey) {
 }
 
 .btn-secondary:hover {
-  color: #ffffff;
+  color: var(--text);
   border-color: rgba(var(--jade-accent-rgb), .36);
-  background: rgba(255,255,255,.05);
+  background: rgba(255, 255, 255, .05);
 }
 
 .element-rail {
@@ -311,7 +313,7 @@ function switchYongshen(key: WuxingKey) {
   border: 1px solid transparent;
   border-radius: 50%;
   background: transparent;
-  color: rgba(229,255,246,.46);
+  color: var(--text-muted);
   font-family: var(--font-serif), serif;
   font-size: .85rem;
   cursor: pointer;
@@ -321,7 +323,7 @@ function switchYongshen(key: WuxingKey) {
 .element-rail button:hover,
 .element-rail button.active {
   border-color: rgba(var(--jade-accent-rgb), .3);
-  background: rgba(0,0,0,.18);
+  background: var(--glass-bg);
   color: rgba(var(--jade-accent-rgb), .9);
 }
 
@@ -339,38 +341,46 @@ function switchYongshen(key: WuxingKey) {
     min-height: 100svh;
     padding: 58px 18px 42px;
   }
+
   .hero-main {
     padding: 0;
     margin-top: 0;
     gap: 22px;
   }
+
   .title-block {
     gap: 18px;
   }
+
   .hero-title {
     font-size: clamp(2.55rem, 12vw, 3.55rem);
     letter-spacing: 0.1em;
     padding-left: 0.1em;
     line-height: 1.28;
   }
+
   .hero-sub {
     max-width: 340px;
     font-size: 1rem;
     line-height: 1.45;
   }
+
   .eyebrow {
     gap: 10px;
     font-size: 8px;
     letter-spacing: .18em;
   }
+
   .cta-group {
     flex-direction: column;
     gap: 12px;
   }
+
   .btn-primary-base,
   .btn-secondary {
     width: min(260px, calc(100vw - 48px));
   }
+
   .element-rail {
     gap: 8px;
   }

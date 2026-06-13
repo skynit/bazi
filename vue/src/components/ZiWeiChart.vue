@@ -37,13 +37,13 @@ function auxStars(p: PalaceData): StarInfo[] {
 
 // Traditional star brightness → color (庙=most auspicious ... 陷=weakest)
 const brightnessMeta: Record<string, { bg: string; text: string; label: string }> = {
-  庙: { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fff', label: '庙' },
-  旺: { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fff', label: '旺' },
-  得: { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#fff', label: '得' },
-  利: { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#fff', label: '利' },
-  平: { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fff', label: '平' },
-  不: { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fff', label: '不' },
-  陷: { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#aaa', label: '陷' },
+  庙: { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8', label: '庙' },
+  旺: { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fffaf8', label: '旺' },
+  得: { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#10140f', label: '得' },
+  利: { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#00140e', label: '利' },
+  平: { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fffaf8', label: '平' },
+  不: { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fffaf8', label: '不' },
+  陷: { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#dbe4e8', label: '陷' },
 }
 
 function starMeta(brightness: string) {
@@ -302,12 +302,12 @@ function palaceAt(branch: string): PalaceData | undefined {
                       cx="20"
                       cy="20"
                       r="18"
-                      stroke="#cbd5e1"
+                      stroke="currentColor"
                       stroke-width="1"
                       stroke-dasharray="2 3"
                     />
-                    <circle cx="20" cy="20" r="6" fill="#cbd5e1" opacity="0.3" />
-                    <circle cx="20" cy="20" r="3" fill="#cbd5e1" />
+                    <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.3" />
+                    <circle cx="20" cy="20" r="3" fill="currentColor" />
                   </svg>
                 </div>
                 <div class="sky-text">天宫图</div>
@@ -475,16 +475,16 @@ function palaceAt(branch: string): PalaceData | undefined {
     <div v-else class="empty-state">
       <div class="empty-icon">
         <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-          <circle cx="32" cy="32" r="30" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 4" />
+          <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" />
           <circle
             cx="32"
             cy="32"
             r="20"
-            stroke="#cbd5e1"
+            stroke="currentColor"
             stroke-width="0.5"
             stroke-dasharray="2 3"
           />
-          <circle cx="32" cy="32" r="4" fill="#cbd5e1" opacity="0.5" />
+          <circle cx="32" cy="32" r="4" fill="currentColor" opacity="0.5" />
         </svg>
       </div>
       <p class="empty-title">暂无命盘数据</p>
@@ -518,7 +518,7 @@ function palaceAt(branch: string): PalaceData | undefined {
   letter-spacing: 2px;
 }
 .chart-section-desc {
-  font-size: 0.7rem; color: var(--muted);
+  font-size: 0.7rem; color: var(--text-muted);
   margin: 0.125rem 0 0;
 }
 
@@ -530,7 +530,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 .pattern-badge {
   @apply px-4 py-1.5 text-xs font-bold rounded-full;
   background: linear-gradient(135deg, #fb7185, #be123c);
-  color: #fff;
+  color: var(--destructive-foreground);
   box-shadow: 0 0 12px rgba(251, 113, 133, 0.4);
   letter-spacing: 1px;
 }
@@ -552,7 +552,7 @@ function palaceAt(branch: string): PalaceData | undefined {
   position: absolute;
   width: 16px;
   height: 16px;
-  border-color: #cbd5e1;
+  border-color: var(--accent);
   border-style: solid;
   opacity: 0.6;
 }
@@ -619,7 +619,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .palace-cell:hover {
   background: linear-gradient(180deg, rgba(20, 20, 24, 0.92), rgba(12, 12, 16, 0.96));
-  border-color: rgba(203, 213, 225, 0.3);
+  border-color: var(--text-soft);
   box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
   z-index: 2;
 }
@@ -637,18 +637,18 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .palace-name {
   @apply text-xs font-bold leading-tight;
-  color: #cbd5e1;
+  color: var(--accent);
   letter-spacing: 1px;
 }
 
 .palace-branch {
   @apply text-[10px] leading-tight;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
 }
 
 .palace-empty {
   @apply flex items-center justify-center flex-1 text-sm;
-  color: rgba(203, 213, 225, 0.2);
+  color: var(--text-soft);
 }
 
 /* ── Stars ── */
@@ -684,7 +684,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 .sihua-tag {
   @apply rounded-full px-2 py-px text-[9px] font-bold leading-tight;
   background: linear-gradient(135deg, #fb7185, #be123c);
-  color: #fff;
+  color: var(--destructive-foreground);
   box-shadow: 0 0 6px rgba(251, 113, 133, 0.5);
 }
 
@@ -710,7 +710,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .center-ornament {
   @apply text-xs;
-  color: #cbd5e1;
+  color: var(--accent);
   opacity: 0.5;
   animation: pulse-glow 3s ease-in-out infinite;
 }
@@ -729,7 +729,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .center-title {
   @apply text-sm font-bold tracking-widest;
-  color: #cbd5e1;
+  color: var(--accent);
   letter-spacing: 4px;
   text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
 }
@@ -745,7 +745,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .center-key {
   @apply text-[10px] leading-tight;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
 }
 
 .center-val {
@@ -759,7 +759,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .wuxing {
-  color: #cbd5e1;
+  color: var(--accent);
   text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
 }
 
@@ -782,7 +782,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .sky-text {
   @apply text-xs font-bold tracking-widest mt-1;
-  color: rgba(203, 213, 225, 0.4);
+  color: var(--text-muted);
 }
 
 /* ── Legend ── */
@@ -793,7 +793,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .legend-title {
   @apply text-xs font-bold tracking-widest mr-1;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
 }
 
 .legend-items {
@@ -802,7 +802,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .legend-item {
   @apply flex items-center gap-2 text-[11px];
-  color: rgba(203, 213, 225, 0.6);
+  color: var(--text-muted);
 }
 
 .legend-swatch {
@@ -825,6 +825,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .empty-icon {
+  color: var(--icon-muted);
   opacity: 0.3;
   animation: spin-slow 30s linear infinite;
 }
@@ -840,11 +841,11 @@ function palaceAt(branch: string): PalaceData | undefined {
 
 .empty-title {
   @apply text-lg font-bold;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
 }
 
 .empty-sub {
   @apply text-sm;
-  color: rgba(203, 213, 225, 0.3);
+  color: var(--text-soft);
 }
 </style>

@@ -23,6 +23,7 @@ import shuiBg from '../assets/background/水.png'
 
 export type WuxingKey = 'mu' | 'huo' | 'tu' | 'jin' | 'shui'
 export type ShaderType = 'grainGradient' | 'dithering' | 'dotGrid' | 'halftoneCmyk' | 'spiral'
+export type ShaderThemeMode = 'light' | 'dark'
 
 export type WuxingTheme = {
   accentRgb: string
@@ -31,6 +32,8 @@ export type WuxingTheme = {
   buttonText: string
   shaderBase: string
   shaderGlow: string
+  shaderBaseLight: string
+  shaderGlowLight: string
   /** HalftoneCMYK paper background */
   hcColorBack: string
   /** HalftoneCMYK cyan ink */
@@ -59,6 +62,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     buttonText: '#00140e',
     shaderBase: '#147b33',
     shaderGlow: '#43dfabcf',
+    shaderBaseLight: '#bdf7d5',
+    shaderGlowLight: '#71eec0cf',
     hcColorBack: '#fbfaf4',
     hcColorC: '#00b3ff',
     hcColorM: '#34d399',
@@ -72,6 +77,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     buttonText: '#190005',
     shaderBase: '#7f1d1d',
     shaderGlow: '#fb7185cf',
+    shaderBaseLight: '#ffe1de',
+    shaderGlowLight: '#ff8f9fcf',
     hcColorBack: '#fbfaf4',
     hcColorC: '#00b3ff',
     hcColorM: '#fc4f9d',
@@ -85,6 +92,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     buttonText: '#1a1000',
     shaderBase: '#7c4f08',
     shaderGlow: '#fcd34dcf',
+    shaderBaseLight: '#fff1b8',
+    shaderGlowLight: '#f6c85acf',
     hcColorBack: '#fbfaf4',
     hcColorC: '#00b3ff',
     hcColorM: '#d97706',
@@ -98,6 +107,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     buttonText: '#030404',
     shaderBase: '#334155',
     shaderGlow: '#e2e8f0cf',
+    shaderBaseLight: '#e8eef5',
+    shaderGlowLight: '#aebfd3cf',
     hcColorBack: '#f4f0f8',
     hcColorC: '#7b9ecf',
     hcColorM: '#94a3b8',
@@ -111,6 +122,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     buttonText: '#001116',
     shaderBase: '#075985',
     shaderGlow: '#22d3eecf',
+    shaderBaseLight: '#c6f4fe',
+    shaderGlowLight: '#7fe2f4cf',
     hcColorBack: '#f0f8ff',
     hcColorC: '#2563eb',
     hcColorM: '#22d3ee',
@@ -121,28 +134,29 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
 
 const shaderNoiseTexture = getShaderNoiseTexture()
 
-function grainGradientUniforms(theme: WuxingTheme): ShaderMountUniforms {
+function grainGradientUniforms(theme: WuxingTheme, mode: ShaderThemeMode = 'dark'): ShaderMountUniforms {
+  const isDark = mode === 'dark'
   return {
-    u_colorBack: getShaderColorFromString('#000000'),
+    u_colorBack: getShaderColorFromString(isDark ? '#000000' : '#fbfcf8'),
     u_colors: [
-      getShaderColorFromString(theme.shaderBase),
-      getShaderColorFromString(theme.shaderGlow),
-      getShaderColorFromString('#000000'),
-      getShaderColorFromString('#000000')
+      getShaderColorFromString(isDark ? theme.shaderBase : theme.shaderBaseLight),
+      getShaderColorFromString(isDark ? theme.shaderGlow : theme.shaderGlowLight),
+      getShaderColorFromString(isDark ? '#000000' : '#ffffff'),
+      getShaderColorFromString(isDark ? '#000000' : '#edf7ef')
     ],
     u_colorsCount: 4,
-    u_softness: 1,
-    u_intensity: 1,
-    u_noise: 0,
+    u_softness: isDark ? 1 : 0.82,
+    u_intensity: isDark ? 1 : 0.42,
+    u_noise: isDark ? 0 : 0.32,
     u_shape: GrainGradientShapes.sphere,
     u_noiseTexture: shaderNoiseTexture,
     u_fit: ShaderFitOptions.cover,
-    u_scale: 0.88,
+    u_scale: isDark ? 0.8 : 1.72,
     u_rotation: 360,
     u_originX: 0.5,
-    u_originY: 0.5,
-    u_offsetX: 0.06,
-    u_offsetY: 0,
+    u_originY: isDark ? 0.5 : 0,
+    u_offsetX: isDark ? 0 : 0,
+    u_offsetY: isDark ? 0.3 : -0.62,
     u_worldWidth: 0,
     u_worldHeight: 0
   }
@@ -265,7 +279,8 @@ export function getShaderFragment(type: ShaderType): string {
 export function createShaderUniforms(
   type: ShaderType,
   yongshen: WuxingKey,
-  image?: HTMLImageElement | null
+  image?: HTMLImageElement | null,
+  mode: ShaderThemeMode = 'dark'
 ): ShaderMountUniforms {
   const theme = wuxingThemes[yongshen]
   switch (type) {
@@ -273,13 +288,14 @@ export function createShaderUniforms(
     case 'dotGrid': return dotGridUniforms(theme)
     case 'halftoneCmyk': return halftoneCmykUniforms(theme, image!)
     case 'spiral': return spiralUniforms(theme)
-    default: return grainGradientUniforms(theme)
+    default: return grainGradientUniforms(theme, mode)
   }
 }
 
 export function getShaderSpeed(type: ShaderType): number {
   switch (type) {
     case 'spiral': return 0.4
+    case 'grainGradient': return 1.5
     default: return 0
   }
 }

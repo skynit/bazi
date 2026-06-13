@@ -162,7 +162,7 @@ function toggle() {
 
 .card-subtitle {
   @apply text-xs m-0 mt-0.5;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .toggle-icon {

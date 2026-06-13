@@ -122,8 +122,8 @@ const jiItems = computed(() => {
       <div class="df-lucky-cell glass-card">
         <div class="lc-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="3" y="3" width="26" height="26" rx="5" stroke="#cbd5e1" stroke-width="1.5" opacity="0.35" />
-            <text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" fill="#cbd5e1" opacity="0.7">{{ luckyNumber || '?' }}</text>
+            <rect x="3" y="3" width="26" height="26" rx="5" stroke="currentColor" stroke-width="1.5" opacity="0.35" />
+            <text x="16" y="22" text-anchor="middle" font-size="13" font-weight="900" fill="currentColor" opacity="0.7">{{ luckyNumber || '?' }}</text>
           </svg>
         </div>
         <span class="lc-lbl">幸运数字</span>
@@ -132,9 +132,9 @@ const jiItems = computed(() => {
       <div class="df-lucky-cell glass-card">
         <div class="lc-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="13" stroke="#cbd5e1" stroke-width="1.2" opacity="0.3" />
-            <line x1="16" y1="3" x2="16" y2="16" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
-            <line x1="16" y1="16" x2="24" y2="22" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+            <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.2" opacity="0.3" />
+            <line x1="16" y1="3" x2="16" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <line x1="16" y1="16" x2="24" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
         </div>
         <span class="lc-lbl">财神方位</span>
@@ -178,7 +178,7 @@ const jiItems = computed(() => {
     <div v-if="tiaoHou" class="df-tiaohou glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1L9 5H13L9.5 7.5L11 12L7 9.5L3 12L4.5 7.5L1 5H5L7 1Z" stroke="#cbd5e1" stroke-width="1" opacity="0.5"/>
+          <path d="M7 1L9 5H13L9.5 7.5L11 12L7 9.5L3 12L4.5 7.5L1 5H5L7 1Z" stroke="currentColor" stroke-width="1" opacity="0.5"/>
         </svg>
         <span class="df-sec-title">调候吉言</span>
       </div>
@@ -192,10 +192,10 @@ const jiItems = computed(() => {
     <div v-if="jiShen || xiongShen || taiShen || pengZu || gua || jieQi" class="df-almanac glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="#cbd5e1" stroke-width="1" opacity="0.4"/>
-          <line x1="2" y1="6" x2="12" y2="6" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <line x1="5" y1="1" x2="5" y2="4" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
-          <line x1="9" y1="1" x2="9" y2="4" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+          <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+          <line x1="2" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <line x1="5" y1="1" x2="5" y2="4" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+          <line x1="9" y1="1" x2="9" y2="4" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
         </svg>
         <span class="df-sec-title">黄历</span>
       </div>
@@ -234,8 +234,8 @@ const jiItems = computed(() => {
     <div v-if="shengKeAnalysis?.summary || flowImpact || seasonElementAdvice" class="df-analysis glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="5.5" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <path d="M5 7h4M7 5v4" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
         </svg>
         <span class="df-sec-title">运势分析</span>
       </div>
@@ -272,7 +272,7 @@ const jiItems = computed(() => {
     <div v-if="overallVerdict" class="df-rikuyo-verdict glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z" stroke="#cbd5e1" stroke-width="1" opacity="0.5"/>
+          <path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z" stroke="currentColor" stroke-width="1" opacity="0.5"/>
         </svg>
         <span class="df-sec-title">日课推算</span>
         <span v-if="favorScore" class="rikuyo-score-badge" :class="{ 'score-good': favorScore >= 60, 'score-mid': favorScore >= 40 && favorScore < 60, 'score-bad': favorScore < 40 }">{{ favorScore }}分</span>
@@ -284,8 +284,8 @@ const jiItems = computed(() => {
     <div v-if="patternName && patternType === '特殊格局'" class="df-pattern-info glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="5.5" stroke="#cbd5e1" stroke-width="1" opacity="0.5"/>
-          <path d="M7 4v3l2 1" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+          <path d="M7 4v3l2 1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
         </svg>
         <span class="df-sec-title">格局喜忌</span>
         <span class="pattern-badge">{{ patternName }}</span>
@@ -319,8 +319,8 @@ const jiItems = computed(() => {
     <div v-if="advanceRetreat" class="df-rikuyo-advance glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 12L7 2L12 12" stroke="#cbd5e1" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
-          <line x1="4" y1="8" x2="10" y2="8" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
+          <path d="M2 12L7 2L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+          <line x1="4" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
         </svg>
         <span class="df-sec-title">进退气</span>
         <span class="rikuyo-phase-tag" :class="{ 'phase-adv': advanceRetreat.phase === '进气', 'phase-peak': advanceRetreat.phase === '当令', 'phase-ret': advanceRetreat.phase === '退气', 'phase-dead': advanceRetreat.phase === '无气' || advanceRetreat.phase === '死' }">{{ advanceRetreat.phase }}</span>
@@ -332,8 +332,8 @@ const jiItems = computed(() => {
     <div v-if="hiddenStems?.length" class="df-rikuyo-hidden glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="2" y="2" width="10" height="10" rx="2" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <rect x="4.5" y="4.5" width="5" height="5" rx="1" stroke="#cbd5e1" stroke-width="0.6" opacity="0.2"/>
+          <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <rect x="4.5" y="4.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="0.6" opacity="0.2"/>
         </svg>
         <span class="df-sec-title">地支藏干</span>
       </div>
@@ -351,9 +351,9 @@ const jiItems = computed(() => {
     <div v-if="stemRelations?.length || branchRelations?.length" class="df-rikuyo-relations glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="4" cy="7" r="2.5" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <circle cx="10" cy="7" r="2.5" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <line x1="6.5" y1="7" x2="7.5" y2="7" stroke="#cbd5e1" stroke-width="1" opacity="0.4"/>
+          <circle cx="4" cy="7" r="2.5" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <circle cx="10" cy="7" r="2.5" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <line x1="6.5" y1="7" x2="7.5" y2="7" stroke="currentColor" stroke-width="1" opacity="0.4"/>
         </svg>
         <span class="df-sec-title">干支关系</span>
       </div>
@@ -374,7 +374,7 @@ const jiItems = computed(() => {
     <div v-if="activatedShenSha?.length" class="df-rikuyo-shensha glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1l1.5 3 3.5.5-2.5 2.5.6 3.5L7 9l-3.1 1.5.6-3.5L2 4.5l3.5-.5L7 1z" stroke="#cbd5e1" stroke-width="0.8" opacity="0.4"/>
+          <path d="M7 1l1.5 3 3.5.5-2.5 2.5.6 3.5L7 9l-3.1 1.5.6-3.5L2 4.5l3.5-.5L7 1z" stroke="currentColor" stroke-width="0.8" opacity="0.4"/>
         </svg>
         <span class="df-sec-title">神煞引动</span>
       </div>
@@ -392,8 +392,8 @@ const jiItems = computed(() => {
     <div v-if="dayunInfluence || liunianInfluence" class="df-rikuyo-yun glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M1 7h12M7 1v12" stroke="#cbd5e1" stroke-width="0.8" opacity="0.3"/>
-          <circle cx="7" cy="7" r="3" stroke="#cbd5e1" stroke-width="0.8" opacity="0.25"/>
+          <path d="M1 7h12M7 1v12" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+          <circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="0.8" opacity="0.25"/>
         </svg>
         <span class="df-sec-title">大运流年</span>
       </div>
@@ -419,9 +419,9 @@ const jiItems = computed(() => {
     <div v-if="yongshenImpact" class="df-rikuyo-yongshen glass-card">
       <div class="df-sec-header">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="6" stroke="#cbd5e1" stroke-width="0.6" opacity="0.2"/>
-          <circle cx="7" cy="7" r="3" stroke="#cbd5e1" stroke-width="0.8" opacity="0.35"/>
-          <circle cx="7" cy="7" r="1" fill="#cbd5e1" opacity="0.5"/>
+          <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6" opacity="0.2"/>
+          <circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+          <circle cx="7" cy="7" r="1" fill="currentColor" opacity="0.5"/>
         </svg>
         <span class="df-sec-title">用神影响</span>
       </div>
@@ -453,9 +453,9 @@ const jiItems = computed(() => {
       <div v-if="auspiciousHours.length" class="df-hours glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="#cbd5e1" stroke-width="1" opacity="0.4"/>
-            <line x1="7" y1="3" x2="7" y2="7" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="7" y1="7" x2="10" y2="9" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+            <line x1="7" y1="3" x2="7" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="7" y1="7" x2="10" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           <span class="df-sec-title">吉时</span>
         </div>
@@ -468,8 +468,8 @@ const jiItems = computed(() => {
       <div class="df-elems glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="#cbd5e1" stroke-width="1" opacity="0.25"/>
-            <circle cx="7" cy="7" r="2.5" fill="#cbd5e1" opacity="0.35"/>
+            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+            <circle cx="7" cy="7" r="2.5" fill="currentColor" opacity="0.35"/>
           </svg>
           <span class="df-sec-title">今日五行</span>
         </div>
@@ -507,13 +507,13 @@ const jiItems = computed(() => {
             <div class="df-modal-body">
               <div class="df-ai-coming">
                 <svg width="90" height="90" viewBox="0 0 90 90" fill="none" class="df-ai-svg">
-                  <circle cx="45" cy="45" r="42" stroke="#cbd5e1" stroke-width="0.6" stroke-dasharray="2 4" opacity="0.2" />
-                  <circle cx="45" cy="45" r="28" stroke="#cbd5e1" stroke-width="0.6" stroke-dasharray="1 5" opacity="0.15" />
-                  <circle cx="45" cy="45" r="8" fill="#cbd5e1" opacity="0.2" />
+                  <circle cx="45" cy="45" r="42" stroke="currentColor" stroke-width="0.6" stroke-dasharray="2 4" opacity="0.2" />
+                  <circle cx="45" cy="45" r="28" stroke="currentColor" stroke-width="0.6" stroke-dasharray="1 5" opacity="0.15" />
+                  <circle cx="45" cy="45" r="8" fill="currentColor" opacity="0.2" />
                   <circle cx="45" cy="45" r="13" fill="none" stroke="#fb7185" stroke-width="0.5" opacity="0.3" />
-                  <circle cx="22" cy="24" r="2.5" fill="#cbd5e1" opacity="0.45" class="df-star-pulse" style="animation-delay:0s" />
-                  <circle cx="68" cy="22" r="2" fill="#cbd5e1" opacity="0.35" class="df-star-pulse" style="animation-delay:0.6s" />
-                  <circle cx="70" cy="66" r="2.5" fill="#cbd5e1" opacity="0.4" class="df-star-pulse" style="animation-delay:1.2s" />
+                  <circle cx="22" cy="24" r="2.5" fill="currentColor" opacity="0.45" class="df-star-pulse" style="animation-delay:0s" />
+                  <circle cx="68" cy="22" r="2" fill="currentColor" opacity="0.35" class="df-star-pulse" style="animation-delay:0.6s" />
+                  <circle cx="70" cy="66" r="2.5" fill="currentColor" opacity="0.4" class="df-star-pulse" style="animation-delay:1.2s" />
                 </svg>
                 <p class="df-ai-title">AI分析功能即将上线</p>
                 <p class="df-ai-sub">智能运势深度解读</p>
@@ -539,11 +539,11 @@ const jiItems = computed(() => {
   padding: 0.6rem 1rem; flex-shrink: 0;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(203, 213, 225,0.08); border-radius: 8px;
-  color: rgba(255,255,255,0.4); font-size: 0.72rem; font-weight: 600;
+  color: var(--text-muted); font-size: 0.72rem; font-weight: 600;
   letter-spacing: 1px; cursor: pointer; white-space: nowrap; transition: all 0.3s;
 }
-.df-tab-btn:hover { color: rgba(203, 213, 225,0.7); border-color: rgba(203, 213, 225,0.2); }
-.df-tab-btn.active { color: #cbd5e1; border-color: rgba(203, 213, 225,0.3); background: rgba(203, 213, 225,0.06); }
+.df-tab-btn:hover { color: var(--text); border-color: rgba(203, 213, 225,0.2); }
+.df-tab-btn.active { color: var(--accent); border-color: var(--text-soft); background: rgba(203, 213, 225,0.06); }
 .df-tab-content { display: flex; flex-direction: column; gap: 0.75rem; transition: opacity 0.3s ease; }
 
 /* Header */
@@ -559,9 +559,9 @@ const jiItems = computed(() => {
   pointer-events: none;
 }
 .df-date-col { display: flex; flex-direction: column; gap: 0.15rem; }
-.df-solar { font-size: 1.05rem; font-weight: 700; color: rgba(255,255,255,0.9); margin: 0; letter-spacing: 1px; }
-.df-weekday { font-size: 0.72rem; font-weight: 400; color: rgba(255,255,255,0.35); margin-left: 0.5rem; }
-.df-lunar { font-size: 0.72rem; color: rgba(255,255,255,0.28); margin: 0; }
+.df-solar { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0; letter-spacing: 1px; }
+.df-weekday { font-size: 0.72rem; font-weight: 400; color: var(--text-dim); margin-left: 0.5rem; }
+.df-lunar { font-size: 0.72rem; color: var(--text-dim); margin: 0; }
 .df-pillar-col { display: flex; flex-direction: column; align-items: flex-end; position: relative; gap: 0.2rem; }
 .df-pillar-glow { position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(251, 113, 133,0.08), transparent 70%); pointer-events: none; }
 .df-pillar-val {
@@ -569,7 +569,7 @@ const jiItems = computed(() => {
   color: #fb7185; letter-spacing: 0.05em; line-height: 1;
   text-shadow: 0 0 30px rgba(251, 113, 133,0.4);
 }
-.df-sx { font-size: 0.7rem; color: rgba(255,255,255,0.25); margin: 0; text-align: right; }
+.df-sx { font-size: 0.7rem; color: var(--text-soft); margin: 0; text-align: right; }
 
 /* Lucky grid */
 .df-lucky-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
@@ -579,11 +579,11 @@ const jiItems = computed(() => {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 .df-lucky-cell:hover { border-color: rgba(203, 213, 225,0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-.lc-icon { display: flex; align-items: center; justify-content: center; height: 40px; }
+.lc-icon { display: flex; align-items: center; justify-content: center; height: 40px; color: var(--icon-muted); }
 .lc-color-dot { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.12); }
-.lc-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.22); text-transform: uppercase; letter-spacing: 0.1em; }
-.lc-val { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.75); }
-.lc-val-gold { color: #cbd5e1; font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 20px rgba(203, 213, 225,0.3); }
+.lc-lbl { font-size: 0.58rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+.lc-val { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.lc-val-gold { color: var(--accent); font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 20px rgba(203, 213, 225,0.3); }
 .lc-val-red { color: #fb7185; font-size: 0.78rem; }
 
 /* Yi Ji */
@@ -606,13 +606,13 @@ const jiItems = computed(() => {
 .yj-tag-ji-item { background: rgba(251, 113, 133,0.04); border: 1px solid rgba(251, 113, 133,0.1); color: rgba(251, 113, 133,0.6); }
 .yj-tag-ji-item:hover { background: rgba(251, 113, 133,0.1); color: #fb7185; }
 .yj-divider { width: 1px; background: rgba(203, 213, 225,0.06); margin: 0.75rem 0; }
-.yj-empty { font-size: 0.82rem; color: rgba(139,131,120,0.2); margin: 0.5rem 0; }
+.yj-empty { font-size: 0.82rem; color: var(--text-soft); margin: 0.5rem 0; }
 
 /* Hours + Elements */
 .df-bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .df-hours, .df-elems { padding: 0.9rem; }
 .df-sec-header { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
-.df-sec-title { font-size: 0.72rem; font-weight: 800; color: #cbd5e1; margin: 0; letter-spacing: 2px; }
+.df-sec-title { font-size: 0.72rem; font-weight: 800; color: var(--accent); margin: 0; letter-spacing: 2px; }
 .df-hours-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .df-hour-chip {
   display: inline-flex; align-items: center; gap: 5px;
@@ -620,36 +620,36 @@ const jiItems = computed(() => {
   background: rgba(203, 213, 225,0.04);
   border: 1px solid rgba(203, 213, 225,0.1);
   border-radius: 20px; font-size: 0.7rem;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-muted);
   transition: all 0.25s;
 }
-.df-hour-chip:hover { background: rgba(203, 213, 225,0.1); border-color: rgba(203, 213, 225,0.25); color: #cbd5e1; }
+.df-hour-chip:hover { background: rgba(203, 213, 225,0.1); border-color: rgba(203, 213, 225,0.25); color: var(--accent); }
 .df-hour-dot { width: 4px; height: 4px; border-radius: 50%; background: #cbd5e1; box-shadow: 0 0 6px rgba(203, 213, 225,0.7); flex-shrink: 0; }
 .df-el-bars { display: flex; flex-direction: column; gap: 0.35rem; }
 .df-el-row { display: flex; align-items: center; gap: 0.4rem; }
-.df-el-name { width: 14px; font-size: 0.65rem; font-weight: 800; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+.df-el-name { width: 14px; font-size: 0.65rem; font-weight: 800; color: var(--text-soft); flex-shrink: 0; }
 .df-el-track { flex: 1; height: 5px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; }
 .df-el-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-.df-el-num { width: 18px; font-size: 0.6rem; color: rgba(255,255,255,0.2); text-align: right; flex-shrink: 0; }
+.df-el-num { width: 18px; font-size: 0.6rem; color: var(--text-soft); text-align: right; flex-shrink: 0; }
 
 /* AI btn */
 .df-ai-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   width: 100%; padding: 0.7rem 1rem;
   background: rgba(255,255,255,0.02);
-  color: rgba(255,255,255,0.28);
+  color: var(--text-dim);
   border: 1px solid rgba(203, 213, 225,0.1);
   border-radius: 10px; font-size: 0.8rem; font-weight: 600;
   cursor: pointer; transition: all 0.3s; letter-spacing: 1.5px;
 }
-.df-ai-btn:hover { border-color: rgba(203, 213, 225,0.3); color: #cbd5e1; background: rgba(203, 213, 225,0.05); }
+.df-ai-btn:hover { border-color: var(--text-soft); color: var(--accent); background: rgba(203, 213, 225,0.05); }
 .df-ai-btn-icon { font-size: 1rem; }
 
 /* TiaoHou */
 .df-tiaohou { padding: 0.9rem; }
 .tiaohou-text {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   line-height: 1.7;
   white-space: pre-wrap;
   margin: 0.4rem 0 0;
@@ -667,8 +667,8 @@ const jiItems = computed(() => {
   border: 1px solid rgba(255,255,255,0.03);
 }
 .almanac-full { grid-column: 1 / -1; }
-.almanac-label { font-size: 0.58rem; color: rgba(255,255,255,0.2); letter-spacing: 0.5px; }
-.almanac-value { font-size: 0.72rem; color: rgba(255,255,255,0.65); line-height: 1.4; }
+.almanac-label { font-size: 0.58rem; color: var(--text-soft); letter-spacing: 0.5px; }
+.almanac-value { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
 .almanac-ji { color: #4ade80; }
 .almanac-xiong { color: #f08080; }
 
@@ -681,8 +681,8 @@ const jiItems = computed(() => {
   background: rgba(255,255,255,0.015);
   border-radius: 5px;
 }
-.analysis-label { min-width: 56px; font-weight: 600; color: rgba(255,255,255,0.3); flex-shrink: 0; }
-.analysis-value { color: rgba(255,255,255,0.6); }
+.analysis-label { min-width: 56px; font-weight: 600; color: var(--text-soft); flex-shrink: 0; }
+.analysis-value { color: var(--text-muted); }
 .analysis-gold { color: var(--accent); }
 
 /* Modal */
@@ -698,22 +698,22 @@ const jiItems = computed(() => {
 }
 .df-modal-title-group { display: flex; align-items: center; gap: 0.75rem; }
 .df-modal-orb {
-  font-size: 1.6rem; color: #cbd5e1;
+  font-size: 1.6rem; color: var(--accent);
   text-shadow: 0 0 25px rgba(203, 213, 225,0.5);
   animation: orb-glow 3s ease-in-out infinite;
 }
 @keyframes orb-glow { 0%,100%{text-shadow:0 0 20px rgba(203, 213, 225,0.3)} 50%{text-shadow:0 0 40px rgba(203, 213, 225,0.7)} }
-.df-modal-hdr h2 { margin: 0; font-family: var(--font-serif), serif; font-size: 1.05rem; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 2px; }
-.df-modal-close { background: none; border: none; font-size: 1.2rem; color: rgba(255,255,255,0.2); cursor: pointer; padding: 0.25rem; transition: color 0.2s; }
-.df-modal-close:hover { color: #cbd5e1; }
+.df-modal-hdr h2 { margin: 0; font-family: var(--font-serif), serif; font-size: 1.05rem; font-weight: 700; color: var(--text); letter-spacing: 2px; }
+.df-modal-close { background: none; border: none; font-size: 1.2rem; color: var(--text-soft); cursor: pointer; padding: 0.25rem; transition: color 0.2s; }
+.df-modal-close:hover { color: var(--accent); }
 .df-modal-body { padding: 2.5rem 1.5rem; }
 .df-ai-coming { display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
-.df-ai-svg { opacity: 0.75; animation: svg-rot 20s linear infinite; }
+.df-ai-svg { color: var(--icon-muted); opacity: 0.75; animation: svg-rot 20s linear infinite; }
 @keyframes svg-rot { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 .df-star-pulse { animation: st-pulse 2.5s ease-in-out infinite; }
 @keyframes st-pulse { 0%,100%{opacity:0.2} 50%{opacity:0.7} }
-.df-ai-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.75); margin: 0; }
-.df-ai-sub { font-size: 0.78rem; color: rgba(255,255,255,0.25); margin: 0; }
+.df-ai-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
+.df-ai-sub { font-size: 0.78rem; color: var(--text-soft); margin: 0; }
 
 /* Modal transition */
 .df-modal-enter-active, .df-modal-leave-active { transition: opacity 0.25s ease; }
@@ -735,17 +735,17 @@ const jiItems = computed(() => {
   padding: 0.15rem 0.6rem; border-radius: 20px; letter-spacing: 0.5px;
 }
 .score-good { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-.score-mid { background: rgba(203, 213, 225,0.1); color: #cbd5e1; border: 1px solid rgba(203, 213, 225,0.25); }
+.score-mid { background: rgba(203, 213, 225,0.1); color: var(--accent); border: 1px solid rgba(203, 213, 225,0.25); }
 .score-bad { background: rgba(251, 113, 133,0.1); color: #fb7185; border: 1px solid rgba(251, 113, 133,0.25); }
 .rikuyo-verdict-text {
-  font-size: 0.82rem; color: rgba(255,255,255,0.65); line-height: 1.8;
+  font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;
   margin: 0.5rem 0 0; white-space: pre-wrap;
 }
 
 /* 格局信息 */
 .df-pattern-info { padding: 0.8rem 1rem; }
 .pattern-badge {
-  font-size: 0.7rem; color: #cbd5e1; background: rgba(203, 213, 225,0.1);
+  font-size: 0.7rem; color: var(--accent); background: rgba(203, 213, 225,0.1);
   padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: auto;
 }
 .pattern-elements { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
@@ -764,16 +764,16 @@ const jiItems = computed(() => {
   padding: 0.75rem; background: rgba(255,255,255,0.02);
   border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
 }
-.rikuyo-core-label { font-size: 0.58rem; color: rgba(255,255,255,0.2); letter-spacing: 0.5px; text-transform: uppercase; }
+.rikuyo-core-label { font-size: 0.58rem; color: var(--text-soft); letter-spacing: 0.5px; text-transform: uppercase; }
 .rikuyo-core-value {
   font-family: var(--font-serif); font-size: 1.4rem; font-weight: 900;
   letter-spacing: 2px; line-height: 1.2;
 }
 .val-fav { color: #4ade80; text-shadow: 0 0 15px rgba(74,222,128,0.3); }
 .val-dis { color: #fb7185; text-shadow: 0 0 15px rgba(251, 113, 133,0.3); }
-.rikuyo-core-desc { font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.5; }
+.rikuyo-core-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; }
 .rikuyo-flexible {
-  font-size: 0.72rem; color: #cbd5e1; font-style: italic;
+  font-size: 0.72rem; color: var(--accent); font-style: italic;
   padding: 0.3rem 0.5rem; background: rgba(203, 213, 225,0.06);
   border-radius: 4px; border-left: 2px solid rgba(203, 213, 225,0.3);
   margin-top: 0.25rem;
@@ -786,10 +786,10 @@ const jiItems = computed(() => {
   padding: 0.1rem 0.5rem; border-radius: 10px; letter-spacing: 0.5px;
 }
 .phase-adv { background: rgba(74,222,128,0.1); color: #4ade80; }
-.phase-peak { background: rgba(203, 213, 225,0.1); color: #cbd5e1; }
+.phase-peak { background: rgba(203, 213, 225,0.1); color: var(--accent); }
 .phase-ret { background: rgba(255,165,0,0.1); color: #ffa500; }
 .phase-dead { background: rgba(251, 113, 133,0.1); color: #fb7185; }
-.rikuyo-advance-text { font-size: 0.78rem; color: rgba(255,255,255,0.5); line-height: 1.6; margin: 0.4rem 0 0; }
+.rikuyo-advance-text { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin: 0.4rem 0 0; }
 
 /* 藏干 */
 .df-rikuyo-hidden { padding: 0.9rem; }
@@ -802,12 +802,12 @@ const jiItems = computed(() => {
 }
 .hs-fav { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
 .hs-dis { border-color: rgba(251, 113, 133,0.12); background: rgba(251, 113, 133,0.03); }
-.hs-stem { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 900; color: rgba(255,255,255,0.75); }
-.hs-type { font-size: 0.55rem; color: rgba(255,255,255,0.2); }
+.hs-stem { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 900; color: var(--text); }
+.hs-type { font-size: 0.55rem; color: var(--text-soft); }
 .hs-god { font-size: 0.65rem; font-weight: 700; }
 .hs-fav .hs-god { color: #4ade80; }
 .hs-dis .hs-god { color: #fb7185; }
-.hs-elem { font-size: 0.55rem; color: rgba(255,255,255,0.25); }
+.hs-elem { font-size: 0.55rem; color: var(--text-soft); }
 
 /* 干支关系 */
 .df-rikuyo-relations { padding: 0.9rem; }
@@ -825,8 +825,8 @@ const jiItems = computed(() => {
 }
 .rel-fav .rel-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
 .rel-dis .rel-type-tag { background: rgba(251, 113, 133,0.08); color: #fb7185; }
-.rel-detail { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
-.rel-note { font-size: 0.65rem; color: #cbd5e1; font-style: italic; margin-left: auto; }
+.rel-detail { font-size: 0.72rem; color: var(--text-muted); }
+.rel-note { font-size: 0.65rem; color: var(--accent); font-style: italic; margin-left: auto; }
 
 /* 神煞 */
 .df-rikuyo-shensha { padding: 0.9rem; }
@@ -837,14 +837,14 @@ const jiItems = computed(() => {
 }
 .ss-ji { border-color: rgba(74,222,128,0.12); }
 .ss-xiong { border-color: rgba(251, 113, 133,0.1); }
-.ss-name { font-size: 0.82rem; font-weight: 800; color: rgba(255,255,255,0.8); margin-right: 0.5rem; }
+.ss-name { font-size: 0.82rem; font-weight: 800; color: var(--text); margin-right: 0.5rem; }
 .ss-type-tag {
   font-size: 0.58rem; padding: 0.1rem 0.4rem; border-radius: 3px;
 }
 .ss-ji .ss-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
 .ss-xiong .ss-type-tag { background: rgba(251, 113, 133,0.08); color: #fb7185; }
-.ss-desc { font-size: 0.72rem; color: rgba(255,255,255,0.45); line-height: 1.5; margin: 0.3rem 0 0; }
-.ss-activation { font-size: 0.65rem; color: rgba(255,255,255,0.25); margin: 0.2rem 0 0; font-style: italic; }
+.ss-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin: 0.3rem 0 0; }
+.ss-activation { font-size: 0.65rem; color: var(--text-soft); margin: 0.2rem 0 0; font-style: italic; }
 
 /* 大运流年 */
 .df-rikuyo-yun { padding: 0.9rem; }
@@ -854,12 +854,12 @@ const jiItems = computed(() => {
   padding: 0.7rem; background: rgba(255,255,255,0.02);
   border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
 }
-.yun-label { font-size: 0.58rem; color: rgba(255,255,255,0.2); text-transform: uppercase; letter-spacing: 0.5px; }
-.yun-pillar { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 900; color: rgba(255,255,255,0.8); letter-spacing: 2px; }
+.yun-label { font-size: 0.58rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+.yun-pillar { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 900; color: var(--text); letter-spacing: 2px; }
 .yun-god { font-size: 0.75rem; font-weight: 700; }
-.yun-age { font-size: 0.6rem; color: rgba(255,255,255,0.25); }
+.yun-age { font-size: 0.6rem; color: var(--text-soft); }
 .yun-taisui { font-size: 0.65rem; color: #fb7185; margin: 0.2rem 0 0; font-style: italic; }
-.yun-desc { font-size: 0.7rem; color: rgba(255,255,255,0.4); line-height: 1.5; margin: 0.2rem 0 0; }
+.yun-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; margin: 0.2rem 0 0; }
 
 /* 用神影响 */
 .df-rikuyo-yongshen { padding: 0.9rem; }
@@ -871,9 +871,9 @@ const jiItems = computed(() => {
   transition: all 0.25s;
 }
 .ys-hit { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
-.ys-label { font-size: 0.6rem; color: rgba(255,255,255,0.25); min-width: 56px; flex-shrink: 0; }
-.ys-elem { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.7); }
+.ys-label { font-size: 0.6rem; color: var(--text-soft); min-width: 56px; flex-shrink: 0; }
+.ys-elem { font-size: 0.82rem; font-weight: 700; color: var(--text); }
 .ys-status { font-size: 0.6rem; margin-left: auto; padding: 0.1rem 0.4rem; border-radius: 3px; }
 .ys-hit .ys-status { background: rgba(74,222,128,0.1); color: #4ade80; }
-.yongshen-desc { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin: 0.5rem 0 0; line-height: 1.5; }
+.yongshen-desc { font-size: 0.72rem; color: var(--text-muted); margin: 0.5rem 0 0; line-height: 1.5; }
 </style>

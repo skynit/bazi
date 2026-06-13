@@ -48,7 +48,7 @@ const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     markerColor: [203 / 255, 213 / 255, 225 / 255],
     baseColor: [0.03, 0.03, 0.04],
     glowColor: [0.04, 0.04, 0.06],
-    accentText: 'text-slate-400',
+    accentText: 'text-[var(--text-muted)]',
     dropShadow: 'drop-shadow-[0_0_50px_rgba(203,213,225,0.06)]'
   },
   shui: {

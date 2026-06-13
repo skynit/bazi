@@ -4,9 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import client from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
-import ShaderBackground from '../components/ShaderBackground.vue'
 import ComputationLog from '../components/ComputationLog.vue'
-import ShinyButton from '../components/ShinyButton.vue'
+import ShaderBackground from '../components/ShaderBackground.vue'
+import { Button } from '@/components/ui/button'
 
 interface SavedChart {
   id: number
@@ -153,8 +153,7 @@ function onComputationComplete(): void {
 </script>
 <template>
   <div class="chart-page">
-    <!-- Background -->
-    <ShaderBackground shader-type="spiral" />
+    <ShaderBackground yongshen="mu" shader-type="grainGradient" :overlay-opacity="0.64" />
 
     <!-- Header -->
     <header class="chart-header">
@@ -189,7 +188,7 @@ function onComputationComplete(): void {
                 cx="40"
                 cy="40"
                 r="35"
-                stroke="#cbd5e1"
+                stroke="currentColor"
                 stroke-width="0.5"
                 stroke-dasharray="2 3"
                 opacity="0.4"
@@ -198,18 +197,18 @@ function onComputationComplete(): void {
                 cx="40"
                 cy="40"
                 r="20"
-                stroke="#cbd5e1"
+                stroke="currentColor"
                 stroke-width="0.5"
                 stroke-dasharray="1 4"
                 opacity="0.3"
               />
-              <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
-              <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.6" class="star-pulse" />
+              <circle cx="40" cy="40" r="4" fill="currentColor" opacity="0.3" />
+              <circle cx="20" cy="25" r="2" fill="currentColor" opacity="0.6" class="star-pulse" />
               <circle
                 cx="60"
                 cy="22"
                 r="2.5"
-                fill="#cbd5e1"
+                fill="currentColor"
                 opacity="0.5"
                 class="star-pulse"
                 style="animation-delay: 0.3s"
@@ -218,7 +217,7 @@ function onComputationComplete(): void {
                 cx="62"
                 cy="55"
                 r="2"
-                fill="#cbd5e1"
+                fill="currentColor"
                 opacity="0.4"
                 class="star-pulse"
                 style="animation-delay: 0.6s"
@@ -354,7 +353,7 @@ function onComputationComplete(): void {
         <!-- Action buttons -->
         <div class="action-row">
           <div class="action-glow"></div>
-          <ShinyButton text="查看运势" @click="goFortune" />
+          <Button @click="goFortune" class="rounded-full h-10 px-6 text-sm font-medium bg-foreground text-background hover:bg-foreground/90">查看运势</Button>
           <button class="btn-secondary" @click="goZiWei">
             <span class="btn-icon-secondary">☯</span>
             紫微斗数
@@ -385,19 +384,19 @@ function onComputationComplete(): void {
               cx="40"
               cy="40"
               r="35"
-              stroke="#cbd5e1"
+              stroke="currentColor"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.3"
             />
-            <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
-            <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.4" />
-            <circle cx="60" cy="22" r="2.5" fill="#cbd5e1" opacity="0.3" />
-            <circle cx="62" cy="55" r="2" fill="#cbd5e1" opacity="0.35" />
+            <circle cx="40" cy="40" r="4" fill="currentColor" opacity="0.3" />
+            <circle cx="20" cy="25" r="2" fill="currentColor" opacity="0.4" />
+            <circle cx="60" cy="22" r="2.5" fill="currentColor" opacity="0.3" />
+            <circle cx="62" cy="55" r="2" fill="currentColor" opacity="0.35" />
           </svg>
         </div>
         <p class="empty-title">未找到命盘</p>
-        <ShinyButton text="创建新的命盘" size="md" @click="router.push('/chart/new')" />
+        <Button @click="router.push('/chart/new')" variant="outline" class="rounded-full">创建新的命盘</Button>
       </div>
     </main>
   </div>
@@ -406,7 +405,7 @@ function onComputationComplete(): void {
 <style scoped>
 .chart-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -422,9 +421,9 @@ function onComputationComplete(): void {
 /* Header */
 .chart-header {
   position: relative;
-  z-index: 1;
-  border-bottom: 1px solid rgba(203, 213, 225, 0.08);
-  background: rgba(10, 8, 21, 0.6);
+  z-index: 2;
+  border-bottom: 1px solid var(--line-subtle);
+  background: var(--glass-nav);
   backdrop-filter: blur(20px);
 }
 
@@ -443,7 +442,7 @@ function onComputationComplete(): void {
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s;
   letter-spacing: 1px;
@@ -460,7 +459,7 @@ function onComputationComplete(): void {
 .header-eyebrow {
   font-size: 9px;
   letter-spacing: 3px;
-  color: rgba(203, 213, 225, 0.3);
+  color: var(--text-soft);
   text-transform: uppercase;
 }
 
@@ -503,6 +502,7 @@ function onComputationComplete(): void {
 
 .loading-constellation {
   animation: spin-slow 20s linear infinite;
+  color: var(--icon-muted);
 }
 
 @keyframes spin-slow {
@@ -532,7 +532,7 @@ function onComputationComplete(): void {
 
 .loading-text {
   font-size: 12px;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
   letter-spacing: 2px;
 }
 
@@ -547,12 +547,13 @@ function onComputationComplete(): void {
 }
 
 .error-icon {
+  color: var(--danger);
   opacity: 0.6;
 }
 
 .error-title {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-muted);
   text-align: center;
   margin: 0;
 }
@@ -560,7 +561,7 @@ function onComputationComplete(): void {
 .btn-retry {
   padding: 0.5rem 1.75rem;
   background: linear-gradient(135deg, #fb7185, #be123c);
-  color: white;
+  color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -593,7 +594,7 @@ function onComputationComplete(): void {
   border: 1px solid rgba(203, 213, 225, 0.15);
   border-radius: 20px;
   font-size: 0.75rem;
-  color: rgba(203, 213, 225, 0.6);
+  color: var(--text-muted);
   letter-spacing: 1px;
 }
 
@@ -681,7 +682,7 @@ function onComputationComplete(): void {
 }
 
 .btn-secondary:hover {
-  border-color: rgba(203, 213, 225, 0.5);
+  border-color: var(--text-muted);
   background: rgba(203, 213, 225, 0.06);
   box-shadow: 0 0 20px rgba(203, 213, 225, 0.1);
 }
@@ -705,7 +706,7 @@ function onComputationComplete(): void {
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: var(--muted);
+  color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -726,13 +727,14 @@ function onComputationComplete(): void {
 }
 
 .empty-icon {
+  color: var(--icon-muted);
   opacity: 0.5;
   margin-bottom: 0.5rem;
 }
 
 .empty-title {
   font-size: 1rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0 0 1.5rem;
 }
 
@@ -752,7 +754,7 @@ function onComputationComplete(): void {
 
 .picker-error-text {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-muted);
   text-align: center;
   margin: 0;
 }
@@ -776,7 +778,7 @@ function onComputationComplete(): void {
   border: 1px solid rgba(203, 213, 225, 0.15);
   border-radius: 20px;
   font-size: 0.75rem;
-  color: rgba(203, 213, 225, 0.6);
+  color: var(--text-muted);
   letter-spacing: 1px;
 }
 
@@ -797,7 +799,7 @@ function onComputationComplete(): void {
 }
 
 .picker-row:hover {
-  border-color: rgba(203, 213, 225, 0.3);
+  border-color: var(--text-soft);
   transform: translateY(-1px);
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.2),
@@ -833,14 +835,14 @@ function onComputationComplete(): void {
 
 .picker-meta {
   font-size: 0.75rem;
-  color: var(--muted);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 0.3rem;
 }
 
 .picker-arrow {
-  color: rgba(203, 213, 225, 0.3);
+  color: var(--text-soft);
   flex-shrink: 0;
   transition: color 0.2s, transform 0.2s;
 }
@@ -867,7 +869,7 @@ function onComputationComplete(): void {
 
 .divider-text {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.15);
+  color: var(--text-soft);
   letter-spacing: 1px;
 }
 
@@ -889,7 +891,7 @@ function onComputationComplete(): void {
 }
 
 .btn-new-chart:hover {
-  border-color: rgba(203, 213, 225, 0.5);
+  border-color: var(--text-muted);
   background: rgba(203, 213, 225, 0.06);
   box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
   transform: translateY(-1px);

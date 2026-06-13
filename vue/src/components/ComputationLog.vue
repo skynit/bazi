@@ -117,7 +117,7 @@ onMounted(() => {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
-  color: rgba(203, 213, 225, 0.6);
+  color: var(--text-muted);
   letter-spacing: 3px;
   text-transform: uppercase;
 }

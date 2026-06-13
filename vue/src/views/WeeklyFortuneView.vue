@@ -89,7 +89,7 @@ onMounted(() => {
 
 <template>
   <div class="weekly-page">
-    <ShaderBackground shader-type="spiral" />
+    <ShaderBackground yongshen="shui" shader-type="grainGradient" :overlay-opacity="0.66" />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
@@ -100,19 +100,19 @@ onMounted(() => {
               cx="30"
               cy="30"
               r="25"
-              stroke="#cbd5e1"
+              stroke="currentColor"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.4"
             />
-            <circle cx="30" cy="30" r="12" stroke="#cbd5e1" stroke-width="0.5" opacity="0.3" />
-            <circle cx="30" cy="30" r="3" fill="#cbd5e1" opacity="0.3" />
-            <circle cx="15" cy="20" r="2" fill="#cbd5e1" opacity="0.5" class="star-pulse" />
+            <circle cx="30" cy="30" r="12" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
+            <circle cx="30" cy="30" r="3" fill="currentColor" opacity="0.3" />
+            <circle cx="15" cy="20" r="2" fill="currentColor" opacity="0.5" class="star-pulse" />
             <circle
               cx="45"
               cy="18"
               r="2"
-              fill="#cbd5e1"
+              fill="currentColor"
               opacity="0.4"
               class="star-pulse"
               style="animation-delay: 0.3s"
@@ -194,7 +194,7 @@ onMounted(() => {
 <style scoped>
 .weekly-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -226,6 +226,7 @@ onMounted(() => {
 
 .loading-constellation {
   animation: spin-slow 20s linear infinite;
+  color: var(--icon-muted);
 }
 
 @keyframes spin-slow {
@@ -255,7 +256,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 12px;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
   letter-spacing: 2px;
 }
 
@@ -272,19 +273,20 @@ onMounted(() => {
 }
 
 .error-icon {
+  color: var(--danger);
   opacity: 0.6;
 }
 
 .error-text {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0;
 }
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
   background: linear-gradient(135deg, #fb7185, #be123c);
-  color: white;
+  color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -308,7 +310,7 @@ onMounted(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(203, 213, 225, 0.35);
+  color: var(--text-soft);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -324,7 +326,7 @@ onMounted(() => {
 
 .week-range {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0 0 1rem 0;
 }
 
@@ -357,7 +359,7 @@ onMounted(() => {
 .score-label {
   display: block;
   font-size: 0.75rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-top: 0.3rem;
   letter-spacing: 1px;
 }
@@ -426,7 +428,7 @@ onMounted(() => {
 
 .day-yiji {
   font-size: 0.7rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0;
   flex: 2;
   text-align: right;

@@ -2,8 +2,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import ShaderBackground from '../components/ShaderBackground.vue'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -34,53 +38,59 @@ async function handleLogin() {
 
 <template>
   <div class="login-page">
-    <ShaderBackground shader-type="spiral" />
+    <ShaderBackground yongshen="mu" shader-type="grainGradient" :overlay-opacity="0.74" />
 
-    <!-- Login card -->
-    <div class="login-card animate-in">
-      <!-- Card header ornament -->
+    <Card class="login-card animate-in w-full max-w-[var(--container-sm)] relative z-10
+      rounded-[1.5rem] border-0
+      [box-shadow:0_0_0_1px_var(--line-strong),var(--shadow-lg)]
+      bg-[var(--surface-1)]">
+      <!-- Card ornament -->
       <div class="card-ornament" aria-hidden="true">
         <div class="ornament-ring"></div>
         <div class="ornament-symbol">☯</div>
       </div>
 
-      <div class="card-inner">
-        <!-- Title -->
-        <div class="card-header">
-          <div class="header-eyebrow">BaZi Fortune</div>
-          <h1 class="header-title">登录</h1>
-          <p class="header-sub">探索命运，从这里开始</p>
-        </div>
+      <CardHeader class="text-center pt-2 pb-0">
+        <div class="text-[10px] tracking-[3px] text-[var(--text-soft)] uppercase mb-2">BaZi Fortune</div>
+        <CardTitle class="font-[family-name:var(--font-serif)] text-[2rem] font-bold tracking-[4px]">
+          登录
+        </CardTitle>
+        <CardDescription class="text-[13px]">探索命运，从这里开始</CardDescription>
+      </CardHeader>
 
-        <!-- Form -->
-        <form @submit.prevent="handleLogin" class="login-form">
-          <div class="form-field">
-            <label class="field-label">用户名</label>
-            <div class="field-input-wrap">
-              <span class="field-icon">✦</span>
-              <input
+      <CardContent class="px-10 pb-10">
+        <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <Label class="text-xs font-semibold tracking-[1px] uppercase text-[var(--text-muted)]">
+              用户名
+            </Label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--icon-muted)] z-10 pointer-events-none">✦</span>
+              <Input
                 v-model="form.username"
-                class="field-input"
+                class="pl-10 h-11 rounded-[10px] bg-[var(--glass-bg)] border-[var(--line-strong)] text-sm"
                 placeholder="请输入用户名"
                 autocomplete="username"
               />
             </div>
           </div>
 
-          <div class="form-field">
-            <label class="field-label">密码</label>
-            <div class="field-input-wrap">
-              <span class="field-icon">◇</span>
-              <input
+          <div class="flex flex-col gap-2">
+            <Label class="text-xs font-semibold tracking-[1px] uppercase text-[var(--text-muted)]">
+              密码
+            </Label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--icon-muted)] z-10 pointer-events-none">◇</span>
+              <Input
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
-                class="field-input"
+                class="pl-10 pr-10 h-11 rounded-[10px] bg-[var(--glass-bg)] border-[var(--line-strong)] text-sm"
                 placeholder="请输入密码"
                 autocomplete="current-password"
               />
               <button
                 type="button"
-                class="toggle-password"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--icon-muted)] hover:text-[var(--accent)] transition-colors"
                 @click="showPassword = !showPassword"
                 :aria-label="showPassword ? '隐藏密码' : '显示密码'"
               >
@@ -89,29 +99,27 @@ async function handleLogin() {
             </div>
           </div>
 
-          <!-- Error message -->
-          <div v-if="error" class="error-msg">
-            <span class="error-icon">⚠</span>
-            {{ error }}
+          <div v-if="error" class="flex items-center gap-2 text-xs text-[var(--danger)] bg-[rgba(251,113,133,0.08)] rounded-lg px-3 py-2.5">
+            <span>⚠</span> {{ error }}
           </div>
 
-          <!-- Submit -->
-          <button type="submit" class="btn-submit" :disabled="loading">
+          <Button type="submit" :disabled="loading"
+            class="w-full h-11 rounded-full text-sm font-semibold tracking-[1px]
+            bg-foreground text-background hover:bg-foreground/90
+            shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
             <span v-if="loading" class="loading-spinner"></span>
             <span v-else>登 录</span>
-          </button>
+          </Button>
         </form>
+      </CardContent>
 
-        <!-- Register link -->
-        <div class="card-footer">
-          <span class="footer-text">没有账户？</span>
-          <router-link to="/register" class="footer-link">
-            立即注册
-            <span class="footer-arrow">→</span>
-          </router-link>
-        </div>
-      </div>
-    </div>
+      <CardFooter class="justify-center pb-10 pt-0">
+        <span class="text-[13px] text-[var(--text-muted)]">没有账户？</span>
+        <router-link to="/register" class="text-[13px] font-medium text-[var(--primary)] hover:underline ml-1">
+          立即注册 →
+        </router-link>
+      </CardFooter>
+    </Card>
   </div>
 </template>
 
@@ -126,280 +134,53 @@ async function handleLogin() {
   overflow: hidden;
 }
 
-/* ── Card ── */
-.login-card {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 420px;
-  background: linear-gradient(160deg, rgba(12, 12, 14, 0.92), rgba(6, 6, 8, 0.96));
-  border: 1px solid rgba(203, 213, 225, 0.12);
-  border-radius: 24px;
-  box-shadow:
-    0 0 80px rgba(203, 213, 225, 0.06),
-    0 25px 60px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-}
-
-/* ── Ornament ── */
 .card-ornament {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 80px;
   position: relative;
-  background: linear-gradient(180deg, rgba(203, 213, 225, 0.06), transparent);
-  border-bottom: 1px solid rgba(203, 213, 225, 0.06);
+  background: linear-gradient(180deg, var(--accent-dim), transparent);
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .ornament-ring {
   position: absolute;
   width: 50px;
   height: 50px;
-  border: 1px solid rgba(203, 213, 225, 0.12);
+  border: 1px solid var(--line-focus);
   border-radius: 50%;
   animation: ring-pulse 3s ease-in-out infinite;
 }
 
 @keyframes ring-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.15;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
+  0%, 100% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.1); opacity: 0.3; }
 }
 
 .ornament-symbol {
   font-size: 2rem;
   color: var(--accent);
-  text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
+  text-shadow: 0 0 20px var(--brand-glow);
   animation: symbol-glow 3s ease-in-out infinite;
 }
 
 @keyframes symbol-glow {
-  0%,
-  100% {
-    text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
-  }
-  50% {
-    text-shadow: 0 0 35px rgba(203, 213, 225, 0.6);
-  }
-}
-
-/* ── Inner ── */
-.card-inner {
-  padding: 36px 40px 40px;
-}
-
-/* ── Header ── */
-.card-header {
-  text-align: center;
-  margin-bottom: 36px;
-}
-
-.header-eyebrow {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: rgba(203, 213, 225, 0.4);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.header-title {
-  font-family: var(--font-serif), serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 8px;
-  letter-spacing: 4px;
-}
-
-.header-sub {
-  font-size: 13px;
-  color: var(--muted);
-  margin: 0;
-}
-
-/* ── Form ── */
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  color: rgba(203, 213, 225, 0.5);
-  text-transform: uppercase;
-}
-
-.field-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.field-icon {
-  position: absolute;
-  left: 14px;
-  font-size: 12px;
-  color: rgba(203, 213, 225, 0.3);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.field-input {
-  width: 100%;
-  padding: 13px 44px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(203, 213, 225, 0.1);
-  border-radius: 10px;
-  color: var(--text);
-  font-size: 14px;
-  font-family: var(--font-sans);
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.field-input:focus {
-  border-color: rgba(203, 213, 225, 0.4);
-  box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.06);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.field-input::placeholder {
-  color: rgba(255, 255, 255, 0.1);
-}
-
-.toggle-password {
-  position: absolute;
-  right: 14px;
-  background: none;
-  border: none;
-  color: rgba(203, 213, 225, 0.3);
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0;
-  transition: color 0.2s;
-}
-
-.toggle-password:hover {
-  color: rgba(203, 213, 225, 0.6);
-}
-
-/* ── Error ── */
-.error-msg {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: rgba(251, 113, 133, 0.08);
-  border: 1px solid rgba(251, 113, 133, 0.2);
-  border-radius: 8px;
-  font-size: 13px;
-  color: #e05a5a;
-}
-
-.error-icon {
-  font-size: 12px;
-}
-
-/* ── Submit button ── */
-.btn-submit {
-  width: 100%;
-  padding: 14px;
-  margin-top: 8px;
-  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-  color: #030404;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 3px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(203, 213, 225, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(203, 213, 225, 0.4);
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  0%, 100% { text-shadow: 0 0 20px var(--brand-glow); }
+  50% { text-shadow: 0 0 35px var(--accent-glow); }
 }
 
 .loading-spinner {
-  display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(10, 8, 21, 0.3);
-  border-top-color: #030404;
+  border: 2px solid color-mix(in oklab, currentColor 20%, transparent);
+  border-top-color: currentColor;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ── Footer ── */
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(203, 213, 225, 0.06);
-}
-
-.footer-text {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.footer-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.footer-link:hover {
-  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
-}
-
-.footer-arrow {
-  font-size: 11px;
-  transition: transform 0.2s ease;
-}
-
-.footer-link:hover .footer-arrow {
-  transform: translateX(3px);
+  to { transform: rotate(360deg); }
 }
 </style>

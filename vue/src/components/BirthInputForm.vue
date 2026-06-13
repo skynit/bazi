@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
-import ShinyButton from './ShinyButton.vue'
+import { Button } from '@/components/ui/button'
 
 const router = useRouter()
 const errMsg = ref('')
@@ -137,7 +137,9 @@ async function handleSubmit() {
         <p v-if="errMsg" class="error-msg">{{ errMsg }}</p>
 
         <!-- Submit -->
-        <ShinyButton text="启动命运解构" size="lg" :disabled="loading" @click="handleSubmit" />
+        <Button :disabled="loading" @click="handleSubmit" class="w-full h-12 rounded-full text-base font-semibold tracking-[1px] bg-foreground text-background hover:bg-foreground/90">
+          启动命运解构
+        </Button>
       </div>
     </div>
   </div>
@@ -265,7 +267,7 @@ async function handleSubmit() {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -289,8 +291,8 @@ async function handleSubmit() {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(10, 8, 21, 0.3);
-  border-top-color: #0a0815;
+  border: 2px solid color-mix(in oklab, currentColor 20%, transparent);
+  border-top-color: currentColor;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

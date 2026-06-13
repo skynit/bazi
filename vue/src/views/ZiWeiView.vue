@@ -2,9 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
+import ShaderBackground from '../components/ShaderBackground.vue'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
-import ShaderBackground from '../components/ShaderBackground.vue'
 
 const route = useRoute()
 
@@ -366,7 +366,7 @@ const sihuaChainGroups = computed(() => {
 
 <template>
   <div class="ziwei-page">
-    <ShaderBackground shader-type="spiral" />
+    <ShaderBackground yongshen="huo" shader-type="grainGradient" :overlay-opacity="0.72" />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
@@ -483,8 +483,8 @@ const sihuaChainGroups = computed(() => {
             <ZiWeiInterpretation v-if="selectedPalace" :palace-reading="selectedPalace" />
             <div v-else class="empty-state-inline">
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <circle cx="20" cy="20" r="16" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.3"/>
-                <circle cx="20" cy="20" r="3" fill="#cbd5e1" opacity="0.2"/>
+                <circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2 3" opacity="0.3"/>
+                <circle cx="20" cy="20" r="3" fill="currentColor" opacity="0.2"/>
               </svg>
               <p>选择一个宫位查看详细解读</p>
             </div>
@@ -707,7 +707,7 @@ const sihuaChainGroups = computed(() => {
 @reference "tailwindcss";
 .ziwei-page {
   @apply min-h-screen relative;
-  background-color: var(--bg);
+  background-color: transparent;
 }
 
 .loading-state {
@@ -741,8 +741,9 @@ const sihuaChainGroups = computed(() => {
 /* Birth info bar */
 .birth-bar {
   @apply flex items-center justify-between flex-wrap gap-3 mb-6 p-4 rounded-lg;
-  background-color: rgba(255,255,255,0.04);
-  border: 1px solid rgba(203, 213, 225,0.08);
+  background: color-mix(in oklab, var(--surface-1) 84%, transparent);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .birth-info-items {
@@ -754,7 +755,8 @@ const sihuaChainGroups = computed(() => {
 }
 
 .birth-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs;
+  color: var(--text-muted);
 }
 
 .birth-val {
@@ -783,18 +785,19 @@ const sihuaChainGroups = computed(() => {
 /* Tabs */
 .tabs-section {
   @apply rounded-lg overflow-hidden;
-  background-color: rgba(255,255,255,0.04);
-  border: 1px solid rgba(203, 213, 225,0.08);
+  background: color-mix(in oklab, var(--surface-1) 84%, transparent);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .tab-bar {
   @apply flex overflow-x-auto;
-  border-bottom: 2px solid rgba(255,255,255,0.06);
+  border-bottom: 2px solid var(--line-subtle);
 }
 
 .tab-btn {
   @apply flex-shrink-0 px-4 py-3 text-sm font-medium cursor-pointer border-0 bg-transparent transition-colors;
-  color: #999;
+  color: var(--text-muted);
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
 }
@@ -813,15 +816,15 @@ const sihuaChainGroups = computed(() => {
 }
 
 .tab-hint {
-  @apply text-xs text-gray-400 mb-3;
+  font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;
 }
 
 .tab-loading {
-  @apply text-center text-sm text-gray-400 py-8;
+  text-align: center; font-size: 0.875rem; color: var(--text-muted); padding-top: 2rem; padding-bottom: 2rem;
 }
 
 .empty-hint {
-  @apply flex flex-col items-center gap-2 py-10 text-gray-400;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding-top: 2.5rem; padding-bottom: 2.5rem; color: var(--text-muted);
 }
 
 /* Palace quick grid */
@@ -846,7 +849,7 @@ const sihuaChainGroups = computed(() => {
   transform: translateY(-1px);
 }
 .palace-pill.active {
-  border-color: rgba(203, 213, 225,0.3);
+  border-color: var(--text-soft);
   background: rgba(203, 213, 225,0.08);
 }
 .palace-pill.body-palace {
@@ -858,7 +861,7 @@ const sihuaChainGroups = computed(() => {
   letter-spacing: 0.5px;
 }
 .palace-pill-branch {
-  font-size: 0.58rem; color: var(--muted);
+  font-size: 0.58rem; color: var(--text-muted);
 }
 .body-badge {
   font-size: 0.5rem; background: rgba(139, 75, 75, 0.25); color: rgba(255, 200, 200, 0.8);
@@ -895,7 +898,7 @@ const sihuaChainGroups = computed(() => {
 }
 
 .period-desc {
-  @apply text-xs text-gray-600 m-0;
+  font-size: 0.75rem; color: var(--text-muted); margin: 0;
 }
 
 /* Sihua table */
@@ -943,30 +946,30 @@ const sihuaChainGroups = computed(() => {
   color: var(--color-bazi-ink);
 }
 
-.tab-desc { font-size:0.72rem; color:var(--muted); margin:0 0 1rem; font-style:italic; }
+.tab-desc { font-size:0.72rem; color:var(--text-muted); margin:0 0 1rem; font-style:italic; }
 .dayun-timeline { display:flex; flex-direction:column; gap:0.5rem; }
 .dayun-card { display:flex; gap:0.75rem; padding:0.625rem 0.75rem; background:rgba(255,255,255,0.015); border:1px solid rgba(203, 213, 225,0.05); border-radius:8px; }
 .dayun-card.is-current { border-color:rgba(203, 213, 225,0.2); background:rgba(203, 213, 225,0.04); }
 .dayun-age-badge { min-width:60px; text-align:center; }
 .age-primary { display:block; font-size:0.8rem; font-weight:700; color:var(--accent); }
-.age-unit { font-size:0.58rem; color:var(--muted); }
+.age-unit { font-size:0.58rem; color:var(--text-muted); }
 .dayun-body { flex:1; }
 .dayun-palace { font-size:0.82rem; font-weight:600; color:var(--text); margin-bottom:0.125rem; }
-.dayun-desc { font-size:0.68rem; color:var(--muted); margin:0 0 0.25rem; }
+.dayun-desc { font-size:0.68rem; color:var(--text-muted); margin:0 0 0.25rem; }
 .dayun-stars { display:flex; flex-wrap:wrap; gap:0.2rem; }
 .star-chip { padding:0.08rem 0.35rem; font-size:0.62rem; background:rgba(251, 113, 133,0.08); color:var(--danger); border-radius:3px; border:1px solid rgba(251, 113, 133,0.12); }
 .palace-strip { display:flex; align-items:center; gap:0.6rem; padding:0.4rem 0.6rem; border-bottom:1px solid rgba(255,255,255,0.025); }
 .palace-strip-sm { padding:0.25rem 0.4rem; }
 .palace-strip-header { display:flex; align-items:center; gap:0.3rem; min-width:68px; }
 .strip-name { font-size:0.72rem; font-weight:600; color:var(--text); }
-.strip-branch { font-size:0.58rem; color:var(--muted); }
+.strip-branch { font-size:0.58rem; color:var(--text-muted); }
 .palace-strip-stars { display:flex; align-items:center; gap:0.25rem; flex-wrap:wrap; flex:1; }
 .strip-main-star { padding:0.06rem 0.3rem; font-size:0.62rem; font-weight:600; background:rgba(203, 213, 225,0.08); color:var(--accent); border-radius:3px; }
-.strip-main-star.dim { color:var(--muted); background:rgba(255,255,255,0.02); }
+.strip-main-star.dim { color:var(--text-muted); background:rgba(255,255,255,0.02); }
 .strip-main-star small { font-size:0.5rem; opacity:0.5; }
-.strip-aux-star { font-size:0.58rem; color:rgba(139,131,120,0.45); }
+.strip-aux-star { font-size:0.58rem; color: var(--text-soft); }
 .strip-sihua { padding:0.06rem 0.3rem; font-size:0.58rem; background:rgba(251, 113, 133,0.08); color:var(--danger); border-radius:3px; }
-.strip-empty { font-size:0.58rem; color:var(--muted); opacity:0.3; }
+.strip-empty { font-size:0.58rem; color:var(--text-muted); opacity:0.3; }
 .sihua-groups { display:flex; flex-direction:column; gap:0.625rem; }
 .sihua-group-badge { display:inline-block; padding:0.15rem 0.5rem; font-size:0.68rem; font-weight:700; border-radius:4px; margin-bottom:0.25rem; }
 .sihua-lu { background:rgba(74,222,128,0.1); color:#4ade80; }
@@ -976,15 +979,15 @@ const sihuaChainGroups = computed(() => {
 .sihua-group-items { display:flex; flex-direction:column; gap:0.2rem; }
 .sihua-fly-item { display:flex; align-items:center; gap:0.4rem; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.012); border-radius:5px; font-size:0.72rem; }
 .fly-star { font-weight:600; color:var(--text); }
-.fly-arrow { color:var(--muted); font-size:0.65rem; }
+.fly-arrow { color:var(--text-muted); font-size:0.65rem; }
 .fly-palace { color:var(--accent); font-weight:500; }
-.fly-effect { color:var(--muted); font-size:0.65rem; flex:1; }
+.fly-effect { color:var(--text-muted); font-size:0.65rem; flex:1; }
 .fly-from { font-size:0.6rem; color:#93c5fd; background:rgba(96,165,250,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
 .fly-chain { font-size:0.6rem; color:#86efac; background:rgba(74,222,128,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
 .fly-affinity { font-size:0.6rem; color:#fde68a; background:rgba(253,230,138,0.1); padding:0.05rem 0.25rem; border-radius:3px; }
 .sihua-chain-section { margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.05); }
-.chain-title { font-size:0.72rem; color:var(--muted); margin:0 0 0.5rem; font-weight:600; }
-.sihua-empty-group { font-size:0.68rem; color:var(--muted); padding:0.2rem 0.4rem; opacity:0.4; }
+.chain-title { font-size:0.72rem; color:var(--text-muted); margin:0 0 0.5rem; font-weight:600; }
+.sihua-empty-group { font-size:0.68rem; color:var(--text-muted); padding:0.2rem 0.4rem; opacity:0.4; }
 
 /* Interpretation tab styles */
 .interp-tab { display:flex; flex-direction:column; gap:0.75rem; }
@@ -997,12 +1000,12 @@ const sihuaChainGroups = computed(() => {
 .score-bad { background:rgba(251, 113, 133,0.12); color:#f08080; }
 .interp-section { padding:0.75rem 1rem; display:flex; flex-direction:column; gap:0.4rem; }
 .interp-row { display:flex; gap:0.5rem; font-size:0.78rem; line-height:1.5; }
-.interp-label { min-width:70px; font-weight:600; color:var(--muted); }
+.interp-label { min-width:70px; font-weight:600; color:var(--text-muted); }
 .interp-value { color:var(--text); flex:1; }
 .interp-value.danger { color:#f08080; }
 .interp-row.tip .interp-value { color:var(--accent); font-style:italic; }
 .interp-subtitle { font-size:0.75rem; font-weight:700; color:var(--accent); margin:0 0 0.5rem; }
-.interp-summary { font-size:0.72rem; color:var(--muted); padding:0.5rem 1rem; background:rgba(203, 213, 225,0.04); border-top:1px dashed rgba(203, 213, 225,0.1); font-style:italic; }
+.interp-summary { font-size:0.72rem; color:var(--text-muted); padding:0.5rem 1rem; background:rgba(203, 213, 225,0.04); border-top:1px dashed rgba(203, 213, 225,0.1); font-style:italic; }
 .hourly-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:0.375rem; }
 .hour-block { display:flex; flex-direction:column; gap:0.15rem; padding:0.4rem 0.5rem; border-radius:6px; font-size:0.68rem; }
 .hour-good { background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.15); }
@@ -1016,18 +1019,18 @@ const sihuaChainGroups = computed(() => {
 /* Twelve stars 十二星 */
 .strip-twelve-stars { display:flex; gap:0.25rem; flex-wrap:wrap; margin-top:0.15rem; }
 .twelve-tag { font-size:0.52rem; padding:0.04rem 0.25rem; border-radius:3px; }
-.twelve-cs { color:#cbd5e1; background:rgba(203, 213, 225,0.08); }
+.twelve-cs { color: var(--accent); background:rgba(203, 213, 225,0.08); }
 .twelve-bs { color:#60a5fa; background:rgba(96,165,250,0.08); }
 .twelve-jq { color:#4ade80; background:rgba(74,222,128,0.08); }
 .twelve-sq { color:#f08080; background:rgba(251, 113, 133,0.08); }
 
 /* Sanfang Sizheng 三方四正 */
 .strip-sanfang { display:flex; align-items:center; gap:0.3rem; margin-top:0.15rem; font-size:0.55rem; }
-.sf-label { color:var(--muted); font-weight:600; }
+.sf-label { color:var(--text-muted); font-weight:600; }
 .sf-item { color:rgba(96,165,250,0.5); padding:0.03rem 0.2rem; background:rgba(96,165,250,0.05); border-radius:3px; }
 .hour-effect { color:var(--text); line-height:1.3; }
 .hour-score { font-size:0.62rem; margin-top:0.1rem; }
 .hour-good .hour-score { color:#4ade80; }
-.hour-neutral .hour-score { color:var(--muted); }
+.hour-neutral .hour-score { color:var(--text-muted); }
 .hour-bad .hour-score { color:#f08080; }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute inset-0 pointer-events-none isolate z-0 overflow-hidden bg-[#030404]">
+  <div class="absolute inset-0 pointer-events-none isolate z-0 overflow-hidden bg-[var(--bg)]">
 
     <div
       class="absolute -bottom-[35%] -left-[20%] w-[140vw] h-[140vw] rounded-full
@@ -25,7 +25,7 @@
       </svg>
     </div>
 
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#030404]/20 to-[#030404]"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--bg)]/20 to-[var(--bg)]"></div>
 
   </div>
 </template>

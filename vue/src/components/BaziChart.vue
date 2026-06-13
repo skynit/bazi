@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { use } from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
@@ -16,6 +16,26 @@ const props = defineProps<{
     [key: string]: any
   }
 }>()
+
+const themeVersion = ref(0)
+let themeObserver: MutationObserver | null = null
+
+function cssVar(name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+onMounted(() => {
+  themeObserver = new MutationObserver(() => {
+    themeVersion.value += 1
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
+})
 
 const ganElement: Record<string, { name: string; elemColor: string }> = {
   甲: { name: '木', elemColor: '#34d399' },
@@ -90,7 +110,7 @@ function relationSummary(detail: string): string {
 }
 
 const elemColor = (e: string) =>
-  ({ 金: '#cbd5e1', 木: '#34d399', 水: '#22d3ee', 火: '#fb7185', 土: '#fde68a' })[e] || '#999'
+  ({ 金: '#cbd5e1', 木: '#34d399', 水: '#22d3ee', 火: '#fb7185', 土: '#fde68a' })[e] || '#8a9a8e'
 
 const pillarLabel = (k: string) => ({ year: '年柱', month: '月柱', day: '日柱', hour: '时柱' }[k] || k)
 
@@ -144,6 +164,12 @@ function isXiongShenSha(name: string): boolean {
 }
 
 const fiveElementsOption = computed(() => {
+  themeVersion.value
+  const textColor = cssVar('--text', '#0f1712')
+  const mutedColor = cssVar('--text-muted', '#5a6a5e')
+  const softColor = cssVar('--text-soft', 'rgba(15, 23, 18, 0.44)')
+  const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
+  const tooltipBg = cssVar('--surface-1', '#ffffff')
   const fe = props.chart.five_elements
   if (!fe) return null
   const total = Object.values(fe as Record<string, number>).reduce((s, v) => s + v, 0)
@@ -159,10 +185,10 @@ const fiveElementsOption = computed(() => {
     xAxis: {
       type: 'category',
       data: labels,
-      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+      axisLine: { lineStyle: { color: lineColor } },
       axisTick: { show: false },
       axisLabel: {
-        color: 'rgba(240,237,228,0.75)',
+        color: textColor,
         fontSize: 12,
         fontWeight: '600',
         fontFamily: 'Noto Serif SC, Songti SC, serif',
@@ -172,8 +198,8 @@ const fiveElementsOption = computed(() => {
     yAxis: {
       type: 'value',
       max: 30,
-      axisLabel: { color: 'rgba(240,237,228,0.35)', fontSize: 10, formatter: '{value}' },
-      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)', type: 'dashed' } },
+      axisLabel: { color: softColor, fontSize: 10, formatter: '{value}' },
+      splitLine: { lineStyle: { color: lineColor, type: 'dashed' } },
       axisLine: { show: false },
       axisTick: { show: false },
     },
@@ -211,26 +237,26 @@ const fiveElementsOption = computed(() => {
         formatter: '{c}',
         fontSize: 11,
         fontWeight: '600',
-        color: 'rgba(240,237,228,0.8)',
+        color: textColor,
         fontFamily: 'DM Mono, Fira Code, monospace',
       },
     }],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(3,4,4,0.95)',
-      borderColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: tooltipBg,
+      borderColor: lineColor,
       borderWidth: 1,
       padding: [8, 14],
       textStyle: {
-        color: 'rgba(240,237,228,0.9)',
+        color: textColor,
         fontSize: 13,
         fontFamily: 'Noto Serif SC, Songti SC, serif',
         fontWeight: '600',
       },
       formatter: (params: any[]) => {
         const p = params[0]
-        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：<span style="color:#cbd5e1;font-weight:700">${p.value}</span> 分`
+        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：<span style="color:${textColor};font-weight:700">${p.value}</span> 分`
       },
     },
     animationDuration: 900,
@@ -268,6 +294,12 @@ const chartTabs = [
 ]
 
 const tenGodChartOptions = computed(() => {
+  themeVersion.value
+  const textColor = cssVar('--text', '#0f1712')
+  const mutedColor = cssVar('--text-muted', '#5a6a5e')
+  const softColor = cssVar('--text-soft', 'rgba(15, 23, 18, 0.44)')
+  const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
+  const tooltipBg = cssVar('--surface-1', '#ffffff')
   const data = props.chart.ten_god_proportion || []
   // 10 ten gods — cold-tone tech palette
   const barColors = [
@@ -291,11 +323,11 @@ const tenGodChartOptions = computed(() => {
         const p = params[0]
         return `<span style="color:${p.color};font-weight:700">${p.name}</span>：${p.value}%`
       },
-      backgroundColor: 'rgba(3,4,4,0.92)',
-      borderColor: 'rgba(255,255,255,0.08)',
+      backgroundColor: tooltipBg,
+      borderColor: lineColor,
       borderWidth: 1,
       padding: [6, 10],
-      textStyle: { color: 'rgba(255,255,255,0.75)', fontSize: 12 },
+      textStyle: { color: textColor, fontSize: 12 },
     },
     grid: {
       left: 8,
@@ -307,10 +339,10 @@ const tenGodChartOptions = computed(() => {
     xAxis: {
       type: 'category',
       data: data.map((d: any) => d.name),
-      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+      axisLine: { lineStyle: { color: lineColor } },
       axisTick: { show: false },
       axisLabel: {
-        color: 'rgba(255,255,255,0.5)',
+        color: mutedColor,
         fontSize: 10,
         fontWeight: '500',
         interval: 0,
@@ -323,11 +355,11 @@ const tenGodChartOptions = computed(() => {
       max: 100,
       axisLabel: {
         formatter: '{value}%',
-        color: 'rgba(255,255,255,0.3)',
+        color: softColor,
         fontSize: 9,
       },
       splitLine: {
-        lineStyle: { color: 'rgba(255,255,255,0.04)', type: 'dashed' },
+        lineStyle: { color: lineColor, type: 'dashed' },
       },
       axisLine: { show: false },
       axisTick: { show: false },
@@ -359,7 +391,7 @@ const tenGodChartOptions = computed(() => {
           formatter: '{c}%',
           fontSize: 10,
           fontWeight: '600',
-          color: 'rgba(255,255,255,0.65)',
+          color: mutedColor,
           distance: 6,
         },
         emphasis: {
@@ -382,15 +414,15 @@ const tenGodChartOptions = computed(() => {
     <!-- Constellation decoration -->
     <div class="chart-bg" aria-hidden="true">
       <svg viewBox="0 0 600 200" preserveAspectRatio="xMidYMid slice" class="bg-svg">
-        <circle cx="50" cy="30" r="1" fill="#cbd5e1" opacity="0.2" />
-        <circle cx="550" cy="40" r="1.2" fill="#cbd5e1" opacity="0.25" />
-        <circle cx="300" cy="100" r="1.5" fill="#cbd5e1" opacity="0.15" />
+        <circle cx="50" cy="30" r="1" fill="currentColor" opacity="0.2" />
+        <circle cx="550" cy="40" r="1.2" fill="currentColor" opacity="0.25" />
+        <circle cx="300" cy="100" r="1.5" fill="currentColor" opacity="0.15" />
         <line
           x1="50"
           y1="30"
           x2="300"
           y2="100"
-          stroke="#cbd5e1"
+          stroke="currentColor"
           stroke-width="0.3"
           opacity="0.05"
         />
@@ -399,7 +431,7 @@ const tenGodChartOptions = computed(() => {
           y1="40"
           x2="300"
           y2="100"
-          stroke="#cbd5e1"
+          stroke="currentColor"
           stroke-width="0.3"
           opacity="0.05"
         />
@@ -1145,7 +1177,7 @@ const tenGodChartOptions = computed(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(203,213,225,0.35);
+  color: var(--text-soft);
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -1192,7 +1224,7 @@ const tenGodChartOptions = computed(() => {
 
 .bento-label {
   font-size: 0.65rem;
-  color: rgba(255,255,255,0.4);
+  color: var(--text-muted);
   letter-spacing: 1px;
   margin-bottom: 0.4rem;
   font-weight: 600;
@@ -1262,7 +1294,7 @@ const tenGodChartOptions = computed(() => {
 .bento-day-label {
   text-align: center;
   font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-muted);
 }
 
 .bento-day-body {
@@ -1340,7 +1372,7 @@ const tenGodChartOptions = computed(() => {
   border-radius: 4px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.6);
+  color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 0.5px;
   margin-top: 0.2rem;
@@ -1351,7 +1383,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.15rem 0.5rem;
   background: rgba(203,213,225,0.08);
   border-color: rgba(203,213,225,0.15);
-  color: #cbd5e1;
+  color: var(--accent);
 }
 
 /* ===== 天干地支关系 — 紧凑内联布局 ===== */
@@ -1371,7 +1403,7 @@ const tenGodChartOptions = computed(() => {
   gap: 6px;
   font-size: 0.65rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   letter-spacing: 1.5px;
   margin-bottom: 0.35rem;
 }
@@ -1392,7 +1424,7 @@ const tenGodChartOptions = computed(() => {
 .relations-count {
   font-size: 0.55rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-soft);
   margin-left: auto;
   letter-spacing: 0.5px;
 }
@@ -1472,7 +1504,7 @@ const tenGodChartOptions = computed(() => {
 .tag-rel-hui { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
 
 .gz-text {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   font-size: 0.68rem;
   line-height: 1.3;
   min-width: 0;
@@ -1485,7 +1517,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.4rem 1rem;
   text-align: center;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.15);
+  color: var(--text-soft);
   border-bottom: 1px solid rgba(255,255,255, 0.04);
   display: flex;
   align-items: center;
@@ -1495,7 +1527,7 @@ const tenGodChartOptions = computed(() => {
 
 .no-rel-icon {
   font-size: 0.5rem;
-  color: rgba(255,255,255, 0.25);
+  color: var(--text-soft);
 }
 
 /* Analysis sections */
@@ -1521,7 +1553,7 @@ const tenGodChartOptions = computed(() => {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-dim);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 1px;
@@ -1529,8 +1561,8 @@ const tenGodChartOptions = computed(() => {
   white-space: nowrap;
   transition: all 0.3s;
 }
-.tab-btn:hover { color: rgba(255,255,255, 0.7); }
-.tab-btn.active { color: #cbd5e1; border-bottom-color: #cbd5e1; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab-content {
   display: flex;
   flex-direction: column;
@@ -1548,7 +1580,7 @@ const tenGodChartOptions = computed(() => {
 .block-desc {
   display: block;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-soft);
   line-height: 1.5;
   margin-top: -0.3rem;
   margin-bottom: 0.5rem;
@@ -1574,7 +1606,7 @@ const tenGodChartOptions = computed(() => {
 
 .god-pillar {
   font-size: 0.65rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin-bottom: 0.2rem;
 }
 
@@ -1659,7 +1691,7 @@ const tenGodChartOptions = computed(() => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-dim);
 }
 
 .nayin-detail-value {
@@ -1706,7 +1738,7 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-age {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-dim);
   margin-bottom: 0.3rem;
   white-space: nowrap;
 }
@@ -1764,7 +1796,7 @@ const tenGodChartOptions = computed(() => {
   font-family: var(--font-serif), serif;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   line-height: 1.2;
 }
 
@@ -1781,7 +1813,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.4rem 0.75rem;
   background: rgba(255, 255, 255, 0.03);
   font-size: 0.65rem;
-  color: var(--muted);
+  color: var(--text-muted);
   letter-spacing: 0.5px;
   border-bottom: 1px solid rgba(255,255,255, 0.08);
 }
@@ -1809,7 +1841,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .level-none { background: rgba(255, 255, 255, 0.01); }
-.level-weak .ed-total { color: rgba(255, 255, 255, 0.4); }
+.level-weak .ed-total { color: var(--text-dim); }
 .level-medium .ed-total { color: #9ca3af; }
 .level-strong .ed-total { color: #fbbf24; font-weight: 700; }
 .level-very-strong .ed-total { color: #f97316; font-weight: 800; }
@@ -1914,7 +1946,7 @@ const tenGodChartOptions = computed(() => {
 
 .pattern-desc {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   line-height: 1.65;
   margin: 0;
 }
@@ -1991,7 +2023,7 @@ const tenGodChartOptions = computed(() => {
 
 .ming-gong-nayin {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-muted);
 }
 
 .ming-gong-shensha {
@@ -2008,7 +2040,7 @@ const tenGodChartOptions = computed(() => {
   font-weight: 600;
   white-space: nowrap;
   background: rgba(100, 100, 100, 0.25);
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text);
 }
 
 .shensha-badge.shensha-ji {
@@ -2025,13 +2057,13 @@ const tenGodChartOptions = computed(() => {
 
 .shensha-desc {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
   line-height: 1.55;
 }
 
 .ming-gong-zhi {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   line-height: 1.6;
   border-left: 2px solid rgba(255,255,255, 0.25);
   padding-left: 0.6rem;
@@ -2039,7 +2071,7 @@ const tenGodChartOptions = computed(() => {
 
 .tiaohou-source {
   font-size: 0.65rem;
-  color: rgba(203,213,225,0.55);
+  color: var(--text-muted);
   font-weight: 400;
   margin-left: 0.4rem;
   font-style: italic;
@@ -2068,23 +2100,23 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-arrow {
-  color: rgba(240,237,228,0.5);
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
 .tiaohou-month {
   font-size: 1.3rem;
   font-weight: 700;
-  color: rgba(240,237,228,0.85);
+  color: var(--text);
 }
 
 .tiaohou-divider {
-  color: rgba(203,213,225,0.35);
+  color: var(--text-soft);
   margin: 0 0.2rem;
 }
 
 .tiaohou-label {
-  color: rgba(240,237,228,0.45);
+  color: var(--text-soft);
   font-size: 0.78rem;
 }
 
@@ -2095,7 +2127,7 @@ const tenGodChartOptions = computed(() => {
 
 .tiaohou-summary {
   font-size: 0.82rem;
-  color: rgba(255,255,255,0.7);
+  color: var(--text);
   line-height: 1.65;
   margin-bottom: 0.8rem;
 }
@@ -2126,7 +2158,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-reason {
-  color: rgba(255,255,255,0.55);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -2134,7 +2166,7 @@ const tenGodChartOptions = computed(() => {
 .jin-bu-huan-text,
 .season-text {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-muted);
   line-height: 1.7;
   white-space: pre-wrap;
   margin: 0;
@@ -2143,7 +2175,7 @@ const tenGodChartOptions = computed(() => {
 
 .sheng-xiao-tag {
   font-size: 0.6rem;
-  color: rgba(255,255,255, 0.5);
+  color: var(--text-muted);
   letter-spacing: 1px;
 }
 
@@ -2190,13 +2222,13 @@ const tenGodChartOptions = computed(() => {
   border-radius: 999px;
   background: rgba(255,255,255, 0.1);
   border: 1px solid rgba(255,255,255, 0.18);
-  color: rgba(240, 237, 228, 0.86);
+  color: var(--text);
   font-size: 0.68rem;
   font-weight: 700;
 }
 
 .shen-sha-desc {
-  color: rgba(240, 237, 228, 0.58);
+  color: var(--text-muted);
   font-size: 0.72rem;
   line-height: 1.45;
 }
@@ -2225,7 +2257,7 @@ const tenGodChartOptions = computed(() => {
   font-family: var(--font-sans), sans-serif;
   font-size: 0.66rem;
   font-weight: 400;
-  color: rgba(240, 237, 228, 0.4);
+  color: var(--text-soft);
   letter-spacing: 0.03em;
 }
 
@@ -2239,7 +2271,7 @@ const tenGodChartOptions = computed(() => {
 .shen-sha-summary-title {
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(240, 237, 228, 0.65);
+  color: var(--text-muted);
   margin-bottom: 0.45rem;
 }
 
@@ -2254,7 +2286,7 @@ const tenGodChartOptions = computed(() => {
 
 .shen-sha-summary-list li {
   font-size: 0.7rem;
-  color: rgba(240, 237, 228, 0.48);
+  color: var(--text-muted);
   line-height: 1.5;
   padding-left: 0.65rem;
   position: relative;
@@ -2264,7 +2296,7 @@ const tenGodChartOptions = computed(() => {
   content: '–';
   position: absolute;
   left: 0;
-  color: rgba(255,255,255, 0.3);
+  color: var(--text-soft);
 }
 
 .ten-god-chart-wrap {
@@ -2286,11 +2318,11 @@ const tenGodChartOptions = computed(() => {
   --el-color-primary: #cbd5e1;
 }
 .ten-god-tabs .el-tabs__item {
-  color: rgba(255,255,255,0.55);
+  color: var(--text-muted);
   font-size: 13px;
 }
 .ten-god-tabs .el-tabs__item.is-active {
-  color: #cbd5e1;
+  color: var(--accent);
 }
 .ten-god-tabs .el-tabs__nav-wrap::after {
   background: rgba(255,255,255,0.06);
@@ -2302,12 +2334,12 @@ const tenGodChartOptions = computed(() => {
   padding: 1rem 1.25rem;
   font-size: 14px;
   line-height: 1.8;
-  color: rgba(255,255,255,0.85);
+  color: var(--text);
 }
 .tg-text {
   font-size: 14px;
   line-height: 1.8;
-  color: rgba(255,255,255,0.8);
+  color: var(--text);
 }
 .tg-god-list {
   display: flex;
@@ -2329,22 +2361,22 @@ const tenGodChartOptions = computed(() => {
 .tg-god-name {
   font-weight: 600;
   font-size: 14px;
-  color: #cbd5e1;
+  color: var(--accent);
 }
 .tg-god-pct {
   font-size: 13px;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-muted);
 }
 .tg-god-meaning {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255,255,255,0.75);
+  color: var(--text);
   margin-bottom: 4px;
 }
 .tg-god-advice {
   font-size: 12px;
   line-height: 1.6;
-  color: rgba(203,213,225,0.7);
+  color: var(--text);
 }
 
 /* WuXingFlow 五行流通 */
@@ -2356,19 +2388,19 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid rgba(203,213,225,0.06);
 }
 .wf-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-.wf-label { font-size: 0.65rem; color: var(--muted); }
+.wf-label { font-size: 0.65rem; color: var(--text-muted); }
 .wf-elem { font-size: 0.85rem; font-weight: 700; }
-.wf-type { font-size: 0.7rem; color: var(--muted); padding: 0.1rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 4px; }
+.wf-type { font-size: 0.7rem; color: var(--text-muted); padding: 0.1rem 0.4rem; background: rgba(255,255,255,0.03); border-radius: 4px; }
 .wf-status { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 4px; }
 .wf-smooth { color: #4ade80; background: rgba(74,222,128,0.1); }
 .wf-blocked { color: #fb7185; background: rgba(251,113,133,0.1); }
 .wf-paths { display: flex; flex-direction: column; gap: 0.25rem; }
-.wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+.wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-muted); }
 .wf-path-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 .wf-blocked-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
 .wf-blocked-label { color: #fb7185; font-size: 0.65rem; }
 .wf-blocked-elem { font-weight: 600; }
-.wf-verdict { font-size: 0.72rem; color: rgba(255,255,255,0.5); font-style: italic; }
+.wf-verdict { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
 .wf-advice { font-size: 0.72rem; color: var(--accent); opacity: 0.8; }
 
 /* TongGuan 通关用神 */
@@ -2380,7 +2412,7 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid rgba(203,213,225,0.06);
 }
 .tg-elem { font-size: 1.4rem; font-weight: 900; font-family: var(--font-serif); }
-.tg-desc { font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5; }
+.tg-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
 
 /* MissingElements 缺失五行 */
 .missing-elem-card {
@@ -2391,12 +2423,12 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid rgba(203,213,225,0.06);
 }
 .me-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-.me-label { font-size: 0.65rem; color: var(--muted); min-width: 28px; }
+.me-label { font-size: 0.65rem; color: var(--text-muted); min-width: 28px; }
 .me-tag { font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.4rem; border: 1px solid; border-radius: 4px; }
 .me-missing { background: rgba(251,113,133,0.06); }
 .me-remedy { background: rgba(74,222,128,0.06); }
 .me-severity { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.25rem; }
-.me-轻微 { color: #cbd5e1; background: rgba(203,213,225,0.1); }
+.me-轻微 { color: var(--accent); background: rgba(203,213,225,0.1); }
 .me-中等 { color: #fb7185; background: rgba(251,113,133,0.1); }
 .me-严重 { color: #fb7185; background: rgba(251,113,133,0.2); }
 
@@ -2435,7 +2467,7 @@ const tenGodChartOptions = computed(() => {
 .df-age {
   font-size: 0.6rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-dim);
   white-space: nowrap;
 }
 
@@ -2467,7 +2499,7 @@ const tenGodChartOptions = computed(() => {
 
 .dfb-增强 { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.18); }
 .dfb-减弱 { color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.18); }
-.dfb-不变 { color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+.dfb-不变 { color: var(--text-dim); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
 
 .df-增强 { border-left: 3px solid rgba(74, 222, 128, 0.4); }
 .df-减弱 { border-left: 3px solid rgba(248, 113, 113, 0.4); }
@@ -2475,7 +2507,7 @@ const tenGodChartOptions = computed(() => {
 
 .df-impact {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 </style>
@@ -2483,14 +2515,14 @@ const tenGodChartOptions = computed(() => {
 <style>
 /* NaYin popover — dark theme to match app */
 .nayin-popover {
-  background: #030404 !important;
+  background: var(--surface-1) !important;
   border: 1px solid rgba(255,255,255,0.1) !important;
   border-radius: 10px !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(203,213,225, 0.08) !important;
   padding: 14px 16px !important;
-  color: #f0ede4;
+  color: var(--text);
 }
 .nayin-popover .el-popover__title {
-  color: #f0ede4;
+  color: var(--text);
 }
 </style>

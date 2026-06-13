@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '../api/client'
-
 import ShaderBackground from '../components/ShaderBackground.vue'
+
 
 interface BirthChart {
   id: number
@@ -91,7 +91,7 @@ onMounted(() => {
 
 <template>
   <div class="history-page">
-    <ShaderBackground shader-type="spiral" />
+    <ShaderBackground yongshen="shui" shader-type="grainGradient" :overlay-opacity="0.68" />
 
     <div class="page-inner">
       <div class="history-header">
@@ -169,7 +169,7 @@ onMounted(() => {
               cx="40"
               cy="40"
               r="35"
-              stroke="#cbd5e1"
+              stroke="currentColor"
               stroke-width="0.5"
               stroke-dasharray="2 3"
               opacity="0.3"
@@ -178,16 +178,16 @@ onMounted(() => {
               cx="40"
               cy="40"
               r="20"
-              stroke="#cbd5e1"
+              stroke="currentColor"
               stroke-width="0.5"
               stroke-dasharray="1 4"
               opacity="0.2"
             />
-            <circle cx="40" cy="40" r="4" fill="#cbd5e1" opacity="0.3" />
-            <circle cx="20" cy="25" r="2" fill="#cbd5e1" opacity="0.4" />
-            <circle cx="60" cy="22" r="2.5" fill="#cbd5e1" opacity="0.3" />
-            <circle cx="62" cy="55" r="2" fill="#cbd5e1" opacity="0.35" />
-            <circle cx="22" cy="58" r="2.5" fill="#cbd5e1" opacity="0.3" />
+            <circle cx="40" cy="40" r="4" fill="currentColor" opacity="0.3" />
+            <circle cx="20" cy="25" r="2" fill="currentColor" opacity="0.4" />
+            <circle cx="60" cy="22" r="2.5" fill="currentColor" opacity="0.3" />
+            <circle cx="62" cy="55" r="2" fill="currentColor" opacity="0.35" />
+            <circle cx="22" cy="58" r="2.5" fill="currentColor" opacity="0.3" />
           </svg>
         </div>
         <p class="empty-title">暂无历史记录</p>
@@ -204,7 +204,7 @@ onMounted(() => {
 <style scoped>
 .history-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -224,7 +224,7 @@ onMounted(() => {
 .header-eyebrow {
   font-size: 10px;
   letter-spacing: 3px;
-  color: rgba(203, 213, 225, 0.35);
+  color: var(--text-soft);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
@@ -240,7 +240,7 @@ onMounted(() => {
 
 .page-subtitle {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -253,8 +253,8 @@ onMounted(() => {
 
 .chart-card {
   position: relative;
-  background: linear-gradient(160deg, rgba(12, 12, 14, 0.92), rgba(6, 6, 8, 0.96));
-  border: 1px solid rgba(203, 213, 225, 0.12);
+  background: color-mix(in oklab, var(--surface-1) 84%, transparent);
+  border: 1px solid var(--line-strong);
   border-radius: 16px;
   padding: 1rem 1.125rem;
   cursor: pointer;
@@ -265,17 +265,17 @@ onMounted(() => {
 .card-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(203, 213, 225, 0.04), transparent 70%);
+  background: radial-gradient(circle at 50% 0%, var(--accent-dim), transparent 70%);
   opacity: 0;
   transition: opacity 0.3s;
 }
 
 .chart-card:hover {
-  border-color: rgba(203, 213, 225, 0.3);
+  border-color: var(--line-focus);
   transform: translateY(-2px);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(203, 213, 225, 0.06);
+    var(--shadow-md),
+    0 0 20px var(--accent-dim);
 }
 
 .chart-card:hover .card-glow {
@@ -316,7 +316,7 @@ onMounted(() => {
 
 .card-meta {
   font-size: 0.78rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0;
   display: flex;
   align-items: center;
@@ -326,20 +326,20 @@ onMounted(() => {
 .meta-tag {
   display: inline-block;
   padding: 0.1rem 0.5rem;
-  background: rgba(203, 213, 225, 0.08);
-  border: 1px solid rgba(203, 213, 225, 0.1);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-subtle);
   border-radius: 4px;
   font-size: 0.7rem;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
 }
 
 .meta-sep {
-  color: rgba(255, 255, 255, 0.08);
+  color: var(--text-soft);
 }
 
 .card-date {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-dim);
   margin: 0.2rem 0 0;
 }
 
@@ -367,7 +367,7 @@ onMounted(() => {
 
 .action-btn:hover {
   background: rgba(203, 213, 225, 0.1);
-  border-color: rgba(203, 213, 225, 0.3);
+  border-color: var(--text-soft);
   box-shadow: 0 0 12px rgba(203, 213, 225, 0.1);
 }
 
@@ -396,18 +396,19 @@ onMounted(() => {
 }
 
 .error-icon {
+  color: var(--danger);
   opacity: 0.6;
 }
 
 .error-text {
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
   background: linear-gradient(135deg, #fb7185, #be123c);
-  color: white;
+  color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -433,19 +434,19 @@ onMounted(() => {
 
 .page-btn {
   padding: 0.4rem 1rem;
-  border: 1px solid rgba(203, 213, 225, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-subtle);
+  background: var(--glass-bg);
   border-radius: 8px;
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .page-btn:not(:disabled):hover {
-  border-color: rgba(203, 213, 225, 0.3);
+  border-color: var(--line-focus);
   color: var(--accent);
-  background: rgba(203, 213, 225, 0.04);
+  background: var(--glass-bg-hover);
 }
 
 .page-btn:disabled {
@@ -455,7 +456,7 @@ onMounted(() => {
 
 .page-info {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 /* Empty state */
@@ -469,6 +470,7 @@ onMounted(() => {
 }
 
 .empty-icon {
+  color: var(--icon-muted);
   margin-bottom: 1.5rem;
   opacity: 0.5;
 }
@@ -482,7 +484,7 @@ onMounted(() => {
 
 .empty-sub {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--text-muted);
   margin: 0 0 2rem;
 }
 

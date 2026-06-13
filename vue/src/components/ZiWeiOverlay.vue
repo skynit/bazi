@@ -55,24 +55,24 @@ watch(() => props.liunianChart?.year, (y) => {
 
 // Gold palette for 本命盘
 const goldMeta: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fff' },
-  '旺': { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fff' },
-  '得': { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#fff' },
-  '利': { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#fff' },
-  '平': { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fff' },
-  '不': { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fff' },
-  '陷': { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#aaa' },
+  '庙': { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8' },
+  '旺': { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#10140f' },
+  '利': { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#00140e' },
+  '平': { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fffaf8' },
+  '不': { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fffaf8' },
+  '陷': { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#dbe4e8' },
 }
 
 // Purple palette for 流年盘
 const purpleMeta: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#7B2D8B,#4B0082)', text: '#fff' },
-  '旺': { bg: 'linear-gradient(135deg,#9B59B6,#8E44AD)', text: '#fff' },
-  '得': { bg: 'linear-gradient(135deg,#8E6DBB,#6B5B95)', text: '#fff' },
-  '利': { bg: 'linear-gradient(135deg,#5D4B8B,#4A3A7A)', text: '#fff' },
-  '平': { bg: 'linear-gradient(135deg,#7A6B9B,#655580)', text: '#fff' },
-  '不': { bg: 'linear-gradient(135deg,#6B5B95,#5A4A84)', text: '#ddd' },
-  '陷': { bg: 'linear-gradient(135deg,#3D2B5B,#2D1B4A)', text: '#999' },
+  '庙': { bg: 'linear-gradient(135deg,#7B2D8B,#4B0082)', text: '#fffaf8' },
+  '旺': { bg: 'linear-gradient(135deg,#9B59B6,#8E44AD)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#8E6DBB,#6B5B95)', text: '#fffaf8' },
+  '利': { bg: 'linear-gradient(135deg,#5D4B8B,#4A3A7A)', text: '#fffaf8' },
+  '平': { bg: 'linear-gradient(135deg,#7A6B9B,#655580)', text: '#fffaf8' },
+  '不': { bg: 'linear-gradient(135deg,#6B5B95,#5A4A84)', text: '#f0edf7' },
+  '陷': { bg: 'linear-gradient(135deg,#3D2B5B,#2D1B4A)', text: '#e3dff0' },
 }
 
 function baseMeta(brightness: string) {
@@ -560,13 +560,13 @@ function liunianStarsAt(b: string): string[] {
   padding: 0.45rem 1rem;
   border: none; border-radius: 7px;
   background: transparent;
-  color: rgba(255,255,255,0.35);
+  color: var(--text-dim);
   font-size: 0.8rem; font-weight: 600;
   cursor: pointer; transition: all 0.3s;
   letter-spacing: 0.5px;
 }
-.zw-tab:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.04); }
-.zw-tab.is-active { background: rgba(203, 213, 225,0.12); color: #cbd5e1; }
+.zw-tab:hover { color: var(--text-muted); background: rgba(255,255,255,0.04); }
+.zw-tab.is-active { background: rgba(203, 213, 225,0.12); color: var(--accent); }
 .zw-tab-dot {
   width: 7px; height: 7px; border-radius: 50%;
   flex-shrink: 0;
@@ -574,7 +574,7 @@ function liunianStarsAt(b: string): string[] {
 .zw-dot-gold { background: #cbd5e1; box-shadow: 0 0 8px rgba(203, 213, 225,0.5); }
 .zw-dot-purple { background: #8E6DBB; box-shadow: 0 0 8px rgba(142,109,187,0.5); }
 .zw-year-select { display: flex; align-items: center; gap: 0.5rem; }
-.zw-year-label { font-size: 0.78rem; color: rgba(255,255,255,0.35); letter-spacing: 1px; }
+.zw-year-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 1px; }
 .zw-select {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(142,109,187,0.25);
@@ -656,10 +656,10 @@ function liunianStarsAt(b: string): string[] {
 }
 .zw-palace-name {
   font-size: 0.7rem; font-weight: 800;
-  color: #cbd5e1; letter-spacing: 1px;
+  color: var(--accent); letter-spacing: 1px;
 }
 .zw-branch {
-  font-size: 0.58rem; color: rgba(203, 213, 225,0.3);
+  font-size: 0.58rem; color: var(--text-soft);
 }
 
 /* Stars */
@@ -669,7 +669,7 @@ function liunianStarsAt(b: string): string[] {
   border-radius: 4px;
   padding: 1px 5px;
   font-size: 0.68rem; font-weight: 800;
-  color: #fff;
+  color: var(--destructive-foreground);
   white-space: nowrap;
   letter-spacing: 0.5px;
   line-height: 1.4;
@@ -756,7 +756,7 @@ function liunianStarsAt(b: string): string[] {
 .zw-center-title {
   font-family: var(--font-serif);
   font-size: 0.78rem; font-weight: 800;
-  color: #cbd5e1; letter-spacing: 2px;
+  color: var(--accent); letter-spacing: 2px;
   text-shadow: 0 0 20px rgba(203, 213, 225,0.3);
   position: relative;
 }
@@ -765,8 +765,8 @@ function liunianStarsAt(b: string): string[] {
   text-shadow: 0 0 20px rgba(142,109,187,0.4);
 }
 .zw-center-row { display: flex; flex-direction: column; align-items: center; gap: 0; position: relative; }
-.zw-center-lbl { font-size: 0.55rem; color: rgba(255,255,255,0.2); letter-spacing: 1px; text-transform: uppercase; }
-.zw-center-val { font-size: 0.78rem; font-weight: 800; color: rgba(255,255,255,0.75); }
+.zw-center-lbl { font-size: 0.55rem; color: var(--text-soft); letter-spacing: 1px; text-transform: uppercase; }
+.zw-center-val { font-size: 0.78rem; font-weight: 800; color: var(--text); }
 .zw-year-val { color: #8E6DBB; font-size: 0.9rem; text-shadow: 0 0 15px rgba(142,109,187,0.4); }
 
 
@@ -785,7 +785,7 @@ function liunianStarsAt(b: string): string[] {
 .zw-swatch-focused { background: rgba(142, 109, 187, 0.5); border: 1px solid rgba(142, 109, 187, 0.7); }
 .zw-swatch-opposite { background: rgba(186, 130, 255, 0.4); border: 1px solid rgba(186, 130, 255, 0.6); }
 .zw-swatch-surrounded { background: rgba(206, 168, 255, 0.25); border: 1px solid rgba(206, 168, 255, 0.5); }
-.zw-legend-text { font-size: 0.72rem; color: rgba(255,255,255,0.35); letter-spacing: 1px; }
+.zw-legend-text { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 1px; }
 
 /* Body palace */
 .zw-cell-body { border: 1px solid rgba(139, 75, 75, 0.3); }
@@ -807,5 +807,5 @@ function liunianStarsAt(b: string): string[] {
 
 /* Twelve stars */
 .zw-twelve { display: flex; justify-content: center; margin-top: 1px; }
-.zw-twelve-tag { font-size: 0.5rem; color: #cbd5e1; background: rgba(203, 213, 225,0.08); padding: 0px 3px; border-radius: 2px; }
+.zw-twelve-tag { font-size: 0.5rem; color: var(--accent); background: rgba(203, 213, 225,0.08); padding: 0px 3px; border-radius: 2px; }
 </style>

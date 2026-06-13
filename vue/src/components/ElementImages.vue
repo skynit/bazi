@@ -30,7 +30,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
         v-for="(item, idx) in elements"
         :key="idx"
         class="element-card"
-        :style="{ '--elem-color': elementMap[item.element]?.color || '#999' }"
+        :style="{ '--elem-color': elementMap[item.element]?.color || '#8a9a8e' }"
       >
         <div class="card-glow"></div>
         <div
@@ -73,7 +73,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .header-text {
   font-size: 0.72rem;
   letter-spacing: 3px;
-  color: rgba(203, 213, 225, 0.3);
+  color: var(--text-soft);
   text-transform: uppercase;
 }
 
@@ -98,7 +98,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 }
 
 .element-card:hover {
-  border-color: rgba(203, 213, 225, 0.2);
+  border-color: var(--text-soft);
   transform: translateY(-2px);
 }
 
@@ -137,7 +137,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 
 .element-desc {
   font-size: 0.62rem;
-  color: rgba(139, 131, 120, 0.6);
+  color: var(--text-muted);
   text-align: center;
   margin: 0;
   line-height: 1.3;

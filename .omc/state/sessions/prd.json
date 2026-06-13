@@ -1,62 +1,63 @@
 {
-  "title": "全站页面背景升级：从CSS/SVG迁移到WebGL Shader质感背景",
+  "title": "白天模式 / Light Mode — jadense.com 风格双主题系统",
   "stories": [
     {
-      "id": "US-001",
-      "title": "创建通用ShaderBackground组件",
-      "description": "创建一个可复用的ShaderBackground.vue组件，封装@paper-design/shaders的ShaderMount，支持多种shader类型和五行主题切换，替代CosmicGrainBackground",
+      "id": "LM-001",
+      "title": "定义白天模式 CSS 设计令牌",
+      "description": "将颜色设计令牌从 .dark 块移至 :root 作为白天模式默认值。设计白天令牌基于 jadense.com 风格：白色背景、绿色主色、淡化阴影、毛玻璃效果。.dark 块覆盖为暗黑模式值。移除重复的 shadcn .dark 块。更新 body::before 辉光和 body::after 暗角适配双主题。",
       "priority": 1,
       "passes": true,
       "acceptanceCriteria": [
-        "ShaderBackground.vue组件存在于src/components/目录",
-        "组件接受shaderType prop（支持grainGradient、dithering、dotGrid等）",
-        "组件接受yongshen prop（支持mu/huo/tu/jin/shui五行切换）",
-        "组件在onMounted时正确初始化ShaderMount，onUnmounted时dispose",
-        "五行切换时调用setUniforms更新shader参数，颜色平滑过渡",
-        "组件不依赖外部图片输入"
+        ":root 包含完整的白天模式 shadcn 令牌（--background, --foreground, --primary 等）",
+        ":root 包含完整的 jadense 风格 surface hierarchy / line system / shadows / glass",
+        ":root 包含完整的白天模式 legacy Bazi 兼容变量（--bg, --text, --text-muted, --accent 等）",
+        ".dark 块覆盖所有颜色令牌为暗黑值",
+        "移除第二个重复的 .dark 块",
+        "body::before 使用 CSS 变量引用辉光颜色，在双主题下正确渲染",
+        ".dark body::after 覆盖暗角为暗黑版本",
+        "body 添加 transition 实现平滑主题切换"
       ]
     },
     {
-      "id": "US-002",
-      "title": "为各页面配置差异化shader类型和主题",
-      "description": "不同页面使用不同shader效果：登录/注册用dithering（质感纹理），排盘/紫微用grainGradient（流动渐变），运势页用dotGrid（点阵节奏），历史页用grainGradient，配合各页面五行主题色",
+      "id": "LM-002",
+      "title": "添加主题切换按钮到 App.vue 导航栏",
+      "description": "在导航栏右侧添加太阳/月亮图标切换按钮。实现 localStorage 持久化主题偏好。更新 index.html 移除硬编码 class='dark'，添加内联脚本防止 FOUC。",
       "priority": 2,
       "passes": true,
       "acceptanceCriteria": [
-        "LoginView和RegisterView使用dithering shader",
-        "ChartView和ZiWeiView使用grainGradient shader",
-        "FortuneView/WeeklyFortuneView/MonthlyFortuneView使用dotGrid shader",
-        "HistoryView使用grainGradient shader",
-        "每个页面的yongshen prop根据用户数据动态传递（有则传，无则默认mu）",
-        "所有页面移除CosmicGrainBackground导入和使用"
+        "导航栏右侧存在主题切换按钮，暗黑模式显示☀图标，白天模式显示☽图标",
+        "点击按钮切换 html 元素上的 .dark class",
+        "主题偏好保存到 localStorage('theme')",
+        "首次访问时检测 prefers-color-scheme: dark 媒体查询",
+        "index.html 内联脚本在页面渲染前设置 .dark class 防止 FOUC",
+        "按钮有适当的 aria-label"
       ]
     },
     {
-      "id": "US-003",
-      "title": "统一五行主题色体系",
-      "description": "确保ShaderBackground中的五行颜色与HomeView中已有的wuxingThemes保持一致，各shader类型正确映射五行色彩参数",
+      "id": "LM-003",
+      "title": "修复硬编码颜色适配双主题",
+      "description": "将 LoginView/RegisterView 输入框的硬编码 rgba(255,255,255,0.04) 背景改为 var(--glass-bg)。将 loading spinner 的硬编码颜色改为 currentColor。将 App.vue 下拉菜单的硬编码暗紫色背景改为 var(--surface-1)。",
       "priority": 3,
       "passes": true,
       "acceptanceCriteria": [
-        "ShaderBackground中的五行颜色与HomeView的wuxingThemes完全一致",
-        "grainGradient shader使用shaderBase+shaderGlow+黑色作为4色配置",
-        "dithering shader使用accentHex作为前景色，深色作为背景色",
-        "dotGrid shader使用accentHex作为点阵色，深色作为底色",
-        "切换五行时颜色过渡流畅，无闪烁"
+        "LoginView 输入框使用 var(--glass-bg) 替代硬编码白色背景",
+        "RegisterView 所有输入框使用 var(--glass-bg) 替代硬编码白色背景",
+        "LoginView/RegisterView spinner 使用 currentColor 替代 #030404",
+        "BirthInputForm spinner 使用 currentColor 替代 #0a0815",
+        "App.vue 运势下拉菜单使用 var(--surface-1) 替代硬编码 rgba(15,12,28,0.96)"
       ]
     },
     {
-      "id": "US-004",
-      "title": "页面CSS适配与验证",
-      "description": "调整各页面CSS确保shader背景正确叠加：z-index层级、页面容器定位、前景内容层级，确保视觉一致性和可读性",
+      "id": "LM-004",
+      "title": "构建验证与双主题完整性检查",
+      "description": "运行 vue-tsc 类型检查和 npm run build 构建验证。确认所有页面在双主题下颜色正常切换。",
       "priority": 4,
       "passes": true,
       "acceptanceCriteria": [
-        "所有页面shader canvas层正确铺满容器（absolute inset-0）",
-        "前景内容z-index高于shader层",
-        "页面文字在shader背景上清晰可读（必要时叠加暗色遮罩）",
-        "移动端响应式正常，shader不导致横向滚动",
-        "npm run build编译通过无错误"
+        "vue-tsc --noEmit 无错误",
+        "npm run build 构建成功",
+        "vite dev server 正常启动",
+        "所有 CSS 自定义属性在 :root 和 .dark 中正确级联"
       ]
     }
   ]

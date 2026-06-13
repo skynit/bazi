@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
@@ -37,7 +37,32 @@ const elementSeries = [
   { key: 'earth' as const, name: '土', color: '#fde68a' },
 ]
 
+const themeVersion = ref(0)
+let themeObserver: MutationObserver | null = null
+
+function cssVar(name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+onMounted(() => {
+  themeObserver = new MutationObserver(() => {
+    themeVersion.value += 1
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
+})
+
 const option = computed(() => {
+  themeVersion.value
+  const textColor = cssVar('--text', '#0f1712')
+  const mutedColor = cssVar('--text-muted', '#5a6a5e')
+  const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
+  const tooltipBg = cssVar('--surface-1', '#ffffff')
   const dates = props.dailyData.map((d) => d.date)
   const scores = props.dailyData.map((d) => d.score)
 
@@ -76,13 +101,13 @@ const option = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'cross' },
-      backgroundColor: 'rgba(3, 4, 4, 0.9)',
-      borderColor: 'rgba(203, 213, 225, 0.2)',
-      textStyle: { color: '#F0EDE4', fontSize: 11 },
+      backgroundColor: tooltipBg,
+      borderColor: lineColor,
+      textStyle: { color: textColor, fontSize: 11 },
     },
     legend: {
       bottom: 0,
-      textStyle: { color: 'rgba(203,213,225,0.5)', fontSize: 10 },
+      textStyle: { color: mutedColor, fontSize: 10 },
       itemWidth: 12,
       itemHeight: 8,
     },
@@ -91,14 +116,14 @@ const option = computed(() => {
       data: dates,
       axisLabel: {
         fontSize: 10,
-        color: 'rgba(139, 131, 120, 0.6)',
+        color: mutedColor,
         formatter: (val: string) => {
           const parts = val.split('-')
           if (parts.length === 3) return `${parts[1]}/${parts[2]}`
           return val
         },
       },
-      axisLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.1)' } },
+      axisLine: { lineStyle: { color: lineColor } },
       axisTick: { show: false },
     },
     yAxis: [
@@ -108,8 +133,8 @@ const option = computed(() => {
         min: 0,
         max: 100,
         interval: 20,
-        axisLabel: { fontSize: 10, color: 'rgba(139, 131, 120, 0.6)' },
-        splitLine: { lineStyle: { color: 'rgba(203, 213, 225, 0.06)', type: 'dashed' } },
+        axisLabel: { fontSize: 10, color: mutedColor },
+        splitLine: { lineStyle: { color: lineColor, type: 'dashed' } },
         axisLine: { show: false },
         axisTick: { show: false },
       },
@@ -139,7 +164,7 @@ const option = computed(() => {
             cx="50"
             cy="50"
             r="42"
-            stroke="#cbd5e1"
+            stroke="currentColor"
             stroke-width="0.5"
             stroke-dasharray="2 3"
             opacity="0.25"
@@ -148,18 +173,18 @@ const option = computed(() => {
             cx="50"
             cy="50"
             r="28"
-            stroke="#cbd5e1"
+            stroke="currentColor"
             stroke-width="0.5"
             stroke-dasharray="1 4"
             opacity="0.18"
           />
-          <circle cx="50" cy="50" r="5" fill="#cbd5e1" opacity="0.2" />
-          <circle cx="25" cy="32" r="2.5" fill="#cbd5e1" opacity="0.4" class="star-pulse" />
+          <circle cx="50" cy="50" r="5" fill="currentColor" opacity="0.2" />
+          <circle cx="25" cy="32" r="2.5" fill="currentColor" opacity="0.4" class="star-pulse" />
           <circle
             cx="75"
             cy="28"
             r="3"
-            fill="#cbd5e1"
+            fill="currentColor"
             opacity="0.35"
             class="star-pulse"
             style="animation-delay: 0.4s"
@@ -168,7 +193,7 @@ const option = computed(() => {
             cx="78"
             cy="68"
             r="2"
-            fill="#cbd5e1"
+            fill="currentColor"
             opacity="0.3"
             class="star-pulse"
             style="animation-delay: 0.8s"
@@ -177,7 +202,7 @@ const option = computed(() => {
             cx="22"
             cy="72"
             r="3"
-            fill="#cbd5e1"
+            fill="currentColor"
             opacity="0.35"
             class="star-pulse"
             style="animation-delay: 1.2s"
@@ -187,7 +212,7 @@ const option = computed(() => {
             y1="32"
             x2="50"
             y2="50"
-            stroke="#cbd5e1"
+            stroke="currentColor"
             stroke-width="0.4"
             opacity="0.08"
           />
@@ -196,7 +221,7 @@ const option = computed(() => {
             y1="28"
             x2="50"
             y2="50"
-            stroke="#cbd5e1"
+            stroke="currentColor"
             stroke-width="0.4"
             opacity="0.06"
           />
@@ -232,6 +257,7 @@ const option = computed(() => {
 
 .empty-constellation {
   animation: spin-slow 30s linear infinite;
+  color: var(--icon-muted);
   opacity: 0.7;
 }
 
@@ -261,14 +287,14 @@ const option = computed(() => {
 .empty-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(203, 213, 225, 0.4);
+  color: var(--text-muted);
   margin: 0;
   letter-spacing: 1px;
 }
 
 .empty-sub {
   font-size: 0.75rem;
-  color: rgba(139, 131, 120, 0.35);
+  color: var(--text-soft);
   margin: 0;
 }
 </style>
