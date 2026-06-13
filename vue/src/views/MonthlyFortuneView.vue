@@ -60,9 +60,11 @@ function currentYearMonth(): { year: number; month: number } {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 80) return '#4ADE80'
-  if (score >= 60) return 'var(--accent)'
-  return 'var(--danger)'
+  const t = Math.max(0, Math.min(1, score / 100))
+  const L = 0.22 + t * 0.58
+  const C = 0.05 + t * 0.13
+  const h = 155 - t * 5
+  return `oklch(${L} ${C} ${h})`
 }
 
 async function fetchMonthly() {
@@ -294,7 +296,7 @@ onMounted(() => {
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, #fb7185, #be123c);
+  background: var(--crimson);
   color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
@@ -302,12 +304,12 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.2);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--crimson) 20%, transparent);
 }
 
 .btn-retry:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.3);
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--crimson) 30%, transparent);
 }
 
 /* Header */
@@ -350,7 +352,7 @@ onMounted(() => {
 .score-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(203, 213, 225, 0.06), transparent 70%);
+  background: radial-gradient(circle at 50% 50%, var(--accent-dim), transparent 70%);
   pointer-events: none;
 }
 
@@ -386,7 +388,7 @@ onMounted(() => {
   color: var(--text);
   margin: 0 0 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(203, 213, 225, 0.1);
+  border-bottom: 1px solid var(--line-subtle);
   letter-spacing: 1px;
 }
 
@@ -406,16 +408,16 @@ onMounted(() => {
   background: transparent;
 }
 .daily-scroll::-webkit-scrollbar-thumb {
-  background: rgba(203, 213, 225, 0.2);
+  background: var(--line-strong);
   border-radius: 2px;
 }
 .daily-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(203, 213, 225, 0.4);
+  background: var(--line-focus);
 }
 
 .day-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(203, 213, 225, 0.08);
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
   border-radius: 10px;
   padding: 0.625rem 1rem;
   display: flex;
@@ -426,8 +428,8 @@ onMounted(() => {
 }
 
 .day-card:hover {
-  border-color: rgba(203, 213, 225, 0.2);
-  background: rgba(203, 213, 225, 0.03);
+  border-color: var(--line-strong);
+  background: var(--accent-dim);
 }
 
 .day-card-left {
@@ -443,8 +445,8 @@ onMounted(() => {
 .day-pillar {
   font-size: 1rem;
   font-weight: 800;
-  color: var(--danger);
-  text-shadow: 0 0 10px rgba(251, 113, 133, 0.3);
+  color: var(--accent);
+  text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 30%, transparent);
   min-width: 48px;
   text-align: center;
 }
@@ -479,11 +481,16 @@ onMounted(() => {
 }
 
 .nav-link:hover {
-  text-shadow: 0 0 12px rgba(203, 213, 225, 0.4);
+  text-shadow: 0 0 12px var(--accent-glow);
 }
 
 .nav-sep {
   color: var(--text-soft);
   font-size: 0.8rem;
 }
+
+:global(.dark) .day-pillar { text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 30%, transparent); }
+:global(.dark) .nav-link:hover { text-shadow: 0 0 12px rgba(203, 213, 225, 0.4); }
+:global(.dark) .daily-scroll::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.2); }
+:global(.dark) .daily-scroll::-webkit-scrollbar-thumb:hover { background: rgba(203, 213, 225, 0.4); }
 </style>

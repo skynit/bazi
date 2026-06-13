@@ -557,7 +557,7 @@ function onComputationComplete(): void {
 
 .btn-retry {
   padding: 0.5rem 1.75rem;
-  background: linear-gradient(135deg, #fb7185, #be123c);
+  background: linear-gradient(135deg, var(--crimson), #be123c);
   color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
@@ -587,8 +587,8 @@ function onComputationComplete(): void {
   align-items: center;
   gap: 8px;
   padding: 0.4rem 1rem;
-  background: rgba(203, 213, 225, 0.06);
-  border: 1px solid rgba(203, 213, 225, 0.15);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-strong);
   border-radius: 20px;
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -600,7 +600,7 @@ function onComputationComplete(): void {
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 8px rgba(203, 213, 225, 0.5);
+  box-shadow: 0 0 8px var(--accent-glow);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -635,7 +635,7 @@ function onComputationComplete(): void {
   position: absolute;
   width: 300px;
   height: 60px;
-  background: radial-gradient(circle, rgba(203, 213, 225, 0.06), transparent 70%);
+  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
   pointer-events: none;
 }
 
@@ -644,22 +644,22 @@ function onComputationComplete(): void {
   align-items: center;
   gap: 8px;
   padding: 0.875rem 2.5rem;
-  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-  color: #030404;
+  background: linear-gradient(135deg, var(--accent), #94a3b8);
+  color: var(--bg);
   font-weight: 700;
   font-size: 0.95rem;
   border: none;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 24px rgba(203, 213, 225, 0.25);
+  box-shadow: 0 4px 24px var(--accent-glow);
   text-decoration: none;
   letter-spacing: 1px;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 36px rgba(203, 213, 225, 0.4);
+  box-shadow: 0 8px 36px var(--accent-glow);
 }
 
 .btn-secondary {
@@ -671,7 +671,7 @@ function onComputationComplete(): void {
   color: var(--accent);
   font-weight: 600;
   font-size: 0.95rem;
-  border: 1px solid rgba(203, 213, 225, 0.25);
+  border: 1px solid var(--line-strong);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
@@ -680,8 +680,8 @@ function onComputationComplete(): void {
 
 .btn-secondary:hover {
   border-color: var(--text-muted);
-  background: rgba(203, 213, 225, 0.06);
-  box-shadow: 0 0 20px rgba(203, 213, 225, 0.1);
+  background: var(--accent-dim);
+  box-shadow: 0 0 20px var(--accent-dim);
 }
 
 .btn-icon {
@@ -771,8 +771,8 @@ function onComputationComplete(): void {
   align-items: center;
   gap: 8px;
   padding: 0.4rem 1rem;
-  background: rgba(203, 213, 225, 0.06);
-  border: 1px solid rgba(203, 213, 225, 0.15);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-strong);
   border-radius: 20px;
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -799,8 +799,8 @@ function onComputationComplete(): void {
   border-color: var(--text-soft);
   transform: translateY(-1px);
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    0 0 16px rgba(203, 213, 225, 0.06);
+    var(--shadow-md),
+    0 0 16px var(--accent-dim);
 }
 
 .picker-avatar {
@@ -808,7 +808,7 @@ function onComputationComplete(): void {
   height: 40px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), #94a3b8);
-  color: #0a0815;
+  color: var(--bg);
   font-size: 1rem;
   font-weight: 700;
   display: flex;
@@ -861,7 +861,7 @@ function onComputationComplete(): void {
 .divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
 }
 
 .divider-text {
@@ -880,7 +880,7 @@ function onComputationComplete(): void {
   color: var(--accent);
   font-weight: 600;
   font-size: 0.9rem;
-  border: 1px solid rgba(203, 213, 225, 0.25);
+  border: 1px solid var(--line-strong);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
@@ -889,8 +889,8 @@ function onComputationComplete(): void {
 
 .btn-new-chart:hover {
   border-color: var(--text-muted);
-  background: rgba(203, 213, 225, 0.06);
-  box-shadow: 0 0 20px rgba(203, 213, 225, 0.12);
+  background: var(--accent-dim);
+  box-shadow: 0 0 20px var(--accent-dim);
   transform: translateY(-1px);
 }
 

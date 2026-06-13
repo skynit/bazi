@@ -123,7 +123,7 @@ onMounted(() => {
 }
 
 .log-terminal {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 1.25rem;
@@ -178,8 +178,8 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  background: rgba(52, 211, 153, 0.06);
-  border: 1px solid rgba(52, 211, 153, 0.2);
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.2);
   border-radius: 20px;
   font-size: 0.72rem;
   color: var(--wuxing-mu);
@@ -197,5 +197,10 @@ onMounted(() => {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+:global(.dark) .log-complete-badge {
+  background: rgba(52, 211, 153, 0.06);
+  border-color: rgba(52, 211, 153, 0.2);
 }
 </style>

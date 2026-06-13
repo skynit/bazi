@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 interface ElementImage { element: string; image_url: string; description: string }
 interface ShengKeAnalysis { day_stem_relation?: string; day_branch_relation?: string; summary?: string }
@@ -57,6 +57,15 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const showAiModal = ref(false)
 const activeTab = ref('overview')
+const isDark = ref(document.documentElement.classList.contains('dark'))
+let themeObserver: MutationObserver | null = null
+onMounted(() => {
+  themeObserver = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+onUnmounted(() => { themeObserver?.disconnect() })
 const dfTabs = [
   { key: 'overview', label: '今日概览' },
   { key: 'almanac', label: '黄历' },
@@ -64,7 +73,10 @@ const dfTabs = [
   { key: 'rikuyo', label: '日课推算' },
   { key: 'elements', label: '五行吉时' },
 ]
-const elementEntries = [['金','#cbd5e1'],['木','#34d399'],['水','#22d3ee'],['火','#fb7185'],['土','#fde68a']] as [string,string][]
+const elementEntries = computed(() => {
+  if (isDark.value) return [['金','#cbd5e1'],['木','#34d399'],['水','#22d3ee'],['火','#fb7185'],['土','#fde68a']] as [string,string][]
+  return [['金','#94a3b8'],['木','#16a34a'],['水','#0891b2'],['火','#dc2626'],['土','#a16207']] as [string,string][]
+})
 function elPct(el: string) {
   const n = props.todayElements || {}, t = Object.values(n).reduce((s,v) => s + v, 0)
   return t ? Math.round(((n[el]||0)/t)*100) : 0
@@ -275,7 +287,7 @@ const jiItems = computed(() => {
           <path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z" stroke="currentColor" stroke-width="1" opacity="0.5"/>
         </svg>
         <span class="df-sec-title">日课推算</span>
-        <span v-if="favorScore" class="rikuyo-score-badge" :class="{ 'score-good': favorScore >= 60, 'score-mid': favorScore >= 40 && favorScore < 60, 'score-bad': favorScore < 40 }">{{ favorScore }}分</span>
+        <span v-if="favorScore" class="rikuyo-score-badge" :style="{ '--score-t': Math.max(0, Math.min(1, favorScore / 100)) }">{{ favorScore }}分</span>
       </div>
       <p class="rikuyo-verdict-text">{{ overallVerdict }}</p>
     </div>
@@ -537,13 +549,13 @@ const jiItems = computed(() => {
 .df-tabs::-webkit-scrollbar { display: none; }
 .df-tab-btn {
   padding: 0.6rem 1rem; flex-shrink: 0;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(203, 213, 225,0.08); border-radius: 8px;
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle); border-radius: 8px;
   color: var(--text-muted); font-size: 0.72rem; font-weight: 600;
   letter-spacing: 1px; cursor: pointer; white-space: nowrap; transition: all 0.3s;
 }
-.df-tab-btn:hover { color: var(--text); border-color: rgba(203, 213, 225,0.2); }
-.df-tab-btn.active { color: var(--accent); border-color: var(--text-soft); background: rgba(203, 213, 225,0.06); }
+.df-tab-btn:hover { color: var(--text); border-color: var(--line-strong); }
+.df-tab-btn.active { color: var(--accent); border-color: var(--line-focus); background: var(--accent-dim); }
 .df-tab-content { display: flex; flex-direction: column; gap: 0.75rem; transition: opacity 0.3s ease; }
 
 /* Header */
@@ -555,7 +567,7 @@ const jiItems = computed(() => {
 .df-header::after {
   content: ''; position: absolute; top: -20px; right: -20px;
   width: 100px; height: 100px;
-  background: radial-gradient(circle, rgba(251, 113, 133,0.07), transparent 70%);
+  background: radial-gradient(circle, color-mix(in oklab, var(--crimson) 7%, transparent), transparent 70%);
   pointer-events: none;
 }
 .df-date-col { display: flex; flex-direction: column; gap: 0.15rem; }
@@ -563,11 +575,11 @@ const jiItems = computed(() => {
 .df-weekday { font-size: 0.72rem; font-weight: 400; color: var(--text-dim); margin-left: 0.5rem; }
 .df-lunar { font-size: 0.72rem; color: var(--text-dim); margin: 0; }
 .df-pillar-col { display: flex; flex-direction: column; align-items: flex-end; position: relative; gap: 0.2rem; }
-.df-pillar-glow { position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(251, 113, 133,0.08), transparent 70%); pointer-events: none; }
+.df-pillar-glow { position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: radial-gradient(circle, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%); pointer-events: none; }
 .df-pillar-val {
   font-size: 2.75rem; font-weight: 950;
-  color: #fb7185; letter-spacing: 0.05em; line-height: 1;
-  text-shadow: 0 0 30px rgba(251, 113, 133,0.4);
+  color: var(--accent); letter-spacing: 0.05em; line-height: 1;
+  text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 40%, transparent);
 }
 .df-sx { font-size: 0.7rem; color: var(--text-soft); margin: 0; text-align: right; }
 
@@ -578,13 +590,13 @@ const jiItems = computed(() => {
   padding: 1rem 0.5rem;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-.df-lucky-cell:hover { border-color: rgba(203, 213, 225,0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.df-lucky-cell:hover { border-color: var(--line-strong); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 .lc-icon { display: flex; align-items: center; justify-content: center; height: 40px; color: var(--icon-muted); }
-.lc-color-dot { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.12); }
+.lc-color-dot { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line-strong); }
 .lc-lbl { font-size: 0.58rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.1em; }
 .lc-val { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-.lc-val-gold { color: var(--accent); font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 20px rgba(203, 213, 225,0.3); }
-.lc-val-red { color: #fb7185; font-size: 0.78rem; }
+.lc-val-gold { color: var(--accent); font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 20px var(--accent-glow); }
+.lc-val-red { color: var(--crimson); font-size: 0.78rem; }
 
 /* Yi Ji */
 .df-yiji { display: flex; overflow: hidden; }
@@ -594,18 +606,18 @@ const jiItems = computed(() => {
   display: inline-block; font-size: 0.72rem; font-weight: 800;
   padding: 0.15rem 0.7rem; border-radius: 4px; letter-spacing: 1px;
 }
-.yj-tag-yi { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
-.yj-tag-ji { background: rgba(251, 113, 133,0.1); color: #fb7185; border: 1px solid rgba(251, 113, 133,0.2); }
+.yj-tag-yi { background: rgba(22,163,74,0.1); color: #16a34a; border: 1px solid rgba(22,163,74,0.2); }
+.yj-tag-ji { background: rgba(220,38,38,0.1); color: #dc2626; border: 1px solid rgba(220,38,38,0.2); }
 .yj-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .yj-tag-item {
   display: inline-block; font-size: 0.72rem; padding: 0.2rem 0.5rem;
   border-radius: 4px; transition: all 0.2s; cursor: default;
 }
-.yj-tag-yi-item { background: rgba(74,222,128,0.04); border: 1px solid rgba(74,222,128,0.1); color: rgba(74,222,128,0.65); }
-.yj-tag-yi-item:hover { background: rgba(74,222,128,0.1); color: #4ade80; }
-.yj-tag-ji-item { background: rgba(251, 113, 133,0.04); border: 1px solid rgba(251, 113, 133,0.1); color: rgba(251, 113, 133,0.6); }
-.yj-tag-ji-item:hover { background: rgba(251, 113, 133,0.1); color: #fb7185; }
-.yj-divider { width: 1px; background: rgba(203, 213, 225,0.06); margin: 0.75rem 0; }
+.yj-tag-yi-item { background: rgba(22,163,74,0.04); border: 1px solid rgba(22,163,74,0.1); color: rgba(22,163,74,0.65); }
+.yj-tag-yi-item:hover { background: rgba(22,163,74,0.1); color: #16a34a; }
+.yj-tag-ji-item { background: rgba(220,38,38,0.04); border: 1px solid rgba(220,38,38,0.1); color: rgba(220,38,38,0.6); }
+.yj-tag-ji-item:hover { background: rgba(220,38,38,0.1); color: #dc2626; }
+.yj-divider { width: 1px; background: var(--line-subtle); margin: 0.75rem 0; }
 .yj-empty { font-size: 0.82rem; color: var(--text-soft); margin: 0.5rem 0; }
 
 /* Hours + Elements */
@@ -617,18 +629,18 @@ const jiItems = computed(() => {
 .df-hour-chip {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 0.25rem 0.65rem;
-  background: rgba(203, 213, 225,0.04);
-  border: 1px solid rgba(203, 213, 225,0.1);
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
   border-radius: 20px; font-size: 0.7rem;
   color: var(--text-muted);
   transition: all 0.25s;
 }
-.df-hour-chip:hover { background: rgba(203, 213, 225,0.1); border-color: rgba(203, 213, 225,0.25); color: var(--accent); }
+.df-hour-chip:hover { background: var(--accent-dim); border-color: var(--line-focus); color: var(--accent); }
 .df-hour-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); flex-shrink: 0; }
 .df-el-bars { display: flex; flex-direction: column; gap: 0.35rem; }
 .df-el-row { display: flex; align-items: center; gap: 0.4rem; }
 .df-el-name { width: 14px; font-size: 0.65rem; font-weight: 800; color: var(--text-soft); flex-shrink: 0; }
-.df-el-track { flex: 1; height: 5px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; }
+.df-el-track { flex: 1; height: 5px; background: var(--line-subtle); border-radius: 3px; overflow: hidden; }
 .df-el-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
 .df-el-num { width: 18px; font-size: 0.6rem; color: var(--text-soft); text-align: right; flex-shrink: 0; }
 
@@ -636,13 +648,13 @@ const jiItems = computed(() => {
 .df-ai-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   width: 100%; padding: 0.7rem 1rem;
-  background: rgba(255,255,255,0.02);
+  background: var(--glass-bg);
   color: var(--text-dim);
-  border: 1px solid rgba(203, 213, 225,0.1);
+  border: 1px solid var(--line-subtle);
   border-radius: 10px; font-size: 0.8rem; font-weight: 600;
   cursor: pointer; transition: all 0.3s; letter-spacing: 1.5px;
 }
-.df-ai-btn:hover { border-color: var(--text-soft); color: var(--accent); background: rgba(203, 213, 225,0.05); }
+.df-ai-btn:hover { border-color: var(--text-soft); color: var(--accent); background: var(--accent-dim); }
 .df-ai-btn-icon { font-size: 1rem; }
 
 /* TiaoHou */
@@ -662,15 +674,15 @@ const jiItems = computed(() => {
 .almanac-item {
   display: flex; flex-direction: column; gap: 0.15rem;
   padding: 0.4rem 0.5rem;
-  background: rgba(255,255,255,0.02);
+  background: var(--glass-bg);
   border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.03);
+  border: 1px solid var(--line-subtle);
 }
 .almanac-full { grid-column: 1 / -1; }
 .almanac-label { font-size: 0.58rem; color: var(--text-soft); letter-spacing: 0.5px; }
 .almanac-value { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
-.almanac-ji { color: #4ade80; }
-.almanac-xiong { color: #f08080; }
+.almanac-ji { color: #16a34a; }
+.almanac-xiong { color: #dc2626; }
 
 /* Analysis 运势分析 */
 .df-analysis { padding: 0.9rem; }
@@ -678,7 +690,7 @@ const jiItems = computed(() => {
 .analysis-item {
   display: flex; gap: 0.5rem; font-size: 0.72rem; line-height: 1.5;
   padding: 0.3rem 0.5rem;
-  background: rgba(255,255,255,0.015);
+  background: var(--glass-bg);
   border-radius: 5px;
 }
 .analysis-label { min-width: 56px; font-weight: 600; color: var(--text-soft); flex-shrink: 0; }
@@ -694,15 +706,15 @@ const jiItems = computed(() => {
 .df-modal-box { width: 100%; max-width: 380px; overflow: hidden; }
 .df-modal-hdr {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(203, 213, 225,0.07);
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--line-subtle);
 }
 .df-modal-title-group { display: flex; align-items: center; gap: 0.75rem; }
 .df-modal-orb {
   font-size: 1.6rem; color: var(--accent);
-  text-shadow: 0 0 25px rgba(203, 213, 225,0.5);
+  text-shadow: 0 0 25px var(--accent-glow);
   animation: orb-glow 3s ease-in-out infinite;
 }
-@keyframes orb-glow { 0%,100%{text-shadow:0 0 20px rgba(203, 213, 225,0.3)} 50%{text-shadow:0 0 40px rgba(203, 213, 225,0.7)} }
+@keyframes orb-glow { 0%,100%{text-shadow:0 0 20px var(--accent-glow)} 50%{text-shadow:0 0 40px var(--accent-glow)} }
 .df-modal-hdr h2 { margin: 0; font-family: var(--font-serif), serif; font-size: 1.05rem; font-weight: 700; color: var(--text); letter-spacing: 2px; }
 .df-modal-close { background: none; border: none; font-size: 1.2rem; color: var(--text-soft); cursor: pointer; padding: 0.25rem; transition: color 0.2s; }
 .df-modal-close:hover { color: var(--accent); }
@@ -728,15 +740,18 @@ const jiItems = computed(() => {
 .df-rikuyo-verdict { padding: 1rem; position: relative; }
 .df-rikuyo-verdict::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(203, 213, 225,0.5), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 .rikuyo-score-badge {
   margin-left: auto; font-size: 0.72rem; font-weight: 800;
   padding: 0.15rem 0.6rem; border-radius: 20px; letter-spacing: 0.5px;
+  --score-t: 0.5;
+  --score-l: calc(0.35 + var(--score-t) * 0.25);
+  --score-c: calc(0.06 + var(--score-t) * 0.08);
+  color: oklch(var(--score-l) var(--score-c) 152);
+  background: oklch(var(--score-l) var(--score-c) 152 / 0.12);
+  border: 1px solid oklch(var(--score-l) var(--score-c) 152 / 0.25);
 }
-.score-good { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-.score-mid { background: rgba(203, 213, 225,0.1); color: var(--accent); border: 1px solid rgba(203, 213, 225,0.25); }
-.score-bad { background: rgba(251, 113, 133,0.1); color: #fb7185; border: 1px solid rgba(251, 113, 133,0.25); }
 .rikuyo-verdict-text {
   font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;
   margin: 0.5rem 0 0; white-space: pre-wrap;
@@ -745,7 +760,7 @@ const jiItems = computed(() => {
 /* 格局信息 */
 .df-pattern-info { padding: 0.8rem 1rem; }
 .pattern-badge {
-  font-size: 0.7rem; color: var(--accent); background: rgba(203, 213, 225,0.1);
+  font-size: 0.7rem; color: var(--accent); background: var(--accent-dim);
   padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: auto;
 }
 .pattern-elements { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
@@ -753,29 +768,29 @@ const jiItems = computed(() => {
   font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px;
   font-weight: 600; letter-spacing: 0.5px;
 }
-.pattern-like { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
-.pattern-dislike { background: rgba(251, 113, 133,0.1); color: #fb7185; border: 1px solid rgba(251, 113, 133,0.2); }
+.pattern-like { background: rgba(22,163,74,0.1); color: #16a34a; border: 1px solid rgba(22,163,74,0.2); }
+.pattern-dislike { background: rgba(220,38,38,0.1); color: #dc2626; border: 1px solid rgba(220,38,38,0.2); }
 
 /* 十神 + 长生核心区 */
 .df-rikuyo-core { padding: 1rem; }
 .rikuyo-core-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .rikuyo-core-item {
   display: flex; flex-direction: column; gap: 0.25rem;
-  padding: 0.75rem; background: rgba(255,255,255,0.02);
-  border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
+  padding: 0.75rem; background: var(--glass-bg);
+  border-radius: 8px; border: 1px solid var(--line-subtle);
 }
 .rikuyo-core-label { font-size: 0.58rem; color: var(--text-soft); letter-spacing: 0.5px; text-transform: uppercase; }
 .rikuyo-core-value {
   font-family: var(--font-serif); font-size: 1.4rem; font-weight: 900;
   letter-spacing: 2px; line-height: 1.2;
 }
-.val-fav { color: #4ade80; text-shadow: 0 0 15px rgba(74,222,128,0.3); }
-.val-dis { color: #fb7185; text-shadow: 0 0 15px rgba(251, 113, 133,0.3); }
+.val-fav { color: oklch(0.55 0.14 150); text-shadow: 0 0 12px oklch(0.55 0.14 150 / 0.25); }
+.val-dis { color: oklch(0.30 0.06 155); text-shadow: 0 0 12px oklch(0.30 0.06 155 / 0.2); }
 .rikuyo-core-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; }
 .rikuyo-flexible {
   font-size: 0.72rem; color: var(--accent); font-style: italic;
-  padding: 0.3rem 0.5rem; background: rgba(203, 213, 225,0.06);
-  border-radius: 4px; border-left: 2px solid rgba(203, 213, 225,0.3);
+  padding: 0.3rem 0.5rem; background: var(--accent-dim);
+  border-radius: 4px; border-left: 2px solid var(--line-focus);
   margin-top: 0.25rem;
 }
 
@@ -785,10 +800,10 @@ const jiItems = computed(() => {
   margin-left: auto; font-size: 0.65rem; font-weight: 700;
   padding: 0.1rem 0.5rem; border-radius: 10px; letter-spacing: 0.5px;
 }
-.phase-adv { background: rgba(74,222,128,0.1); color: #4ade80; }
-.phase-peak { background: rgba(203, 213, 225,0.1); color: var(--accent); }
-.phase-ret { background: rgba(255,165,0,0.1); color: #ffa500; }
-.phase-dead { background: rgba(251, 113, 133,0.1); color: #fb7185; }
+.phase-adv { background: rgba(22,163,74,0.1); color: #16a34a; }
+.phase-peak { background: var(--accent-dim); color: var(--accent); }
+.phase-ret { background: rgba(194,65,12,0.1); color: #c2410c; }
+.phase-dead { background: rgba(220,38,38,0.1); color: #dc2626; }
 .rikuyo-advance-text { font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; margin: 0.4rem 0 0; }
 
 /* 藏干 */
@@ -797,16 +812,16 @@ const jiItems = computed(() => {
 .hidden-stem-card {
   display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
   padding: 0.6rem 0.8rem; border-radius: 8px; min-width: 60px;
-  border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02);
+  border: 1px solid var(--line-subtle); background: var(--glass-bg);
   transition: all 0.25s;
 }
-.hs-fav { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
-.hs-dis { border-color: rgba(251, 113, 133,0.12); background: rgba(251, 113, 133,0.03); }
+.hs-fav { border-color: rgba(22,163,74,0.15); background: rgba(22,163,74,0.03); }
+.hs-dis { border-color: rgba(220,38,38,0.12); background: rgba(220,38,38,0.03); }
 .hs-stem { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 900; color: var(--text); }
 .hs-type { font-size: 0.55rem; color: var(--text-soft); }
 .hs-god { font-size: 0.65rem; font-weight: 700; }
-.hs-fav .hs-god { color: #4ade80; }
-.hs-dis .hs-god { color: #fb7185; }
+.hs-fav .hs-god { color: #16a34a; }
+.hs-dis .hs-god { color: #dc2626; }
 .hs-elem { font-size: 0.55rem; color: var(--text-soft); }
 
 /* 干支关系 */
@@ -815,16 +830,16 @@ const jiItems = computed(() => {
 .relation-item {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.4rem 0.6rem; border-radius: 6px;
-  background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.03);
+  background: var(--glass-bg); border: 1px solid var(--line-subtle);
 }
-.rel-fav { border-color: rgba(74,222,128,0.1); }
-.rel-dis { border-color: rgba(251, 113, 133,0.08); }
+.rel-fav { border-color: rgba(22,163,74,0.15); }
+.rel-dis { border-color: rgba(220,38,38,0.12); }
 .rel-type-tag {
   font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.4rem;
   border-radius: 3px; flex-shrink: 0; letter-spacing: 0.5px;
 }
-.rel-fav .rel-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
-.rel-dis .rel-type-tag { background: rgba(251, 113, 133,0.08); color: #fb7185; }
+.rel-fav .rel-type-tag { background: rgba(22,163,74,0.08); color: #16a34a; }
+.rel-dis .rel-type-tag { background: rgba(220,38,38,0.08); color: #dc2626; }
 .rel-detail { font-size: 0.72rem; color: var(--text-muted); }
 .rel-note { font-size: 0.65rem; color: var(--accent); font-style: italic; margin-left: auto; }
 
@@ -833,16 +848,16 @@ const jiItems = computed(() => {
 .shensha-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .shensha-item {
   padding: 0.6rem 0.8rem; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.015);
+  border: 1px solid var(--line-subtle); background: var(--glass-bg);
 }
-.ss-ji { border-color: rgba(74,222,128,0.12); }
-.ss-xiong { border-color: rgba(251, 113, 133,0.1); }
+.ss-ji { border-color: rgba(22,163,74,0.15); }
+.ss-xiong { border-color: rgba(220,38,38,0.12); }
 .ss-name { font-size: 0.82rem; font-weight: 800; color: var(--text); margin-right: 0.5rem; }
 .ss-type-tag {
   font-size: 0.58rem; padding: 0.1rem 0.4rem; border-radius: 3px;
 }
-.ss-ji .ss-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
-.ss-xiong .ss-type-tag { background: rgba(251, 113, 133,0.08); color: #fb7185; }
+.ss-ji .ss-type-tag { background: rgba(22,163,74,0.08); color: #16a34a; }
+.ss-xiong .ss-type-tag { background: rgba(220,38,38,0.08); color: #dc2626; }
 .ss-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin: 0.3rem 0 0; }
 .ss-activation { font-size: 0.65rem; color: var(--text-soft); margin: 0.2rem 0 0; font-style: italic; }
 
@@ -851,14 +866,14 @@ const jiItems = computed(() => {
 .yun-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .yun-item {
   display: flex; flex-direction: column; gap: 0.2rem;
-  padding: 0.7rem; background: rgba(255,255,255,0.02);
-  border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
+  padding: 0.7rem; background: var(--glass-bg);
+  border-radius: 8px; border: 1px solid var(--line-subtle);
 }
 .yun-label { font-size: 0.58rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
 .yun-pillar { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 900; color: var(--text); letter-spacing: 2px; }
 .yun-god { font-size: 0.75rem; font-weight: 700; }
 .yun-age { font-size: 0.6rem; color: var(--text-soft); }
-.yun-taisui { font-size: 0.65rem; color: #fb7185; margin: 0.2rem 0 0; font-style: italic; }
+.yun-taisui { font-size: 0.65rem; color: var(--crimson); margin: 0.2rem 0 0; font-style: italic; }
 .yun-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; margin: 0.2rem 0 0; }
 
 /* 用神影响 */
@@ -867,13 +882,53 @@ const jiItems = computed(() => {
 .yongshen-item {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.5rem 0.7rem; border-radius: 6px;
-  background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.03);
+  background: var(--glass-bg); border: 1px solid var(--line-subtle);
   transition: all 0.25s;
 }
-.ys-hit { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
+.ys-hit { border-color: rgba(22,163,74,0.2); background: rgba(22,163,74,0.06); }
 .ys-label { font-size: 0.6rem; color: var(--text-soft); min-width: 56px; flex-shrink: 0; }
 .ys-elem { font-size: 0.82rem; font-weight: 700; color: var(--text); }
 .ys-status { font-size: 0.6rem; margin-left: auto; padding: 0.1rem 0.4rem; border-radius: 3px; }
-.ys-hit .ys-status { background: rgba(74,222,128,0.1); color: #4ade80; }
+.ys-hit .ys-status { background: rgba(22,163,74,0.1); color: #16a34a; }
 .yongshen-desc { font-size: 0.72rem; color: var(--text-muted); margin: 0.5rem 0 0; line-height: 1.5; }
+
+/* ═══ Dark mode overrides ═══ */
+:global(.dark) .yj-tag-yi { background: rgba(74,222,128,0.1); color: #4ade80; border-color: rgba(74,222,128,0.2); }
+:global(.dark) .yj-tag-ji { background: rgba(251,113,133,0.1); color: #fb7185; border-color: rgba(251,113,133,0.2); }
+:global(.dark) .yj-tag-yi-item { background: rgba(74,222,128,0.04); border-color: rgba(74,222,128,0.1); color: rgba(74,222,128,0.65); }
+:global(.dark) .yj-tag-yi-item:hover { background: rgba(74,222,128,0.1); color: #4ade80; }
+:global(.dark) .yj-tag-ji-item { background: rgba(251,113,133,0.04); border-color: rgba(251,113,133,0.1); color: rgba(251,113,133,0.6); }
+:global(.dark) .yj-tag-ji-item:hover { background: rgba(251,113,133,0.1); color: #fb7185; }
+:global(.dark) .almanac-ji { color: #4ade80; }
+:global(.dark) .almanac-xiong { color: #f08080; }
+:global(.dark) .rikuyo-score-badge {
+  --score-l: calc(0.30 + var(--score-t) * 0.42);
+  --score-c: calc(0.05 + var(--score-t) * 0.12);
+  color: oklch(var(--score-l) var(--score-c) 152);
+  background: oklch(var(--score-l) var(--score-c) 152 / 0.12);
+  border-color: oklch(var(--score-l) var(--score-c) 152 / 0.25);
+}
+:global(.dark) .pattern-like { background: rgba(74,222,128,0.1); color: #4ade80; border-color: rgba(74,222,128,0.2); }
+:global(.dark) .pattern-dislike { background: rgba(251,113,133,0.1); color: #fb7185; border-color: rgba(251,113,133,0.2); }
+:global(.dark) .val-fav { color: oklch(0.75 0.16 152); text-shadow: 0 0 15px oklch(0.75 0.16 152 / 0.3); }
+:global(.dark) .val-dis { color: oklch(0.35 0.07 155); text-shadow: 0 0 15px oklch(0.35 0.07 155 / 0.2); }
+:global(.dark) .phase-adv { background: rgba(74,222,128,0.1); color: #4ade80; }
+:global(.dark) .phase-ret { background: rgba(255,165,0,0.1); color: #ffa500; }
+:global(.dark) .phase-dead { background: rgba(251,113,133,0.1); color: #fb7185; }
+:global(.dark) .hs-fav { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
+:global(.dark) .hs-dis { border-color: rgba(251,113,133,0.12); background: rgba(251,113,133,0.03); }
+:global(.dark) .hs-fav .hs-god { color: #4ade80; }
+:global(.dark) .hs-dis .hs-god { color: #fb7185; }
+:global(.dark) .rel-fav { border-color: rgba(74,222,128,0.1); }
+:global(.dark) .rel-dis { border-color: rgba(251,113,133,0.08); }
+:global(.dark) .rel-fav .rel-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
+:global(.dark) .rel-dis .rel-type-tag { background: rgba(251,113,133,0.08); color: #fb7185; }
+:global(.dark) .ss-ji { border-color: rgba(74,222,128,0.12); }
+:global(.dark) .ss-xiong { border-color: rgba(251,113,133,0.1); }
+:global(.dark) .ss-ji .ss-type-tag { background: rgba(74,222,128,0.08); color: #4ade80; }
+:global(.dark) .ss-xiong .ss-type-tag { background: rgba(251,113,133,0.08); color: #fb7185; }
+:global(.dark) .ys-hit { border-color: rgba(74,222,128,0.15); background: rgba(74,222,128,0.03); }
+:global(.dark) .ys-hit .ys-status { background: rgba(74,222,128,0.1); color: #4ade80; }
+:global(.dark) .df-pillar-val { text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 40%, transparent); }
+:global(.dark) .lc-val-red { color: #fb7185; }
 </style>

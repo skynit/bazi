@@ -29,13 +29,26 @@ const props = withDefaults(
   },
 )
 
-const elementSeries = [
-  { key: 'metal' as const, name: '金', color: '#cbd5e1' },
-  { key: 'wood' as const, name: '木', color: '#34d399' },
-  { key: 'water' as const, name: '水', color: '#22d3ee' },
-  { key: 'fire' as const, name: '火', color: '#fb7185' },
-  { key: 'earth' as const, name: '土', color: '#fde68a' },
-]
+const isDark = ref(document.documentElement.classList.contains('dark'))
+
+const elementSeries = computed(() => {
+  if (isDark.value) {
+    return [
+      { key: 'metal' as const, name: '金', color: '#cbd5e1' },
+      { key: 'wood' as const, name: '木', color: '#34d399' },
+      { key: 'water' as const, name: '水', color: '#22d3ee' },
+      { key: 'fire' as const, name: '火', color: '#fb7185' },
+      { key: 'earth' as const, name: '土', color: '#fde68a' },
+    ]
+  }
+  return [
+    { key: 'metal' as const, name: '金', color: '#94a3b8' },
+    { key: 'wood' as const, name: '木', color: '#16a34a' },
+    { key: 'water' as const, name: '水', color: '#0891b2' },
+    { key: 'fire' as const, name: '火', color: '#dc2626' },
+    { key: 'earth' as const, name: '土', color: '#a16207' },
+  ]
+})
 
 const themeVersion = ref(0)
 let themeObserver: MutationObserver | null = null
@@ -48,6 +61,7 @@ function cssVar(name: string, fallback: string): string {
 onMounted(() => {
   themeObserver = new MutationObserver(() => {
     themeVersion.value += 1
+    isDark.value = document.documentElement.classList.contains('dark')
   })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
@@ -72,8 +86,8 @@ const option = computed(() => {
       type: 'line',
       yAxisIndex: 0,
       data: scores,
-      lineStyle: { color: '#fb7185', width: 2.5 },
-      itemStyle: { color: '#fb7185' },
+      lineStyle: { color: isDark.value ? '#4ade80' : '#16a34a', width: 2.5 },
+      itemStyle: { color: isDark.value ? '#4ade80' : '#16a34a' },
       symbol: 'circle',
       symbolSize: 6,
       smooth: true,
@@ -249,8 +263,8 @@ const option = computed(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed rgba(203, 213, 225, 0.12);
+  background: var(--glass-bg);
+  border: 1px dashed var(--line-subtle);
   border-radius: 12px;
   gap: 0.75rem;
 }

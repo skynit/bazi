@@ -167,15 +167,15 @@ async function handleSubmit() {
   justify-content: center;
   height: 70px;
   position: relative;
-  background: linear-gradient(180deg, rgba(203, 213, 225, 0.06), transparent);
-  border-bottom: 1px solid rgba(203, 213, 225, 0.06);
+  background: linear-gradient(180deg, var(--accent-dim), transparent);
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .ornament-ring {
   position: absolute;
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(203, 213, 225, 0.12);
+  border: 1px solid var(--line-focus);
   border-radius: 50%;
   animation: ring-pulse 3s ease-in-out infinite;
 }
@@ -195,17 +195,17 @@ async function handleSubmit() {
 .ornament-symbol {
   font-size: 1.75rem;
   color: var(--accent);
-  text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
+  text-shadow: 0 0 20px var(--accent-glow);
   animation: symbol-glow 3s ease-in-out infinite;
 }
 
 @keyframes symbol-glow {
   0%,
   100% {
-    text-shadow: 0 0 20px rgba(203, 213, 225, 0.4);
+    text-shadow: 0 0 20px var(--accent-glow);
   }
   50% {
-    text-shadow: 0 0 35px rgba(203, 213, 225, 0.6);
+    text-shadow: 0 0 35px var(--accent-glow);
   }
 }
 
@@ -247,6 +247,13 @@ async function handleSubmit() {
 
 .toggle-icon {
   font-size: 1rem;
+}
+
+.toggle-btn.btn-tech {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
 /* Date grid */
