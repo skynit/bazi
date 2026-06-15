@@ -5,12 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>bazi-frontend</title>
     <script>
-      (function() {
+      (function () {
+        var root = document.documentElement;
+
+        // ── Dark / light bootstrap ──
         var theme = localStorage.getItem('theme');
         var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         var isDark = theme === 'dark' || (!theme && prefersDark);
-        document.documentElement.classList.toggle('dark', isDark);
-        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+        root.classList.toggle('dark', isDark);
+        root.style.colorScheme = isDark ? 'dark' : 'light';
+
+        // ── Five-element bootstrap (no FOUC) ──
+        var WUXING = {
+          mu:   { hex: '#34d399', rgb: '34,211,153', dark: '#059669', btnText: '#00140e', primaryL: 'oklch(0.58 0.20 160)', primaryD: 'oklch(0.62 0.17 160)' },
+          huo:  { hex: '#fb7185', rgb: '251,113,133', dark: '#e11d48', btnText: '#190005', primaryL: 'oklch(0.62 0.22 12)',  primaryD: 'oklch(0.66 0.20 12)'  },
+          tu:   { hex: '#fcd34d', rgb: '252,211,77',  dark: '#d97706', btnText: '#1a1000', primaryL: 'oklch(0.74 0.16 78)',  primaryD: 'oklch(0.78 0.14 78)'  },
+          jin:  { hex: '#e2e8f0', rgb: '226,232,240', dark: '#94a3b8', btnText: '#030404', primaryL: 'oklch(0.62 0.04 240)', primaryD: 'oklch(0.78 0.03 240)' },
+          shui: { hex: '#22d3ee', rgb: '34,211,238',  dark: '#2563eb', btnText: '#001116', primaryL: 'oklch(0.66 0.14 220)', primaryD: 'oklch(0.74 0.14 220)' }
+        };
+        var key = localStorage.getItem('bazi_yongshen');
+        if (!WUXING[key]) key = 'mu';
+        var t = WUXING[key];
+        var s = root.style;
+        s.setProperty('--jade-accent', t.hex);
+        s.setProperty('--jade-accent-dark', t.dark);
+        s.setProperty('--jade-accent-rgb', t.rgb);
+        s.setProperty('--jade-button-text', t.btnText);
+        s.setProperty('--accent', t.hex);
+        s.setProperty('--accent-dim', 'rgba(' + t.rgb + ', 0.14)');
+        s.setProperty('--accent-glow', 'rgba(' + t.rgb + ', 0.22)');
+        s.setProperty('--line-focus', 'rgba(' + t.rgb + ', 0.30)');
+        s.setProperty('--brand-glow', 'rgba(' + t.rgb + ', 0.42)');
+        s.setProperty('--menu-hover', 'rgba(' + t.rgb + ', 0.10)');
+        s.setProperty('--primary', isDark ? t.primaryD : t.primaryL);
+        s.setProperty('--ring', 'rgba(' + t.rgb + ', 0.30)');
+        s.setProperty('--glow-primary', 'rgba(' + t.rgb + ', ' + (isDark ? 0.14 : 0.10) + ')');
+        root.dataset.wuxing = key;
       })();
     </script>
   </head>

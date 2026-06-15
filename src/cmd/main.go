@@ -7,6 +7,10 @@ import (
 	"bazi/internal/model"
 	"bazi/internal/service/bazi"
 	"bazi/internal/service/fortune"
+	"bazi/internal/service/interpretation"
+	"bazi/internal/service/localrag"
+	"bazi/internal/service/rag"
+	"bazi/internal/service/ragflow"
 	"bazi/internal/service/ziwei"
 	"bazi/internal/store"
 	"log"
@@ -39,6 +43,7 @@ func main() {
 	db := initDatabase(cfg)
 	cs := store.NewDBChartStore(db)
 	fs := store.NewDBFortuneStore(db)
+	feedbackStore := store.NewDBFeedbackStore(db)
 	us := store.NewDBUserStore(db)
 
 	seedAdminIfEmpty(us)
@@ -47,6 +52,14 @@ func main() {
 	parser := &bazi.InputParser{}
 	engine := fortune.NewFortuneEngine()
 	ziweiSvc := ziwei.NewZiWeiService()
+	retriever := buildRAGRetriever(cfg)
+	interpretSvc := &interpretation.Service{
+		Charts:    cs,
+		Bazi:      baziSvc,
+		Retriever: retriever,
+		MinScore:  cfg.RAGMinScore,
+		TopK:      cfg.RAGTopK,
+	}
 
 	r := gin.Default()
 	allowOrigin := os.Getenv("CORS_ORIGIN")
@@ -78,9 +91,9 @@ func main() {
 		fh := &handler.FortuneHandler{Engine: engine, ChartStore: cs}
 		api.POST("/fortune", fh.CalculateDaily)
 		wh := &handler.WeeklyFortuneHandler{Engine: engine, Charts: cs}
-		api.POST("/fortune/weekly", wh.Weekly)
+		api.POST("/fortune/weekly", middleware.ETag(), wh.Weekly)
 		mh := &handler.MonthlyFortuneHandler{Engine: engine, ChartStore: cs}
-		api.POST("/fortune/monthly", mh.HandleMonthly)
+		api.POST("/fortune/monthly", middleware.ETag(), mh.HandleMonthly)
 		ah := &handler.AIStubHandler{}
 		api.POST("/fortune/ai", ah.AnalyzeFortune)
 		api.GET("/auth/me", auth.Me)
@@ -90,8 +103,38 @@ func main() {
 		api.GET("/fortune/history", hh.FortuneHistoryList)
 		handler.RegisterZiWeiRoutesWithStore(api, ziweiSvc, cs)
 		handler.RegisterZiWeiPeriodRoutes(api, ziweiSvc, cs)
+		handler.RegisterInterpretationRoutes(api, interpretSvc)
+		handler.RegisterFeedbackRoutes(api, cs, feedbackStore)
 	}
 
 	log.Printf("Server starting on :%s", cfg.ServerPort)
 	r.Run(":" + cfg.ServerPort)
+}
+
+func buildRAGRetriever(cfg *config.Config) rag.Retriever {
+	if cfg == nil || !cfg.RAGEnabled {
+		return nil
+	}
+	switch cfg.RAGProvider {
+	case "", "sqlite_fts5", "local", "sqlite":
+		return localrag.NewRetriever(localrag.Config{
+			Enabled:   cfg.RAGEnabled,
+			IndexPath: cfg.LocalRAGIndexPath,
+			MinScore:  cfg.RAGMinScore,
+			TopK:      cfg.RAGTopK,
+		})
+	case "ragflow":
+		return ragflow.NewClient(ragflow.Config{
+			Enabled:        cfg.RAGEnabled || cfg.RAGFlowEnabled,
+			BaseURL:        cfg.RAGFlowBaseURL,
+			APIKey:         cfg.RAGFlowAPIKey,
+			DatasetID:      cfg.RAGFlowBaziDatasetID,
+			TimeoutSeconds: cfg.RAGTimeoutSeconds,
+			MinScore:       cfg.RAGMinScore,
+			TopK:           cfg.RAGTopK,
+		})
+	default:
+		log.Printf("[WARN] Unknown RAG_PROVIDER=%q; classical interpretation will use fallback", cfg.RAGProvider)
+		return nil
+	}
 }

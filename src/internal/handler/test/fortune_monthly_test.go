@@ -27,6 +27,12 @@ func (m *mockMonthlyChartStore) FindByID(id uint) (*model.BirthChart, error) {
 	}
 	return nil, fmt.Errorf("chart not found")
 }
+func (m *mockMonthlyChartStore) FindByIDForUser(id uint, userID uint) (*model.BirthChart, error) {
+	if m.chart != nil && id == m.chart.ID && (m.chart.UserID == 0 || m.chart.UserID == userID) {
+		return m.chart, nil
+	}
+	return nil, fmt.Errorf("chart not found")
+}
 
 func setupMonthlyTestRouter(store MonthlyChartStore) *gin.Engine {
 	gin.SetMode(gin.TestMode)

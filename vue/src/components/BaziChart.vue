@@ -5,6 +5,7 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
+import ClassicalInterpretationPanel from './ClassicalInterpretationPanel.vue'
 
 const props = defineProps<{
   chart: {
@@ -1136,6 +1137,8 @@ const tenGodChartOptions = computed(() => {
         </div><!-- /fortune tab -->
 
       </div><!-- /analysis-section -->
+
+      <ClassicalInterpretationPanel :chart-id="chart.id" />
     </div>
   </div>
 </template>

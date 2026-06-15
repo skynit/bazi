@@ -20,11 +20,11 @@ type ZiWeiPeriodHandler struct {
 
 // getChart looks up the birth chart and calculates the ZiWeiChart.
 // Uses cached result when available (same as ziwei_chart.go).
-func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*ziwei.ZiWeiChart, *model.BirthChart, error) {
+func (h *ZiWeiPeriodHandler) getChart(chartID uint, userID uint) (*ziwei.ZiWeiChart, *model.BirthChart, error) {
 	if h.Service == nil {
 		return nil, nil, fmt.Errorf("service not available")
 	}
-	birthChart, err := h.Charts.FindByID(chartID)
+	birthChart, err := h.Charts.FindByIDForUser(chartID, userID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("chart lookup failed: %w", err)
 	}
@@ -47,7 +47,8 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint) (*ziwei.ZiWeiChart, *model.B
 
 // Period handles dayun, liunian, liuyue, liuri, and sihua_feixing period calculations.
 func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
-	if _, exists := c.Get("userID"); !exists {
+	userID, exists := c.Get("userID")
+	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -66,7 +67,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		return
 	}
 
-	chart, birthChart, err := h.getChart(req.ChartID)
+	chart, _, err := h.getChart(req.ChartID, userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -103,7 +104,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liunian := svc.CalculateLiunian(chart, year)
-		resp := mapChartToResponse(liunian, birthChart.BirthMonth, birthChart.BirthHour)
+		resp := mapChartToResponse(liunian)
 		resp["year"] = year
 		resp["description"] = fmt.Sprintf("%d年流年星曜分布，各宫依次更换", year)
 		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{resp}})
@@ -118,7 +119,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liuyue := svc.CalculateLiuyue(chart, month)
-		resp := mapChartToResponse(liuyue, birthChart.BirthMonth, birthChart.BirthHour)
+		resp := mapChartToResponse(liuyue)
 		resp["year"] = year
 		resp["month"] = month
 		resp["description"] = fmt.Sprintf("%d年%d月流月星曜分布", year, month)
@@ -138,7 +139,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			month = int(time.Now().Month())
 		}
 		liuri := svc.CalculateLiuri(chart, day)
-		resp := mapChartToResponse(liuri, birthChart.BirthMonth, birthChart.BirthHour)
+		resp := mapChartToResponse(liuri)
 		resp["year"] = year
 		resp["month"] = month
 		resp["day"] = day
@@ -149,14 +150,14 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		flying := svc.AnalyzeFlyingStars(chart)
 		// Remove unused fields, return clean struct
 		c.JSON(http.StatusOK, gin.H{
-			"periods": flying,
+			"periods":     flying,
 			"description": "四化飞星：化禄/化权/化科/化忌在各宫的分布",
 		})
 
 	case "sihua_chain":
 		chain := svc.AnalyzeSihuaChain(chart)
 		c.JSON(http.StatusOK, gin.H{
-			"chain": chain,
+			"chain":       chain,
 			"description": "四化飞星链式分析：追踪每颗四化星的来源宫位与链式影响",
 		})
 
@@ -164,7 +165,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		result := svc.AnalyzeSelfMutagen(chart)
 		c.JSON(http.StatusOK, gin.H{
 			"self_mutagens": result,
-			"description": "自化检测：分析星曜在同宫的自化现象（化禄/化权/化科/化忌留本宫）",
+			"description":   "自化检测：分析星曜在同宫的自化现象（化禄/化权/化科/化忌留本宫）",
 		})
 
 	case "palace_reading":
@@ -178,7 +179,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		})
 
 	case "heming":
-		chart2, _, err := h.getChart(req.ChartID2)
+		chart2, _, err := h.getChart(req.ChartID2, userID.(uint))
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
@@ -201,11 +202,11 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				"year":             result.Year,
 				"gan_zhi":          result.GanZhi,
 				"gan_zhi_desc":     result.GanZhiDesc,
-				"shi_shen":        result.ShiShen,
+				"shi_shen":         result.ShiShen,
 				"relation_to_ming": result.RelationToMing,
 				"overall_tone":     result.OverallTone,
-				"key_tips":        result.KeyTips,
-				"score":           result.Score,
+				"key_tips":         result.KeyTips,
+				"score":            result.Score,
 			},
 		}})
 
@@ -227,11 +228,11 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				"month":            result.Month,
 				"gan_zhi":          result.GanZhi,
 				"gan_zhi_desc":     result.GanZhiDesc,
-				"shi_shen":        result.ShiShen,
+				"shi_shen":         result.ShiShen,
 				"relation_to_ming": result.RelationToMing,
-				"effect":          result.Effect,
-				"health":          result.Health,
-				"score":           result.Score,
+				"effect":           result.Effect,
+				"health":           result.Health,
+				"score":            result.Score,
 			},
 		}})
 
@@ -268,14 +269,14 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				"day":              result.Day,
 				"gan_zhi":          result.GanZhi,
 				"gan_zhi_desc":     result.GanZhiDesc,
-				"shi_shen":        result.ShiShen,
+				"shi_shen":         result.ShiShen,
 				"relation_to_ming": result.RelationToMing,
-				"qi_zi_effect":    result.QiZiEffect,
-				"emotional_state": result.EmotionalState,
-				"health":          result.Health,
-				"score":           result.Score,
+				"qi_zi_effect":     result.QiZiEffect,
+				"emotional_state":  result.EmotionalState,
+				"health":           result.Health,
+				"score":            result.Score,
 				"hourly_analysis":  hourly,
-				"summary":         result.Summary,
+				"summary":          result.Summary,
 			},
 		}})
 
@@ -317,7 +318,8 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 
 // Overlay handles the liunian overlay calculation.
 func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
-	if _, exists := c.Get("userID"); !exists {
+	userID, exists := c.Get("userID")
+	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -331,14 +333,14 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 		return
 	}
 
-	chart, birthChart, err := h.getChart(req.ChartID)
+	chart, _, err := h.getChart(req.ChartID, userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
 	liunian := h.Service.CalculateLiunian(chart, req.Year)
-	result := mapChartToResponse(liunian, birthChart.BirthMonth, birthChart.BirthHour)
+	result := mapChartToResponse(liunian)
 	result["year"] = req.Year
 	result["liu_nian_stars"] = liunian.LiuNianStars
 	c.JSON(http.StatusOK, result)
@@ -346,7 +348,7 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 
 func dayunDesc(palace string, startAge int) string {
 	descs := map[string]string{
-		"命宮": "个人运势与性格转变的关键十年",
+		"命宮":  "个人运势与性格转变的关键十年",
 		"兄弟宮": "兄弟姐妹关系与助力变化",
 		"夫妻宮": "婚姻感情与配偶关系的关键时期",
 		"子女宮": "子女缘分与下属关系的变化",

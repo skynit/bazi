@@ -17,6 +17,7 @@ import (
 // ChartStore defines an interface for looking up birth charts.
 type ChartStore interface {
 	FindByID(id uint) (*model.BirthChart, error)
+	FindByIDForUser(id uint, userID uint) (*model.BirthChart, error)
 	Update(chart *model.BirthChart) error
 }
 
@@ -34,7 +35,13 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		return
 	}
 
-	chart, err := h.Charts.FindByID(req.ChartID)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	chart, err := h.Charts.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
 		return
@@ -71,6 +78,7 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		DailyFortunes: dailyFortunes,
 		WeeklyScore:   result.WeeklyScore,
 		ElementTrend:  string(trendJSON),
+		Summary:       result.Summary,
 	})
 }
 

@@ -1,7 +1,7 @@
 package handler_test
 
 import (
-	. "bazi/internal/handler"
+	handler "bazi/internal/handler"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -559,7 +559,7 @@ func TestNormalizeGender(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := ExportNormalizeGender(tt.input)
+		got := handler.ExportNormalizeGender(tt.input)
 		if got != tt.want {
 			t.Errorf("ExportNormalizeGender(%q) = %s, want %s", tt.input, got, tt.want)
 		}

@@ -92,11 +92,11 @@ const option = computed(() => {
       symbolSize: 6,
       smooth: true,
     },
-    ...elementSeries.map((el) => ({
+    ...elementSeries.value.map((el) => ({
       name: el.name,
       type: 'line',
       yAxisIndex: 1,
-      data: props.dailyData.map((d) => d[el.key]),
+      data: props.dailyData.map((d) => (d as unknown as Record<string, number>)[el.key]),
       lineStyle: { color: el.color, width: 1.5, opacity: 0.75 },
       itemStyle: { color: el.color },
       symbol: 'none',

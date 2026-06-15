@@ -73,17 +73,18 @@ var STAR_BRIGHTNESS_AUX = map[string]map[string]string{
 }
 
 // LUCUN_TABLE maps year stem index to the branch where 禄存 is located.
+// Kept as a compatibility alias for legacy helpers and tests.
 var LUCUN_TABLE = map[int]int{
-	0: 2,  // 甲 → 寅
-	1: 3,  // 乙 → 卯
-	2: 4,  // 丙 → 辰
-	3: 5,  // 丁 → 巳
-	4: 6,  // 戊 → 午
-	5: 7,  // 己 → 未
-	6: 8,  // 庚 → 申
-	7: 9,  // 辛 → 酉
-	8: 10, // 壬 → 戌
-	9: 11, // 癸 → 亥
+	0: LucunBranchIdx[0],
+	1: LucunBranchIdx[1],
+	2: LucunBranchIdx[2],
+	3: LucunBranchIdx[3],
+	4: LucunBranchIdx[4],
+	5: LucunBranchIdx[5],
+	6: LucunBranchIdx[6],
+	7: LucunBranchIdx[7],
+	8: LucunBranchIdx[8],
+	9: LucunBranchIdx[9],
 }
 
 // TIANMA_TABLE maps the three-combination group to the branch where 天马 is.
@@ -289,7 +290,7 @@ func findIncomingPalaces(chart *ZiWeiChart, starName string, huaType string, tar
 // buildSihuaEffect generates a rule-based effect description.
 func buildSihuaEffect(star, huaType, palace string) string {
 	effects := map[string]string{
-		"命宫":  "直接影响个人运势与性格",
+		"命宫": "直接影响个人运势与性格",
 		"兄弟": "影响兄弟姐妹关系与助力",
 		"夫妻": "影响婚姻感情与配偶关系",
 		"子女": "影响子女缘分与下属关系",
@@ -1360,6 +1361,44 @@ func GetPalaceSanfang(palaceIdx int) *SanfangSizhengResult {
 	}
 }
 
+// GetChartPalaceSanfang returns 三方四正 using the chart's actual palace
+// branch positions instead of assuming array order equals branch order.
+func GetChartPalaceSanfang(chart *ZiWeiChart, palaceIdx int) *SanfangSizhengResult {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= len(chart.Palaces) {
+		return GetPalaceSanfang(palaceIdx)
+	}
+
+	oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
+	return &SanfangSizhengResult{
+		Opposite: chart.Palaces[oppositeIdx].Name,
+		Trine1:   chart.Palaces[trine1Idx].Name,
+		Trine2:   chart.Palaces[trine2Idx].Name,
+	}
+}
+
+func chartSanfangIndexes(chart *ZiWeiChart, palaceIdx int) (oppositeIdx, trine1Idx, trine2Idx int) {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= len(chart.Palaces) {
+		sf := ComputeSanfangSizheng(palaceIdx)
+		return sf[0], sf[1], sf[2]
+	}
+
+	branch := BranchIndex[chart.Palaces[palaceIdx].Branch]
+	oppositeBranch := BranchNames[fixIndex(branch+6)]
+	trine1Branch := BranchNames[fixIndex(branch+8)]
+	trine2Branch := BranchNames[fixIndex(branch+4)]
+
+	findByBranch := func(branchName string) int {
+		for i, p := range chart.Palaces {
+			if p.Branch == branchName {
+				return i
+			}
+		}
+		return palaceIdx
+	}
+
+	return findByBranch(oppositeBranch), findByBranch(trine1Branch), findByBranch(trine2Branch)
+}
+
 // EnhancedSanfangResult holds detailed sanfang analysis including star energy from SiHua.
 type EnhancedSanfangResult struct {
 	Opposite      string `json:"opposite"`       // 对宫 palace name
@@ -1374,41 +1413,45 @@ type EnhancedSanfangResult struct {
 
 // GetEnhancedSanfang returns detailed sanfang analysis with SiHua interaction descriptions.
 func GetEnhancedSanfang(chart *ZiWeiChart, palaceIdx int) *EnhancedSanfangResult {
-	sf := ComputeSanfangSizheng(palaceIdx)
+	oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
 	result := &EnhancedSanfangResult{
-		Opposite:    PALACE_NAMES[sf[0]],
-		OppositeIdx: sf[0],
-		Trine1:      PALACE_NAMES[sf[1]],
-		Trine1Idx:   sf[1],
-		Trine2:      PALACE_NAMES[sf[2]],
-		Trine2Idx:   sf[2],
+		Opposite:    PALACE_NAMES[oppositeIdx],
+		OppositeIdx: oppositeIdx,
+		Trine1:      PALACE_NAMES[trine1Idx],
+		Trine1Idx:   trine1Idx,
+		Trine2:      PALACE_NAMES[trine2Idx],
+		Trine2Idx:   trine2Idx,
 	}
 
 	if chart == nil {
 		return result
 	}
 
+	result.Opposite = chart.Palaces[oppositeIdx].Name
+	result.Trine1 = chart.Palaces[trine1Idx].Name
+	result.Trine2 = chart.Palaces[trine2Idx].Name
+
 	var oppSihua, trineSihua []string
 
 	// Check if any SiHua stars in opposite palace affect current palace
-	oppPalace := chart.Palaces[sf[0]]
+	oppPalace := chart.Palaces[oppositeIdx]
 	curPalace := chart.Palaces[palaceIdx]
 
 	for _, t := range oppPalace.FourHua {
 		for _, curStar := range curPalace.MainStars {
 			if strings.Contains(t, curStar) {
-				oppSihua = append(oppSihua, t+"照"+PALACE_NAMES[palaceIdx])
+				oppSihua = append(oppSihua, t+"照"+curPalace.Name)
 			}
 		}
 	}
 
 	// Check trine palaces for SiHua energy
-	for _, triIdx := range []int{sf[1], sf[2]} {
+	for _, triIdx := range []int{trine1Idx, trine2Idx} {
 		triPalace := chart.Palaces[triIdx]
 		for _, t := range triPalace.FourHua {
 			for _, curStar := range curPalace.MainStars {
 				if strings.Contains(t, curStar) {
-					trineSihua = append(trineSihua, t+"拱"+PALACE_NAMES[palaceIdx])
+					trineSihua = append(trineSihua, t+"拱"+curPalace.Name)
 				}
 			}
 		}
@@ -1978,8 +2021,7 @@ func ComputeAdjectiveStars(chart *ZiWeiChart) map[int][]string {
 // ComputeTwelveShen computes all 4 twelve-shen systems for each palace.
 // Uses yearBranch and fiveElementClass from chart fields.
 // Direction rule: 阳男/阴女 = forward (+i), 阴男/阳女 = backward (-i)
-// Five element class derived from yearStem: 甲(1)→3(木), 乙(2)→3(木), 丙(3)→6(火), 丁(4)→6(火),
-// 戊(5)→5(土), 己(6)→5(土), 庚(7)→4(金), 辛(8)→4(金), 壬(9)→2(水), 癸(10)→2(水)
+// Five element class derived from yearStem: 甲/乙→木, 丙/丁→火, 戊/己→土, 庚/辛→金, 壬/癸→水.
 func ComputeTwelveShen(chart *ZiWeiChart) [12]struct {
 	Changsheng, Boshi, Jiangqian, Suiqian string
 } {
@@ -2011,8 +2053,8 @@ func ComputeTwelveShen(chart *ZiWeiChart) [12]struct {
 		result[idx].Changsheng = CHANGSHENG_12[i]
 	}
 
-	// BOSHI_12: start from 禄存 position (from LUCUN_TABLE[yearStem])
-	luIdx := LUCUN_TABLE[yearStem]
+	// BOSHI_12: start from 禄存 position (from LucunBranchIdx[yearStem])
+	luIdx := LucunBranchIdx[yearStem]
 	for i := 0; i < 12; i++ {
 		idx := (luIdx + direction*i + 12) % 12
 		result[idx].Boshi = BOSHI_12[i]

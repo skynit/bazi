@@ -1,50 +1,54 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import client from '../api/client'
-import FortuneChart, { type TrendPoint } from '../components/FortuneChart.vue'
-
-interface ElementImage {
-  element: string
-  image_url: string
-  description: string
-}
-
-interface FortuneDay {
-  solar_date: string
-  day_gan_zhi: string
-  yi_ji?: string
-  element_images?: ElementImage[]
-}
-
-interface WeeklyResponse {
-  daily_fortunes: FortuneDay[]
-  weekly_score: number
-  element_trend: string
-}
+import {
+  fetchWeekly,
+  parseTrend,
+  type WeeklyFortuneResponse,
+} from '../api/fortune'
+import FortuneChart from '../components/FortuneChart.vue'
+import AuroraMeshBackground from '../components/fortune/AuroraMeshBackground.vue'
+import ScoreOrb from '../components/fortune/ScoreOrb.vue'
+import FortuneHeatStrip from '../components/fortune/FortuneHeatStrip.vue'
+import FortuneRadar from '../components/fortune/FortuneRadar.vue'
+import DayFortuneCard from '../components/fortune/DayFortuneCard.vue'
+import BestWorstChip from '../components/fortune/BestWorstChip.vue'
 
 const route = useRoute()
-
-const data = ref<WeeklyResponse | null>(null)
+const data = ref<WeeklyFortuneResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
-const chartId = ref<string | number>('')
+const chartId = ref<number | null>(null)
 
-const trendData = computed<TrendPoint[]>(() => {
-  if (!data.value?.element_trend) return []
-  try {
-    return JSON.parse(data.value.element_trend) as TrendPoint[]
-  } catch {
-    return []
-  }
-})
+const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'] as const
+
+const trendData = computed(() => parseTrend(data.value?.element_trend ?? ''))
 
 const weekRange = computed(() => {
-  if (!data.value?.daily_fortunes?.length) return ''
-  const first = data.value.daily_fortunes[0].solar_date
-  const last = data.value.daily_fortunes[data.value.daily_fortunes.length - 1].solar_date
-  return `${first} ~ ${last}`
+  const days = data.value?.daily_fortunes ?? []
+  if (!days.length) return ''
+  return `${days[0].solar_date} – ${days[days.length - 1].solar_date}`
 })
+
+const heatDays = computed(() => {
+  const summary = data.value?.summary
+  return (data.value?.daily_fortunes ?? []).map(d => ({
+    date: d.solar_date,
+    score: d.score,
+    dayPillar: d.day_gan_zhi,
+    isBest: summary?.best_day === d.solar_date,
+    isWorst: summary?.worst_day === d.solar_date,
+  }))
+})
+
+const weekdayLabels = computed(() => {
+  return (data.value?.daily_fortunes ?? []).map(d => {
+    const dt = new Date(d.solar_date + 'T00:00:00')
+    return dt.toLocaleDateString('zh-CN', { weekday: 'short' }).replace('星期', '')
+  })
+})
+
+const distribution = computed(() => data.value?.summary?.element_distribution ?? {})
 
 function todayStr(): string {
   const d = new Date()
@@ -54,406 +58,315 @@ function todayStr(): string {
   return `${y}-${m}-${day}`
 }
 
-function scoreColor(score: number): string {
-  const t = Math.max(0, Math.min(1, score / 100))
-  const L = 0.22 + t * 0.58
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L} ${C} ${h})`
-}
-
-async function fetchWeekly() {
-  let cid: string | number | null = route.query.chart_id as string | null
+async function load() {
+  let cid: number | null = null
+  const q = route.query.chart_id
+  if (typeof q === 'string' && q) cid = Number(q)
   if (!cid) {
-    try { const s = localStorage.getItem('bazi_last_birth'); if (s) cid = JSON.parse(s).chartId } catch {}
-    if (!cid) { error.value = '请先创建命盘'; loading.value = false; return }
+    try {
+      const s = localStorage.getItem('bazi_last_birth')
+      if (s) cid = Number(JSON.parse(s).chartId) || null
+    } catch { /* ignore */ }
+  }
+  if (!cid) {
+    error.value = '请先创建命盘'
+    loading.value = false
+    return
   }
   chartId.value = cid
 
   try {
-    const { data: res } = await client.post<WeeklyResponse>('/fortune/weekly', {
-      chart_id: Number(chartId.value),
-      start_date: todayStr(),
-    })
-    data.value = res
+    data.value = await fetchWeekly(cid, todayStr())
   } catch (e: any) {
-    error.value = e.response?.data?.error || '加载周运势失败'
+    error.value = e?.response?.data?.error || '加载周运势失败'
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  fetchWeekly()
-})
+function weekdayFor(date: string): string {
+  const dt = new Date(date + 'T00:00:00')
+  return WEEKDAYS[(dt.getDay() + 6) % 7] // 周一为首
+}
+
+onMounted(load)
 </script>
 
 <template>
   <div class="weekly-page">
-    <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-inner">
-        <div class="loading-constellation">
-          <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-            <circle
-              cx="30"
-              cy="30"
-              r="25"
-              stroke="currentColor"
-              stroke-width="0.5"
-              stroke-dasharray="2 3"
-              opacity="0.4"
-            />
-            <circle cx="30" cy="30" r="12" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
-            <circle cx="30" cy="30" r="3" fill="currentColor" opacity="0.3" />
-            <circle cx="15" cy="20" r="2" fill="currentColor" opacity="0.5" class="star-pulse" />
-            <circle
-              cx="45"
-              cy="18"
-              r="2"
-              fill="currentColor"
-              opacity="0.4"
-              class="star-pulse"
-              style="animation-delay: 0.3s"
-            />
-          </svg>
-        </div>
-        <p class="loading-text">本周运势加载中</p>
-      </div>
+    <AuroraMeshBackground />
+
+    <div v-if="loading" class="state">
+      <div class="orb-skeleton" aria-hidden="true"></div>
+      <p>本周运势加载中…</p>
     </div>
 
-    <!-- Error -->
-    <div v-else-if="error" class="error-state">
-      <div class="error-icon">
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <circle
-            cx="30"
-            cy="30"
-            r="26"
-            stroke="currentColor"
-            stroke-width="1"
-            stroke-dasharray="3 2"
-            opacity="0.4"
-          />
-          <line x1="20" y1="20" x2="40" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
-          <line x1="40" y1="20" x2="20" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
-        </svg>
-      </div>
-      <p class="error-text">{{ error }}</p>
-      <router-link to="/chart/new" class="btn-retry">去排盘</router-link>
+    <div v-else-if="error" class="state error">
+      <p>{{ error }}</p>
+      <router-link to="/chart/new" class="btn-link">去排盘 →</router-link>
     </div>
 
     <template v-else-if="data">
-      <div class="page-inner">
-        <!-- Header -->
-        <div class="weekly-header">
-          <div class="header-eyebrow">BaZi Fortune</div>
-          <h1 class="page-title">本周运势</h1>
-          <p class="week-range">{{ weekRange }}</p>
-          <div class="score-display glass-panel">
-            <div class="score-glow"></div>
-            <div class="score-inner">
-              <span class="score-number" :style="{ color: scoreColor(data.weekly_score) }">
-                {{ data.weekly_score }}
+      <main class="page">
+        <!-- Hero -->
+        <section class="hero">
+          <div class="hero-left">
+            <span class="eyebrow">BaZi · Weekly</span>
+            <h1 class="title">本周运势</h1>
+            <p class="range tabular-nums">{{ weekRange }}</p>
+            <p class="advice">{{ data.summary.key_advice }}</p>
+            <div class="chips">
+              <BestWorstChip
+                v-if="data.summary.best_day"
+                variant="best"
+                :date="data.summary.best_day"
+                :score="data.summary.best_score"
+              />
+              <BestWorstChip
+                v-if="data.summary.worst_day"
+                variant="worst"
+                :date="data.summary.worst_day"
+                :score="data.summary.worst_score"
+              />
+              <span v-if="data.summary.dominant_element" class="meta-chip">
+                <span class="dot" :style="{ background: 'var(--jade-accent)' }"></span>
+                {{ data.summary.dominant_element }}主气
               </span>
-              <span class="score-label">综合评分</span>
+              <span v-if="data.summary.dominant_ten_god" class="meta-chip">
+                {{ data.summary.dominant_ten_god }}
+              </span>
             </div>
           </div>
-        </div>
-
-        <!-- Chart -->
-        <div class="chart-section glass-card">
-          <FortuneChart :daily-data="trendData" height="280px" />
-        </div>
-
-        <!-- Daily Cards -->
-        <div class="daily-section">
-          <h3 class="section-title">每日概况</h3>
-          <div class="daily-cards">
-            <div v-for="(day, idx) in data.daily_fortunes" :key="idx" class="day-card">
-              <div class="day-card-left">
-                <span class="day-date">{{ day.solar_date }}</span>
-              </div>
-              <span class="day-pillar">{{ day.day_gan_zhi }}</span>
-              <p v-if="day.yi_ji" class="day-yiji">{{ day.yi_ji }}</p>
-            </div>
+          <div class="hero-right">
+            <ScoreOrb
+              :score="data.weekly_score"
+              label="本周综合"
+              :caption="`波动 ±${data.summary.volatility.toFixed(1)}`"
+            />
           </div>
-        </div>
+        </section>
 
-        <div class="bottom-nav">
-          <router-link :to="`/fortune?chart_id=${chartId}`" class="nav-link">
-            查看今日运势 →
-          </router-link>
-        </div>
-      </div>
+        <!-- Heat strip -->
+        <section class="glass-card heat-card">
+          <header class="card-head">
+            <span class="card-eyebrow">日历强度</span>
+            <span class="card-meta">连吉 {{ data.summary.good_streak }}d · 连低 {{ data.summary.bad_streak }}d</span>
+          </header>
+          <FortuneHeatStrip :days="heatDays" :weekday-labels="weekdayLabels" />
+        </section>
+
+        <!-- Radar + trend grid -->
+        <section class="grid-2">
+          <div class="glass-card">
+            <header class="card-head">
+              <span class="card-eyebrow">五行雷达</span>
+              <span class="card-meta">{{ data.summary.dominant_element }}主导</span>
+            </header>
+            <FortuneRadar :distribution="distribution" height="260px" />
+          </div>
+          <div class="glass-card">
+            <header class="card-head">
+              <span class="card-eyebrow">分数曲线</span>
+              <span class="card-meta tabular-nums">均 {{ data.summary.average_score.toFixed(1) }}</span>
+            </header>
+            <FortuneChart :daily-data="trendData" height="260px" />
+          </div>
+        </section>
+
+        <!-- Day cards -->
+        <section class="day-grid-section">
+          <header class="card-head plain">
+            <span class="card-eyebrow">每日详记</span>
+            <span class="card-meta">{{ data.daily_fortunes.length }} 天</span>
+          </header>
+          <div class="day-grid">
+            <DayFortuneCard
+              v-for="d in data.daily_fortunes"
+              :key="d.solar_date"
+              :date="d.solar_date"
+              :day-pillar="d.day_gan_zhi"
+              :score="d.score"
+              :lucky-color="d.lucky_color"
+              :lucky-number="d.lucky_number"
+              :wealth-dir="d.wealth_direction"
+              :yi-items="d.yi"
+              :ji-items="d.ji"
+              :today-ten-god="d.today_ten_god"
+              :weekday="weekdayFor(d.solar_date)"
+              :is-best="data!.summary.best_day === d.solar_date"
+              :is-worst="data!.summary.worst_day === d.solar_date"
+            />
+          </div>
+        </section>
+
+        <nav class="footer-nav">
+          <router-link :to="`/fortune?chart_id=${chartId}`">今日运势</router-link>
+          <span aria-hidden="true">·</span>
+          <router-link :to="`/fortune/monthly?chart_id=${chartId}`">本月运势</router-link>
+        </nav>
+      </main>
     </template>
   </div>
 </template>
 
 <style scoped>
 .weekly-page {
+  position: relative;
   min-height: 100vh;
-  background: transparent;
-  position: relative;
-  overflow: hidden;
+  color: var(--text);
+  padding: 24px 16px 64px;
 }
 
-.page-inner {
+.page {
   position: relative;
   z-index: 1;
-  max-width: 540px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-/* Loading */
-.loading-state {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 70vh;
-}
-
-.loading-inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  gap: 24px;
 }
 
-.loading-constellation {
-  animation: spin-slow 20s linear infinite;
-  color: var(--icon-muted);
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.star-pulse {
-  animation: star-twinkle 2s ease-in-out infinite;
-}
-
-@keyframes star-twinkle {
-  0%,
-  100% {
-    opacity: 0.3;
-    r: 2;
-  }
-  50% {
-    opacity: 0.9;
-    r: 3;
-  }
-}
-
-.loading-text {
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-}
-
-/* Error */
-.error-state {
-  position: relative;
-  z-index: 1;
+/* states */
+.state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 70vh;
-  gap: 1rem;
-}
-
-.error-icon {
-  color: var(--danger);
-  opacity: 0.6;
-}
-
-.error-text {
-  font-size: 0.9rem;
+  gap: 16px;
   color: var(--text-muted);
-  margin: 0;
-}
-
-.btn-retry {
-  padding: 0.5rem 1.5rem;
-  background: var(--crimson);
-  color: var(--destructive-foreground);
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 16px color-mix(in oklab, var(--crimson) 20%, transparent);
-}
-
-.btn-retry:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px color-mix(in oklab, var(--crimson) 30%, transparent);
-}
-
-/* Header */
-.weekly-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.header-eyebrow {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--text-soft);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.page-title {
-  font-family: var(--font-serif), serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 6px;
-  letter-spacing: 3px;
-}
-
-.week-range {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 0 0 1rem 0;
-}
-
-.score-display {
-  display: inline-block;
-  padding: 1.25rem 2.5rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.score-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 50%, var(--accent-dim), transparent 70%);
-  pointer-events: none;
-}
-
-.score-inner {
-  position: relative;
-}
-
-.score-number {
-  font-size: 3.5rem;
-  font-weight: 900;
-  line-height: 1;
-  text-shadow: 0 0 30px currentColor;
-}
-
-.score-label {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.3rem;
-  letter-spacing: 1px;
-}
-
-/* Chart */
-.chart-section {
-  padding: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-/* Daily Cards */
-.daily-section {
-  margin-bottom: 1.25rem;
-}
-
-.section-title {
   font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--line-subtle);
-  letter-spacing: 1px;
 }
-
-.daily-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.day-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 0.2s;
-}
-
-.day-card:hover {
-  border-color: var(--line-strong);
-  background: var(--accent-dim);
-}
-
-.day-card-left {
-  flex: 1;
-}
-
-.day-date {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.day-pillar {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--accent);
-  text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 30%, transparent);
-  min-width: 48px;
-  text-align: center;
-}
-
-.day-yiji {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin: 0;
-  flex: 2;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Bottom Nav */
-.bottom-nav {
-  text-align: center;
-  padding: 0.5rem 0;
-}
-
-.nav-link {
-  color: var(--accent);
+.state.error p { color: var(--crimson); }
+.btn-link {
+  color: rgba(var(--jade-accent-rgb), 1);
   text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.orb-skeleton {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.45), transparent 70%);
+  filter: blur(4px);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.95 } }
+
+/* hero */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 28px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-1) 86%, transparent),
+    color-mix(in oklab, var(--surface-2) 78%, transparent)
+  );
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: var(--shadow-lg);
+}
+:global(.dark) .hero {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+@media (min-width: 900px) {
+  .hero { grid-template-columns: 1.4fr 1fr; align-items: center; }
+}
+.hero-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.hero-right { display: flex; align-items: center; justify-content: center; }
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.42em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.title {
+  font-family: var(--font-serif), 'Songti SC', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin: 0;
+  color: var(--text);
+}
+.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: 0.9rem; }
+.advice {
+  font-family: var(--font-serif), serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text);
+  margin: 4px 0 6px;
+  letter-spacing: 0.02em;
+}
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-subtle);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+}
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px currentColor; }
+
+/* glass card primitive */
+.glass-card {
+  padding: 20px;
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-1) 88%, transparent),
+    color-mix(in oklab, var(--surface-2) 78%, transparent)
+  );
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: var(--shadow-md);
+}
+:global(.dark) .glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+.heat-card { display: flex; flex-direction: column; gap: 14px; }
+
+.card-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+}
+.card-head.plain { padding: 0 4px; }
+.card-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  color: var(--text-muted);
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+}
+.card-meta { font-size: 0.72rem; color: var(--text-soft); letter-spacing: 0.06em; }
+
+.grid-2 { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+.day-grid-section { display: flex; flex-direction: column; gap: 14px; }
+.day-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.footer-nav {
+  display: flex; gap: 14px; justify-content: center; padding: 8px 0;
   font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.footer-nav a {
+  color: rgba(var(--jade-accent-rgb), 1);
+  text-decoration: none;
   font-weight: 500;
-  transition: all 0.2s;
+  letter-spacing: 0.04em;
 }
+.footer-nav a:hover { text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55); }
 
-.nav-link:hover {
-  text-shadow: 0 0 12px var(--accent-glow);
-}
-
-:global(.dark) .day-pillar { text-shadow: 0 0 10px color-mix(in oklab, var(--accent) 30%, transparent); }
-:global(.dark) .nav-link:hover { text-shadow: 0 0 12px rgba(203, 213, 225, 0.4); }
+.tabular-nums { font-variant-numeric: tabular-nums; }
 </style>

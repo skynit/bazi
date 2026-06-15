@@ -70,23 +70,23 @@
 
   /* ── shadcn light base ── */
   --background: oklch(0.99 0.003 140);
-  --foreground: oklch(0.18 0.01 160);
+  --foreground: oklch(0.14 0.012 160);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.01 160);
+  --card-foreground: oklch(0.14 0.012 160);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.01 160);
+  --popover-foreground: oklch(0.14 0.012 160);
   --primary: oklch(0.58 0.20 160);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.005 140);
-  --secondary-foreground: oklch(0.18 0.01 160);
-  --muted: oklch(0.96 0.003 140);
-  --muted-foreground: oklch(0.45 0.01 140);
+  --secondary: oklch(0.94 0.006 140);
+  --secondary-foreground: oklch(0.14 0.012 160);
+  --muted: oklch(0.95 0.004 140);
+  --muted-foreground: oklch(0.34 0.012 140);
   --accent: oklch(0.58 0.20 160 / 0.10);
   --accent-foreground: oklch(0.58 0.20 160);
   --destructive: oklch(0.58 0.24 20);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.18 0.01 160 / 0.08);
-  --input: oklch(0.18 0.01 160 / 0.08);
+  --border: oklch(0.14 0.012 160 / 0.12);
+  --input: oklch(0.14 0.012 160 / 0.12);
   --ring: oklch(0.58 0.20 160 / 0.30);
   --chart-1: oklch(0.58 0.20 160);
   --chart-2: oklch(0.58 0.24 20);
@@ -95,12 +95,12 @@
   --chart-5: oklch(0.24 0.02 210);
   --radius: 0.625rem;
   --sidebar: oklch(0.98 0.002 140);
-  --sidebar-foreground: oklch(0.18 0.01 160);
+  --sidebar-foreground: oklch(0.14 0.012 160);
   --sidebar-primary: oklch(0.58 0.20 160);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.003 140);
-  --sidebar-accent-foreground: oklch(0.18 0.01 160);
-  --sidebar-border: oklch(0.18 0.01 160 / 0.08);
+  --sidebar-accent-foreground: oklch(0.14 0.012 160);
+  --sidebar-border: oklch(0.14 0.012 160 / 0.10);
   --sidebar-ring: oklch(0.58 0.20 160 / 0.30);
 
   /* ── jadense-style surface hierarchy (light) ── */
@@ -139,13 +139,13 @@
   --glass: rgba(255, 255, 255, 0.60);
   --glass-border: rgba(15, 23, 18, 0.08);
   --glass-border-hover: rgba(15, 23, 18, 0.15);
-  --text: #0f1712;
-  --text-muted: #5a6a5e;
-  --text-dim: #8a9a8e;
-  --text-soft: rgba(15, 23, 18, 0.44);
-  --icon: #233529;
-  --icon-muted: rgba(35, 53, 41, 0.42);
-  --icon-subtle: rgba(35, 53, 41, 0.26);
+  --text: #08110b;
+  --text-muted: #364239;
+  --text-dim: #56685c;
+  --text-soft: rgba(8, 17, 11, 0.62);
+  --icon: #0f1712;
+  --icon-muted: rgba(8, 17, 11, 0.66);
+  --icon-subtle: rgba(8, 17, 11, 0.42);
   --nav-bg: rgba(255, 255, 255, 0.74);
   --nav-bg-idle: rgba(255, 255, 255, 0.46);
   --nav-border: rgba(15, 23, 18, 0.08);

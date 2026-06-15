@@ -42,4 +42,6 @@ tasks/
 cmd/
 !cmd/main.go
 !cmd/database.go
+!src/cmd/bazi-rag-index/
+!src/cmd/bazi-rag-index/main.go
 __debug_*

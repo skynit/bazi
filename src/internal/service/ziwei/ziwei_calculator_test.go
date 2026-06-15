@@ -52,8 +52,8 @@ func TestChart_GuiWeiYear_Month3_Day14_WeiHour(t *testing.T) {
 		}
 	})
 	t.Run("命主身主", func(t *testing.T) {
-		if chart.LifeMaster != "武曲" {
-			t.Errorf("命主 = %q, want 武曲", chart.LifeMaster)
+		if chart.LifeMaster != "文曲" {
+			t.Errorf("命主 = %q, want 文曲", chart.LifeMaster)
 		}
 		if chart.BodyMaster != "天相" {
 			t.Errorf("身主 = %q, want 天相", chart.BodyMaster)
@@ -92,12 +92,27 @@ func TestChart_GuiWeiYear_Month3_Day14_WeiHour(t *testing.T) {
 		for _, p := range chart.Palaces {
 			for _, s := range p.MainStars {
 				if s == "紫微" {
-					// 木三局14日: 紫微 in 卯 (based on iztro formula)
+					if p.Branch != "巳" {
+						t.Errorf("紫微在 %s, want 巳", p.Branch)
+					}
 					return
 				}
 			}
 		}
 		t.Error("紫微星未找到")
+	})
+	t.Run("天府星位置", func(t *testing.T) {
+		for _, p := range chart.Palaces {
+			for _, s := range p.MainStars {
+				if s == "天府" {
+					if p.Branch != "亥" {
+						t.Errorf("天府在 %s, want 亥", p.Branch)
+					}
+					return
+				}
+			}
+		}
+		t.Error("天府星未找到")
 	})
 	t.Run("基本数据完整性", func(t *testing.T) {
 		verifyChartSize(t, chart)
@@ -208,23 +223,76 @@ func TestCalcSoulAndBody(t *testing.T) {
 	}
 }
 
+func TestBuildBirthData_LeapMonth(t *testing.T) {
+	birth, err := buildBirthData(2020, 5, 24, 23, 0, "男")
+	if err != nil {
+		t.Fatalf("buildBirthData failed: %v", err)
+	}
+
+	if !birth.IsLeapMonth {
+		t.Fatal("expected 2020-05-24 to be recognized as leap lunar month")
+	}
+	if birth.LunarMonth != 4 {
+		t.Errorf("LunarMonth = %d, want 4", birth.LunarMonth)
+	}
+	if birth.LunarDay != 2 {
+		t.Errorf("LunarDay = %d, want 2", birth.LunarDay)
+	}
+	if birth.HourBranch != 0 {
+		t.Errorf("HourBranch = %d, want 0 for 23:00 子时", birth.HourBranch)
+	}
+}
+
+func TestChart_MajorStarsMatchIztroFixture(t *testing.T) {
+	svc := NewZiWeiService()
+	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+
+	want := map[string][]string{
+		"寅": {"太阳", "巨门"},
+		"卯": {"天相"},
+		"辰": {"天机", "天梁"},
+		"巳": {"紫微", "七杀"},
+		"午": {},
+		"未": {},
+		"申": {},
+		"酉": {"廉贞", "破军"},
+		"戌": {},
+		"亥": {"天府"},
+		"子": {"天同", "太阴"},
+		"丑": {"武曲", "贪狼"},
+	}
+
+	for branch, wantStars := range want {
+		p := findPalaceByBranchForTest(chart, branch)
+		if p == nil {
+			t.Fatalf("missing palace for branch %s", branch)
+		}
+		if !sameStringSet(p.MainStars, wantStars) {
+			t.Errorf("%s宫主星 = %v, want %v", branch, p.MainStars, wantStars)
+		}
+	}
+}
+
 // ════════════════════════════════════════════════════════════════
 // 紫微/天府 定位测试
 // 使用 iztro 公式: offset even → pos = quotient + offset - 1; odd → pos = quotient - offset - 1
 // ════════════════════════════════════════════════════════════════
 func TestZiweiTianfuPosition(t *testing.T) {
 	tests := []struct {
-		name      string
-		juValue   int
-		lunarDay  int
-		wantZiwei string
+		name       string
+		juValue    int
+		lunarDay   int
+		wantZiwei  string
 		wantTianfu string
 	}{
-		{"金四局14日", 4, 14, "巳", "未"},
-		{"水二局1日", 2, 1, "亥", "丑"},
-		{"火六局15日", 6, 15, "亥", "丑"},
-		{"水二局2日", 2, 2, "卯", "酉"},
-		{"金四局5日", 4, 5, "戌", "寅"},
+		{"金四局14日", 4, 14, "未", "酉"},
+		{"水二局1日", 2, 1, "丑", "卯"},
+		{"火六局15日", 6, 15, "丑", "卯"},
+		{"水二局2日", 2, 2, "寅", "寅"},
+		{"金四局5日", 4, 5, "子", "辰"},
 	}
 
 	for _, tt := range tests {
@@ -272,6 +340,32 @@ func TestFourHua(t *testing.T) {
 	}
 }
 
+func findPalaceByBranchForTest(chart *ZiWeiChart, branch string) *PalaceInfo {
+	for i := range chart.Palaces {
+		if chart.Palaces[i].Branch == branch {
+			return &chart.Palaces[i]
+		}
+	}
+	return nil
+}
+
+func sameStringSet(got, want []string) bool {
+	if len(got) != len(want) {
+		return false
+	}
+	counts := make(map[string]int, len(got))
+	for _, s := range got {
+		counts[s]++
+	}
+	for _, s := range want {
+		if counts[s] == 0 {
+			return false
+		}
+		counts[s]--
+	}
+	return true
+}
+
 func TestAuxiliaryStars(t *testing.T) {
 	t.Run("癸年禄存擎羊陀罗", func(t *testing.T) {
 		if LucunBranchIdx[9] != 0 {
@@ -295,8 +389,8 @@ func TestAuxiliaryStars(t *testing.T) {
 			t.Errorf("甲年魁钺 = %v, want [1,7]", kq)
 		}
 		kq8 := KuiYueTable[8]
-		if kq8[0] != 1 || kq8[1] != 7 {
-			t.Errorf("壬年魁钺 = %v, want [1,7]", kq8)
+		if kq8[0] != 3 || kq8[1] != 5 {
+			t.Errorf("壬年魁钺 = %v, want [3,5]", kq8)
 		}
 	})
 }

@@ -13,24 +13,24 @@ import (
 // StarOutput is the JSON-friendly star output with all metadata.
 type StarOutput struct {
 	Name       string `json:"name"`
-	Type       string `json:"type"`       // major/soft/tough/tianma/lucun
-	Scope      string `json:"scope"`      // origin
+	Type       string `json:"type"`  // major/soft/tough/tianma/lucun
+	Scope      string `json:"scope"` // origin
 	Brightness string `json:"brightness"`
 }
 
 // PalaceInfo represents a single palace in the ZiWei chart.
 type PalaceInfo struct {
-	Name           string            `json:"name"`
-	Branch         string            `json:"branch"`
-	HeavenlyStem   string            `json:"heavenly_stem"`
-	IsBodyPalace   bool              `json:"is_body_palace"`
-	Stars          []StarOutput      `json:"stars"`
-	FourHua        []string          `json:"four_hua"`
-	AdjectiveStars []string          `json:"adjective_stars"`
-	Changsheng12   string            `json:"changsheng_12"`
-	Boshi12        string            `json:"boshi_12"`
-	JiangQian12    string            `json:"jiang_qian_12"`
-	SuiQian12      string            `json:"sui_qian_12"`
+	Name           string       `json:"name"`
+	Branch         string       `json:"branch"`
+	HeavenlyStem   string       `json:"heavenly_stem"`
+	IsBodyPalace   bool         `json:"is_body_palace"`
+	Stars          []StarOutput `json:"stars"`
+	FourHua        []string     `json:"four_hua"`
+	AdjectiveStars []string     `json:"adjective_stars"`
+	Changsheng12   string       `json:"changsheng_12"`
+	Boshi12        string       `json:"boshi_12"`
+	JiangQian12    string       `json:"jiang_qian_12"`
+	SuiQian12      string       `json:"sui_qian_12"`
 
 	MainStars  []string          `json:"-"`
 	AuxStars   []string          `json:"-"`
@@ -342,9 +342,11 @@ func buildBirthData(year, month, day, hour, minute int, gender string) (*BirthDa
 		return nil, fmt.Errorf("invalid solar date: %w", err)
 	}
 	lunarHour := st.GetLunarHour()
+	lunarDayObj := lunarHour.GetLunarDay()
+	lunarMonthObj := lunarDayObj.GetLunarMonth()
 	ec := lunarHour.GetEightChar()
 
-	yearPillarName := ec.GetYear().GetName()
+	yearPillarName := lunarMonthObj.GetLunarYear().GetSixtyCycle().GetName()
 	monthPillarName := ec.GetMonth().GetName()
 	dayPillarName := ec.GetDay().GetName()
 	hourPillarName := ec.GetHour().GetName()
@@ -357,40 +359,34 @@ func buildBirthData(year, month, day, hour, minute int, gender string) (*BirthDa
 	// 子时 starts at 23:00, so hour 23-1 maps to 子(0), hour 1-3 maps to 丑(1), etc.
 	hourBranch := ((hour + 1) / 2) % 12
 
-	lunarMonth := lunarHour.GetMonth()
-
-	// Check for leap month
-	isLeapMonth := false
-	lunarMonthInt := lunarMonth
-	if lunarMonthInt > 12 {
-		isLeapMonth = true
-		lunarMonthInt = lunarMonthInt - 12
-		if lunarMonthInt < 1 || lunarMonthInt > 12 {
-			lunarMonthInt = lunarHour.GetDay() // fallback
-		}
+	lunarMonthWithLeap := lunarMonthObj.GetMonthWithLeap()
+	isLeapMonth := lunarMonthObj.IsLeap()
+	lunarMonthInt := lunarMonthWithLeap
+	if lunarMonthInt < 0 {
+		lunarMonthInt = -lunarMonthInt
 	}
 
 	// Handle 晚子时: if hour is 23 (11pm), the day advances
 	lunarDay := lunarHour.GetDay()
 
 	return &BirthData{
-		SolarYear:          year,
-		SolarMonth:         month,
-		SolarDay:           day,
-		Hour:               hour,
-		Minute:             minute,
-		Gender:             g,
-		LunarYear:          lunarHour.GetYear(),
-		LunarMonth:         lunarMonthInt,
-		LunarDay:           lunarDay,
-		YearStem:           yearStem,
-		YearBranch:         yearBranch,
-		MonthPillarBranch:  monthBranch,
-		DayStem:            stemFromRune([]rune(dayPillarName)[0]),
-		DayBranch:          branchFromRune([]rune(dayPillarName)[1]),
-		HourBranch:         hourBranch,
-		HourStem:           stemFromRune([]rune(hourPillarName)[0]),
-		IsLeapMonth:        isLeapMonth,
+		SolarYear:         year,
+		SolarMonth:        month,
+		SolarDay:          day,
+		Hour:              hour,
+		Minute:            minute,
+		Gender:            g,
+		LunarYear:         lunarDayObj.GetYear(),
+		LunarMonth:        lunarMonthInt,
+		LunarDay:          lunarDay,
+		YearStem:          yearStem,
+		YearBranch:        yearBranch,
+		MonthPillarBranch: monthBranch,
+		DayStem:           stemFromRune([]rune(dayPillarName)[0]),
+		DayBranch:         branchFromRune([]rune(dayPillarName)[1]),
+		HourBranch:        hourBranch,
+		HourStem:          stemFromRune([]rune(hourPillarName)[0]),
+		IsLeapMonth:       isLeapMonth,
 	}, nil
 }
 
@@ -480,9 +476,8 @@ func calcDayunFromChart(chart *ZiWeiChart) Dayun {
 		gender = chart.birthData.Gender
 	}
 
-	isYangStem := StemIsYang(chart.YearStem)
 	isMale := gender == "男" || gender == "MALE" || gender == "M"
-	forward := (isYangStem && isMale) || (!isYangStem && !isMale)
+	forward := (BranchIsYang(chart.YearBranch) && isMale) || (!BranchIsYang(chart.YearBranch) && !isMale)
 
 	// 大限起运年龄: 五行局值
 	juValue := chart.JuValue
@@ -531,7 +526,7 @@ func calcDayunFromChart(chart *ZiWeiChart) Dayun {
 type AlgorithmType int
 
 const (
-	AlgorithmFullBook  AlgorithmType = iota
+	AlgorithmFullBook AlgorithmType = iota
 	AlgorithmZhongZhou
 )
 

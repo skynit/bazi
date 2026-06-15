@@ -16,10 +16,10 @@ import (
 
 // SanfangSizhengExpected holds the expected 三方四正 for one palace.
 type SanfangSizhengExpected struct {
-	PalaceName    string
-	OppositeName  string // 对宫
-	Trine1Name    string // 三合1
-	Trine2Name    string // 三合2
+	PalaceName   string
+	OppositeName string // 对宫
+	Trine1Name   string // 三合1
+	Trine2Name   string // 三合2
 }
 
 // TestComputeSanfangSizheng_AllPalaces verifies all 12 palaces.
@@ -184,19 +184,18 @@ func TestSanfangSizheng_ChartIntegration(t *testing.T) {
 			t.Errorf("Palace[%d](%s): Trine2 is empty", i, ZIWEI_PALACE_NAMES[i])
 		}
 
-		// Verify names match palace names
-		expected := ComputeSanfangSizheng(i)
-		if sf.Opposite != ZIWEI_PALACE_NAMES[expected[0]] {
-			t.Errorf("Palace[%d]: Opposite = %s, 期望 %s",
-				i, sf.Opposite, ZIWEI_PALACE_NAMES[expected[0]])
+		branch := BranchIndex[chart.Palaces[i].Branch]
+		wantOpposite := palaceNameByBranchForTest(chart, BranchNames[fixIndex(branch+6)])
+		wantTrine1 := palaceNameByBranchForTest(chart, BranchNames[fixIndex(branch+8)])
+		wantTrine2 := palaceNameByBranchForTest(chart, BranchNames[fixIndex(branch+4)])
+		if sf.Opposite != wantOpposite {
+			t.Errorf("Palace[%d]: Opposite = %s, 期望 %s", i, sf.Opposite, wantOpposite)
 		}
-		if sf.Trine1 != ZIWEI_PALACE_NAMES[expected[1]] {
-			t.Errorf("Palace[%d]: Trine1 = %s, 期望 %s",
-				i, sf.Trine1, ZIWEI_PALACE_NAMES[expected[1]])
+		if sf.Trine1 != wantTrine1 {
+			t.Errorf("Palace[%d]: Trine1 = %s, 期望 %s", i, sf.Trine1, wantTrine1)
 		}
-		if sf.Trine2 != ZIWEI_PALACE_NAMES[expected[2]] {
-			t.Errorf("Palace[%d]: Trine2 = %s, 期望 %s",
-				i, sf.Trine2, ZIWEI_PALACE_NAMES[expected[2]])
+		if sf.Trine2 != wantTrine2 {
+			t.Errorf("Palace[%d]: Trine2 = %s, 期望 %s", i, sf.Trine2, wantTrine2)
 		}
 	}
 }
@@ -256,4 +255,13 @@ func findPalaceIndexInNames(name string) int {
 		}
 	}
 	return -1
+}
+
+func palaceNameByBranchForTest(chart *ZiWeiChart, branch string) string {
+	for _, p := range chart.Palaces {
+		if p.Branch == branch {
+			return p.Name
+		}
+	}
+	return ""
 }

@@ -68,7 +68,7 @@ var TigerRule = map[int]int{
 // The palace's stem is derived from 五虎遁.
 func GetPalaceStem(yearStem, branchIdx int) int {
 	yinStem := TigerRule[yearStem]
-	return (yinStem + (branchIdx - 2 + 12) % 12) % 10
+	return (yinStem + (branchIdx-2+12)%12) % 10
 }
 
 // ──────────── Five Element Bureau (五行局) ────────────
@@ -105,7 +105,7 @@ func ganzhiPairIndex(stem, branch int) int {
 }
 
 func BranchValue(branchIdx int) int {
-	return (branchIdx%6 + 6) % 6 + 1 // deprecated, kept for compatibility
+	return (branchIdx%6+6)%6 + 1 // deprecated, kept for compatibility
 }
 
 // NaYinBureauMap maps sum value → five bureau value.
@@ -186,22 +186,22 @@ var SiHuaLabels = [4]string{"化禄", "化权", "化科", "化忌"}
 
 // ZuofuTable: 左辅 from 辰(4), +%lunarMonth
 func ZuofuIndex(lunarMonth int) int {
-	return fixIndex(3 + lunarMonth) // 辰=4, but 0-based from 寅: 辰=3+1=4 → offset 3, + month-1 → simpler: (3+lunarMonth)%12
+	return fixIndex(4 + lunarMonth - 1)
 }
 
 // YouyiTable: 右弼 from 戌(10), -%lunarMonth
 func YoubiIndex(lunarMonth int) int {
-	return fixIndex(9 - (lunarMonth - 1)) // 戌=10, 逆数月份
+	return fixIndex(10 - (lunarMonth - 1))
 }
 
 // WenchangTable: 文昌 from 戌(10), -%timeIndex
 func WenchangIndex(timeIndex int) int {
-	return fixIndex(9 - timeIndex) // 戌逆数时辰
+	return fixIndex(10 - timeIndex)
 }
 
 // WenquTable: 文曲 from 辰(4), +%timeIndex
 func WenquIndex(timeIndex int) int {
-	return fixIndex(3 + timeIndex) // 辰顺数时辰
+	return fixIndex(4 + timeIndex)
 }
 
 // KuiYueTable maps year stem → {天魁branch, 天钺branch}.
@@ -209,33 +209,16 @@ func WenquIndex(timeIndex int) int {
 var KuiYueTable = [10][2]int{
 	{1, 7},  // 甲: 魁=丑(1), 钺=未(7)
 	{0, 8},  // 乙: 魁=子(0), 钺=申(8)
-	{11, 3}, // 丙: 魁=亥(11), 钺=卯(3)
-	{10, 4}, // 丁: 魁=戌(10), 钺=辰(4)
+	{11, 9}, // 丙: 魁=亥(11), 钺=酉(9)
+	{11, 9}, // 丁: 魁=亥(11), 钺=酉(9)
 	{1, 7},  // 戊: 魁=丑(1), 钺=未(7) (同甲)
 	{0, 8},  // 己: 魁=子(0), 钺=申(8) (同乙)
-	{11, 3}, // 庚: 魁=亥(11), 钺=卯(3) (同丙)
-	{10, 4}, // 辛: 魁=戌(10), 钺=辰(4) (同丁)
-	{1, 7},  // 壬: 魁=丑(1), 钺=未(7) (同甲戊)
-	{0, 8},  // 癸: 魁=子(0), 钺=申(8) (同乙己)
+	{1, 7},  // 庚: 魁=丑(1), 钺=未(7)
+	{6, 2},  // 辛: 魁=午(6), 钺=寅(2)
+	{3, 5},  // 壬: 魁=卯(3), 钺=巳(5)
+	{3, 5},  // 癸: 魁=卯(3), 钺=巳(5)
 }
 
-// LuCunTable maps year stem index → 禄存 branch index.
-var LuCunTable = [12]int{
-	2,  // 甲→寅(2)
-	3,  // 乙→卯(3)
-	4,  // 丙→辰(4) (实际:丙戊同,但丙禄巳=5是错误; iztro用辰=4)
-	5,  // 丁→巳(5)
-	6,  // 戊→午(6)
-	7,  // 己→未(7)
-	8,  // 庚→申(8)
-	9,  // 辛→酉(9)
-	10, // 壬→亥(10) (iztro:壬禄在亥)
-	0,  // 癸→子(0)
-	0,  // placeholder (无10、11天干)
-	0,  // placeholder
-}
-
-// Corrected LuCun: 丙戊共禄巳(5), 丁己共禄午(6)
 // iztro location.ts getLuYangTuoMaIndex:
 // 甲→寅(2), 乙→卯(3), 丙→巳(5), 丁→午(6), 戊→巳(5), 己→午(6),
 // 庚→申(8), 辛→酉(9), 壬→亥(10), 癸→子(0)
@@ -251,6 +234,9 @@ var LucunBranchIdx = [10]int{
 	10, // 壬
 	0,  // 癸
 }
+
+// LuCunTable is kept for compatibility with older tests/helpers.
+var LuCunTable = LucunBranchIdx
 
 // QingyangIndex = 禄存+1, TuoluoIndex = 禄存-1 (mod 12)
 func QingyangIndex(yearStem int) int { return fixIndex(LucunBranchIdx[yearStem] + 1) }
@@ -275,36 +261,23 @@ var TianmaBranchIdx = [12]int{
 
 // DiKongDiJieTable: 地空 from 亥(11)逆数, 地劫 from 亥(11)顺数
 func DiKongIndex(timeIndex int) int { return fixIndex(11 - timeIndex) }
-func DiJieIndex(timeIndex int) int { return fixIndex(11 + timeIndex) }
-
-// HuoLingTable: 火星/铃星 placement by year branch + time index.
-// Complex lookup table. Returns [火星branch, 铃星branch].
-var HuoLingTable = map[int][2][]int{
-	// 寅午戌 group
-	2:  {{4, 11, 0, 7, 4, 11, 0, 7, 4, 11, 0, 7, 4}, {9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 0}},
-	6:  {{4, 11, 0, 7, 4, 11, 0, 7, 4, 11, 0, 7, 4}, {9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 0}},
-	10: {{4, 11, 0, 7, 4, 11, 0, 7, 4, 11, 0, 7, 4}, {9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 0}},
-	// 申子辰 group
-	0:  {{2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 2}, {3, 3, 3, 10, 10, 10, 11, 11, 11, 0, 0, 0, 3}},
-	4:  {{2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 2}, {3, 3, 3, 10, 10, 10, 11, 11, 11, 0, 0, 0, 3}},
-	8:  {{2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 2}, {3, 3, 3, 10, 10, 10, 11, 11, 11, 0, 0, 0, 3}},
-	// 巳酉丑 group
-	5:  {{6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 6}, {8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 8}},
-	9:  {{6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 6}, {8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 8}},
-	1:  {{6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 6}, {8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 8}},
-	// 亥卯未 group
-	11: {{10, 10, 10, 11, 11, 11, 0, 0, 0, 1, 1, 1, 10}, {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1}},
-	3:  {{10, 10, 10, 11, 11, 11, 0, 0, 0, 1, 1, 1, 10}, {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1}},
-	7:  {{10, 10, 10, 11, 11, 11, 0, 0, 0, 1, 1, 1, 10}, {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1}},
-}
+func DiJieIndex(timeIndex int) int  { return fixIndex(11 + timeIndex) }
 
 // HuolingIndex returns (火星branch, 铃星branch) for a given year branch and time index.
 func HuolingIndex(yearBranch, timeIndex int) (huoIdx, lingIdx int) {
-	group, ok := HuoLingTable[yearBranch]
-	if !ok || timeIndex < 0 || timeIndex >= 13 {
+	timeIndex = fixIndex(timeIndex)
+	switch yearBranch {
+	case 2, 6, 10: // 寅午戌
+		return fixIndex(1 + timeIndex), fixIndex(3 + timeIndex)
+	case 8, 0, 4: // 申子辰
+		return fixIndex(2 + timeIndex), fixIndex(10 + timeIndex)
+	case 5, 9, 1: // 巳酉丑
+		return fixIndex(3 + timeIndex), fixIndex(10 + timeIndex)
+	case 11, 3, 7: // 亥卯未
+		return fixIndex(9 + timeIndex), fixIndex(10 + timeIndex)
+	default:
 		return 0, 0
 	}
-	return group[0][timeIndex], group[1][timeIndex]
 }
 
 // ──────────── Adjective Star Tables ────────────
@@ -312,7 +285,7 @@ func HuolingIndex(yearBranch, timeIndex int) (huoIdx, lingIdx int) {
 // HongLuanTable: 红鸾 starts from 卯(3), reverses by year branch.
 // 口诀: 子年红鸾在卯, 逆数年支 → 红鸾 = fixIndex(3 - yearBranch)
 func HongLuanIndex(yearBranch int) int { return fixIndex(3 - yearBranch) }
-func TianXiIndex(yearBranch int) int  { return fixIndex(HongLuanIndex(yearBranch) + 6) }
+func TianXiIndex(yearBranch int) int   { return fixIndex(HongLuanIndex(yearBranch) + 6) }
 
 // TianYaoTable: 天姚 from 丑(1) + lunarMonth
 func TianYaoIndex(lunarMonth int) int { return fixIndex(1 + lunarMonth) }
@@ -342,7 +315,7 @@ func TianKongIndex(timeIndex int) int { return fixIndex(11 - timeIndex) }
 
 // ──────────── Life Master / Body Master (命主/身主) ────────────
 
-// LifeMasterTable maps year branch to 命主 star.
+// LifeMasterTable maps 命宫地支 to 命主 star.
 // 子→贪狼, 丑→巨门, 寅→禄存, 卯→文曲, 辰→廉贞, 巳→武曲,
 // 午→破军, 未→武曲, 申→廉贞, 酉→文曲, 戌→禄存, 亥→巨门
 var LifeMasterTable = [12]string{

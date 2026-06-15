@@ -33,6 +33,15 @@ func (m *mockChartListStore) FindByID(id uint) (*model.BirthChart, error) {
 	}
 	return c, nil
 }
+func (m *mockChartListStore) FindByIDForUser(id uint, userID uint) (*model.BirthChart, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	c, ok := m.charts[id]
+	if !ok || c.UserID != userID {
+		return nil, nil
+	}
+	return c, nil
+}
 
 func (m *mockChartListStore) ListByUser(userID uint, page, pageSize int) ([]model.BirthChart, int64, error) {
 	m.mu.RLock()

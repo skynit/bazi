@@ -1,63 +1,171 @@
 {
-  "title": "白天模式 / Light Mode — jadense.com 风格双主题系统",
+  "title": "周/月运势完善 — Glass+Aurora 视觉 × 全字段后端 × 离线知识库 AI 解读",
   "stories": [
     {
-      "id": "LM-001",
-      "title": "定义白天模式 CSS 设计令牌",
-      "description": "将颜色设计令牌从 .dark 块移至 :root 作为白天模式默认值。设计白天令牌基于 jadense.com 风格：白色背景、绿色主色、淡化阴影、毛玻璃效果。.dark 块覆盖为暗黑模式值。移除重复的 shadcn .dark 块。更新 body::before 辉光和 body::after 暗角适配双主题。",
+      "id": "WM-001",
+      "title": "Phase 1 — 后端 FortuneSummary 数据结构",
+      "description": "在 src/internal/service/fortune/fortune.go 定义 FortuneSummary 结构体（best_day/worst_day/peak_days/low_days/element_distribution/dominant_element/dominant_ten_god/good_streak/bad_streak/average_score/volatility/key_advice）。WeeklyFortune 与 MonthlyFortune 各加 Summary 字段。",
       "priority": 1,
-      "passes": true,
+      "passes": false,
       "acceptanceCriteria": [
-        ":root 包含完整的白天模式 shadcn 令牌（--background, --foreground, --primary 等）",
-        ":root 包含完整的 jadense 风格 surface hierarchy / line system / shadows / glass",
-        ":root 包含完整的白天模式 legacy Bazi 兼容变量（--bg, --text, --text-muted, --accent 等）",
-        ".dark 块覆盖所有颜色令牌为暗黑值",
-        "移除第二个重复的 .dark 块",
-        "body::before 使用 CSS 变量引用辉光颜色，在双主题下正确渲染",
-        ".dark body::after 覆盖暗角为暗黑版本",
-        "body 添加 transition 实现平滑主题切换"
+        "FortuneSummary 结构体定义在 fortune.go，含 12 个字段",
+        "WeeklyFortune 包含 Summary FortuneSummary 字段",
+        "MonthlyFortune 包含 Summary FortuneSummary 字段",
+        "go build ./... 通过"
       ]
     },
     {
-      "id": "LM-002",
-      "title": "添加主题切换按钮到 App.vue 导航栏",
-      "description": "在导航栏右侧添加太阳/月亮图标切换按钮。实现 localStorage 持久化主题偏好。更新 index.html 移除硬编码 class='dark'，添加内联脚本防止 FOUC。",
+      "id": "WM-002",
+      "title": "Phase 1 — Aggregator 实现",
+      "description": "新建 src/internal/service/fortune/aggregator.go 实现 computeSummary([]DailyFortune) FortuneSummary。计算 best/worst（按 score）、peak_days（score>=80）、low_days（score<=40）、element_distribution（累加 TodayElements 后归一化）、dominant_element 与 dominant_ten_god（频次最高）、good_streak/bad_streak（最长连续 score>=70 / score<=40）、average_score、volatility（std）。key_advice 用模板拼装一句 30-60 字的中文总览。",
       "priority": 2,
-      "passes": true,
+      "passes": false,
       "acceptanceCriteria": [
-        "导航栏右侧存在主题切换按钮，暗黑模式显示☀图标，白天模式显示☽图标",
-        "点击按钮切换 html 元素上的 .dark class",
-        "主题偏好保存到 localStorage('theme')",
-        "首次访问时检测 prefers-color-scheme: dark 媒体查询",
-        "index.html 内联脚本在页面渲染前设置 .dark class 防止 FOUC",
-        "按钮有适当的 aria-label"
+        "aggregator.go 存在，导出 computeSummary 函数",
+        "best_day 是 score 最大的日期（断言用单元测试）",
+        "element_distribution 5 个键值之和约等于 1.0",
+        "good_streak/bad_streak 计算正确（断言已知输入）",
+        "go test ./internal/service/fortune/ -run TestComputeSummary 通过"
       ]
     },
     {
-      "id": "LM-003",
-      "title": "修复硬编码颜色适配双主题",
-      "description": "将 LoginView/RegisterView 输入框的硬编码 rgba(255,255,255,0.04) 背景改为 var(--glass-bg)。将 loading spinner 的硬编码颜色改为 currentColor。将 App.vue 下拉菜单的硬编码暗紫色背景改为 var(--surface-1)。",
+      "id": "WM-003",
+      "title": "Phase 1 — Response model 与 handler 接入",
+      "description": "src/internal/model/fortune_output.go 的 WeeklyFortuneResponse 与 MonthlyFortuneResponse 各加 Summary FortuneSummary。fortune_weekly.go / fortune_monthly.go handler 调 computeSummary 写入 response。",
       "priority": 3,
-      "passes": true,
+      "passes": false,
       "acceptanceCriteria": [
-        "LoginView 输入框使用 var(--glass-bg) 替代硬编码白色背景",
-        "RegisterView 所有输入框使用 var(--glass-bg) 替代硬编码白色背景",
-        "LoginView/RegisterView spinner 使用 currentColor 替代 #030404",
-        "BirthInputForm spinner 使用 currentColor 替代 #0a0815",
-        "App.vue 运势下拉菜单使用 var(--surface-1) 替代硬编码 rgba(15,12,28,0.96)"
+        "WeeklyFortuneResponse / MonthlyFortuneResponse 含 Summary 字段",
+        "Weekly handler 与 Monthly handler 把 Summary 写入响应",
+        "现有 handler 测试不退化（go test ./internal/handler/test/ 通过）",
+        "新增测试断言响应 JSON 含 summary.best_day"
       ]
     },
     {
-      "id": "LM-004",
-      "title": "构建验证与双主题完整性检查",
-      "description": "运行 vue-tsc 类型检查和 npm run build 构建验证。确认所有页面在双主题下颜色正常切换。",
+      "id": "WM-004",
+      "title": "Phase 1 — ETag 中间件",
+      "description": "新建 src/internal/middleware/etag.go。计算响应 body sha256 前 8 字节作为 ETag。If-None-Match 命中返回 304。注册到 /api/fortune/weekly 与 /api/fortune/monthly。Cache-Control: private, max-age=300。",
       "priority": 4,
-      "passes": true,
+      "passes": false,
       "acceptanceCriteria": [
-        "vue-tsc --noEmit 无错误",
-        "npm run build 构建成功",
-        "vite dev server 正常启动",
-        "所有 CSS 自定义属性在 :root 和 .dark 中正确级联"
+        "etag.go 中间件存在",
+        "首次请求响应含 ETag 头",
+        "携带 If-None-Match 的二次请求返回 304",
+        "两次相同请求 ETag 相同（确定性）",
+        "Phase 1 commit 完成（git log 含相应 message）"
+      ]
+    },
+    {
+      "id": "WM-005",
+      "title": "Phase 3.1 — 前端共享子组件骨架",
+      "description": "新建 vue/src/components/fortune/ 下 7 个组件：AuroraMeshBackground.vue / FortuneRadar.vue / FortuneHeatStrip.vue / ScoreOrb.vue / DayFortuneCard.vue / NarrativePanel.vue / BestWorstChip.vue。先实现 props 与基础样式骨架，类型契合后端 FortuneSummary。",
+      "priority": 5,
+      "passes": false,
+      "acceptanceCriteria": [
+        "7 个 .vue 组件文件存在于 vue/src/components/fortune/",
+        "每个组件有 <script setup lang='ts'> 与 defineProps 类型签名",
+        "AuroraMeshBackground 用 CSS radial-gradient + animation 实现，无 canvas/webgl",
+        "vue-tsc --noEmit 通过"
+      ]
+    },
+    {
+      "id": "WM-006",
+      "title": "Phase 3.2 — Aurora Mesh 与 Glassmorphism 视觉",
+      "description": "AuroraMeshBackground 三层径向渐变跟随 themeStore.yongshen，prefers-reduced-motion 时静止。所有 .glass-card 用 backdrop-filter blur(22px) saturate(140%) + line-strong 边框 + shadow-md。dark 模式 alpha 降到 0.18。",
+      "priority": 6,
+      "passes": false,
+      "acceptanceCriteria": [
+        "AuroraMeshBackground hue 跟随 themeStore.yongshen 切换（5 种五行各异）",
+        "@media (prefers-reduced-motion: reduce) 时关闭 aurora-drift 动画",
+        ".glass-card 类样式定义在 WeeklyFortuneView 或共享样式中",
+        "dark / light 双模式视觉对比可接受（人工 spot check）"
+      ]
+    },
+    {
+      "id": "WM-007",
+      "title": "Phase 3.3 — WeeklyFortuneView 重做",
+      "description": "全面替换 WeeklyFortuneView.vue 模板与样式。布局：Hero + ScoreOrb + HeatStrip(7) + Radar + TrendChart + NarrativePanel(占位) + DayCardGrid。响应式 <640 单列、640-1024 双列、>=1024 三列+侧栏。引入 echarts 按需。NarrativePanel 显示「解读即将上线」占位（Phase 2 启用真实接口）。",
+      "priority": 7,
+      "passes": false,
+      "acceptanceCriteria": [
+        "WeeklyFortuneView 渲染 ScoreOrb / HeatStrip / Radar / TrendChart / NarrativePanel / DayCardGrid 6 个区块",
+        "WeeklyResponse 类型扩展含 summary",
+        "best/worst chip 按 summary.best_day / summary.worst_day 标记",
+        "lucky_color / lucky_number / wealth_dir 在 DayFortuneCard 可见",
+        "<640px / 768px / 1280px 三档断点布局正常（人工或 viewport 截图）",
+        "vue-tsc --noEmit 通过"
+      ]
+    },
+    {
+      "id": "WM-008",
+      "title": "Phase 3.4 — Weekly 联调与字段透传验证",
+      "description": "前端通过 /api/fortune/weekly 拿到完整 daily_fortunes（含 score/lucky_*/rikuyo）和 summary，所有字段在 UI 上有展示位。NarrativePanel 暂占位。Phase 3 第一段 commit。",
+      "priority": 8,
+      "passes": false,
+      "acceptanceCriteria": [
+        "Weekly 响应 daily_fortunes[0] 含 score、lucky_color、lucky_number、wealth_dir 字段（非空）",
+        "前端 DayFortuneCard 显示 lucky_color 圆点 + lucky_number",
+        "Radar 五轴数据来自 summary.element_distribution",
+        "ETag 二次请求返回 304（network 面板验证或脚本断言）",
+        "git commit 含 'Phase 3.x weekly' 字样"
+      ]
+    },
+    {
+      "id": "WM-009",
+      "title": "Phase 3.5 — MonthlyFortuneView 重做",
+      "description": "MonthlyFortuneView 结构对齐 Weekly：Hero + ScoreOrb + 月历热力（7 列 N 行 grid，每格 score+干支）+ Radar + Trend + NarrativePanel(占位) + 折叠日卡列表（默认前 7）。best/peak/low 用粗描边高亮。",
+      "priority": 9,
+      "passes": false,
+      "acceptanceCriteria": [
+        "MonthlyFortuneView 含月历热力 grid（7 列 × N 行）",
+        "best/peak/low 视觉标记可区分",
+        "默认折叠 7 天后日卡，展开按钮可切换",
+        "Radar/Trend 数据正确",
+        "vue-tsc --noEmit 通过"
+      ]
+    },
+    {
+      "id": "WM-010",
+      "title": "Phase 4 — 联调与回归",
+      "description": "go build && go test && vue-tsc --noEmit && vite build。手测白天/暗黑 × 5 种五行 × 周/月 = 20 组无明显异常。reduce-motion 关动画验证。Phase 3+4 commit。",
+      "priority": 10,
+      "passes": false,
+      "acceptanceCriteria": [
+        "go build ./... 通过",
+        "go test ./internal/handler/test/ ./internal/service/fortune/ 全通过",
+        "npx vue-tsc --noEmit 通过",
+        "npm run build 通过",
+        "git commit 含 weekly/monthly 改动"
+      ]
+    },
+    {
+      "id": "WM-011",
+      "title": "Phase 2 — 知识库构建 CLI（最后做）",
+      "description": "新建 src/cmd/bazi-knowledge-build/main.go。扫描 /home/skynit/Uni/ming/mingli/，按 H2 切片，生成 ~/.bazi/knowledge.db（chromem-go）。默认跳过 04-学习笔记/ 与 05-专题研究/，--include-notes 启用。Embedding 优先 Ollama nomic-embed-text，无 Ollama 时切到 BM25(bleve)。",
+      "priority": 11,
+      "passes": false,
+      "acceptanceCriteria": [
+        "bazi-knowledge-build CLI 存在并可编译",
+        "--src 与 --out 参数生效",
+        "首次构建产生 ~/.bazi/knowledge.db 文件且非空",
+        "默认不包含 04-学习笔记 与 05-专题研究 内容",
+        "--include-notes 时包含上述目录"
+      ]
+    },
+    {
+      "id": "WM-012",
+      "title": "Phase 2 — 知识库检索与 /explain handler",
+      "description": "新建 src/internal/service/knowledge/retriever.go (Retriever 接口)、chromem.go、bm25.go、embed.go (Ollama)。新建 src/internal/handler/fortune_explain.go：POST /api/fortune/explain {chart_id, period, summary} → {narrative, citations[]}。boltdb 缓存 ~/.bazi/explain-cache.db。前端 NarrativePanel 接入真实接口，占位逻辑移除。",
+      "priority": 12,
+      "passes": false,
+      "acceptanceCriteria": [
+        "/api/fortune/explain 路由注册（JWT + ETag）",
+        "Retriever 接口与 chromem / BM25 两实现存在",
+        "ExplainResponse 含 narrative（500-800 字）与 citations[] (≥3)",
+        "Ollama 不可用时自动降级 BM25（响应 engine 字段标识）",
+        "缓存命中 P95 < 100ms",
+        "前端 NarrativePanel 渲染 narrative + 折叠 citations",
+        "vue-tsc --noEmit 与 go test 全通过"
       ]
     }
   ]

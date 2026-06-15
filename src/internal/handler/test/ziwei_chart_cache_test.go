@@ -37,6 +37,12 @@ func (s *ziweiCachingStore) FindByID(id uint) (*model.BirthChart, error) {
 	}
 	return nil, nil
 }
+func (s *ziweiCachingStore) FindByIDForUser(id uint, userID uint) (*model.BirthChart, error) {
+	if c, ok := s.charts[id]; ok && c.UserID == userID {
+		return c, nil
+	}
+	return nil, nil
+}
 
 func (s *ziweiCachingStore) Update(c *model.BirthChart) error {
 	if _, ok := s.charts[c.ID]; !ok {
@@ -61,6 +67,7 @@ func setupZiWeiCachingRouter(store *ziweiCachingStore) *gin.Engine {
 func TestZiWeiChart_CachedResult(t *testing.T) {
 	store := newZiWeiCachingStore()
 	chart := &model.BirthChart{
+		UserID:     1,
 		Name:       "test",
 		Gender:     "男",
 		BirthYear:  1984,

@@ -16,18 +16,18 @@ type ZiWeiChartHandler struct {
 }
 
 type ZiWeiPalaceResponse struct {
-	Name           string           `json:"name"`
-	Branch         string           `json:"branch"`
-	HeavenlyStem   string           `json:"heavenly_stem"`
-	IsBodyPalace   bool             `json:"is_body_palace"`
+	Name           string             `json:"name"`
+	Branch         string             `json:"branch"`
+	HeavenlyStem   string             `json:"heavenly_stem"`
+	IsBodyPalace   bool               `json:"is_body_palace"`
 	Stars          []ziwei.StarOutput `json:"stars"`
-	FourHua        []string         `json:"four_hua"`
-	AdjectiveStars []string         `json:"adjective_stars,omitempty"`
-	Changsheng12   string           `json:"changsheng_12,omitempty"`
-	Boshi12        string           `json:"boshi_12,omitempty"`
-	JiangQian12    string           `json:"jiang_qian_12,omitempty"`
-	SuiQian12      string           `json:"sui_qian_12,omitempty"`
-	SanfangSizheng *SanfangResponse `json:"sanfang_sizheng,omitempty"`
+	FourHua        []string           `json:"four_hua"`
+	AdjectiveStars []string           `json:"adjective_stars,omitempty"`
+	Changsheng12   string             `json:"changsheng_12,omitempty"`
+	Boshi12        string             `json:"boshi_12,omitempty"`
+	JiangQian12    string             `json:"jiang_qian_12,omitempty"`
+	SuiQian12      string             `json:"sui_qian_12,omitempty"`
+	SanfangSizheng *SanfangResponse   `json:"sanfang_sizheng,omitempty"`
 }
 
 // SanfangResponse holds the sanfang sizheng data for a palace.
@@ -37,14 +37,14 @@ type SanfangResponse struct {
 	Trine2   string `json:"trine2"`
 }
 
-func mapPalaceToResponse(p *ziwei.PalaceInfo, branch string, sf *ziwei.SanfangSizhengResult) ZiWeiPalaceResponse {
+func mapPalaceToResponse(p *ziwei.PalaceInfo, sf *ziwei.SanfangSizhengResult) ZiWeiPalaceResponse {
 	resp := ZiWeiPalaceResponse{
-		Name:         p.Name,
-		Branch:       branch,
-		HeavenlyStem: p.HeavenlyStem,
-		IsBodyPalace: p.IsBodyPalace,
-		Stars:        p.Stars,
-		FourHua:      p.FourHua,
+		Name:           p.Name,
+		Branch:         p.Branch,
+		HeavenlyStem:   p.HeavenlyStem,
+		IsBodyPalace:   p.IsBodyPalace,
+		Stars:          p.Stars,
+		FourHua:        p.FourHua,
 		AdjectiveStars: p.AdjectiveStars,
 		Changsheng12:   p.Changsheng12,
 		Boshi12:        p.Boshi12,
@@ -61,52 +61,29 @@ func mapPalaceToResponse(p *ziwei.PalaceInfo, branch string, sf *ziwei.SanfangSi
 	return resp
 }
 
-// computeMingGongBranch calculates which branch 命宫 occupies using the standard ZiWei formula.
-// branchOrder: ["寅","卯","辰","巳","午","未","申","酉","戌","亥","子","丑"]
-func computeMingGongBranch(lunarMonth, hour int) string {
-	branchOrder := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
-	// hourBranchIndex: 子(23-1)=0, 丑(1-3)=1, ..., 亥(21-23)=11
-	hourBranchIndex := ((hour + 1) / 2) % 12
-	// Standard 安命宫: 寅宫起正月顺数至生月, 再从该宫起子时逆数至生时
-	monthOffset := (lunarMonth - 1) % 12
-	mingGongIdx := (monthOffset - hourBranchIndex + 12) % 12
-	return branchOrder[mingGongIdx]
-}
-
-func mapChartToResponse(chart *ziwei.ZiWeiChart, lunarMonth, hour int) gin.H {
-	branchOrder := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
-	mingGongBranch := computeMingGongBranch(lunarMonth, hour)
-	mingGongIdx := 0
-	for i, b := range branchOrder {
-		if b == mingGongBranch {
-			mingGongIdx = i
-			break
-		}
-	}
-
+func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
 	palaces := make([]ZiWeiPalaceResponse, 12)
 	for i := 0; i < 12; i++ {
-		branch := branchOrder[(mingGongIdx+i)%12]
 		sf := &ziwei.SanfangSizhengResult{
 			Opposite: chart.SanfangSizheng[i].Opposite,
 			Trine1:   chart.SanfangSizheng[i].Trine1,
 			Trine2:   chart.SanfangSizheng[i].Trine2,
 		}
-		palaces[i] = mapPalaceToResponse(&chart.Palaces[i], branch, sf)
+		palaces[i] = mapPalaceToResponse(&chart.Palaces[i], sf)
 	}
 
 	return gin.H{
-		"palaces":                        palaces,
-		"life_master":                    chart.LifeMaster,
-		"body_master":                    chart.BodyMaster,
-		"five_bureau":                    chart.FiveBureau,
-		"body_palace":                    chart.BodyPalace,
-		"earthly_branch_of_soul_palace":  chart.EarthlyBranchOfSoulPalace,
-		"earthly_branch_of_body_palace":  chart.EarthlyBranchOfBodyPalace,
-		"patterns":                       chart.Patterns,
-		"liu_nian_stars":                 chart.LiuNianStars,
-		"liu_yue_stars":                  chart.LiuYueStars,
-		"liu_ri_stars":                   chart.LiuRiStars,
+		"palaces":                       palaces,
+		"life_master":                   chart.LifeMaster,
+		"body_master":                   chart.BodyMaster,
+		"five_bureau":                   chart.FiveBureau,
+		"body_palace":                   chart.BodyPalace,
+		"earthly_branch_of_soul_palace": chart.EarthlyBranchOfSoulPalace,
+		"earthly_branch_of_body_palace": chart.EarthlyBranchOfBodyPalace,
+		"patterns":                      chart.Patterns,
+		"liu_nian_stars":                chart.LiuNianStars,
+		"liu_yue_stars":                 chart.LiuYueStars,
+		"liu_ri_stars":                  chart.LiuRiStars,
 	}
 }
 
@@ -141,7 +118,8 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 
 	// chart_id provided: check cache or compute and store
 	if req.ChartID > 0 && h.Charts != nil {
-		birthChart, err := h.Charts.FindByID(req.ChartID)
+		userID, _ := c.Get("userID")
+		birthChart, err := h.Charts.FindByIDForUser(req.ChartID, userID.(uint))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "chart lookup failed"})
 			return
@@ -155,11 +133,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			// Serve cached result
 			var cached ziwei.ZiWeiChart
 			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
-				lunarMonth := cached.LunarMonth
-				if lunarMonth == 0 {
-					lunarMonth = birthChart.BirthMonth
-				}
-				c.JSON(http.StatusOK, mapChartToResponse(&cached, lunarMonth, birthChart.BirthHour))
+				c.JSON(http.StatusOK, mapChartToResponse(&cached))
 				return
 			}
 			// If unmarshal fails, fall through to recompute
@@ -181,11 +155,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			}
 		}
 
-		lunarMonth := chart.LunarMonth
-		if lunarMonth == 0 {
-			lunarMonth = birthChart.BirthMonth
-		}
-		c.JSON(http.StatusOK, mapChartToResponse(chart, lunarMonth, birthChart.BirthHour))
+		c.JSON(http.StatusOK, mapChartToResponse(chart))
 		return
 	}
 
@@ -196,12 +166,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 		return
 	}
 
-	// Use lunar month from the calculated chart
-	lunarMonth := chart.LunarMonth
-	if lunarMonth == 0 {
-		lunarMonth = req.BirthMonth
-	}
-	c.JSON(http.StatusOK, mapChartToResponse(chart, lunarMonth, req.BirthHour))
+	c.JSON(http.StatusOK, mapChartToResponse(chart))
 }
 
 // RegisterZiWeiRoutes registers the ZiWei chart calculation route.

@@ -13,6 +13,7 @@ import (
 // ChartListStore defines the interface for querying birth charts.
 type ChartListStore interface {
 	FindByID(id uint) (*model.BirthChart, error)
+	FindByIDForUser(id uint, userID uint) (*model.BirthChart, error)
 	ListByUser(userID uint, page, pageSize int) ([]model.BirthChart, int64, error)
 }
 
@@ -60,7 +61,8 @@ func (h *HistoryHandler) ListCharts(c *gin.Context) {
 
 // GetChart handles GET /api/charts/:id.
 func (h *HistoryHandler) GetChart(c *gin.Context) {
-	if _, exists := c.Get("userID"); !exists {
+	userID, exists := c.Get("userID")
+	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -71,7 +73,7 @@ func (h *HistoryHandler) GetChart(c *gin.Context) {
 		return
 	}
 
-	chart, err := h.Charts.FindByID(uint(id))
+	chart, err := h.Charts.FindByIDForUser(uint(id), userID.(uint))
 	if err != nil || chart == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
 		return
@@ -82,7 +84,8 @@ func (h *HistoryHandler) GetChart(c *gin.Context) {
 
 // FortuneHistoryList handles GET /api/fortune/history?chart_id=X.
 func (h *HistoryHandler) FortuneHistoryList(c *gin.Context) {
-	if _, exists := c.Get("userID"); !exists {
+	userID, exists := c.Get("userID")
+	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -90,6 +93,12 @@ func (h *HistoryHandler) FortuneHistoryList(c *gin.Context) {
 	chartID, err := strconv.ParseUint(c.Query("chart_id"), 10, 64)
 	if err != nil || chartID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+		return
+	}
+
+	chart, err := h.Charts.FindByIDForUser(uint(chartID), userID.(uint))
+	if err != nil || chart == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
 		return
 	}
 

@@ -44,6 +44,10 @@ export type WuxingTheme = {
   hcColorY: string
   /** HalftoneCMYK black ink */
   hcColorK: string
+  /** shadcn --primary in light mode (oklch) */
+  primaryOklchLight: string
+  /** shadcn --primary in dark mode (oklch) */
+  primaryOklchDark: string
 }
 
 export const bgImages: Record<WuxingKey, string> = {
@@ -69,6 +73,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     hcColorM: '#34d399',
     hcColorY: '#ffd900',
     hcColorK: '#231f20',
+    primaryOklchLight: 'oklch(0.58 0.20 160)',
+    primaryOklchDark: 'oklch(0.62 0.17 160)',
   },
   huo: {
     accentRgb: '251, 113, 133',
@@ -84,6 +90,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     hcColorM: '#fc4f9d',
     hcColorY: '#ffd900',
     hcColorK: '#231f20',
+    primaryOklchLight: 'oklch(0.62 0.22 12)',
+    primaryOklchDark: 'oklch(0.66 0.20 12)',
   },
   tu: {
     accentRgb: '252, 211, 77',
@@ -99,6 +107,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     hcColorM: '#d97706',
     hcColorY: '#ffd900',
     hcColorK: '#231f20',
+    primaryOklchLight: 'oklch(0.74 0.16 78)',
+    primaryOklchDark: 'oklch(0.78 0.14 78)',
   },
   jin: {
     accentRgb: '226, 232, 240',
@@ -114,6 +124,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     hcColorM: '#94a3b8',
     hcColorY: '#e8e0d0',
     hcColorK: '#1a1a2e',
+    primaryOklchLight: 'oklch(0.62 0.04 240)',
+    primaryOklchDark: 'oklch(0.78 0.03 240)',
   },
   shui: {
     accentRgb: '34, 211, 238',
@@ -129,6 +141,8 @@ export const wuxingThemes: Record<WuxingKey, WuxingTheme> = {
     hcColorM: '#22d3ee',
     hcColorY: '#a0c4ff',
     hcColorK: '#0d1b2a',
+    primaryOklchLight: 'oklch(0.66 0.14 220)',
+    primaryOklchDark: 'oklch(0.74 0.14 220)',
   },
 }
 
@@ -137,11 +151,11 @@ const shaderNoiseTexture = getShaderNoiseTexture()
 function grainGradientUniforms(theme: WuxingTheme, mode: ShaderThemeMode = 'dark'): ShaderMountUniforms {
   const isDark = mode === 'dark'
   return {
-    u_colorBack: getShaderColorFromString(isDark ? '#000000' : '#fbfcf8'),
+    u_colorBack: getShaderColorFromString(isDark ? '#000000' : '#e5f2ed'),
     u_colors: [
-      getShaderColorFromString(isDark ? theme.shaderBase : theme.shaderBaseLight),
-      getShaderColorFromString(isDark ? theme.shaderGlow : theme.shaderGlowLight),
-      getShaderColorFromString(isDark ? '#000000' : '#ffffff'),
+      getShaderColorFromString(theme.shaderBase),
+      getShaderColorFromString(theme.shaderGlow),
+      getShaderColorFromString(isDark ? '#000000' : '#F5FBF6'),
       getShaderColorFromString(isDark ? '#000000' : '#edf7ef')
     ],
     u_colorsCount: 4,

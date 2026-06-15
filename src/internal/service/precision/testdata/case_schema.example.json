@@ -1,0 +1,45 @@
+{
+  "case_id": "gold-bazi-0001",
+  "tier": "gold",
+  "system": "bazi",
+  "source": {
+    "name": "滴天髓阐微",
+    "url": "",
+    "license": "research",
+    "collected_at": "2026-06-16",
+    "source_hash": "sha256:"
+  },
+  "input": {
+    "calendar_type": "solar",
+    "solar_datetime": "2024-02-04T16:28:00+08:00",
+    "lunar_date": null,
+    "is_leap_month": false,
+    "birth_place": "Asia/Shanghai",
+    "longitude": null,
+    "time_precision": "minute",
+    "gender": "MALE",
+    "options": {
+      "zi_hour_policy": "late_zi_next_day",
+      "use_true_solar_time": false,
+      "school": "ziping"
+    }
+  },
+  "expected": {
+    "year_pillar": "甲辰",
+    "month_pillar": "丙寅",
+    "day_pillar": "",
+    "hour_pillar": "",
+    "day_master": "",
+    "body_strength": "",
+    "pattern": "",
+    "yongshen": [],
+    "ziwei": null
+  },
+  "review": {
+    "status": "verified",
+    "reviewers": ["human-a", "human-b"],
+    "confidence": 0.98,
+    "notes": "节气边界样例"
+  }
+}
+

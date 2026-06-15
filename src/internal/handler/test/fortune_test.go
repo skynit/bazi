@@ -26,6 +26,12 @@ func (m *mockChartStore) FindByID(id uint) (*model.BirthChart, error) {
 	}
 	return nil, nil
 }
+func (m *mockChartStore) FindByIDForUser(id uint, userID uint) (*model.BirthChart, error) {
+	if m.chart != nil && m.chart.ID == id && (m.chart.UserID == 0 || m.chart.UserID == userID) {
+		return m.chart, nil
+	}
+	return nil, nil
+}
 func (m *mockChartStore) Update(chart *model.BirthChart) error {
 	m.chart = chart
 	return nil

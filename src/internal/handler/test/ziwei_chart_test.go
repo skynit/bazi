@@ -61,9 +61,12 @@ func TestZiWeiChart_Success(t *testing.T) {
 
 	var resp struct {
 		Palaces []struct {
-			Name string `json:"name"`
+			Name   string `json:"name"`
+			Branch string `json:"branch"`
 		} `json:"palaces"`
-		FiveBureau string `json:"five_bureau"`
+		FiveBureau                string `json:"five_bureau"`
+		EarthlyBranchOfSoulPalace string `json:"earthly_branch_of_soul_palace"`
+		EarthlyBranchOfBodyPalace string `json:"earthly_branch_of_body_palace"`
 	}
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to unmarshal response: %v", err)
@@ -82,9 +85,15 @@ func TestZiWeiChart_Success(t *testing.T) {
 	if len(resp.Palaces) > 0 && resp.Palaces[0].Name != "命宫" {
 		t.Errorf("expected first palace to be 命宫, got %s", resp.Palaces[0].Name)
 	}
+	if len(resp.Palaces) > 0 && resp.Palaces[0].Branch != resp.EarthlyBranchOfSoulPalace {
+		t.Errorf("命宫 branch = %s, want soul palace branch %s", resp.Palaces[0].Branch, resp.EarthlyBranchOfSoulPalace)
+	}
 
 	if resp.FiveBureau == "" {
 		t.Error("FiveBureau is empty")
+	}
+	if resp.EarthlyBranchOfBodyPalace == "" {
+		t.Error("EarthlyBranchOfBodyPalace is empty")
 	}
 }
 

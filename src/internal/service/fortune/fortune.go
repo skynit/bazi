@@ -59,21 +59,23 @@ type DailyFortune struct {
 
 // WeeklyFortune aggregates seven daily fortunes.
 type WeeklyFortune struct {
-	WeekStart      string              `json:"week_start"`
-	DailyFortunes  []DailyFortune      `json:"daily_fortunes"`
-	OverallSummary string              `json:"overall_summary"`
-	WeeklyScore    int                 `json:"weekly_score"`
-	ElementTrend   []ElementTrendPoint `json:"element_trend"`
+	WeekStart      string               `json:"week_start"`
+	DailyFortunes  []DailyFortune       `json:"daily_fortunes"`
+	OverallSummary string               `json:"overall_summary"`
+	WeeklyScore    int                  `json:"weekly_score"`
+	ElementTrend   []ElementTrendPoint  `json:"element_trend"`
+	Summary        model.FortuneSummary `json:"summary"`
 }
 
 // MonthlyFortune aggregates a full calendar month of daily fortunes.
 type MonthlyFortune struct {
-	Year           int                 `json:"year"`
-	Month          int                 `json:"month"`
-	DailyFortunes  []DailyFortune      `json:"daily_fortunes"`
-	OverallSummary string              `json:"overall_summary"`
-	MonthlyScore   int                 `json:"monthly_score"`
-	ElementTrend   []ElementTrendPoint `json:"element_trend"`
+	Year           int                  `json:"year"`
+	Month          int                  `json:"month"`
+	DailyFortunes  []DailyFortune       `json:"daily_fortunes"`
+	OverallSummary string               `json:"overall_summary"`
+	MonthlyScore   int                  `json:"monthly_score"`
+	ElementTrend   []ElementTrendPoint  `json:"element_trend"`
+	Summary        model.FortuneSummary `json:"summary"`
 }
 
 // ElementTrendPoint is a single data point for element-trend charts.
@@ -317,6 +319,7 @@ func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart
 		OverallSummary: periodSummary(avg, "本周"),
 		WeeklyScore:    avg,
 		ElementTrend:   trends,
+		Summary:        computeSummary(fortunes),
 	}
 }
 
@@ -344,6 +347,7 @@ func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, mo
 		OverallSummary: periodSummary(avg, "本月"),
 		MonthlyScore:   avg,
 		ElementTrend:   trends,
+		Summary:        computeSummary(fortunes),
 	}
 }
 

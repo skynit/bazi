@@ -32,7 +32,13 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	chart, err := h.ChartStore.FindByID(req.ChartID)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	chart, err := h.ChartStore.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
 		return

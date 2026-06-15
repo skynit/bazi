@@ -19,24 +19,24 @@ type StarInfo struct {
 
 // BirthData holds the essential birth parameters for chart calculation.
 type BirthData struct {
-	SolarYear     int
-	SolarMonth    int
-	SolarDay      int
-	Hour          int
-	Minute        int
-	Gender        string // "男"/"女" or "MALE"/"FEMALE"
-	LunarYear     int
-	LunarMonth    int
-	LunarDay      int
-	YearStem      int // 0=甲...9=癸
-	YearBranch    int // 0=子...11=亥
-	MonthPillarStem int
+	SolarYear         int
+	SolarMonth        int
+	SolarDay          int
+	Hour              int
+	Minute            int
+	Gender            string // "男"/"女" or "MALE"/"FEMALE"
+	LunarYear         int
+	LunarMonth        int
+	LunarDay          int
+	YearStem          int // 0=甲...9=癸
+	YearBranch        int // 0=子...11=亥
+	MonthPillarStem   int
 	MonthPillarBranch int
-	DayStem       int
-	DayBranch     int
-	HourStem      int
-	HourBranch    int // 0=子时...11=亥时
-	IsLeapMonth   bool
+	DayStem           int
+	DayBranch         int
+	HourStem          int
+	HourBranch        int // 0=子时...11=亥时
+	IsLeapMonth       bool
 }
 
 // ──────────── Chart Calculation Entry Point ────────────
@@ -70,8 +70,8 @@ func CalculateZiWeiChart(birth *BirthData) (*ZiWeiChart, error) {
 	adjectiveStars := placeAdjectiveStars(birth)
 
 	// 8. Compute twelve shen systems
-	changSheng12 := placeChangSheng12(juValue, birth.YearStem, birth.Gender)
-	boShi12 := placeBoShi12(birth.YearStem, birth.Gender)
+	changSheng12 := placeChangSheng12(juValue, birth.YearBranch, birth.Gender)
+	boShi12 := placeBoShi12(birth.YearStem, birth.YearBranch, birth.Gender)
 	suiQian12, jiangQian12 := placeYearly12(birth.YearBranch)
 
 	// 9. Assemble chart
@@ -182,7 +182,7 @@ func calcFiveBureau(soulStem, soulBranch int) int {
 func calcZiweiTianfuPosition(juValue, lunarDay, hourBranch, lunarMonth int, isLeapMonth bool) (ziweiIdx, tianfuIdx int) {
 	day := lunarDay
 
-	offset := 0
+	offset := -1
 	quotient := 0
 	remainder := 1
 
@@ -192,6 +192,7 @@ func calcZiweiTianfuPosition(juValue, lunarDay, hourBranch, lunarMonth int, isLe
 		quotient = divisor / juValue
 		remainder = divisor % juValue
 	}
+	quotient %= 12
 
 	var ziweiPos int
 	if offset%2 == 0 {
@@ -199,9 +200,10 @@ func calcZiweiTianfuPosition(juValue, lunarDay, hourBranch, lunarMonth int, isLe
 	} else {
 		ziweiPos = quotient - offset - 1
 	}
-	ziweiIdx = fixIndex(ziweiPos)
-
-	tianfuIdx = (12 - ziweiIdx) % 12
+	ziweiYinBasedIdx := fixIndex(ziweiPos)
+	tianfuYinBasedIdx := fixIndex(12 - ziweiYinBasedIdx)
+	ziweiIdx = fixIndex(ziweiYinBasedIdx + 2)
+	tianfuIdx = fixIndex(tianfuYinBasedIdx + 2)
 
 	return ziweiIdx, tianfuIdx
 }
@@ -254,25 +256,20 @@ func getStarBrightness(starName string, branchIdx int) string {
 func placeAuxStars(birth *BirthData) [12][]StarInfo {
 	var stars [12][]StarInfo
 
-	// 左辅: from 辰(4-1=3 in寅=0 system, but in子=0 system it's 辰=4), +lunarMonth
-	// Left helper: 从辰顺数农历月
-	zuofuIdx := fixIndex(3 + birth.LunarMonth) // 辰=4 in子=0, but formula: (辰_index + month - 1) % 12
-	// Actually iztro: getZuoYouIndex returns (4 + lunarMonth - 1) % 12
-	// But in iztro 寅=0 system: 辰=2, 顺数lunarMonth-1 → idx=(2+lunarMonth-1)%12
-	// In 子=0 system: 辰=4, 顺数lunarMonth → idx=(4+lunarMonth)%12
-	zuofuIdx = fixIndex(4 + birth.LunarMonth)
+	// 左辅: 辰上顺正寻左辅
+	zuofuIdx := ZuofuIndex(birth.LunarMonth)
 	stars[zuofuIdx] = append(stars[zuofuIdx], StarInfo{Name: "左辅", Brightness: getStarBrightness("左辅", zuofuIdx)})
 
-	// 右弼: from 戌(10) 逆数农历月
-	youbiIdx := fixIndex(10 - birth.LunarMonth)
+	// 右弼: 戌上逆正右弼当
+	youbiIdx := YoubiIndex(birth.LunarMonth)
 	stars[youbiIdx] = append(stars[youbiIdx], StarInfo{Name: "右弼", Brightness: getStarBrightness("右弼", youbiIdx)})
 
 	// 文昌: from 戌(10) 逆数时辰
-	wenchangIdx := fixIndex(10 - birth.HourBranch)
+	wenchangIdx := WenchangIndex(birth.HourBranch)
 	stars[wenchangIdx] = append(stars[wenchangIdx], StarInfo{Name: "文昌", Brightness: getStarBrightness("文昌", wenchangIdx)})
 
 	// 文曲: from 辰(4) 顺数时辰
-	wenquIdx := fixIndex(4 + birth.HourBranch)
+	wenquIdx := WenquIndex(birth.HourBranch)
 	stars[wenquIdx] = append(stars[wenquIdx], StarInfo{Name: "文曲", Brightness: getStarBrightness("文曲", wenquIdx)})
 
 	// 天魁天钺: 按年干
@@ -387,15 +384,11 @@ func placeAdjectiveStars(birth *BirthData) [12][]string {
 
 // ──────────── 8. Twelve Shen ────────────
 
-func placeChangSheng12(juValue, yearStem int, gender string) [12]string {
+func placeChangSheng12(juValue, yearBranch int, gender string) [12]string {
 	var result [12]string
 	startBranch := ChangshengStartBranch[juValue]
 
-	// Direction: 阳男阴女顺行, 阴男阳女逆行
-	// 阳年(天干为偶数) + 男 = 顺; 阴年 + 男 = 逆; 阳年 + 女 = 逆; 阴年 + 女 = 顺
-	isYangStem := StemIsYang(yearStem)
-	isMale := gender == "男" || gender == "MALE" || gender == "M"
-	forward := (isYangStem && isMale) || (!isYangStem && !isMale)
+	forward := isForwardByYearBranch(yearBranch, gender)
 
 	for i, name := range ChangSheng12 {
 		var idx int
@@ -409,14 +402,12 @@ func placeChangSheng12(juValue, yearStem int, gender string) [12]string {
 	return result
 }
 
-func placeBoShi12(yearStem int, gender string) [12]string {
+func placeBoShi12(yearStem, yearBranch int, gender string) [12]string {
 	var result [12]string
 	// 博士12神 from 禄存 position, same direction as 长生
 	lucunIdx := LucunBranchIdx[yearStem]
 
-	isYangStem := StemIsYang(yearStem)
-	isMale := gender == "男" || gender == "MALE" || gender == "M"
-	forward := (isYangStem && isMale) || (!isYangStem && !isMale)
+	forward := isForwardByYearBranch(yearBranch, gender)
 
 	for i, name := range BoShi12 {
 		var idx int
@@ -428,6 +419,12 @@ func placeBoShi12(yearStem int, gender string) [12]string {
 		result[idx] = name
 	}
 	return result
+}
+
+func isForwardByYearBranch(yearBranch int, gender string) bool {
+	isMale := gender == "男" || gender == "MALE" || gender == "M"
+	yearBranchIsYang := BranchIsYang(yearBranch)
+	return (yearBranchIsYang && isMale) || (!yearBranchIsYang && !isMale)
 }
 
 func placeYearly12(yearBranch int) (suiQian [12]string, jiangQian [12]string) {
@@ -475,20 +472,20 @@ func assembleChart(
 	suiQian12, jiangQian12 [12]string,
 ) *ZiWeiChart {
 	chart := &ZiWeiChart{
-		BodyPalace:                 BranchNames[bodyBranch],
-		LifeMaster:                 LifeMasterTable[birth.YearBranch],
-		BodyMaster:                 BodyMasterTable[birth.YearBranch],
-		FiveBureau:                 FiveBureauName[juValue],
-		LunarMonth:                 birth.LunarMonth,
+		BodyPalace:                BranchNames[bodyBranch],
+		LifeMaster:                LifeMasterTable[soulBranch],
+		BodyMaster:                BodyMasterTable[birth.YearBranch],
+		FiveBureau:                FiveBureauName[juValue],
+		LunarMonth:                birth.LunarMonth,
 		EarthlyBranchOfSoulPalace: BranchNames[soulBranch],
 		EarthlyBranchOfBodyPalace: BranchNames[bodyBranch],
 		SoulBranch:                soulBranch,
 		BodyBranch:                bodyBranch,
 		SoulStem:                  soulStem,
 		JuValue:                   juValue,
-		YearStem:                   birth.YearStem,
-		YearBranch:                 birth.YearBranch,
-		birthData:                  birth,
+		YearStem:                  birth.YearStem,
+		YearBranch:                birth.YearBranch,
+		birthData:                 birth,
 	}
 
 	// Apply four hua to stars
@@ -511,13 +508,16 @@ func assembleChart(
 			FourHua:        getFourHuaInPalace(majorStars[branchIdx], auxStars[branchIdx], fourHua),
 			AdjectiveStars: adjectiveStars[branchIdx],
 			Changsheng12:   changSheng12[branchIdx],
-			Boshi12:         boShi12[branchIdx],
+			Boshi12:        boShi12[branchIdx],
 			JiangQian12:    jiangQian12[branchIdx],
 			SuiQian12:      suiQian12[branchIdx],
 		}
 
 		chart.Palaces[i] = palace
-		chart.SanfangSizheng[i] = *GetPalaceSanfang(i)
+	}
+
+	for i := 0; i < 12; i++ {
+		chart.SanfangSizheng[i] = *GetChartPalaceSanfang(chart, i)
 	}
 
 	// Detect patterns

@@ -23,17 +23,17 @@ fi
 
 # 2. Register user
 echo -n "[2] Register user ... "
-REG=$(curl -sf -X POST "$BASE/api/auth/register" \
+REG=$(curl -s -X POST "$BASE/api/auth/register" \
   -H 'Content-Type: application/json' \
-  -d '{"username":"e2etest","email":"e2e@test.com","password":"Test1234"}')
+  -d '{"username":"e2etest","email":"e2e@test.com","password":"Test1234"}' || true)
 TOKEN=$(echo "$REG" | grep -o '"token":"[^"]*"' | cut -d'"' -f4 || true)
 if [ -n "$TOKEN" ]; then
   green "register OK, token=$TOKEN"
 else
   # Maybe already registered — try login
-  LOGIN=$(curl -sf -X POST "$BASE/api/auth/login" \
+  LOGIN=$(curl -s -X POST "$BASE/api/auth/login" \
     -H 'Content-Type: application/json' \
-    -d '{"username":"e2etest","password":"Test1234"}')
+    -d '{"username":"e2etest","password":"Test1234"}' || true)
   TOKEN=$(echo "$LOGIN" | grep -o '"token":"[^"]*"' | cut -d'"' -f4 || true)
   if [ -n "$TOKEN" ]; then
     green "login OK (already registered), token=$TOKEN"
@@ -58,7 +58,7 @@ fi
 # 4. Get chart by id
 if [ -n "${CHART_ID:-}" ]; then
   echo -n "[4] Get chart ... "
-  if curl -sf "$BASE/api/charts/$CHART_ID" -H "Authorization: Bearer $TOKEN" | grep -q '"id"'; then
+  if curl -sf "$BASE/api/charts/$CHART_ID" -H "Authorization: Bearer $TOKEN" | grep -Eq '"(id|ID)"'; then
     green "get chart OK"
   else
     red "get chart FAIL"
@@ -85,6 +85,20 @@ if curl -sf "$BASE/api/charts" -H "Authorization: Bearer $TOKEN" | grep -q '"cha
   green "history list OK"
 else
   red "history list FAIL"
+fi
+
+# 7. Classical interpretation fallback / RAG check
+if [ -n "${CHART_ID:-}" ]; then
+  echo -n "[7] Bazi interpretation ... "
+  INTERP=$(curl -sf -X POST "$BASE/api/interpretation/bazi" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "{\"chart_id\":$CHART_ID,\"focus\":\"overview\"}")
+  if echo "$INTERP" | grep -Eq '"status":"(ok|fallback)"'; then
+    green "interpretation OK"
+  else
+    red "interpretation FAIL — response: $INTERP"
+  fi
 fi
 
 # Summary

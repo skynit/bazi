@@ -15,6 +15,7 @@ import (
 // needed for monthly fortune calculations.
 type MonthlyChartStore interface {
 	FindByID(id uint) (*model.BirthChart, error)
+	FindByIDForUser(id uint, userID uint) (*model.BirthChart, error)
 }
 
 // MonthlyFortuneHandler handles monthly fortune endpoints.
@@ -37,7 +38,13 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 		return
 	}
 
-	chart, err := h.ChartStore.FindByID(req.ChartID)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	chart, err := h.ChartStore.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
 		return
@@ -79,6 +86,7 @@ func mapMonthlyFortuneToResponse(mf *fortune.MonthlyFortune) model.MonthlyFortun
 		DailyFortunes: dailyFortunes,
 		MonthlyScore:  mf.MonthlyScore,
 		ElementTrend:  string(trendJSON),
+		Summary:       mf.Summary,
 	}
 }
 

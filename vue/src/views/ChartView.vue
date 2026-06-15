@@ -152,29 +152,6 @@ function onComputationComplete(): void {
 </script>
 <template>
   <div class="chart-page">
-    <!-- Header -->
-    <header class="chart-header">
-      <div class="header-inner">
-        <router-link to="/" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M10 3L5 8l5 5"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          返回首页
-        </router-link>
-        <div class="header-title-block">
-          <div class="header-eyebrow">BaZi Fortune</div>
-          <h1 class="header-title">八字命盘</h1>
-        </div>
-        <div class="header-spacer"></div>
-      </div>
-    </header>
-
     <main class="page-content">
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">

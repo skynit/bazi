@@ -16,7 +16,9 @@ import (
 
 // TestLucunQingyangTuoluo_AllStems verifies 禄存/擎羊/陀罗 branch for all 10 year stems.
 // 禄存 from LucunBranchIdx: 甲→寅(2), 乙→卯(3), 丙→巳(5), 丁→午(6), 戊→巳(5),
-//                           己→午(6), 庚→申(8), 辛→酉(9), 壬→亥(10), 癸→子(0)
+//
+//	己→午(6), 庚→申(8), 辛→酉(9), 壬→亥(10), 癸→子(0)
+//
 // 擎羊 = fixIndex(禄存+1), 陀罗 = fixIndex(禄存-1)
 func TestLucunQingyangTuoluo_AllStems(t *testing.T) {
 	expected := []struct {
@@ -76,8 +78,9 @@ func TestLucunQingyangTuoluo_AllStems(t *testing.T) {
 // 口诀: 甲戊庚牛羊, 乙己鼠猴乡, 丙丁猪鸡位, 壬癸兔蛇藏, 辛逢虎马
 //   - 甲戊庚: 魁=丑(1), 钺=未(7)
 //   - 乙己: 魁=子(0), 钺=申(8)
-//   - 丙丁: 魁=亥(11)/戌(10), 钺=卯(3)/辰(4)
-//   - 壬癸: 魁=丑(1)/子(0), 钺=未(7)/申(8)
+//   - 丙丁: 魁=亥(11), 钺=酉(9)
+//   - 辛: 魁=午(6), 钺=寅(2)
+//   - 壬癸: 魁=卯(3), 钺=巳(5)
 func TestTianKuiTianYue_AllStems(t *testing.T) {
 	expected := []struct {
 		stem    string
@@ -87,14 +90,14 @@ func TestTianKuiTianYue_AllStems(t *testing.T) {
 	}{
 		{"甲", "丑", "未", 0},
 		{"乙", "子", "申", 1},
-		{"丙", "亥", "卯", 2},
-		{"丁", "戌", "辰", 3},
+		{"丙", "亥", "酉", 2},
+		{"丁", "亥", "酉", 3},
 		{"戊", "丑", "未", 4},
 		{"己", "子", "申", 5},
-		{"庚", "亥", "卯", 6},
-		{"辛", "戌", "辰", 7},
-		{"壬", "丑", "未", 8},
-		{"癸", "子", "申", 9},
+		{"庚", "丑", "未", 6},
+		{"辛", "午", "寅", 7},
+		{"壬", "卯", "巳", 8},
+		{"癸", "卯", "巳", 9},
 	}
 
 	for _, exp := range expected {
@@ -116,25 +119,25 @@ func TestTianKuiTianYue_AllStems(t *testing.T) {
 }
 
 // TestZuoFuYouBi verifies 左辅/右弼 placement formula.
-// 左辅: from 辰(4) + lunarMonth (顺数) → fixIndex(4 + LunarMonth)
-// 右弼: from 戌(10) - lunarMonth (逆数) → fixIndex(10 - LunarMonth)
+// 左辅: from 辰(4) + lunarMonth - 1 (顺数)
+// 右弼: from 戌(10) - lunarMonth + 1 (逆数)
 func TestZuoFuYouBi(t *testing.T) {
 	tests := []struct {
-		lunarMonth  int
-		wantZuoFu   string
-		wantYouBi   string
+		lunarMonth int
+		wantZuoFu  string
+		wantYouBi  string
 	}{
-		{1, "巳", "酉"},
-		{3, "未", "未"},
-		{6, "戌", "辰"},
-		{9, "丑", "丑"},
-		{12, "辰", "戌"},
+		{1, "辰", "戌"},
+		{3, "午", "申"},
+		{6, "酉", "巳"},
+		{9, "子", "寅"},
+		{12, "卯", "亥"},
 	}
 
 	for _, tt := range tests {
 		t.Run("月"+BranchNames[(tt.lunarMonth+1)%12], func(t *testing.T) {
-			zuofuIdx := fixIndex(4 + tt.lunarMonth)   // from 辰(4), +lunarMonth
-			youbiIdx := fixIndex(10 - tt.lunarMonth)  // from 戌(10), -lunarMonth
+			zuofuIdx := ZuofuIndex(tt.lunarMonth)
+			youbiIdx := YoubiIndex(tt.lunarMonth)
 
 			if BranchNames[zuofuIdx] != tt.wantZuoFu {
 				t.Errorf("左辅(月%d) = %s, 期望 %s", tt.lunarMonth, BranchNames[zuofuIdx], tt.wantZuoFu)
@@ -151,9 +154,9 @@ func TestZuoFuYouBi(t *testing.T) {
 // 文曲: from 辰(4) + hourBranch (顺数)
 func TestWenChangWenQu(t *testing.T) {
 	tests := []struct {
-		hourBranch  int // 0=子 ... 11=亥
-		wantChang   string
-		wantQu      string
+		hourBranch int // 0=子 ... 11=亥
+		wantChang  string
+		wantQu     string
 	}{
 		{0, "戌", "辰"},
 		{3, "未", "未"},
@@ -190,17 +193,17 @@ func TestHuoLingDiKongDiJie(t *testing.T) {
 
 	huoLingTests := []huoLingCase{
 		// 子(0) in 申子辰 group, hour=0(子) → [2,3]
-		{0, 0, "寅", "卯"},
-		// 寅(2) in 寅午戌 group, hour=0(子) → [4,9]
-		{2, 0, "辰", "酉"},
-		// 巳(5) in 巳酉丑 group, hour=0(子) → [6,8]
-		{5, 0, "午", "申"},
-		// 亥(11) in 亥卯未 group, hour=0(子) → [10,1]
-		{11, 0, "戌", "丑"},
-		// Test different hours: 子(0) year, hour=3(卯) → [3,10]
-		{0, 3, "卯", "戌"},
-		// 寅(2) year, hour=6(午) → 火星=0(子), 铃星=10(戌)
-		{2, 6, "子", "戌"},
+		{0, 0, "寅", "戌"},
+		// 寅(2) in 寅午戌 group, hour=0(子) → [1,3]
+		{2, 0, "丑", "卯"},
+		// 巳(5) in 巳酉丑 group, hour=0(子) → [3,10]
+		{5, 0, "卯", "戌"},
+		// 亥(11) in 亥卯未 group, hour=0(子) → [9,10]
+		{11, 0, "酉", "戌"},
+		// Test different hours: 子(0) year, hour=3(卯) → [5,1]
+		{0, 3, "巳", "丑"},
+		// 寅(2) year, hour=6(午) → 火星=7(未), 铃星=9(酉)
+		{2, 6, "未", "酉"},
 	}
 
 	for _, tt := range huoLingTests {
@@ -258,37 +261,36 @@ func TestAuxStars_EndToEnd(t *testing.T) {
 	}
 
 	cases := []struct {
-		name      string
-		year      int
-		month     int
-		day       int
-		hour      int
-		minute    int
-		gender    string
-		checks    []auxCheck
+		name   string
+		year   int
+		month  int
+		day    int
+		hour   int
+		minute int
+		gender string
+		checks []auxCheck
 	}{
 		{
-			name:   "癸未男_三月未时",
-			year:   2003, month: 4, day: 15, hour: 14, minute: 0,
+			name: "癸未男_三月未时",
+			year: 2003, month: 4, day: 15, hour: 14, minute: 0,
 			gender: "男",
-			// 癸年: 禄存=子(0), 擎羊=丑(1), 陀罗=亥(11)
-			// 命宫在酉(9) → Palaces[0] branch=酉
-			// 左辅: from 辰+3(月)=未(7)
-			// 右弼: from 戌-3=未(7)
-			// 文昌: from 戌-7(未时)=卯(3)
-			// 文曲: from 辰+7=亥(11)
-			// 天魁: 癸年=子(0), 天钺: 癸年=申(8)
-			// 地空: 亥-7=辰(4), 地劫: 亥+7=午(6)
+			// iztro fixture: astro.bySolar("2003-4-15", 未时, "male", true, "zh-CN")
+			// 癸年: 禄存=子, 擎羊=丑, 陀罗=亥, 天魁=卯, 天钺=巳, 天马=巳
+			// 三月: 左辅=午, 右弼=申; 未时: 文昌=卯, 文曲=亥, 地空=辰, 地劫=午
+			// 未年未时: 火星=辰, 铃星=巳
 			checks: []auxCheck{
 				{star: "禄存", want: "子"},
 				{star: "擎羊", want: "丑"},
 				{star: "陀罗", want: "亥"},
-				{star: "天魁", want: "子"},
-				{star: "天钺", want: "申"},
-				{star: "左辅", want: "未"},
-				{star: "右弼", want: "未"},
+				{star: "天魁", want: "卯"},
+				{star: "天钺", want: "巳"},
+				{star: "天马", want: "巳"},
+				{star: "左辅", want: "午"},
+				{star: "右弼", want: "申"},
 				{star: "文昌", want: "卯"},
 				{star: "文曲", want: "亥"},
+				{star: "火星", want: "辰"},
+				{star: "铃星", want: "巳"},
 				{star: "地空", want: "辰"},
 				{star: "地劫", want: "午"},
 			},

@@ -30,6 +30,15 @@ func (s *DBChartStore) FindByID(id uint) (*model.BirthChart, error) {
 	return &chart, nil
 }
 
+// FindByIDForUser retrieves a chart by ID and owner.
+func (s *DBChartStore) FindByIDForUser(id uint, userID uint) (*model.BirthChart, error) {
+	var chart model.BirthChart
+	if err := s.db.Where("id = ? AND user_id = ?", id, userID).First(&chart).Error; err != nil {
+		return nil, err
+	}
+	return &chart, nil
+}
+
 // ListByUser returns charts belonging to a user with pagination.
 func (s *DBChartStore) ListByUser(userID uint, page, pageSize int) ([]model.BirthChart, int64, error) {
 	var charts []model.BirthChart

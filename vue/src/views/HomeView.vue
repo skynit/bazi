@@ -1,45 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useThemeStore } from '../stores/theme'
 import {
   ShaderMount,
   grainGradientFragmentShader
 } from '@paper-design/shaders'
 import {
-  type WuxingKey,
   type ShaderThemeMode,
-  wuxingThemes,
   createShaderUniforms
 } from '../composables/useWuxingThemes'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
 const savedChartId = ref<number | null>(null)
-const currentYongshen = ref<WuxingKey>('mu')
 const mounted = ref(false)
 const shaderHost = ref<HTMLDivElement | null>(null)
 const themeMode = ref<ShaderThemeMode>(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
-
-const wuxingCycle: Array<{ key: WuxingKey; label: string }> = [
-  { key: 'mu', label: '木' },
-  { key: 'huo', label: '火' },
-  { key: 'tu', label: '土' },
-  { key: 'jin', label: '金' },
-  { key: 'shui', label: '水' }
-]
-
-const homeThemeStyles = computed(() => {
-  const key = currentYongshen.value
-  const theme = wuxingThemes[key]
-  return {
-    '--jade-accent-rgb': theme.accentRgb,
-    '--jade-accent': theme.accentHex,
-    '--jade-accent-dark': theme.accentDark,
-    '--jade-button-text': theme.buttonText
-  }
-})
 
 let shaderMount: ShaderMount | null = null
 let themeObserver: MutationObserver | null = null
@@ -58,7 +38,7 @@ onMounted(async () => {
     shaderMount = new ShaderMount(
       shaderHost.value,
       grainGradientFragmentShader,
-      createShaderUniforms('grainGradient', currentYongshen.value, undefined, themeMode.value),
+      createShaderUniforms('grainGradient', themeStore.yongshen, undefined, themeMode.value),
       { alpha: true, antialias: true },
       2,
       0,
@@ -69,9 +49,14 @@ onMounted(async () => {
 
   themeObserver = new MutationObserver(() => {
     themeMode.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    shaderMount?.setUniforms(createShaderUniforms('grainGradient', currentYongshen.value, undefined, themeMode.value))
+    shaderMount?.setUniforms(createShaderUniforms('grainGradient', themeStore.yongshen, undefined, themeMode.value))
   })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+})
+
+// 顶栏切换五行 → 同步更新球体着色器
+watch(() => themeStore.yongshen, (key) => {
+  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
 })
 
 onUnmounted(() => {
@@ -83,15 +68,11 @@ onUnmounted(() => {
 
 function startChart() { router.push('/chart/new') }
 function continueChart() { if (savedChartId.value) router.push(`/chart/${savedChartId.value}`) }
-function switchYongshen(key: WuxingKey) {
-  currentYongshen.value = key
-  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
-}
 </script>
 
 <template>
   <div ref="shaderHost" class="home-grain-shader" aria-hidden="true"></div>
-  <div class="home-page" :class="{ visible: mounted }" :style="homeThemeStyles">
+  <div class="home-page" :class="{ visible: mounted }">
 
     <!-- 前景内容区域 -->
     <main class="hero-main">
@@ -113,13 +94,6 @@ function switchYongshen(key: WuxingKey) {
         </button>
         <button v-if="savedChartId" @click="continueChart" class="btn-secondary">
           继续上次
-        </button>
-      </div>
-
-      <div class="element-rail" aria-label="五行切换">
-        <button v-for="item in wuxingCycle" :key="item.key" type="button"
-          :class="{ active: currentYongshen === item.key }" @click="switchYongshen(item.key)">
-          {{ item.label }}
         </button>
       </div>
     </main>
@@ -217,25 +191,26 @@ function switchYongshen(key: WuxingKey) {
 
 .hero-title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: clamp(3.4rem, 6.25vw, 6.2rem);
-  font-weight: 400;
-  letter-spacing: 0.2em;
+  font-size: clamp(1.5rem, 2.8vw, 2.4rem);
+  font-weight: 300;
+  letter-spacing: 0.42em;
   color: var(--text);
   margin: 0;
-  line-height: 1.26;
-  padding-left: 0.2em;
-  text-shadow:
-    0 2px 10px color-mix(in oklab, var(--bg) 54%, transparent),
-    0 20px 60px color-mix(in oklab, var(--bg) 58%, transparent);
+  line-height: 1;
+  padding-left: 0;
+  text-shadow: none;
+  opacity: 0.72;
 }
 
 .title-accent {
   display: block;
-  margin-top: 10px;
-  color: rgba(var(--jade-accent-rgb), .88);
-  text-shadow:
-    0 0 20px rgba(var(--jade-accent-rgb), .16),
-    0 16px 54px rgba(0, 0, 0, .78);
+  font-size: clamp(5.5rem, 10.5vw, 9.5rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-top: 0.04em;
+  line-height: 1;
+  color: rgba(var(--jade-accent-rgb), 1);
+  text-shadow: none;
 }
 
 .hero-sub {
@@ -298,35 +273,6 @@ function switchYongshen(key: WuxingKey) {
   background: rgba(255, 255, 255, .05);
 }
 
-.element-rail {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 2px;
-  opacity: .55;
-}
-
-.element-rail button {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-serif), serif;
-  font-size: .85rem;
-  cursor: pointer;
-  transition: color .3s ease, border-color .3s ease, background .3s ease;
-}
-
-.element-rail button:hover,
-.element-rail button.active {
-  border-color: rgba(var(--jade-accent-rgb), .3);
-  background: var(--glass-bg);
-  color: rgba(var(--jade-accent-rgb), .9);
-}
-
 /* =============================================
    响应式
    ============================================= */
@@ -379,10 +325,6 @@ function switchYongshen(key: WuxingKey) {
   .btn-primary-base,
   .btn-secondary {
     width: min(260px, calc(100vw - 48px));
-  }
-
-  .element-rail {
-    gap: 8px;
   }
 }
 </style>
