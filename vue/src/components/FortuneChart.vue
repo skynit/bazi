@@ -22,10 +22,12 @@ const props = withDefaults(
   defineProps<{
     dailyData?: TrendPoint[]
     height?: string
+    showElements?: boolean
   }>(),
   {
     dailyData: () => [],
     height: '320px',
+    showElements: true,
   },
 )
 
@@ -92,7 +94,7 @@ const option = computed(() => {
       symbolSize: 6,
       smooth: true,
     },
-    ...elementSeries.value.map((el) => ({
+    ...(props.showElements ? elementSeries.value.map((el) => ({
       name: el.name,
       type: 'line',
       yAxisIndex: 1,
@@ -101,16 +103,16 @@ const option = computed(() => {
       itemStyle: { color: el.color },
       symbol: 'none',
       smooth: true,
-    })),
+    })) : []),
   ]
 
   return {
     backgroundColor: 'transparent',
     grid: {
       left: 45,
-      right: 50,
+      right: props.showElements ? 50 : 22,
       top: 20,
-      bottom: 35,
+      bottom: props.showElements ? 35 : 26,
     },
     tooltip: {
       trigger: 'axis',
@@ -120,6 +122,7 @@ const option = computed(() => {
       textStyle: { color: textColor, fontSize: 11 },
     },
     legend: {
+      show: props.showElements,
       bottom: 0,
       textStyle: { color: mutedColor, fontSize: 10 },
       itemWidth: 12,

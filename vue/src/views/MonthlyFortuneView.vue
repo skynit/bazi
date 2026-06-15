@@ -61,6 +61,44 @@ function scoreMood(score: number): string {
   return 'caution'
 }
 
+function rhythmWord(): string {
+  const phases = phaseSegments.value
+  if (phases.length < 2) return '节奏平缓'
+  const first = phases[0].average
+  const last = phases[phases.length - 1].average
+  if (last - first >= 8) return '后劲渐起'
+  if (first - last >= 8) return '前强后收'
+  if (scoreSpread.value >= 35) return '起伏明显'
+  return '节奏平稳'
+}
+
+const monthBriefTitle = computed(() => {
+  const summary = data.value?.summary
+  if (!summary) return '月内节奏待定'
+  const element = summary.dominant_element ? `${summary.dominant_element}气` : '主气'
+  return `${rhythmWord()}，${element}当令`
+})
+
+const monthBriefText = computed(() => {
+  const summary = data.value?.summary
+  if (!summary) return ''
+  const phases = phaseSegments.value
+  const strongest = [...phases].sort((a, b) => b.average - a.average)[0]
+  const softest = [...phases].sort((a, b) => a.average - b.average)[0]
+  const good = scoreBands.value.good
+  const caution = scoreBands.value.caution
+  const tenGod = summary.dominant_ten_god ? `，十神以${summary.dominant_ten_god}露头` : ''
+  const action = good > caution
+    ? '可把沟通、推进与定案放在高分段完成'
+    : caution > good
+      ? '宜先稳住节奏，减少仓促承诺与高风险决策'
+      : '宜稳中求进，把重要事项拆小处理'
+  const phaseNote = strongest && softest && strongest.name !== softest.name
+    ? `${strongest.name}承接力较强，${softest.name}更适合复盘和留白`
+    : '三旬节奏差异不大，重在持续执行'
+  return `本月${summary.dominant_element || '五行'}气偏显${tenGod}，整体呈${rhythmWord()}。${phaseNote}；${action}。`
+})
+
 function phaseAdvice(avg: number, drift: number): string {
   if (avg >= 76) return '适合主动推进、定计划、谈合作，把机会窗口用满。'
   if (avg >= 64 && drift >= 4) return '走势渐开，先稳住节奏，再把重点事项放到后半段。'
@@ -257,54 +295,6 @@ const guideGroups = computed(() => {
   ]
 })
 
-interface CalendarCell {
-  date?: string
-  day?: number
-  score?: number
-  pillar?: string
-  isBest?: boolean
-  isWorst?: boolean
-  isPeak?: boolean
-  isLow?: boolean
-  blank?: boolean
-}
-
-/** 7-col grid keyed by Monday-first weekday. */
-const calendarCells = computed<CalendarCell[]>(() => {
-  const days = data.value?.daily_fortunes ?? []
-  if (!days.length) return []
-  const summary = data.value!.summary
-  const peakSet = new Set(summary.peak_days)
-  const lowSet = new Set(summary.low_days)
-  const first = new Date(days[0].solar_date + 'T00:00:00')
-  const leadingBlanks = (first.getDay() + 6) % 7 // Monday-first
-  const cells: CalendarCell[] = []
-  for (let i = 0; i < leadingBlanks; i++) cells.push({ blank: true })
-  for (const d of days) {
-    cells.push({
-      date: d.solar_date,
-      day: parseInt(d.solar_date.split('-')[2], 10),
-      score: d.score,
-      pillar: d.day_gan_zhi,
-      isBest: summary.best_day === d.solar_date,
-      isWorst: summary.worst_day === d.solar_date,
-      isPeak: peakSet.has(d.solar_date),
-      isLow: lowSet.has(d.solar_date),
-    })
-  }
-  while (cells.length % 7 !== 0) cells.push({ blank: true })
-  return cells
-})
-
-function tone(score?: number): string {
-  if (typeof score !== 'number') return 'transparent'
-  const t = Math.max(0, Math.min(1, score / 100))
-  const L = 0.35 + t * 0.40
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${h.toFixed(1)})`
-}
-
 const visibleDays = computed<FortuneDay[]>(() => {
   const days = data.value?.daily_fortunes ?? []
   return expanded.value ? days : days.slice(0, 14)
@@ -419,8 +409,8 @@ onMounted(load)
         <section class="month-brief">
           <div class="brief-copy">
             <span class="card-eyebrow">月度总述</span>
-            <h2>把这个月拆成节奏，而不只看一个分数</h2>
-            <p>{{ data.summary.key_advice }}</p>
+            <h2>{{ monthBriefTitle }}</h2>
+            <p>{{ monthBriefText || data.summary.key_advice }}</p>
             <div class="score-bands" aria-label="分数分布">
               <span class="band good">
                 <strong class="tabular-nums">{{ scoreBands.good }}</strong>
@@ -482,36 +472,18 @@ onMounted(load)
           </div>
         </section>
 
-        <!-- Month calendar heat -->
-        <section class="glass-card cal-card">
+        <section class="glass-card trend-card">
           <header class="card-head">
             <span class="card-eyebrow">月历强度</span>
             <span class="card-meta">
-              峰 {{ data.summary.peak_days.length }} ·
-              谷 {{ data.summary.low_days.length }} ·
-              连吉 {{ data.summary.good_streak }}d
+              评分折线 · 峰 {{ data.summary.peak_days.length }} · 谷 {{ data.summary.low_days.length }}
             </span>
           </header>
-          <div class="calendar">
-            <div class="weekdays">
-              <span v-for="w in ['一','二','三','四','五','六','日']" :key="w">{{ w }}</span>
-            </div>
-            <div class="grid">
-              <div
-                v-for="(c, i) in calendarCells"
-                :key="i"
-                class="cell"
-                :class="{ blank: c.blank, peak: c.isPeak, low: c.isLow, best: c.isBest, worst: c.isWorst }"
-                :title="c.date ? `${c.date} · ${c.pillar} · ${c.score}分` : ''"
-              >
-                <template v-if="!c.blank">
-                  <div class="bar" :style="{ background: tone(c.score) }"></div>
-                  <span class="cell-day tabular-nums">{{ c.day }}</span>
-                  <span class="cell-pillar">{{ c.pillar }}</span>
-                  <span class="cell-score tabular-nums">{{ c.score }}</span>
-                </template>
-              </div>
-            </div>
+          <FortuneChart :daily-data="trendData" height="320px" :show-elements="false" />
+          <div class="trend-legend" aria-label="月历强度说明">
+            <span><i class="legend-dot best"></i>吉峰 {{ formatMonthDay(data.summary.best_day) }}</span>
+            <span><i class="legend-dot worst"></i>低谷 {{ formatMonthDay(data.summary.worst_day) }}</span>
+            <span class="tabular-nums">连吉 {{ data.summary.good_streak }}d</span>
           </div>
         </section>
 
@@ -547,7 +519,7 @@ onMounted(load)
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">分数曲线</span>
+              <span class="card-eyebrow">五行走势</span>
               <span class="card-meta tabular-nums">均 {{ data.summary.average_score.toFixed(1) }}</span>
             </header>
             <FortuneChart :daily-data="trendData" height="280px" />
@@ -834,6 +806,9 @@ onMounted(load)
 .rhythm-card,
 .key-days-card,
 .guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding: 20px;
   border-radius: 22px;
   background: linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 88%, transparent), color-mix(in oklab, var(--surface-2) 78%, transparent));
@@ -941,7 +916,6 @@ onMounted(load)
   gap: 2px;
 }
 
-.guide-card { display: flex; flex-direction: column; gap: 14px; }
 .guide-group { display: flex; flex-direction: column; gap: 10px; }
 .guide-group h3 {
   margin: 0;
@@ -986,41 +960,36 @@ onMounted(load)
   min-width: 0;
 }
 
-/* calendar */
-.cal-card { display: flex; flex-direction: column; gap: 14px; }
-.calendar { display: flex; flex-direction: column; gap: 8px; }
-.weekdays {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
-  font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.18em; text-align: center;
+.trend-card { display: flex; flex-direction: column; gap: 12px; }
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  padding: 0 4px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
 }
-.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.cell {
-  position: relative;
-  aspect-ratio: 1 / 1.2;
-  padding: 6px 6px 4px;
-  display: flex; flex-direction: column; gap: 2px; justify-content: flex-end;
-  border-radius: 12px;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  overflow: hidden;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-  min-height: 64px;
+.trend-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.cell:hover { transform: translateY(-2px); border-color: rgba(var(--jade-accent-rgb), 0.42); }
-.cell.blank { background: transparent; border: none; }
-.cell.peak { border-color: rgba(var(--jade-accent-rgb), 0.55); box-shadow: 0 0 0 1px rgba(var(--jade-accent-rgb), 0.25) inset; }
-.cell.low { border-color: rgba(232, 64, 87, 0.45); }
-.cell.best { border-color: rgba(var(--jade-accent-rgb), 0.85); box-shadow: 0 0 16px rgba(var(--jade-accent-rgb), 0.32); }
-.cell.worst { border-color: rgba(232, 64, 87, 0.7); }
-
-.bar {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  height: 6px;
-  filter: drop-shadow(0 0 8px currentColor);
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
 }
-.cell-day { font-size: 0.95rem; font-weight: 700; color: var(--text); line-height: 1; }
-.cell-pillar { font-size: 0.7rem; color: rgba(var(--jade-accent-rgb), 1); letter-spacing: 0.04em; font-family: var(--font-serif), serif; }
-.cell-score { font-size: 0.62rem; color: var(--text-muted); align-self: flex-end; }
+.legend-dot.best {
+  background: var(--jade-accent);
+  box-shadow: 0 0 8px rgba(var(--jade-accent-rgb), 0.75);
+}
+.legend-dot.worst {
+  background: var(--crimson);
+  box-shadow: 0 0 8px rgba(232, 64, 87, 0.55);
+}
 
 .grid-2 { display: grid; gap: 24px; grid-template-columns: 1fr; }
 @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
@@ -1060,6 +1029,16 @@ onMounted(load)
 
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
+@media (min-width: 900px) {
+  .overview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .month-brief {
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    align-items: center;
+  }
+}
+
 @media (max-width: 1100px) {
   .phase-grid,
   .key-day-grid,
@@ -1087,19 +1066,6 @@ onMounted(load)
   .guide-grid {
     grid-template-columns: 1fr;
   }
-  .calendar { gap: 6px; }
-  .weekdays,
-  .grid {
-    gap: 4px;
-  }
-  .cell {
-    min-height: 56px;
-    padding: 5px 5px 4px;
-    border-radius: 10px;
-  }
-  .cell-day { font-size: 0.86rem; }
-  .cell-pillar { font-size: 0.65rem; }
-  .cell-score { font-size: 0.58rem; }
   .card-head {
     flex-direction: column;
     align-items: flex-start;

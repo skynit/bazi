@@ -679,17 +679,84 @@ func buildPatternEvidenceContent(result *bazipkg.BaziResult, points []evidencePo
 	pillars := pillarText(result)
 	evidenceText := formatEvidencePoints(points)
 	explanation := []string{}
-	explanation = append(explanation, fmt.Sprintf("这盘先看气势：%s，日主%s坐%s，月令在%s。%s的名字先放一边，关键是这股气有没有人管、有路可走。%s", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, pattern, firstNonEmpty(p.Description, "格局要看月令、透干、根气与制化，不宜只看一个格名。")))
+	explanation = append(explanation, patternOpening(result, pattern, dayStem, pillars, p.Description))
 	if evidenceText != "" {
-		explanation = append(explanation, "古书里和这一路最贴的意思是："+evidenceText)
+		explanation = append(explanation, evidenceLead(result, "pattern")+evidenceText)
 	}
 	dayElem := data.GanElement[result.DayPillar.Gan]
-	explanation = append(explanation, fmt.Sprintf("所以我不会把它简单断成“格好”或“格坏”。此盘%s，喜%s，忌%s；要紧的是让%s有约束、有出口。%s来，是规矩、职位、责任；%s来，是手艺、表达、成果；%s来，才谈得上财的流动。反过来，印比再来帮身，气就更满，做事容易硬顶，成也在魄力，败也在不肯让。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements), dayElem, roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星")))
-	explanation = append(explanation, fmt.Sprintf("这一段真正能拿来用的结论是：%s要看制化。喜用若透在天干、地支有根、行运又接得上，就容易把强势变成担当和执行；若只是忌神反复加重，财官食伤虽见，也会被原局的厚重之气压住，表现成有想法、有力气，但转化慢。", pattern))
+	explanation = append(explanation, patternUsefulness(result, pattern, dayElem, p))
+	explanation = append(explanation, patternConclusion(result, pattern))
 	if strings.Contains(pattern, "羊刃") {
-		explanation = append(explanation, "尤其日支见刃的人，骨子里不太服软，遇事喜欢自己扛、自己定。这个性子用好了，是敢负责、能拍板；用偏了，就是急、硬、容易和人顶。看后运，最怕再把火土印比堆上去，最喜有官杀来立边界，或食伤把这股刚气变成可见的作品和结果。")
+		explanation = append(explanation, yangRenStyleAdvice(result))
 	}
 	return strings.Join(explanation, "\n\n")
+}
+
+func patternOpening(result *bazipkg.BaziResult, pattern, dayStem, pillars, description string) string {
+	desc := firstNonEmpty(description, "格局要看月令、透干、根气与制化，不宜只看一个格名。")
+	if strings.Contains(pattern, "羊刃") {
+		return fmt.Sprintf("这个盘不是柔和一路。%s，%s坐%s，月令%s，日支带刃，气先立起来了。%s", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
+	}
+	if strings.Contains(pattern, "七杀") || strings.Contains(pattern, "偏官") {
+		return fmt.Sprintf("这盘先看杀气有没有成器。%s，%s临%s月，%s。七杀不怕见，怕的是无制无化；制得住，是胆识和执行，制不住，就是压力和冲动。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	}
+	if strings.Contains(pattern, "正官") {
+		return fmt.Sprintf("这个盘要先看规矩和承载。%s，%s生在%s月，%s。官星一路看的是秩序、名分和责任，不是只看有没有官字。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	}
+	if isStrong(result.BodyStrength.Verdict) {
+		return fmt.Sprintf("这盘底气不薄。%s，日主%s，月令%s，%s。身旺的盘，最怕只加力不疏通，关键是让旺气有用处。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	}
+	return fmt.Sprintf("这盘要先看日主能不能接住格局。%s，日主%s，月令%s，%s。身不够时，喜忌不是摆设，先要有根气和帮扶，再谈发挥。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+}
+
+func evidenceLead(result *bazipkg.BaziResult, focus string) string {
+	switch focus {
+	case "pattern":
+		if strings.Contains(result.PatternAnalysis.PatternName, "羊刃") {
+			return "能借得上的古法，重点都落在“刃要制化”："
+		}
+		return "翻到典籍里，和这一路相近的说法是："
+	case "tiaohou":
+		return "调候上可借的依据是："
+	case "ten_gods":
+		return "十神组合可参的句子是："
+	default:
+		return "可参考的依据是："
+	}
+}
+
+func patternUsefulness(result *bazipkg.BaziResult, pattern, dayElem string, p bazipkg.PatternAnalysis) string {
+	strong := isStrong(result.BodyStrength.Verdict)
+	if strings.Contains(pattern, "羊刃") {
+		return fmt.Sprintf("所以这盘不能一味说旺就是好。%s，喜%s，忌%s；%s已经有劲，得让%s来立边界，让%s来出成果，再用%s去引财气。没有制化时，人会很能扛，但也容易扛成硬碰硬。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements), dayElem, roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星"))
+	}
+	if strong {
+		return fmt.Sprintf("此盘%s，喜%s，忌%s。身旺不缺劲，缺的是方向和出口；%s来能约束，%s来能疏泄，%s来才有可经营的财。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements), roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星"))
+	}
+	return fmt.Sprintf("此盘%s，喜%s，忌%s。身偏弱时，先看有没有印比扶住，再看财官食伤能不能为我所用；用得太急，反而成压力。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements))
+}
+
+func patternConclusion(result *bazipkg.BaziResult, pattern string) string {
+	if strings.Contains(pattern, "羊刃") {
+		return "这一格最怕“有刃无制”：人有锋芒，但锋芒若无人收束，就容易变成急躁、争执和财来财去。若行运见官杀、食伤得力，反而能把这股冲劲变成职位、作品、项目成果。"
+	}
+	if strings.Contains(pattern, "七杀") || strings.Contains(pattern, "偏官") {
+		return "这一路重在制杀化杀。能制，压力就是权柄；不能制，机会也会带着风险。看后运时，宜看印、食伤、合制是否接得上。"
+	}
+	if strings.Contains(pattern, "正官") {
+		return "正官一路讲清正和稳定。最怕伤官冲破、官杀混杂；最喜财印相扶，做事有章法，名分和责任自然能立起来。"
+	}
+	if isStrong(result.BodyStrength.Verdict) {
+		return "总的说，这盘不是怕没力，而是怕力气堆在局里不流动。能疏、能制、能转化，层次就出来。"
+	}
+	return "总的说，这盘先求承载，再求发挥。根气稳了，喜用接上，格局的好处才显。"
+}
+
+func yangRenStyleAdvice(result *bazipkg.BaziResult) string {
+	if result.TenGods["hour"] == "劫财" || strings.Contains(formatTopTenGods(topTenGodRatios(result.TenGodProportion, 2)), "劫财") {
+		return "性情上，多半不喜欢被人牵着走，自己拿主意的劲很强。这个劲用在创业、项目攻坚、技术突破上是好事；用在人际和钱财合作上，就要提前立规矩，否则容易出现“我出了力、别人分了财”的不平。"
+	}
+	return "日支见刃的人，遇事不太愿意退。这个性子用好了，是敢担当、能拍板；用偏了，就是急、硬、容易和人顶。后运最喜有官杀立边界，或食伤把刚气变成可见结果。"
 }
 
 func buildTiaohouEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
