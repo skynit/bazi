@@ -70,30 +70,23 @@ func TestPattern_ZiFuTongGong(t *testing.T) {
 
 	t.Run("紫府分开不同宫_不匹配", func(t *testing.T) {
 		// 紫微在子(0), 天府在午(6) — 不在同一宫
-		// Note: checkZiFuTongGong uses starInPalace (OR logic), so it fires
-		// even if 紫微 and 天府 are in DIFFERENT palaces.
-		// This test documents the actual checker behavior.
 		stars := [12][]string{}
 		stars[0] = []string{"紫微"}
 		stars[6] = []string{"天府"}
 		chart := makeChart(stars)
 		result := DetectLocalPatterns(chart)
-		// The checker returns true because ANY palace has 紫微 OR 天府
-		if !containsPattern(result, "紫府同宫") {
-			t.Log("注意: 实际checkZiFuTongGong使用OR逻辑, 分宫也匹配")
+		if containsPattern(result, "紫府同宫") {
+			t.Errorf("不应检测到[紫府同宫], 实际=%v", result)
 		}
 	})
 
 	t.Run("只有紫微没有天府_不匹配", func(t *testing.T) {
-		// Note: checkZiFuTongGong uses starInPalace(chart, i, []string{"紫微","天府"})
-		// which is OR logic. So 紫微 alone in any palace WILL match.
-		// This documents the checker behavior.
 		stars := [12][]string{}
 		stars[0] = []string{"紫微"}
 		chart := makeChart(stars)
 		result := DetectLocalPatterns(chart)
-		if !containsPattern(result, "紫府同宫") {
-			t.Log("注意: checkZiFuTongGong使用OR逻辑, 紫微单独也匹配")
+		if containsPattern(result, "紫府同宫") {
+			t.Errorf("不应检测到[紫府同宫], 实际=%v", result)
 		}
 		// Still should NOT match 杀破狼
 		if containsPattern(result, "杀破狼格") {
@@ -243,6 +236,13 @@ func TestPatterns_EndToEnd(t *testing.T) {
 	if len(patterns) != len(patterns2) {
 		t.Errorf("DetectLocalPatterns via service (%d) != standalone (%d)",
 			len(patterns), len(patterns2))
+	}
+
+	if containsPattern(patterns, "紫府同宫") {
+		t.Errorf("2003-04-15 14:00 紫微在巳、天府在亥，不应误判为紫府同宫: %v", patterns)
+	}
+	if !containsPattern(patterns, "廉贞破军同宫") {
+		t.Errorf("2003-04-15 14:00 命宫廉贞破军同宫，应检测到廉贞破军同宫: %v", patterns)
 	}
 }
 

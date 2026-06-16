@@ -65,6 +65,18 @@ function goZiwei() {
   router.push('/chart/new')
 }
 
+function goBaziChart() {
+  try {
+    const raw = localStorage.getItem('bazi_last_birth')
+    const chartId = raw ? JSON.parse(raw).chartId : null
+    if (chartId) {
+      router.push(`/chart/${chartId}`)
+      return
+    }
+  } catch { /* ignore */ }
+  router.push('/chart/new')
+}
+
 onMounted(() => {
   document.documentElement.style.colorScheme = isDark.value ? 'dark' : 'light'
   window.addEventListener('scroll', onScroll, { passive: true })
@@ -98,13 +110,14 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
             <router-link to="/" class="transition-colors hover:text-[var(--accent)] aria-[current=page]:text-[var(--accent)]" exact-active-class="text-[var(--accent)]">首页</router-link>
             <template v-if="authStore.isLoggedIn()">
               <router-link to="/history" class="transition-colors hover:text-[var(--accent)]">历史</router-link>
-              <router-link
-                to="/chart/new"
-                class="transition-colors hover:text-[var(--accent)]"
+              <button
+                type="button"
+                @click="goBaziChart"
+                class="transition-colors hover:text-[var(--accent)] bg-transparent border-0 p-0 cursor-pointer font-medium text-[13px] text-[var(--text-muted)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'Chart' }"
               >
                 八字命盘
-              </router-link>
+              </button>
               <div class="relative group">
                 <router-link to="/fortune" class="transition-colors hover:text-[var(--accent)] flex items-center gap-1">
                   运势 <span class="text-[10px] opacity-50">▾</span>

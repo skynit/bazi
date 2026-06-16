@@ -78,28 +78,29 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		luckyNum = fortune.LuckyNumbers[0]
 	}
 	resp := model.FortuneResponse{
-		SolarDate:       fortune.Date,
-		LunarDate:       fortune.LunarDate,
-		DayGanZhi:       fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
-		WeekDay:         fortune.WeekDay,
-		ShengXiao:       fortune.ShengXiao,
-		JiShen:          fortune.JiShen,
-		XiongShen:       fortune.XiongShen,
-		TaiShen:         fortune.TaiShen,
-		WuXing:          fortune.WuXing,
-		PengZu:          fortune.PengZu,
-		Gua:             fortune.Gua,
-		JieQi:           fortune.JieQi,
-		ElementImages:   fortune.ElementImages,
-		Score:           fortune.Score,
-		LuckyColor:      fortune.LuckyColor,
-		LuckyNumber:     luckyNum,
-		WealthDir:       fortune.WealthDir,
-		ClashZodiac:     fortune.ClashZodiac,
-		AuspiciousHours: fortune.AuspiciousHours,
-		YiItems:         yiItems,
-		JiItems:         jiItems,
-		TodayElements:   fortune.TodayElements,
+		SolarDate:           fortune.Date,
+		LunarDate:           fortune.LunarDate,
+		DayGanZhi:           fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
+		WeekDay:             fortune.WeekDay,
+		ShengXiao:           fortune.ShengXiao,
+		JiShen:              fortune.JiShen,
+		XiongShen:           fortune.XiongShen,
+		TaiShen:             fortune.TaiShen,
+		WuXing:              fortune.WuXing,
+		PengZu:              fortune.PengZu,
+		Gua:                 fortune.Gua,
+		JieQi:               fortune.JieQi,
+		ElementImages:       fortune.ElementImages,
+		Score:               fortune.Score,
+		LuckyColor:          fortune.LuckyColor,
+		LuckyNumber:         luckyNum,
+		WealthDir:           fortune.WealthDir,
+		Guide:               fortune.Guide,
+		ClashZodiac:         fortune.ClashZodiac,
+		AuspiciousHours:     fortune.AuspiciousHours,
+		YiItems:             yiItems,
+		JiItems:             jiItems,
+		TodayElements:       fortune.TodayElements,
 		TiaoHou:             data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
 		SeasonElementAdvice: fortune.SeasonElementAdvice,
 		FlowImpact:          fortune.FlowImpact,
@@ -129,9 +130,9 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
 	}
 	// Generate detailed analysis
-	analysis := fortunePkg.AnalyzeDailyFortune(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi)
+	analysis := fortunePkg.AnalyzeDailyFortuneWithBaseScore(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi, fortune.Score)
 	resp.Analysis = analysis
-	resp.Score = analysis.Overall.Score   // use AI score, not basic calcScore
+	resp.Score = analysis.Overall.Score
 
 	c.JSON(http.StatusOK, resp)
 }

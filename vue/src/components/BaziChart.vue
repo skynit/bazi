@@ -73,6 +73,8 @@ const pillars = computed(() => [
   { label: '时柱', key: 'hour' as const, idx: 3, ...props.chart.hour_pillar },
 ])
 
+const daYun = computed(() => props.chart.da_yun || props.chart.da_yun_start)
+
 // --- 天干地支分析（从 API 数据读取）---
 const ganZhi = computed(() => props.chart.gan_zhi_analysis)
 
@@ -745,17 +747,17 @@ const tenGodChartOptions = computed(() => {
           </div>
 
           <!-- DaYun -->
-          <div v-if="chart.da_yun && chart.da_yun.start_age" class="analysis-block">
+          <div v-if="daYun && daYun.start_age" class="analysis-block">
             <div class="block-title">
-              大运 ({{ chart.da_yun.direction }} · {{ chart.da_yun.start_age }}岁起运)
+              大运 ({{ daYun.direction }} · {{ daYun.start_age }}岁起运)
             </div>
             <span class="block-desc">十年一步的大运流转，决定人生各阶段的运势起伏</span>
             <div class="dayun-timeline">
-              <div v-for="(p, i) in chart.da_yun.pillars" :key="i" class="dayun-node">
-                <div class="dayun-age">{{ (Number(chart.da_yun.start_age) || 0) + (Number(i) || 0) * 10 }}岁</div>
+              <div v-for="(p, i) in daYun.pillars" :key="i" class="dayun-node">
+                <div class="dayun-age">{{ (Number(daYun.start_age) || 0) + (Number(i) || 0) * 10 }}岁</div>
                 <div class="dayun-dot-line">
                   <span class="dayun-dot"></span>
-                  <span v-if="i < chart.da_yun.pillars.length - 1" class="dayun-line"></span>
+                  <span v-if="i < daYun.pillars.length - 1" class="dayun-line"></span>
                 </div>
                 <div class="dayun-pillar-card">
                   <span class="dayun-gan">{{ p.gan }}</span>

@@ -288,9 +288,10 @@ const elementFocus = computed(() => {
 const guideGroups = computed(() => {
   const days = monthDays.value
   return [
-    { title: '幸运色', kind: 'color', items: topCounts(days.map(day => day.lucky_color), 4) },
-    { title: '幸运数', kind: 'number', items: topCounts(days.map(day => day.lucky_number), 4) },
-    { title: '财位', kind: 'direction', items: topCounts(days.map(day => day.wealth_direction), 4) },
+    { title: '主色', kind: 'color', items: topCounts(days.map(day => day.guide?.lucky_colors?.[0]?.value || day.lucky_color), 4) },
+    { title: '主数', kind: 'number', items: topCounts(days.map(day => day.guide?.lucky_numbers?.[0]?.value || day.lucky_number), 4) },
+    { title: '财位', kind: 'direction', items: topCounts(days.map(day => day.guide?.wealth_direction?.value || day.wealth_direction), 4) },
+    { title: '主五行', kind: 'element', items: topCounts(days.map(day => day.guide?.primary_element), 4) },
     { title: '十神', kind: 'ten-god', items: topCounts(days.map(day => day.today_ten_god), 4) },
   ]
 })
@@ -571,6 +572,8 @@ onMounted(load)
               :lucky-color="d.lucky_color"
               :lucky-number="d.lucky_number"
               :wealth-dir="d.wealth_direction"
+              :guide-strategy="d.guide?.strategy"
+              :guide-element="d.guide?.primary_element"
               :yi-items="d.yi"
               :ji-items="d.ji"
               :today-ten-god="d.today_ten_god"

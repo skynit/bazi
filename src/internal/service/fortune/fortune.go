@@ -29,32 +29,33 @@ func NewFortuneEngine() *FortuneEngine {
 
 // DailyFortune is a single-day fortune result.
 type DailyFortune struct {
-	Date            string               `json:"date"`
-	DayPillar       model.Pillar         `json:"day_pillar"`
-	Score           int                  `json:"score"`
-	LuckyColor      string               `json:"lucky_color"`
-	LuckyNumbers    []int                `json:"lucky_numbers"`
-	WealthDir       string               `json:"wealth_dir"`
-	ClashZodiac     string               `json:"clash_zodiac"`
-	AuspiciousHours []string             `json:"auspicious_hours"`
-	Yi              []model.YiJiItem     `json:"yi"`
-	Ji              []model.YiJiItem     `json:"ji"`
-	ShengKe         ShengKeAnalysis      `json:"sheng_ke"`
-	ElementImages   []model.ElementImage `json:"element_images"`
-	TodayElements   map[string]int       `json:"today_elements"`
-	SeasonElementAdvice string           `json:"season_element_advice"`
-	FlowImpact      string               `json:"flow_impact"`
-	Rikuyo          *RikuyoResult        `json:"rikuyo"`
-	LunarDate       string               `json:"lunar_date"`
-	WeekDay         string               `json:"week_day"`
-	ShengXiao       string               `json:"sheng_xiao"`
-	JiShen          string               `json:"ji_shen"`
-	XiongShen       string               `json:"xiong_shen"`
-	TaiShen         string               `json:"tai_shen"`
-	WuXing          string               `json:"wu_xing"`
-	PengZu          string               `json:"peng_zu"`
-	Gua             string               `json:"gua"`
-	JieQi           string               `json:"jie_qi"`
+	Date                string               `json:"date"`
+	DayPillar           model.Pillar         `json:"day_pillar"`
+	Score               int                  `json:"score"`
+	LuckyColor          string               `json:"lucky_color"`
+	LuckyNumbers        []int                `json:"lucky_numbers"`
+	WealthDir           string               `json:"wealth_dir"`
+	Guide               *model.FortuneGuide  `json:"guide,omitempty"`
+	ClashZodiac         string               `json:"clash_zodiac"`
+	AuspiciousHours     []string             `json:"auspicious_hours"`
+	Yi                  []model.YiJiItem     `json:"yi"`
+	Ji                  []model.YiJiItem     `json:"ji"`
+	ShengKe             ShengKeAnalysis      `json:"sheng_ke"`
+	ElementImages       []model.ElementImage `json:"element_images"`
+	TodayElements       map[string]int       `json:"today_elements"`
+	SeasonElementAdvice string               `json:"season_element_advice"`
+	FlowImpact          string               `json:"flow_impact"`
+	Rikuyo              *RikuyoResult        `json:"rikuyo"`
+	LunarDate           string               `json:"lunar_date"`
+	WeekDay             string               `json:"week_day"`
+	ShengXiao           string               `json:"sheng_xiao"`
+	JiShen              string               `json:"ji_shen"`
+	XiongShen           string               `json:"xiong_shen"`
+	TaiShen             string               `json:"tai_shen"`
+	WuXing              string               `json:"wu_xing"`
+	PengZu              string               `json:"peng_zu"`
+	Gua                 string               `json:"gua"`
+	JieQi               string               `json:"jie_qi"`
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
@@ -239,37 +240,39 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 
 	// 日课推算
 	rikuyo := CalcRikuyo(userChart, queryDate, birthYear)
+	guide := BuildFortuneGuide(userChart, dayPillar, score, stemRel, branchRel, luckyColor, luckyNumbers, wealthDir, auspHours, yi, ji, rikuyo)
 
 	// 黄历数据（通过 tyme4go 获取）
 	almanac := getAlmanacData(qYear, qMonth, qDay)
 
 	return &DailyFortune{
-		Date:            queryDate.Format("2006-01-02"),
-		DayPillar:       dayPillar,
-		Score:           score,
-		LuckyColor:      luckyColor,
-		LuckyNumbers:    luckyNumbers,
-		WealthDir:       wealthDir,
-		ClashZodiac:     clashZodiac,
-		AuspiciousHours: auspHours,
-		Yi:              yi,
-		Ji:              ji,
-		ShengKe:         shengKe,
-		ElementImages:   fixedElementImages(),
-		TodayElements:   filtered,
+		Date:                queryDate.Format("2006-01-02"),
+		DayPillar:           dayPillar,
+		Score:               score,
+		LuckyColor:          luckyColor,
+		LuckyNumbers:        luckyNumbers,
+		WealthDir:           wealthDir,
+		Guide:               guide,
+		ClashZodiac:         clashZodiac,
+		AuspiciousHours:     auspHours,
+		Yi:                  yi,
+		Ji:                  ji,
+		ShengKe:             shengKe,
+		ElementImages:       fixedElementImages(),
+		TodayElements:       filtered,
 		SeasonElementAdvice: getSeasonElementAdvice(userChart.DayPillar.Gan, ec.GetMonth().GetEarthBranch().GetName()),
-		FlowImpact:      analyzeDayFlowImpact(userChart, dayPillar),
-		Rikuyo:          rikuyo,
-		LunarDate:       almanac.LunarDate,
-		WeekDay:         almanac.WeekDay,
-		ShengXiao:       almanac.ShengXiao,
-		JiShen:          almanac.JiShen,
-		XiongShen:       almanac.XiongShen,
-		TaiShen:         almanac.TaiShen,
-		WuXing:          almanac.WuXing,
-		PengZu:          almanac.PengZu,
-		Gua:             almanac.Gua,
-		JieQi:           almanac.JieQi,
+		FlowImpact:          analyzeDayFlowImpact(userChart, dayPillar),
+		Rikuyo:              rikuyo,
+		LunarDate:           almanac.LunarDate,
+		WeekDay:             almanac.WeekDay,
+		ShengXiao:           almanac.ShengXiao,
+		JiShen:              almanac.JiShen,
+		XiongShen:           almanac.XiongShen,
+		TaiShen:             almanac.TaiShen,
+		WuXing:              almanac.WuXing,
+		PengZu:              almanac.PengZu,
+		Gua:                 almanac.Gua,
+		JieQi:               almanac.JieQi,
 	}
 }
 
@@ -456,11 +459,11 @@ func calcScore(stemRel, branchRel string, userGan, dayGan string) int {
 	case "shengWo":
 		score += 18 // 生我（印星），得助有力
 	case "woSheng":
-		score += 5  // 我生（食伤），泄气轻微正面
+		score += 5 // 我生（食伤），泄气轻微正面
 	case "keWo":
 		score -= 18 // 克我（官杀），压力较大
 	case "woKe":
-		score += 8  // 我克（财星），可得之象
+		score += 8 // 我克（财星），可得之象
 	}
 
 	switch branchRel {
@@ -473,7 +476,7 @@ func calcScore(stemRel, branchRel string, userGan, dayGan string) int {
 	case "break":
 		score -= 10 // 六破，破败之义
 	case "combine":
-		score += 8  // 六合，和合之情
+		score += 8 // 六合，和合之情
 	case "sanHe":
 		score += 15 // 三合，气势专旺
 	case "sanHui":
@@ -782,6 +785,12 @@ func (e *FortuneEngine) fallbackDaily(queryDate time.Time) *DailyFortune {
 		DayPillar:     model.Pillar{Gan: "?", Zhi: "?"},
 		Score:         50,
 		ElementImages: fixedElementImages(),
+		Guide: &model.FortuneGuide{
+			PrecisionLevel: "fallback",
+			Confidence:     20,
+			Analysis:       "未能取得有效日柱，开运指南暂按平稳守成为准。",
+			Strategy:       "今日先保持作息和节奏稳定，重大事项等日课恢复后再定。",
+		},
 		ShengKe: ShengKeAnalysis{
 			Summary: "无法计算日柱，使用默认运势。",
 		},

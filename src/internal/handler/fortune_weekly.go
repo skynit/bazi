@@ -120,6 +120,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		LuckyColor:          df.LuckyColor,
 		LuckyNumber:         luckyNum,
 		WealthDir:           df.WealthDir,
+		Guide:               df.Guide,
 		ClashZodiac:         df.ClashZodiac,
 		AuspiciousHours:     df.AuspiciousHours,
 		YiItems:             yiItems,

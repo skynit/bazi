@@ -108,15 +108,9 @@ async function loadZiWeiChart() {
       loading.value = false
       return
     }
-    // Then calculate ziwei from birth info
+    // Then calculate ziwei by chart id so the backend can cache the result.
     const resp = await client.post('/ziwei/chart', {
-      birth_year: chart.birth_year,
-      birth_month: chart.birth_month,
-      birth_day: chart.birth_day,
-      birth_hour: chart.birth_hour,
-      birth_min: chart.birth_minute || 0,
-      calendar_type: chart.calendar_type || 'SOLAR',
-      gender: chart.gender || 'MALE',
+      chart_id: Number(chartId),
     })
     const data = resp.data
 

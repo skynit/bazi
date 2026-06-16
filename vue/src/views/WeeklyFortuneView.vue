@@ -189,6 +189,8 @@ onMounted(load)
               :lucky-color="d.lucky_color"
               :lucky-number="d.lucky_number"
               :wealth-dir="d.wealth_direction"
+              :guide-strategy="d.guide?.strategy"
+              :guide-element="d.guide?.primary_element"
               :yi-items="d.yi"
               :ji-items="d.ji"
               :today-ten-god="d.today_ten_god"

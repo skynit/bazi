@@ -97,6 +97,31 @@ type ElementImage struct {
 	Description string `json:"description"`
 }
 
+type FortuneGuideItem struct {
+	Label   string `json:"label"`
+	Value   string `json:"value"`
+	Element string `json:"element,omitempty"`
+	Reason  string `json:"reason"`
+}
+
+type FortuneGuide struct {
+	PrecisionLevel     string             `json:"precision_level"`
+	Confidence         int                `json:"confidence"`
+	PrimaryElement     string             `json:"primary_element"`
+	SecondaryElement   string             `json:"secondary_element"`
+	AvoidElement       string             `json:"avoid_element"`
+	LuckyColors        []FortuneGuideItem `json:"lucky_colors"`
+	LuckyNumbers       []FortuneGuideItem `json:"lucky_numbers"`
+	FaceDirection      FortuneGuideItem   `json:"face_direction"`
+	WealthDirection    FortuneGuideItem   `json:"wealth_direction"`
+	AvoidDirection     FortuneGuideItem   `json:"avoid_direction"`
+	RecommendedActions []FortuneGuideItem `json:"recommended_actions"`
+	Cautions           []FortuneGuideItem `json:"cautions"`
+	BestHours          []FortuneGuideItem `json:"best_hours"`
+	Analysis           string             `json:"analysis"`
+	Strategy           string             `json:"strategy"`
+}
+
 type FortuneResponse struct {
 	// almanac day fields
 	SolarDate           string         `json:"solar_date"`
@@ -120,6 +145,7 @@ type FortuneResponse struct {
 	WealthDir           string         `json:"wealth_direction"`
 	ClashZodiac         string         `json:"clash_zodiac"`
 	AuspiciousHours     []string       `json:"auspicious_hours"`
+	Guide               *FortuneGuide  `json:"guide,omitempty"`
 	Analysis            interface{}    `json:"analysis"`
 	YiItems             []string       `json:"yi"`
 	JiItems             []string       `json:"ji"`

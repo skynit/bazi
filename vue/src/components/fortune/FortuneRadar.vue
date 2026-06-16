@@ -21,6 +21,7 @@ const ORDER = ['木', '火', '土', '金', '水'] as const
 
 const host = ref<HTMLDivElement | null>(null)
 let inst: echarts.ECharts | null = null
+let themeObserver: MutationObserver | null = null
 
 const series = computed(() =>
   ORDER.map(k => Math.round((props.distribution?.[k] ?? 0) * 1000) / 10)
@@ -62,10 +63,14 @@ function resize() { inst?.resize() }
 
 onMounted(() => {
   build()
+  themeObserver = new MutationObserver(build)
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-wuxing'] })
   window.addEventListener('resize', resize)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', resize)
+  themeObserver?.disconnect()
+  themeObserver = null
   inst?.dispose()
   inst = null
 })

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '../api/client'
 import DailyFortune from '../components/DailyFortune.vue'
+import type { FortuneGuide } from '../api/fortune'
 
 interface HiddenStemGod {
   stem: string
@@ -67,18 +68,41 @@ interface YongShenImpact {
   description: string
 }
 
+interface FortuneOverall {
+  score?: number
+  base_score?: number
+  detail_score?: number
+  stars?: string
+  level?: string
+  summary?: string
+  key_tip?: string
+}
+
+interface FortuneCategory {
+  name: string
+  score?: number
+  weight?: number
+  stars?: string
+  level?: string
+  trend?: string
+  keywords?: string[]
+  analysis?: string
+  advice?: string
+}
+
 interface FortuneData {
   solar_date: string
   day_gan_zhi: string
   score?: number
   analysis?: {
-    overall?: { summary?: string; key_tip?: string }
-    categories?: { name: string; stars: string }[]
+    overall?: FortuneOverall
+    categories?: FortuneCategory[]
     lucky_guide?: { colors?: string; numbers?: string; actions?: string; outfit?: string; favorable_elems?: string[]; unfavorable_elems?: string[] }
   }
   lucky_color?: string
   lucky_number?: number
   wealth_direction?: string
+  guide?: FortuneGuide
   clash_zodiac?: string
   auspicious_hours?: string[]
   yi?: string[]
@@ -129,8 +153,6 @@ const loading = ref(true)
 const error = ref('')
 const mounted = ref(false)
 const chartId = ref<string | number>('')
-const isDark = ref(document.documentElement.classList.contains('dark'))
-let themeObserver: MutationObserver | null = null
 
 function todayStr() {
   const d = new Date()
@@ -152,28 +174,17 @@ async function fetchFortune() {
 }
 
 onMounted(() => {
-  themeObserver = new MutationObserver(() => {
-    isDark.value = document.documentElement.classList.contains('dark')
-  })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
   fetchFortune(); setTimeout(() => mounted.value = true, 100)
 })
-onUnmounted(() => { themeObserver?.disconnect() })
 
 function scoreColor(s: number) {
   const t = Math.max(0, Math.min(1, s / 100))
-  const L = 0.22 + t * 0.58
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L} ${C} ${h})`
+  return `color-mix(in oklab, var(--jade-accent) ${Math.round(54 + t * 46)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
 }
 
 function scoreGlow(s: number) {
   const t = Math.max(0, Math.min(1, s / 100))
-  const L = 0.22 + t * 0.58
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L} ${C} ${h} / ${0.15 + t * 0.15})`
+  return `rgba(var(--jade-accent-rgb), ${(0.14 + t * 0.22).toFixed(3)})`
 }
 
 function scoreWord(s: number) {
@@ -185,6 +196,67 @@ function scoreWord(s: number) {
 }
 
 function starCount(stars: string) { return (stars.match(/★/g) || []).length }
+
+function clampScore(score?: number) {
+  return Math.max(20, Math.min(100, score ?? 0))
+}
+
+function categoryScore(category: FortuneCategory) {
+  const fallback = starCount(category.stars || '') * 20 || 60
+  return clampScore(category.score ?? fallback)
+}
+
+function trendLabel(trend?: string) {
+  if (trend === 'up') return '走高'
+  if (trend === 'down') return '承压'
+  return '平稳'
+}
+
+function categoryBg(score?: number) {
+  const s = clampScore(score)
+  return `linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 88%, transparent), color-mix(in oklab, var(--accent) ${Math.max(8, Math.min(32, s / 3))}%, transparent))`
+}
+
+function legacyGuide(fortuneData: FortuneData): FortuneGuide | undefined {
+  const old = fortuneData.analysis?.lucky_guide
+  if (!old) return undefined
+  return {
+    precision_level: 'legacy',
+    confidence: 50,
+    primary_element: old.favorable_elems?.[0] ?? '',
+    secondary_element: old.favorable_elems?.[1] ?? '',
+    avoid_element: old.unfavorable_elems?.[0] ?? '',
+    lucky_colors: old.colors ? [{ label: '幸运色', value: old.colors, reason: '按旧版喜用五行规则生成。' }] : [],
+    lucky_numbers: old.numbers ? [{ label: '幸运数', value: old.numbers, reason: '按旧版喜用五行规则生成。' }] : [],
+    face_direction: { label: '朝向', value: '', reason: '' },
+    wealth_direction: { label: '财位', value: fortuneData.wealth_direction ?? '', reason: '按流日天干财位生成。' },
+    avoid_direction: { label: '避开', value: '', reason: '' },
+    recommended_actions: old.actions ? [{ label: '动作', value: old.actions, reason: '按旧版开运动作生成。' }] : [],
+    cautions: [],
+    best_hours: (fortuneData.auspicious_hours ?? []).slice(0, 3).map(h => ({ label: '吉时', value: h, reason: '按流日地支取吉时。' })),
+    analysis: '',
+    strategy: old.outfit ? `穿搭建议：${old.outfit}` : '',
+  }
+}
+
+function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
+  return fortuneData.guide ?? legacyGuide(fortuneData)
+}
+
+function guideColorValue(guide: FortuneGuide | undefined): string {
+  return guide?.lucky_colors?.[0]?.value ?? ''
+}
+
+function guideNumberValue(guide: FortuneGuide | undefined): string {
+  return guide?.lucky_numbers?.[0]?.value ?? ''
+}
+
+function guideConfidenceLabel(guide: FortuneGuide | undefined): string {
+  if (!guide?.confidence) return ''
+  if (guide.confidence >= 80) return '高置信'
+  if (guide.confidence >= 65) return '中高置信'
+  return '参考'
+}
 </script>
 
 <template>
@@ -247,19 +319,55 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
         </div>
       </header>
 
-      <!-- Categories strip -->
-      <nav v-if="fortune.analysis?.categories?.length" class="cat-strip" aria-label="运势维度">
-        <div
-          v-for="(c, ci) in fortune.analysis.categories"
-          :key="c.name"
-          class="cat-chip"
-          :class="{ 'cat-hot': starCount(c.stars) >= 4 }"
-          :style="{ animationDelay: (ci * 80) + 'ms' }"
-        >
-          <span class="chip-name">{{ c.name }}</span>
-          <span class="chip-stars">{{ c.stars }}</span>
+      <!-- Dimension matrix -->
+      <section v-if="fortune.analysis?.categories?.length" class="dimension-panel" aria-label="分项运势">
+        <div class="dimension-head">
+          <div>
+            <span class="dimension-eyebrow">分项运势矩阵</span>
+            <h2 class="dimension-title">把今天拆成可行动的九个维度</h2>
+          </div>
+          <div class="score-breakdown" v-if="fortune.analysis?.overall">
+            <span>细项 {{ fortune.analysis.overall.detail_score ?? fortune.score }}</span>
+            <span>基础 {{ fortune.analysis.overall.base_score ?? fortune.score }}</span>
+            <strong>{{ fortune.analysis.overall.level || scoreWord(fortune.score || 0) }}</strong>
+          </div>
         </div>
-      </nav>
+
+        <div class="dimension-grid">
+          <article
+            v-for="(c, ci) in fortune.analysis.categories"
+            :key="c.name"
+            class="dimension-card"
+            :class="`trend-${c.trend || 'flat'}`"
+            :style="{ animationDelay: (ci * 70) + 'ms', background: categoryBg(categoryScore(c)) }"
+          >
+            <div class="dimension-top">
+              <div>
+                <span class="dimension-name">{{ c.name }}</span>
+                <span class="dimension-stars">{{ c.stars }}</span>
+              </div>
+              <strong class="dimension-score">{{ categoryScore(c) }}</strong>
+            </div>
+
+            <div class="dimension-meter" aria-hidden="true">
+              <span :style="{ width: `${categoryScore(c)}%` }"></span>
+            </div>
+
+            <div class="dimension-meta-row">
+              <span>{{ c.level || scoreWord(categoryScore(c)) }}</span>
+              <span>{{ trendLabel(c.trend) }}</span>
+              <span>权重 {{ c.weight ?? 0 }}%</span>
+            </div>
+
+            <p class="dimension-analysis" v-if="c.analysis">{{ c.analysis }}</p>
+            <p class="dimension-advice" v-if="c.advice">{{ c.advice }}</p>
+
+            <div v-if="c.keywords?.length" class="dimension-tags">
+              <span v-for="kw in c.keywords.slice(0, 4)" :key="`${c.name}-${kw}`">{{ kw }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
 
       <!-- Content -->
       <div class="main-grid">
@@ -310,39 +418,70 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
           :pattern-unfavorable="fortune.pattern_unfavorable"
         />
 
-        <aside v-if="fortune.analysis?.lucky_guide" class="side-panels">
+        <aside v-if="activeGuide(fortune)" class="side-panels">
           <div class="panel-card panel-accent-gold">
             <div class="panel-header">
               <span class="panel-icon">✦</span>
-              <h3 class="panel-title">开运指南</h3>
+              <h3 class="panel-title">精准开运指南</h3>
+              <span v-if="guideConfidenceLabel(activeGuide(fortune))" class="guide-confidence">{{ guideConfidenceLabel(activeGuide(fortune)) }} · {{ activeGuide(fortune)?.confidence }}%</span>
             </div>
             <div class="panel-body">
-              <div class="guide-item" v-if="fortune.analysis.lucky_guide.colors">
+              <div class="guide-item" v-if="guideColorValue(activeGuide(fortune))">
                 <span class="guide-label">幸运色</span>
                 <span class="guide-value">
-                  <span class="color-swatch" :style="{ background: fortune.analysis.lucky_guide.colors }"></span>
-                  {{ fortune.analysis.lucky_guide.colors }}
+                  <span class="color-swatch" :style="{ background: guideColorValue(activeGuide(fortune)) }"></span>
+                  {{ guideColorValue(activeGuide(fortune)) }}
                 </span>
+                <small class="guide-reason">{{ activeGuide(fortune)?.lucky_colors?.[0]?.reason }}</small>
               </div>
-              <div class="guide-item" v-if="fortune.analysis.lucky_guide.numbers">
+              <div class="guide-item" v-if="guideNumberValue(activeGuide(fortune))">
                 <span class="guide-label">幸运数字</span>
-                <span class="guide-value guide-value-xl">{{ fortune.analysis.lucky_guide.numbers }}</span>
+                <span class="guide-value guide-value-xl">{{ guideNumberValue(activeGuide(fortune)) }}</span>
+                <small class="guide-reason">{{ activeGuide(fortune)?.lucky_numbers?.[0]?.reason }}</small>
               </div>
-              <div class="guide-item" v-if="fortune.analysis.lucky_guide.actions">
-                <span class="guide-label">开运动作</span>
-                <span class="guide-value">{{ fortune.analysis.lucky_guide.actions }}</span>
+              <div class="guide-item" v-if="activeGuide(fortune)?.wealth_direction?.value">
+                <span class="guide-label">财位</span>
+                <span class="guide-value">{{ activeGuide(fortune)?.wealth_direction.value }}</span>
+                <small class="guide-reason">{{ activeGuide(fortune)?.wealth_direction.reason }}</small>
               </div>
-              <div class="guide-item" v-if="fortune.analysis.lucky_guide.outfit">
-                <span class="guide-label">幸运穿搭</span>
-                <span class="guide-value">{{ fortune.analysis.lucky_guide.outfit }}</span>
+              <div class="guide-item" v-if="activeGuide(fortune)?.face_direction?.value">
+                <span class="guide-label">朝向</span>
+                <span class="guide-value">{{ activeGuide(fortune)?.face_direction.value }}</span>
+                <small class="guide-reason">{{ activeGuide(fortune)?.face_direction.reason }}</small>
               </div>
+              <p v-if="activeGuide(fortune)?.strategy" class="guide-strategy">{{ activeGuide(fortune)?.strategy }}</p>
+              <p v-if="activeGuide(fortune)?.analysis" class="guide-analysis">{{ activeGuide(fortune)?.analysis }}</p>
             </div>
           </div>
 
-          <div v-if="fortune.analysis.lucky_guide.favorable_elems?.length" class="panel-card panel-accent-crimson">
+          <div v-if="activeGuide(fortune)?.recommended_actions?.length || activeGuide(fortune)?.cautions?.length" class="panel-card panel-accent-crimson">
             <div class="panel-header">
               <span class="panel-icon">☯</span>
-              <h3 class="panel-title">喜用五行</h3>
+              <h3 class="panel-title">行动与避忌</h3>
+            </div>
+            <div v-if="activeGuide(fortune)?.recommended_actions?.length" class="guide-list">
+              <span class="guide-list-title">宜用</span>
+              <div v-for="item in activeGuide(fortune)?.recommended_actions?.slice(0, 4)" :key="`action-${item.label}-${item.value}`" class="guide-mini">
+                <strong>{{ item.value }}</strong>
+                <small>{{ item.reason }}</small>
+              </div>
+            </div>
+            <div v-if="activeGuide(fortune)?.cautions?.length" class="guide-list">
+              <span class="guide-list-title guide-list-warn">避忌</span>
+              <div v-for="item in activeGuide(fortune)?.cautions?.slice(0, 4)" :key="`caution-${item.label}-${item.value}`" class="guide-mini warn">
+                <strong>{{ item.value }}</strong>
+                <small>{{ item.reason }}</small>
+              </div>
+            </div>
+            <div v-if="activeGuide(fortune)?.best_hours?.length" class="guide-hours">
+              <span v-for="item in activeGuide(fortune)?.best_hours?.slice(0, 4)" :key="`hour-${item.label}-${item.value}`">{{ item.label }} {{ item.value }}</span>
+            </div>
+          </div>
+
+          <div v-if="activeGuide(fortune)?.primary_element" class="panel-card panel-accent-crimson">
+            <div class="panel-header">
+              <span class="panel-icon">☯</span>
+              <h3 class="panel-title">喜忌五行</h3>
             </div>
             <div class="five-elements">
               <span
@@ -350,8 +489,8 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
                 :key="el"
                 class="el-badge"
                 :class="{
-                  'el-fav': fortune.analysis.lucky_guide.favorable_elems?.includes(el),
-                  'el-dis': fortune.analysis.lucky_guide.unfavorable_elems?.includes(el),
+                  'el-fav': activeGuide(fortune)?.primary_element === el || activeGuide(fortune)?.secondary_element === el,
+                  'el-dis': activeGuide(fortune)?.avoid_element === el,
                 }"
               >{{ el }}</span>
             </div>
@@ -567,28 +706,182 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   margin: 0; opacity: 0.85;
 }
 
-/* ── Categories strip ── */
-.cat-strip {
-  display: flex; gap: 0.6rem;
-  overflow-x: auto; padding: 0 0 1.5rem;
-  scrollbar-width: none;
+/* ── Dimension matrix ── */
+.dimension-panel {
+  margin-bottom: 1.25rem;
+  padding: 1.35rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 92%, transparent), color-mix(in oklab, var(--surface-0) 78%, transparent)),
+    radial-gradient(circle at 8% 12%, var(--accent-dim), transparent 34%);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--line-subtle);
+  position: relative;
+  overflow: hidden;
 }
-.cat-strip::-webkit-scrollbar { display: none; }
-.cat-chip {
-  flex-shrink: 0;
-  padding: 0.55rem 1.1rem;
+.dimension-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), color-mix(in oklab, var(--crimson) 45%, var(--accent)), transparent);
+  opacity: 0.75;
+}
+.dimension-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+.dimension-eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+.dimension-title {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.score-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  max-width: 320px;
+}
+.score-breakdown span,
+.score-breakdown strong {
+  padding: 0.34rem 0.56rem;
+  border-radius: 8px;
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
-  border-radius: 50px;
-  display: flex; align-items: center; gap: 0.5rem;
-  transition: all 0.3s;
-  animation: chip-in 0.5s ease both;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
 }
-@keyframes chip-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-.cat-chip:hover { background: var(--glass-bg-hover); border-color: var(--line-focus); }
-.cat-chip.cat-hot { border-color: var(--line-focus); background: var(--accent-dim); }
-.chip-name { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.5px; }
-.chip-stars { font-size: 0.78rem; font-weight: 800; color: var(--text); }
+.score-breakdown strong {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: var(--line-focus);
+}
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+.dimension-card {
+  min-height: 246px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.95rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 var(--line-subtle);
+  animation: dimension-in 0.55s ease both;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+@keyframes dimension-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.dimension-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-focus);
+  box-shadow: 0 14px 36px rgba(var(--jade-accent-rgb), 0.12), inset 0 1px 0 var(--line-subtle);
+}
+.dimension-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.dimension-name {
+  display: block;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+.dimension-stars {
+  display: block;
+  min-height: 1rem;
+  margin-top: 0.18rem;
+  color: var(--text-soft);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+}
+.dimension-score {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  line-height: 1;
+  text-shadow: 0 0 24px var(--accent-glow);
+}
+.dimension-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-0) 70%, transparent);
+  border: 1px solid var(--line-subtle);
+  overflow: hidden;
+}
+.dimension-meter span {
+  display: block;
+  height: 100%;
+  min-width: 6%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 72%, var(--crimson)));
+  box-shadow: 0 0 18px var(--accent-glow);
+}
+.dimension-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.dimension-meta-row span,
+.dimension-tags span {
+  padding: 0.22rem 0.45rem;
+  border-radius: 8px;
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+.dimension-analysis {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.73rem;
+  line-height: 1.62;
+}
+.dimension-advice {
+  margin: auto 0 0;
+  padding-left: 0.55rem;
+  border-left: 2px solid var(--line-focus);
+  color: var(--accent);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+.dimension-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.dimension-card.trend-up .dimension-meta-row span:nth-child(2) {
+  color: var(--accent);
+  border-color: var(--line-focus);
+}
+.dimension-card.trend-down .dimension-meta-row span:nth-child(2) {
+  color: var(--crimson);
+  border-color: color-mix(in oklab, var(--crimson) 22%, transparent);
+}
 
 /* ── Main grid ── */
 .main-grid {
@@ -629,6 +922,12 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   font-size: 0.78rem; font-weight: 700;
   color: var(--accent); margin: 0; letter-spacing: 2px;
 }
+.guide-confidence {
+  margin-left: auto;
+  font-size: 0.58rem;
+  color: var(--text-soft);
+  letter-spacing: 0.08em;
+}
 .guide-item {
   display: flex; flex-direction: column; gap: 0.2rem;
   padding: 0.5rem 0.6rem;
@@ -649,6 +948,71 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
 }
 .guide-value-xl { color: var(--accent); font-size: 1.4rem; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 20px var(--accent-glow); }
 .color-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--line-strong); flex-shrink: 0; }
+.guide-reason {
+  font-size: 0.64rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+.guide-strategy,
+.guide-analysis {
+  margin: 0.7rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.guide-strategy {
+  color: var(--accent);
+  border-left: 2px solid var(--line-focus);
+  padding-left: 0.55rem;
+}
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  margin-bottom: 0.75rem;
+}
+.guide-list:last-child { margin-bottom: 0; }
+.guide-list-title {
+  font-size: 0.58rem;
+  color: rgba(var(--jade-accent-rgb), 1);
+  letter-spacing: 0.12em;
+}
+.guide-list-warn { color: var(--crimson); }
+.guide-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+  padding: 0.48rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
+  background: rgba(var(--jade-accent-rgb), 0.05);
+}
+.guide-mini.warn {
+  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
+  background: color-mix(in oklab, var(--crimson) 5%, transparent);
+}
+.guide-mini strong {
+  color: var(--text);
+  font-size: 0.76rem;
+}
+.guide-mini small {
+  color: var(--text-soft);
+  line-height: 1.45;
+  font-size: 0.63rem;
+}
+.guide-hours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.guide-hours span {
+  padding: 0.24rem 0.55rem;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--line-subtle);
+  color: var(--text-muted);
+  font-size: 0.64rem;
+}
 .five-elements { display: flex; gap: 0.35rem; }
 .el-badge {
   flex: 1; aspect-ratio: 1;
@@ -680,6 +1044,11 @@ function starCount(stars: string) { return (stars.match(/★/g) || []).length }
   .score-sphere { width: 140px; height: 140px; }
   .sphere-value { font-size: 3rem; }
   .pillar-value { font-size: 2rem; }
+  .dimension-panel { padding: 1rem; border-radius: 14px; }
+  .dimension-head { align-items: flex-start; flex-direction: column; }
+  .score-breakdown { justify-content: flex-start; max-width: none; }
+  .dimension-grid { grid-template-columns: 1fr; }
+  .dimension-card { min-height: 0; }
   .main-grid { grid-template-columns: 1fr; }
   .fortune-main { padding: 1.5rem 1rem 4rem; }
 }

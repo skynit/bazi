@@ -23,17 +23,25 @@ type FortuneAnalysis struct {
 }
 
 type OverallAnalysis struct {
-	Score   int    `json:"score"`
-	Stars   string `json:"stars"`
-	Summary string `json:"summary"`
-	KeyTip  string `json:"key_tip"`
+	Score       int    `json:"score"`
+	BaseScore   int    `json:"base_score"`
+	DetailScore int    `json:"detail_score"`
+	Stars       string `json:"stars"`
+	Level       string `json:"level"`
+	Summary     string `json:"summary"`
+	KeyTip      string `json:"key_tip"`
 }
 
 type CategoryScore struct {
-	Name     string `json:"name"`
-	Stars    string `json:"stars"`
-	Analysis string `json:"analysis"`
-	Advice   string `json:"advice"`
+	Name     string   `json:"name"`
+	Score    int      `json:"score"`
+	Weight   int      `json:"weight"`
+	Stars    string   `json:"stars"`
+	Level    string   `json:"level"`
+	Trend    string   `json:"trend"`
+	Keywords []string `json:"keywords"`
+	Analysis string   `json:"analysis"`
+	Advice   string   `json:"advice"`
 }
 
 type HourlyFortune struct {
@@ -80,9 +88,30 @@ type catResult struct {
 	cs    CategoryScore
 }
 
+type categoryWeight struct {
+	name   string
+	weight int
+}
+
+var dailyCategoryWeights = []categoryWeight{
+	{name: "事业运", weight: 18},
+	{name: "财运", weight: 15},
+	{name: "感情运", weight: 12},
+	{name: "健康运", weight: 12},
+	{name: "贵人运", weight: 10},
+	{name: "学业运", weight: 9},
+	{name: "投资运", weight: 9},
+	{name: "出行运", weight: 7},
+	{name: "是非运", weight: 8},
+}
+
 // ── 主分析入口 ──────────────────────────────────────────────
 
 func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi string) *FortuneAnalysis {
+	return AnalyzeDailyFortuneWithBaseScore(userBazi, todayDayGan, todayDayZhi, 0)
+}
+
+func AnalyzeDailyFortuneWithBaseScore(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi string, baseScore int) *FortuneAnalysis {
 	userDayGan := userBazi.DayPillar.Gan
 	userElem := data.GanElement[userDayGan]
 	todayElem := data.GanElement[todayDayGan]
@@ -108,18 +137,22 @@ func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi 
 		scoreLawsuit(rel, todayDayZhi, userBazi),
 	}
 
-	// 综合评分 = 九维度加权平均（权重：事业15 财12 感情10 健康8 贵人10 学业8 投资8 出行5 是非5）
-	weights := []int{15, 12, 10, 8, 10, 8, 8, 5, 5}
 	total, weightTotal := 0, 0
 	categories := make([]CategoryScore, len(results))
 	for i, r := range results {
-		total += r.score * weights[i]
-		weightTotal += weights[i]
+		weight := dailyCategoryWeights[i].weight
+		r.cs.Weight = weight
+		total += r.score * weight
+		weightTotal += weight
 		categories[i] = r.cs
 	}
-	baseScore := total / weightTotal
+	detailScore := (total + weightTotal/2) / weightTotal
+	overallScore := detailScore
+	if baseScore > 0 {
+		overallScore = blendScores(baseScore, detailScore)
+	}
 
-	stars := scoreToStars(baseScore)
+	stars := scoreToStars(overallScore)
 	userBaziStr := fmt.Sprintf("%s%s %s%s %s%s %s%s",
 		userBazi.YearPillar.Gan, userBazi.YearPillar.Zhi,
 		userBazi.MonthPillar.Gan, userBazi.MonthPillar.Zhi,
@@ -135,11 +168,35 @@ func AnalyzeDailyFortune(userBazi *bazipkg.BaziResult, todayDayGan, todayDayZhi 
 		UserBazi:    userBaziStr,
 		TodayGanZhi: todayDayGan + todayDayZhi,
 		TodayElem:   todayElem + todayZhiElem,
-		Overall:     OverallAnalysis{baseScore, stars, summary, keyTip},
-		Categories:  categories,
-		Hourly:      makeHourly(todayDayGan, todayDayZhi, isFavorableRel(rel)),
-		LuckyGuide:  makeLuckyGuide(todayDayGan, todayDayZhi, userElem, like, dislike),
+		Overall: OverallAnalysis{
+			Score:       overallScore,
+			BaseScore:   baseScore,
+			DetailScore: detailScore,
+			Stars:       stars,
+			Level:       scoreLevel(overallScore),
+			Summary:     summary,
+			KeyTip:      keyTip,
+		},
+		Categories: categories,
+		Hourly:     makeHourly(todayDayGan, todayDayZhi, isFavorableRel(rel)),
+		LuckyGuide: makeLuckyGuide(todayDayGan, todayDayZhi, userElem, like, dislike),
 	}
+}
+
+func blendScores(baseScore, detailScore int) int {
+	if baseScore < 0 {
+		baseScore = 0
+	}
+	if baseScore > 100 {
+		baseScore = 100
+	}
+	if detailScore < 0 {
+		detailScore = 0
+	}
+	if detailScore > 100 {
+		detailScore = 100
+	}
+	return (detailScore*7 + baseScore*3 + 5) / 10
 }
 
 // ── 十神关系 ─────────────────────────────────────────────────
@@ -742,10 +799,64 @@ func finalize(score int, name, analysis, advice string) CategoryScore {
 	}
 	return CategoryScore{
 		Name:     name,
+		Score:    score,
 		Stars:    scoreToStars(score),
+		Level:    scoreLevel(score),
+		Trend:    scoreTrend(score),
+		Keywords: categoryKeywords(name, score),
 		Analysis: analysis,
 		Advice:   advice,
 	}
+}
+
+func scoreLevel(score int) string {
+	switch {
+	case score >= 85:
+		return "强势"
+	case score >= 70:
+		return "顺行"
+	case score >= 55:
+		return "平稳"
+	case score >= 40:
+		return "蓄势"
+	default:
+		return "谨慎"
+	}
+}
+
+func scoreTrend(score int) string {
+	switch {
+	case score >= 76:
+		return "up"
+	case score >= 58:
+		return "flat"
+	default:
+		return "down"
+	}
+}
+
+func categoryKeywords(name string, score int) []string {
+	base := map[string][]string{
+		"事业运": []string{"责任", "协作", "推进"},
+		"财运":  []string{"现金流", "预算", "机会"},
+		"感情运": []string{"沟通", "包容", "边界"},
+		"健康运": []string{"作息", "饮食", "精力"},
+		"贵人运": []string{"求助", "连接", "资源"},
+		"学业运": []string{"理解", "复盘", "专注"},
+		"投资运": []string{"风险", "仓位", "纪律"},
+		"出行运": []string{"时间", "路线", "安全"},
+		"是非运": []string{"谨言", "证据", "缓冲"},
+	}
+	words := append([]string{}, base[name]...)
+	switch {
+	case score >= 76:
+		words = append(words, "可攻")
+	case score >= 58:
+		words = append(words, "稳进")
+	default:
+		words = append(words, "保守")
+	}
+	return words
 }
 
 func scoreToStars(score int) string {
@@ -796,14 +907,13 @@ func makeHourly(dayGan, dayZhi string, favorable bool) []HourlyFortune {
 // ── 开运指南 ─────────────────────────────────────────────────
 
 func makeLuckyGuide(dayGan, dayZhi, userElem string, like, dislike []string) LuckyGuide {
-	elem := data.GanElement[dayGan]
 	colors := map[string]string{"木": "绿色、青色", "火": "红色、紫色", "土": "黄色、棕色", "金": "白色、金色", "水": "黑色、蓝色"}
 	numbers := map[string]string{"木": "3、8", "火": "2、7", "土": "5、0", "金": "4、9", "水": "1、6"}
 	avoidDirs := map[string]string{"木": "西方", "火": "北方", "土": "东方", "金": "南方", "水": "中央"}
 	faceDirs := map[string]string{"木": "东方", "火": "南方", "土": "中央", "金": "西方", "水": "北方"}
 
 	// 以喜用神优先；日主五行仅在不忌时才纳入
-	primaryElem := like[0]
+	primaryElem := firstElement(like, data.GanElement[dayGan], userElem)
 	secondaryElem := userElem
 	// 如果日主五行是忌神，换为第二个喜用神
 	if isUnfavorable(userElem, dislike) {
@@ -813,12 +923,16 @@ func makeLuckyGuide(dayGan, dayZhi, userElem string, like, dislike []string) Luc
 			secondaryElem = primaryElem // 只有1个喜神时复用
 		}
 	}
+	if secondaryElem == "" {
+		secondaryElem = primaryElem
+	}
+	avoidElem := firstElement(dislike, elementOvercomes[primaryElem])
 
 	return LuckyGuide{
 		Colors:           fmt.Sprintf("%s（%s）、%s（%s）", colors[primaryElem], primaryElem, colors[secondaryElem], secondaryElem),
 		Numbers:          fmt.Sprintf("%s；%s", numbers[primaryElem], numbers[secondaryElem]),
 		Actions:          fmt.Sprintf("随身携带%s属性物品；面向%s方工作", primaryElem, faceDirs[primaryElem]),
-		AvoidDir:         avoidDirs[elem],
+		AvoidDir:         avoidDirs[avoidElem],
 		FaceDir:          faceDirs[primaryElem],
 		Outfit:           fmt.Sprintf("%s色上衣+%s色裤子", colors[primaryElem], colors[secondaryElem]),
 		FavorableElems:   like,

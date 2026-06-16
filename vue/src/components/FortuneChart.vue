@@ -65,7 +65,7 @@ onMounted(() => {
     themeVersion.value += 1
     isDark.value = document.documentElement.classList.contains('dark')
   })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-wuxing'] })
 })
 
 onUnmounted(() => {
@@ -79,6 +79,7 @@ const option = computed(() => {
   const mutedColor = cssVar('--text-muted', '#5a6a5e')
   const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
   const tooltipBg = cssVar('--surface-1', '#ffffff')
+  const accentColor = cssVar('--jade-accent', isDark.value ? '#4ade80' : '#16a34a')
   const dates = props.dailyData.map((d) => d.date)
   const scores = props.dailyData.map((d) => d.score)
 
@@ -88,8 +89,8 @@ const option = computed(() => {
       type: 'line',
       yAxisIndex: 0,
       data: scores,
-      lineStyle: { color: isDark.value ? '#4ade80' : '#16a34a', width: 2.5 },
-      itemStyle: { color: isDark.value ? '#4ade80' : '#16a34a' },
+      lineStyle: { color: accentColor, width: 2.5 },
+      itemStyle: { color: accentColor },
       symbol: 'circle',
       symbolSize: 6,
       smooth: true,

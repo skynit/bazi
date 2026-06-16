@@ -15,6 +15,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type mockChartSaver struct {
+	chart *model.BirthChart
+}
+
+func (m *mockChartSaver) Create(chart *model.BirthChart) error {
+	chart.ID = 1
+	m.chart = chart
+	return nil
+}
+
 func setupChartRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	middleware.InitJWT("test-secret")
@@ -23,6 +33,20 @@ func setupChartRouter() *gin.Engine {
 	h := &ChartHandler{
 		Parser: &bazi.InputParser{},
 		Bazi:   &bazi.BaziService{},
+	}
+	r.POST("/api/chart", middleware.AuthMiddleware(), h.Chart)
+	return r
+}
+
+func setupChartRouterWithStore(store ChartSaver) *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	middleware.InitJWT("test-secret")
+
+	r := gin.New()
+	h := &ChartHandler{
+		Parser: &bazi.InputParser{},
+		Bazi:   &bazi.BaziService{},
+		Store:  store,
 	}
 	r.POST("/api/chart", middleware.AuthMiddleware(), h.Chart)
 	return r
@@ -72,6 +96,54 @@ func TestChartValidSolar(t *testing.T) {
 	}
 	if resp.DayPillar.Gan == "" || resp.DayPillar.Zhi == "" {
 		t.Error("expected non-empty day pillar")
+	}
+}
+
+func TestChartCreatePersistsDaYun(t *testing.T) {
+	store := &mockChartSaver{}
+	router := setupChartRouterWithStore(store)
+	token, _ := middleware.GenerateToken(1, "testuser")
+
+	body := chartJSONBody(t, model.ChartRequest{
+		BirthYear:    2003,
+		BirthMonth:   4,
+		BirthDay:     15,
+		BirthHour:    14,
+		BirthMin:     0,
+		CalendarType: "SOLAR",
+		Gender:       "MALE",
+		Name:         "Dayun",
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/chart", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if store.chart == nil {
+		t.Fatal("chart was not saved")
+	}
+	if len(store.chart.DaYunStart) == 0 {
+		t.Fatal("expected DaYunStart to be persisted")
+	}
+
+	var dayun struct {
+		StartAge  int            `json:"start_age"`
+		Direction string         `json:"direction"`
+		Pillars   []model.Pillar `json:"pillars"`
+	}
+	if err := json.Unmarshal(store.chart.DaYunStart, &dayun); err != nil {
+		t.Fatalf("unmarshal DaYunStart: %v", err)
+	}
+	if dayun.Direction == "" {
+		t.Error("expected dayun direction")
+	}
+	if len(dayun.Pillars) == 0 {
+		t.Error("expected dayun pillars")
 	}
 }
 

@@ -1,5 +1,30 @@
 import client from './client'
 
+export interface FortuneGuideItem {
+  label: string
+  value: string
+  element?: string
+  reason: string
+}
+
+export interface FortuneGuide {
+  precision_level: string
+  confidence: number
+  primary_element: string
+  secondary_element: string
+  avoid_element: string
+  lucky_colors: FortuneGuideItem[]
+  lucky_numbers: FortuneGuideItem[]
+  face_direction: FortuneGuideItem
+  wealth_direction: FortuneGuideItem
+  avoid_direction: FortuneGuideItem
+  recommended_actions: FortuneGuideItem[]
+  cautions: FortuneGuideItem[]
+  best_hours: FortuneGuideItem[]
+  analysis: string
+  strategy: string
+}
+
 /** Backend FortuneResponse — server JSON keys (snake_case). */
 export interface FortuneDay {
   solar_date: string
@@ -20,6 +45,7 @@ export interface FortuneDay {
   lucky_color: string
   lucky_number: number
   wealth_direction: string
+  guide?: FortuneGuide
   clash_zodiac?: string
   auspicious_hours?: string[]
   yi?: string[]

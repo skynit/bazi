@@ -81,6 +81,47 @@ func TestZiWeiPeriodDayun(t *testing.T) {
 	}
 }
 
+func TestZiWeiPeriodCachesComputedChart(t *testing.T) {
+	chart := &model.BirthChart{
+		BirthYear:  2003,
+		BirthMonth: 4,
+		BirthDay:   15,
+		BirthHour:  14,
+		BirthMin:   0,
+		Gender:     "男",
+	}
+	chart.ID = 1
+
+	store := &mockWeeklyChartStore{chart: chart}
+	router := setupZiWeiPeriodRouter(store)
+
+	token, err := middleware.GenerateToken(1, "testuser")
+	if err != nil {
+		t.Fatalf("failed to generate token: %v", err)
+	}
+
+	body, _ := json.Marshal(periodRequest{
+		ChartID:    1,
+		PeriodType: "dayun",
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/ziwei/period", strings.NewReader(string(body)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if !store.chart.ZiWeiComputed {
+		t.Fatal("expected ziwei chart to be marked computed")
+	}
+	if len(store.chart.ZiWeiResult) == 0 {
+		t.Fatal("expected ziwei result to be cached")
+	}
+}
+
 func TestZiWeiPeriodLiunian(t *testing.T) {
 	chart := &model.BirthChart{
 		BirthYear:  1984,

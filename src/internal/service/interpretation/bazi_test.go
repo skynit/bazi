@@ -98,7 +98,10 @@ func TestInterpretBaziOKFiltersAndCitations(t *testing.T) {
 	if len(resp.Sections) == 0 || resp.Sections[0].Title != "十神结构" {
 		t.Fatalf("unexpected sections: %+v", resp.Sections)
 	}
-	if !strings.Contains(resp.Sections[0].Content, "能借用的经典线索") || !strings.Contains(resp.Sections[0].Content, "十神透藏") {
+	content := resp.Sections[0].Content
+	if !strings.Contains(content, "十神透藏") ||
+		!strings.Contains(content, "四柱天干十神") ||
+		!containsAny(content, "食伤", "财官食伤", "月令与强弱") {
 		t.Fatalf("expected evidence in section content: %s", resp.Sections[0].Content)
 	}
 }
@@ -125,7 +128,12 @@ func TestInterpretBaziOverviewUsesSectionSpecificEvidence(t *testing.T) {
 	if len(resp.Sections) != 3 {
 		t.Fatalf("expected 3 sections, got %+v", resp.Sections)
 	}
-	if !strings.Contains(resp.Sections[0].Content, "古书里和这一路最贴") || !strings.Contains(resp.Sections[1].Content, "典籍里可借来看的线索") || !strings.Contains(resp.Sections[2].Content, "能借用的经典线索") {
+	if !strings.Contains(resp.Sections[0].Content, "月令为提纲") ||
+		!strings.Contains(resp.Sections[1].Content, "调候用神") ||
+		!strings.Contains(resp.Sections[2].Content, "十神组合") ||
+		!containsAny(resp.Sections[0].Content, "制杀", "成败", "格局") ||
+		!containsAny(resp.Sections[1].Content, "寒暖燥湿", "调候", "气候") ||
+		!containsAny(resp.Sections[2].Content, "食伤", "财官食伤", "十神") {
 		t.Fatalf("expected evidence-rich sections: %+v", resp.Sections)
 	}
 }
@@ -140,4 +148,13 @@ func TestInterpretBaziChartNotFound(t *testing.T) {
 
 func stringsContains(s, sub string) bool {
 	return strings.Index(s, sub) >= 0
+}
+
+func containsAny(s string, subs ...string) bool {
+	for _, sub := range subs {
+		if strings.Contains(s, sub) {
+			return true
+		}
+	}
+	return false
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * FortuneHeatStrip — horizontal score-heatmap of N consecutive days.
- * Each cell color comes from the same oklch ramp as ScoreOrb so the visual
- * language stays consistent.
+ * Each cell color follows the active wuxing theme so the visual language stays
+ * consistent with ScoreOrb and the trend charts.
  */
 import { computed } from 'vue'
 
@@ -22,10 +22,7 @@ const props = defineProps<Props>()
 
 function tone(score: number): string {
   const t = Math.max(0, Math.min(1, score / 100))
-  const L = 0.35 + t * 0.40
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${h.toFixed(1)})`
+  return `color-mix(in oklab, var(--jade-accent) ${Math.round(48 + t * 52)}%, var(--surface-2) ${Math.round((1 - t) * 28)}%)`
 }
 
 const cells = computed(() =>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * ScoreOrb — large central score with aurora halo and progress ring.
- * Score is 0-100. Color shifts from cool jade-low to warm jade-high.
+ * Score is 0-100. Color follows the active wuxing theme and brightens with score.
  */
 import { computed } from 'vue'
 
@@ -20,11 +20,7 @@ const progress = computed(() => clamped.value / 100)
 const ringDash = computed(() => `${progress.value * 283} 283`) // 2πr ≈ 283 for r=45
 const tone = computed(() => {
   const t = progress.value
-  // Lightness eases from 0.42 → 0.78; chroma scales with score
-  const L = 0.42 + t * 0.36
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${h.toFixed(1)})`
+  return `color-mix(in oklab, var(--jade-accent) ${Math.round(52 + t * 48)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
 })
 </script>
 

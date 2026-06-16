@@ -693,33 +693,68 @@ func buildPatternEvidenceContent(result *bazipkg.BaziResult, points []evidencePo
 }
 
 func patternOpening(result *bazipkg.BaziResult, pattern, dayStem, pillars, description string) string {
-	desc := firstNonEmpty(description, "格局要看月令、透干、根气与制化，不宜只看一个格名。")
+	desc := sentenceBody(firstNonEmpty(description, "格局要看月令、透干、根气与制化，不宜只看一个格名。"))
 	if strings.Contains(pattern, "羊刃") {
-		return fmt.Sprintf("这个盘不是柔和一路。%s，%s坐%s，月令%s，日支带刃，气先立起来了。%s", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
+		switch chartStyleIndex(result, "pattern-yangren", 3) {
+		case 0:
+			return fmt.Sprintf("这个盘不是柔和一路。%s，%s坐%s，月令%s，日支带刃，气先立起来了。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
+		case 1:
+			return fmt.Sprintf("这局先别急着论吉凶，先看一个“刃”字怎么安放。%s，%s坐%s，月令在%s，气势不虚。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
+		default:
+			return fmt.Sprintf("此造的关窍不在格名好不好听，而在刚气能不能成器。%s，日主%s，日支%s，月令%s，刃气已经见形。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
+		}
 	}
 	if strings.Contains(pattern, "七杀") || strings.Contains(pattern, "偏官") {
-		return fmt.Sprintf("这盘先看杀气有没有成器。%s，%s临%s月，%s。七杀不怕见，怕的是无制无化；制得住，是胆识和执行，制不住，就是压力和冲动。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		if chartStyleIndex(result, "pattern-kill", 2) == 0 {
+			return fmt.Sprintf("这盘先看杀气有没有成器。%s，%s临%s月，%s。七杀不怕见，怕的是无制无化；制得住，是胆识和执行，制不住，就是压力和冲动。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		}
+		return fmt.Sprintf("此局见杀，不能只当压力看。%s，%s生%s月，%s。杀有制化，反作担当与权柄；杀无去处，才成逼身之患。", pillars, dayStem, result.MonthPillar.Zhi, desc)
 	}
 	if strings.Contains(pattern, "正官") {
-		return fmt.Sprintf("这个盘要先看规矩和承载。%s，%s生在%s月，%s。官星一路看的是秩序、名分和责任，不是只看有没有官字。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		if chartStyleIndex(result, "pattern-official", 2) == 0 {
+			return fmt.Sprintf("这个盘要先看规矩和承载。%s，%s生在%s月，%s。官星一路看的是秩序、名分和责任，不是只看有没有官字。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		}
+		return fmt.Sprintf("此局官星的味道，要从月令和承载力上看。%s，日主%s，月令%s，%s。官不是一句“有职位”就完了，关键是清、稳、能否为我所任。", pillars, dayStem, result.MonthPillar.Zhi, desc)
 	}
 	if isStrong(result.BodyStrength.Verdict) {
-		return fmt.Sprintf("这盘底气不薄。%s，日主%s，月令%s，%s。身旺的盘，最怕只加力不疏通，关键是让旺气有用处。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		if chartStyleIndex(result, "pattern-strong", 2) == 0 {
+			return fmt.Sprintf("这盘底气不薄。%s，日主%s，月令%s，%s。身旺的盘，最怕只加力不疏通，关键是让旺气有用处。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+		}
+		return fmt.Sprintf("这个命局先看“气从哪里来，又往哪里去”。%s，日主%s，月令%s，%s。既然日主有力，后面就不再问够不够强，而问能不能泄、能不能制、能不能成事。", pillars, dayStem, result.MonthPillar.Zhi, desc)
 	}
-	return fmt.Sprintf("这盘要先看日主能不能接住格局。%s，日主%s，月令%s，%s。身不够时，喜忌不是摆设，先要有根气和帮扶，再谈发挥。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	if chartStyleIndex(result, "pattern-weak", 2) == 0 {
+		return fmt.Sprintf("这盘要先看日主能不能接住格局。%s，日主%s，月令%s，%s。身不够时，喜忌不是摆设，先要有根气和帮扶，再谈发挥。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	}
+	return fmt.Sprintf("此局不能一上来就谈财官名利，要先问日主有没有承载。%s，%s生%s月，%s。根气接得住，格局才有用；接不住，好处也容易变成压力。", pillars, dayStem, result.MonthPillar.Zhi, desc)
 }
 
 func evidenceLead(result *bazipkg.BaziResult, focus string) string {
 	switch focus {
 	case "pattern":
 		if strings.Contains(result.PatternAnalysis.PatternName, "羊刃") {
-			return "能借得上的古法，重点都落在“刃要制化”："
+			return pickText(result, "pattern-evidence", []string{
+				"能借得上的古法，重点都落在“刃要制化”：",
+				"古书讲刃，多半不是叫人怕它，而是看谁来驾驭它：",
+				"这一段可借的经典意思，核心都在制刃、化刃：",
+			})
 		}
-		return "翻到典籍里，和这一路相近的说法是："
+		return pickText(result, "pattern-evidence", []string{
+			"翻到典籍里，和这一路相近的说法是：",
+			"古法能用上的地方，在这几句里：",
+			"这里不硬套条文，只取和盘面贴得上的几句：",
+		})
 	case "tiaohou":
-		return "调候上可借的依据是："
+		return pickText(result, "tiaohou-evidence", []string{
+			"调候上可借的依据是：",
+			"讲寒暖燥湿，典籍里这几句可以参看：",
+			"这一段先取能落到气候上的条文：",
+		})
 	case "ten_gods":
-		return "十神组合可参的句子是："
+		return pickText(result, "tengod-evidence", []string{
+			"十神组合可参的句子是：",
+			"看人事取象，下面几句比单看比例更有用：",
+			"这一段借经典，不是借名词，是借判断顺序：",
+		})
 	default:
 		return "可参考的依据是："
 	}
@@ -771,15 +806,62 @@ func buildTiaohouEvidenceContent(result *bazipkg.BaziResult, points []evidencePo
 		}
 	}
 	evidenceText := formatEvidencePoints(points)
-	explanation := []string{
-		fmt.Sprintf("调候这一块，先别急着谈富贵，先看这盘的气候舒不舒服。%s生%s月，月令带湿土之气，日支又是%s，原局容易有“气重、湿滞、事情压住”的味道。当前调候取%s，取的是让局中之气能动起来：%s。", dayStem, result.MonthPillar.Zhi, result.DayPillar.Zhi, primary, firstNonEmpty(reason, "以月令寒暖燥湿判断。")),
-	}
+	explanation := []string{tiaohouOpening(result, dayStem, primary, reason)}
 	if evidenceText != "" {
-		explanation = append(explanation, "典籍里可借来看的线索是："+evidenceText)
+		explanation = append(explanation, evidenceLead(result, "tiaohou")+evidenceText)
 	}
-	explanation = append(explanation, fmt.Sprintf("但%s不是越多越好。调候是调气候，格局是论成败，两件事要合看：如果局里已经身旺，火土再多会把人推得更固执、更燥；这时木金的约束与疏泄反而更值钱。", primary))
-	explanation = append(explanation, "现实里这类盘常见的不是没能力，而是推进方式太重：责任压得住，节奏却容易慢；想得清楚，落地要靠外部规则、期限、交付物来逼出流通。能把目标拆细、把成果拿出来，这盘就活。")
+	explanation = append(explanation, tiaohouUsefulness(result, primary))
+	explanation = append(explanation, tiaohouPracticeAdvice(result, primary))
 	return strings.Join(explanation, "\n\n")
+}
+
+func tiaohouOpening(result *bazipkg.BaziResult, dayStem, primary, reason string) string {
+	month := result.MonthPillar.Zhi
+	climate := branchClimate(month)
+	reason = firstNonEmpty(reason, "以月令寒暖燥湿判断。")
+	switch chartStyleIndex(result, "tiaohou-open", 3) {
+	case 0:
+		return fmt.Sprintf("调候先看气候，不急着断富贵。%s生%s月，%s，日支又见%s，局里那股气要先分清冷暖燥湿。当前取%s，是为了把局中滞住的气调开：%s。", dayStem, month, climate, result.DayPillar.Zhi, primary, reason)
+	case 1:
+		return fmt.Sprintf("格局像骨架，调候像这副骨架所处的天气。%s在%s月，月令气象是%s；若气候不舒，喜神来了也未必好用。此处首取%s，重点不是堆五行，而是让盘面能运转：%s。", dayStem, month, climate, primary, reason)
+	default:
+		return fmt.Sprintf("这一盘调候要看得细一点。%s临%s月，%s，不是单说缺什么补什么。取%s，取的是温凉燥湿的平衡，也是让格局能落地的条件：%s。", dayStem, month, climate, primary, reason)
+	}
+}
+
+func tiaohouUsefulness(result *bazipkg.BaziResult, primary string) string {
+	primaryElem := firstStemElement(primary)
+	strong := isStrong(result.BodyStrength.Verdict)
+	switch primaryElem {
+	case "火":
+		if strong {
+			return fmt.Sprintf("%s在这里像炉火，不是越猛越好。它要暖土、化湿、提精神；但此盘%s，火土若再过，性子会更急，判断会更硬，所以还要有木来立规矩、金来开出口。", primary, result.BodyStrength.Verdict)
+		}
+		return fmt.Sprintf("%s在这里重在温养。日主若承载不足，先要把寒湿化开，再看印比根气是否接得住；火来得有情，是醒局，不是燥局。", primary)
+	case "水":
+		return fmt.Sprintf("%s在这里不是泛滥之水，而是润燥、通关、让财气有路。水若有源有去处，事情能流动；若只见水而无堤岸，也容易多想、多拖、多反复。", primary)
+	case "木":
+		return fmt.Sprintf("%s在这里带生发和约束两层意思。对%s日主来说，木为官杀，来得清，可以把局中的力气收成责任、名分和规则；来得杂，则压力也重。", primary, result.DayPillar.Gan+data.GanElement[result.DayPillar.Gan])
+	case "金":
+		return fmt.Sprintf("%s在这里重在开口泄秀。土气厚时，金能把闷住的力气化成技术、表达、成果；但金弱无根，只是想法多，未必真能成器。", primary)
+	default:
+		return fmt.Sprintf("%s不是单独拿来补的字。调候要和格局同看：一边看气候是否舒展，一边看喜忌是否接得上，二者合了，条文才算用到盘里。", primary)
+	}
+}
+
+func tiaohouPracticeAdvice(result *bazipkg.BaziResult, primary string) string {
+	if isStrong(result.BodyStrength.Verdict) {
+		return pickText(result, "tiaohou-advice-strong", []string{
+			"现实取象上，这类盘常见的问题不是没能力，而是推进方式偏重：想压住场面，也容易把自己压得太紧。把目标拆细、期限定死、成果交出来，局里的气就活。",
+			"用在做事上，要少靠硬顶，多靠流程和交付。该立边界时立边界，该交成果时交成果；这样调候的意思才不是纸上谈兵。",
+			fmt.Sprintf("所以%s只能算调气的钥匙，不能替代全局喜忌。身旺的盘尤其要防再添火土，越补越重；能有木金来制化疏泄，反而更见层次。", primary),
+		})
+	}
+	return pickText(result, "tiaohou-advice-weak", []string{
+		"现实里要先把节奏养稳。身弱或承载不足时，过早追财官，容易看着机会多，实际压力也多；先稳根气，再谈发挥。",
+		"这类盘不宜一下子把目标拉太满。先让状态、资源、节奏顺起来，再借喜用发力，反而更容易成。",
+		fmt.Sprintf("%s若得地，是把气候调顺；但人事上还要看帮扶是否到位。根气稳，条文里的好处才接得住。", primary),
+	})
 }
 
 func roleElementText(dayElem, role string) string {
@@ -846,22 +928,190 @@ func elementControlledBy(elem string) string {
 	}
 }
 
+func isStrong(verdict string) bool {
+	verdict = strings.TrimSpace(verdict)
+	if verdict == "" || strings.Contains(verdict, "弱") || strings.Contains(verdict, "衰") {
+		return false
+	}
+	return strings.Contains(verdict, "旺") || strings.Contains(verdict, "强")
+}
+
+func chartStyleIndex(result *bazipkg.BaziResult, salt string, size int) int {
+	if size <= 1 || result == nil {
+		return 0
+	}
+	key := pillarText(result) + "|" + result.BodyStrength.Verdict + "|" + result.PatternAnalysis.PatternName + "|" + salt
+	sum := 0
+	for i, r := range key {
+		sum += int(r) * (i + 1)
+	}
+	if sum < 0 {
+		sum = -sum
+	}
+	return sum % size
+}
+
+func pickText(result *bazipkg.BaziResult, salt string, options []string) string {
+	if len(options) == 0 {
+		return ""
+	}
+	return options[chartStyleIndex(result, salt, len(options))]
+}
+
+func branchClimate(branch string) string {
+	switch branch {
+	case "寅":
+		return "初春木气发动，余寒未尽"
+	case "卯":
+		return "仲春木旺，生发之气足"
+	case "辰":
+		return "季春湿土，木余而土湿"
+	case "巳":
+		return "初夏火起，燥热渐生"
+	case "午":
+		return "仲夏火旺，炎热最盛"
+	case "未":
+		return "季夏土燥夹暑"
+	case "申":
+		return "初秋金气初起，暑湿未尽"
+	case "酉":
+		return "仲秋金旺，肃杀偏燥"
+	case "戌":
+		return "季秋燥土，火余入墓"
+	case "亥":
+		return "初冬水旺，寒气渐重"
+	case "子":
+		return "仲冬水旺，寒冷最重"
+	case "丑":
+		return "季冬湿寒之土"
+	default:
+		return "月令气候需合全局细看"
+	}
+}
+
+func firstStemElement(stems string) string {
+	for _, r := range stems {
+		if elem := data.GanElement[string(r)]; elem != "" {
+			return elem
+		}
+	}
+	return ""
+}
+
 func buildTenGodEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
 	top := topTenGodRatios(result.TenGodProportion, 4)
 	topText := formatTopTenGods(top)
 	evidenceText := formatEvidencePoints(points)
-	explanation := []string{
-		fmt.Sprintf("十神这段，不是看哪个百分比最大就完事，要看它在什么位置、能不能成事。此盘较显的是%s；四柱天干十神为%s。", topText, formatTenGodMap(result.TenGods)),
-	}
+	dominant := dominantTenGod(top)
+	explanation := []string{tenGodOpening(result, topText, dominant)}
 	if evidenceText != "" {
-		explanation = append(explanation, "能借用的经典线索是："+evidenceText)
+		explanation = append(explanation, evidenceLead(result, "ten_gods")+evidenceText)
 	}
-	explanation = append(explanation, fmt.Sprintf("落到人事上，日主%s又%s，比劫重的一面是能扛、敢争、资源意识强；不好的一面是容易把事情抓在自己手里，钱财合作上也要防“分夺”之象，账目、权责、边界最好早说清。", result.DayPillar.Gan+data.GanElement[result.DayPillar.Gan], result.BodyStrength.Verdict))
-	explanation = append(explanation, "官杀若成体系，就像给这股力套上缰绳，适合走规则、职位、项目责任；食伤若得用，就把硬气转成技术、表达、产品和输出。最怕的是只剩印比助身：人很能撑，但转化率不高，忙、累、硬顶，最后还觉得别人跟不上。")
+	explanation = append(explanation, tenGodUsefulness(result, dominant))
+	explanation = append(explanation, tenGodFlowAdvice(result, dominant))
 	if result.TenGodAnalysis != nil && result.TenGodAnalysis.Summary != "" {
-		explanation = append(explanation, "按现有规则再补一句："+result.TenGodAnalysis.Summary)
+		explanation = append(explanation, pickText(result, "tengod-summary", []string{
+			"规则层面的提醒也留一条：" + result.TenGodAnalysis.Summary,
+			"再合程序的十神分析看：" + result.TenGodAnalysis.Summary,
+			"这和当前十神规则的结论能对上：" + result.TenGodAnalysis.Summary,
+		}))
 	}
 	return strings.Join(explanation, "\n\n")
+}
+
+func tenGodOpening(result *bazipkg.BaziResult, topText, dominant string) string {
+	stem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
+	switch tenGodGroup(dominant) {
+	case "peer":
+		return pickText(result, "tengod-open-peer", []string{
+			fmt.Sprintf("十神先看谁在局里最有声音。此盘较显的是%s，日主%s又见%s；这不是简单说“朋友多”或“竞争多”，而是自我、资源、分夺和担当都要一起看。四柱天干十神为%s。", topText, stem, result.BodyStrength.Verdict, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("这盘十神的气，先从比劫一路入手。%s最露，日主%s，说明命主做事不太愿意完全借别人手，凡事想自己掌控。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("若只看比例，会说%s；但师傅看盘还要问它落在哪里、是不是帮身过头。日主%s，身势为%s，四柱天干十神为%s。", topText, stem, result.BodyStrength.Verdict, formatTenGodMap(result.TenGods)),
+		})
+	case "output":
+		return pickText(result, "tengod-open-output", []string{
+			fmt.Sprintf("这盘十神要看输出之气。较显的是%s，日主%s，才华、表达、技术、作品都在这一层里看。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("食伤一路明显时，不能只说聪明，要看能不能变成成果。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+		})
+	case "wealth":
+		return pickText(result, "tengod-open-wealth", []string{
+			fmt.Sprintf("财星明显的盘，先看财有没有源、日主接不接得住。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("十神这里要看资源和经营。%s较显，日主%s，财不是只代表钱，也代表可调动的人事与机会。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+		})
+	case "authority":
+		return pickText(result, "tengod-open-authority", []string{
+			fmt.Sprintf("官杀显时，先看压力能不能化成权责。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("这段看职位、规则、约束与承担。%s较显，日主%s，若能成体系，就是责任；失衡时就是压力。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+		})
+	case "seal":
+		return pickText(result, "tengod-open-seal", []string{
+			fmt.Sprintf("印星明显，要看学识、凭借、保护，也要防想得多、动得慢。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+			fmt.Sprintf("这盘十神先看印的承托。%s较显，日主%s，印能生身，也能让人依赖旧经验。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
+		})
+	default:
+		return fmt.Sprintf("十神这段，不是看哪个百分比最大就完事，要看它在什么位置、能不能成事。此盘较显的是%s；四柱天干十神为%s。", topText, formatTenGodMap(result.TenGods))
+	}
+}
+
+func tenGodUsefulness(result *bazipkg.BaziResult, dominant string) string {
+	stem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
+	switch tenGodGroup(dominant) {
+	case "peer":
+		if isStrong(result.BodyStrength.Verdict) {
+			return fmt.Sprintf("落到人事上，%s又%s，比劫重的一面是能扛、敢争、资源意识强；不好的一面是容易把事情抓在自己手里，钱财合作上也要防“分夺”之象。账目、权责、边界先说清，比临时讲情面更稳。", stem, result.BodyStrength.Verdict)
+		}
+		return fmt.Sprintf("比劫若为帮身，先看是不是帮得上。%s若根气不足，有同类来扶是好事；但扶过头，也会变成争执、合伙不清和资源消耗。", stem)
+	case "output":
+		return fmt.Sprintf("食伤的好处，是把命局里的力气讲出来、做出来、交付出来。对%s而言，输出若清，适合技术、内容、产品、方案；输出若杂，就容易嘴快、心急、和规则顶着来。", stem)
+	case "wealth":
+		return fmt.Sprintf("财星重，不等于财一定厚。还要看%s接不接得住、财有没有源、有没有官印护住。接得住，是经营和资源；接不住，就是机会多、消耗也多。", stem)
+	case "authority":
+		return fmt.Sprintf("官杀不是单纯的管束，它也代表职位、责任、规则和风险。%s若能任官杀，压力会变成身份；若任不住，就容易被制度、上级、项目节点推着走。", stem)
+	case "seal":
+		return "印星重，长处在学习、资格、贵人和系统性；短处是容易停在想、等、准备。若原局已经偏旺，印再多就不宜恋旧法，要借食伤把东西拿出来。"
+	default:
+		return fmt.Sprintf("落到人事上，要把%s和%s合看。十神只是角色，月令和身强身弱才决定这些角色是帮我，还是耗我、压我。", stem, result.BodyStrength.Verdict)
+	}
+}
+
+func tenGodFlowAdvice(result *bazipkg.BaziResult, dominant string) string {
+	dayElem := data.GanElement[result.DayPillar.Gan]
+	if isStrong(result.BodyStrength.Verdict) {
+		return pickText(result, "tengod-flow-strong", []string{
+			fmt.Sprintf("%s若成体系，就像给这股力套上规矩；%s若得用，就把硬气转成技术、表达、产品和输出；%s有路，才谈钱财流通。最怕只剩印比助身，人很能撑，但转化率不高。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星")),
+			fmt.Sprintf("这个盘后面看运，最要紧是看%s、%s有没有接力。来得清，就是职位、作品、项目成果；来得混，就会变成忙、累、硬顶，钱财还容易被人事牵走。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤")),
+			fmt.Sprintf("所以断十神不能只说性格，要落到用法：%s立边界，%s给出口，%s管流通。三者接上，原局的旺气才不只是脾气，而能成事。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星")),
+		})
+	}
+	return pickText(result, "tengod-flow-weak", []string{
+		"若日主承载不足，十神越热闹，越要先分清哪些是助力，哪些是压力。先稳印比根气，再谈财官食伤的发挥。",
+		"这类盘看运，不怕机会少，怕机会来得太急。帮身运先把底盘稳住，再遇财官食伤，反而容易接得住。",
+		fmt.Sprintf("十神要回到日主能不能任事。%s若先稳住，财官食伤才有用；身弱而急追外物，多半先见压力。", result.DayPillar.Gan+data.GanElement[result.DayPillar.Gan]),
+	})
+}
+
+func dominantTenGod(ratios []bazipkg.TenGodRatio) string {
+	if len(ratios) == 0 {
+		return ""
+	}
+	return ratios[0].Name
+}
+
+func tenGodGroup(god string) string {
+	switch god {
+	case "比肩", "劫财":
+		return "peer"
+	case "食神", "伤官":
+		return "output"
+	case "正财", "偏财":
+		return "wealth"
+	case "正官", "七杀":
+		return "authority"
+	case "正印", "偏印":
+		return "seal"
+	default:
+		return ""
+	}
 }
 
 func formatEvidencePoints(points []evidencePoint) string {
@@ -1079,4 +1329,8 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func sentenceBody(s string) string {
+	return strings.TrimRight(strings.TrimSpace(s), "。.!！?？；;")
 }

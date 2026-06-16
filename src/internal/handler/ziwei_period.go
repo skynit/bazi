@@ -10,6 +10,7 @@ import (
 	"bazi/internal/service/ziwei"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 // ZiWeiPeriodHandler handles period (dayun/liunian/liuyue/liuri) and overlay calculations.
@@ -41,6 +42,11 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint, userID uint) (*ziwei.ZiWeiCh
 	chart, err := h.Service.CalculateChart(birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender)
 	if err != nil {
 		return nil, nil, fmt.Errorf("chart calculation failed: %w", err)
+	}
+	if data, err := json.Marshal(chart); err == nil {
+		birthChart.ZiWeiResult = datatypes.JSON(data)
+		birthChart.ZiWeiComputed = true
+		_ = h.Charts.Update(birthChart)
 	}
 	return chart, birthChart, nil
 }

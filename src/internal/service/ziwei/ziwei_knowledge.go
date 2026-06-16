@@ -558,7 +558,7 @@ func checkZiFuTongGong(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := 0; i < 12; i++ {
-		if starInPalace(chart, i, []string{"紫微", "天府"}) {
+		if starInSamePalace(chart, i, "紫微", "天府") {
 			return true, "紫府同宫"
 		}
 	}
@@ -1215,8 +1215,13 @@ func checkSanQiJiaHui(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	// 三奇: 化禄、化权、化科同时出现在命宫三方四正
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
 	huaTypes := make(map[string]int)
-	for i := range chart.Palaces {
+	oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, mingIdx)
+	for _, i := range []int{mingIdx, oppositeIdx, trine1Idx, trine2Idx} {
 		for _, t := range chart.Palaces[i].FourHua {
 			if strings.Contains(t, "化禄") {
 				huaTypes["化禄"]++
@@ -1278,7 +1283,7 @@ func checkLianFuShuangXing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := range chart.Palaces {
-		if starInPalace(chart, i, []string{"廉贞", "天府"}) {
+		if starInSamePalace(chart, i, "廉贞", "天府") {
 			return true, "廉府双星"
 		}
 	}
@@ -1290,7 +1295,7 @@ func checkTongLiangShuangXing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := range chart.Palaces {
-		if starInPalace(chart, i, []string{"天同", "天梁"}) {
+		if starInSamePalace(chart, i, "天同", "天梁") {
 			return true, "同梁双星"
 		}
 	}

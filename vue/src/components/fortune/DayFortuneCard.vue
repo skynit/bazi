@@ -13,6 +13,8 @@ interface Props {
   luckyColor?: string
   luckyNumber?: number
   wealthDir?: string
+  guideStrategy?: string
+  guideElement?: string
   yiItems?: string[]
   jiItems?: string[]
   todayTenGod?: string
@@ -25,10 +27,7 @@ const props = defineProps<Props>()
 const tone = computed(() => {
   const s = Math.max(0, Math.min(100, props.score ?? 0))
   const t = s / 100
-  const L = 0.42 + t * 0.36
-  const C = 0.05 + t * 0.13
-  const h = 155 - t * 5
-  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${h.toFixed(1)})`
+  return `color-mix(in oklab, var(--jade-accent) ${Math.round(52 + t * 48)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
 })
 
 // luckyColor may come back as a Chinese name; map common ones to a CSS color
@@ -72,6 +71,10 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
     </div>
 
     <dl class="lucky">
+      <div class="row" v-if="guideElement">
+        <dt>主气</dt>
+        <dd>{{ guideElement }}</dd>
+      </div>
       <div class="row" v-if="luckyColor">
         <dt>幸运色</dt>
         <dd><span class="swatch" :style="{ background: swatch }"></span>{{ luckyColor }}</dd>
@@ -86,6 +89,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
       </div>
     </dl>
 
+    <p v-if="guideStrategy" class="guide"><span class="tag guide-tag">策</span>{{ guideStrategy }}</p>
     <p v-if="yiPreview" class="yi"><span class="tag yi-tag">宜</span>{{ yiPreview }}</p>
     <p v-if="jiPreview" class="ji"><span class="tag ji-tag">忌</span>{{ jiPreview }}</p>
   </article>
@@ -179,7 +183,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
   border: 1px solid var(--line-strong);
 }
 
-.yi, .ji {
+.yi, .ji, .guide {
   margin: 0;
   font-size: 0.72rem;
   color: var(--text-muted);
@@ -196,6 +200,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
 }
 .yi-tag { background: rgba(var(--jade-accent-rgb), 0.14); color: rgba(var(--jade-accent-rgb), 1); }
 .ji-tag { background: rgba(232,64,87,0.14); color: var(--crimson); }
+.guide-tag { background: var(--accent-dim); color: var(--accent); }
 
 .tabular-nums { font-variant-numeric: tabular-nums; }
 </style>

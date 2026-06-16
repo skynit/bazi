@@ -59,6 +59,20 @@ function tryLoadChart() {
   }
 }
 
+function cacheLastBirthFromChart(chart: any) {
+  if (!chart?.id || !chart?.birth_year || !chart?.birth_month || !chart?.birth_day) return
+  const birthHour = Number(chart.birth_hour)
+  const genderRaw = String(chart.gender || '').toLowerCase()
+  localStorage.setItem('bazi_last_birth', JSON.stringify({
+    year: Number(chart.birth_year),
+    month: Number(chart.birth_month),
+    day: Number(chart.birth_day),
+    shichen: Number.isFinite(birthHour) ? Math.floor(birthHour / 2) : 4,
+    gender: genderRaw === 'female' || genderRaw === '女' ? 'female' : 'male',
+    chartId: chart.id,
+  }))
+}
+
 async function fetchSavedCharts() {
   chartsLoading.value = true
   chartsError.value = ''
@@ -79,37 +93,19 @@ async function fetchSavedCharts() {
 }
 
 async function selectChart(chart: SavedChart) {
-  loading.value = true
   error.value = ''
   try {
-    const res = await client.post('/chart', {
-      birth_year: chart.birth_year,
-      birth_month: chart.birth_month,
-      birth_day: chart.birth_day,
-      birth_hour: chart.birth_hour,
-      birth_min: 0,
-      calendar_type: 'SOLAR',
-      gender: chart.gender.toUpperCase(),
-      name: chart.name || '',
-    })
-    chartData.value = res.data
-    showPicker.value = false
-    // Trigger computation animation
-    showComputation.value = true
-    computationDone.value = false
-    // Save as last birth for future use
     localStorage.setItem('bazi_last_birth', JSON.stringify({
       year: chart.birth_year,
       month: chart.birth_month,
       day: chart.birth_day,
       shichen: Math.floor(chart.birth_hour / 2),
       gender: chart.gender.toLowerCase(),
-      chartId: res.data.id,
+      chartId: chart.id,
     }))
+    router.push(`/chart/${chart.id}`)
   } catch (err: any) {
-    error.value = err.response?.data?.error || err.message || '排盘失败，请稍后重试'
-  } finally {
-    loading.value = false
+    error.value = err.message || '打开命盘失败，请稍后重试'
   }
 }
 
@@ -129,7 +125,9 @@ async function loadChart() {
   error.value = ''
   try {
     const res = await client.get(`/charts/${route.params.id}`)
-    chartData.value = res.data.chart || res.data
+    const chart = res.data.chart || res.data
+    chartData.value = chart
+    cacheLastBirthFromChart(chart)
   } catch (err: any) {
     error.value = err.response?.data?.error || err.message || '加载命盘失败'
   } finally {
