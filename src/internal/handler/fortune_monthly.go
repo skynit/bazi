@@ -29,24 +29,24 @@ type MonthlyFortuneHandler struct {
 func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 	var req model.MonthlyFortuneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	if req.Year < 1900 || req.Year > 2100 || req.Month < 1 || req.Month > 12 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "year must be 1900-2100, month must be 1-12"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "year must be 1900-2100, month must be 1-12")
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	chart, err := h.ChartStore.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
@@ -62,14 +62,14 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 		gender,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to calculate birth chart"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to calculate birth chart")
 		return
 	}
 
 	monthlyFortune := h.Engine.CalculateMonthly(baziResult, req.Year, req.Month, chart.BirthYear)
 	resp := mapMonthlyFortuneToResponse(monthlyFortune)
 
-	c.JSON(http.StatusOK, resp)
+	respondJSON(c, http.StatusOK, resp)
 }
 
 // mapMonthlyFortuneToResponse converts a fortune.MonthlyFortune

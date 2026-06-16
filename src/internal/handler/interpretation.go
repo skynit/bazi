@@ -17,26 +17,26 @@ type InterpretationHandler struct {
 func (h *InterpretationHandler) Bazi(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 	uid, ok := userID.(uint)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	var req model.BaziInterpretationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 	if req.ChartID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id is required")
 		return
 	}
 	if h.Service == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
 
@@ -48,18 +48,18 @@ func (h *InterpretationHandler) Bazi(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, interpretation.ErrChartIDRequired):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id is required")
 		case errors.Is(err, interpretation.ErrChartNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+			respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		case errors.Is(err, interpretation.ErrChartStore):
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, err.Error())
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	respondJSON(c, http.StatusOK, resp)
 }
 
 func RegisterInterpretationRoutes(r gin.IRouter, svc *interpretation.Service) {

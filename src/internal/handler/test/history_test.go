@@ -129,12 +129,7 @@ func TestListChartsPaginated(t *testing.T) {
 		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var resp struct {
-		Charts   []model.BirthChart `json:"charts"`
-		Total    int64              `json:"total"`
-		Page     int                `json:"page"`
-		PageSize int                `json:"page_size"`
-	}
+	var resp model.ChartListResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
@@ -168,13 +163,24 @@ func TestGetChartByID(t *testing.T) {
 		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var chart model.BirthChart
+	var chart model.ChartDetailResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &chart); err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
 
 	if chart.Name != "Test Chart" {
 		t.Errorf("expected chart name 'Test Chart', got '%s'", chart.Name)
+	}
+
+	var raw map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &raw); err != nil {
+		t.Fatalf("failed to parse raw response: %v", err)
+	}
+	if _, ok := raw["user_id"]; ok {
+		t.Error("chart detail DTO must not expose user_id")
+	}
+	if _, ok := raw["DeletedAt"]; ok {
+		t.Error("chart detail DTO must not expose gorm deleted state")
 	}
 }
 

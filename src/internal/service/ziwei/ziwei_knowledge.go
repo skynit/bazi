@@ -40,11 +40,11 @@ var SI_HUA_TABLE = map[int][]string{
 // STAR_BRIGHTNESS maps star → brightness level → description.
 var STAR_BRIGHTNESS = map[string]map[string]string{
 	"紫微": {"庙": "紫微帝星入庙，气势非凡，具领导才能与威严气度。", "旺": "紫微旺势，气度雍容，具统御之才。", "得": "紫微得地，根基稳固，具备一定领导能力。", "利": "紫微利位，气势稍减，宜借助团队力量。", "平": "紫微平势，帝王之气不显，需靠自身努力。", "陷": "紫微陷落，有志难伸，多怀才不遇之感。", "不": "紫微失辉，气运低迷，行事受阻。"},
-	"天府": {"庙": "天府入庙，库藏丰厚，主一生财禄充足。", "旺": "天府旺势，财库充盈，善理财富。", "得": "天府得地，衣食无忧，有一定理财观念。", "利": "天府利位，财运平稳，宜保守理财。", "平": "天府平势，库藏之力不显，财来财去。", "陷": "天府陷落，库门大开，钱财易散难聚。", "不": "天府失库，财运不济，收入不稳定。"},
+	"天府": {"庙": "天府入庙，库藏丰厚，倾向具备稳定承接资源的条件。", "旺": "天府旺势，财库充盈，善理财富。", "得": "天府得地，资源承接条件较稳，有一定理财观念。", "利": "天府利位，财运平稳，宜保守理财。", "平": "天府平势，库藏之力不显，财来财去。", "陷": "天府陷落，库门大开，钱财易散难聚。", "不": "天府失库，财运不济，收入不稳定。"},
 	"天机": {"庙": "天机入庙，智慧超群，心思敏捷，善谋划。", "旺": "天机旺势，聪明机智，学习能力强。", "得": "天机得地，头脑清晰，具备分析策划才能。", "利": "天机利位，思维敏锐但格局有限。", "平": "天机平势，智慧表现平稳。", "陷": "天机陷落，思路混乱，容易钻牛角尖。", "不": "天机失智，思绪紊乱，反應迟钝。"},
 	"太阳": {"庙": "太阳入庙，光芒万丈，性格光明磊落，热情开朗。", "旺": "太阳旺势，热忱积极，乐于助人。", "得": "太阳得地，光明正直，有一定人缘。", "利": "太阳利位，光芒稍敛，性格较内敛。", "平": "太阳平势，行事低调，不喜张扬。", "陷": "太阳陷落，光芒被遮蔽，性格变消沉或急躁。", "不": "太阳失辉，运势低迷，难发挥优势。"},
 	"武曲": {"庙": "武曲入庙，刚毅果决，理财能力出众。", "旺": "武曲旺势，做事干脆利落，工作效率极高。", "得": "武曲得地，做事踏实可靠，理财稳健保守。", "利": "武曲利位，执行力尚可，但格局稍小。", "平": "武曲平势，刚毅之气减弱，做事较犹豫。", "陷": "武曲陷落，刚强之气化为固执，易与人冲突。", "不": "武曲失势，决断力不足，做事缺乏魄力。"},
-	"天同": {"庙": "天同入庙，性情温和，知足常乐，天生具有福气。", "旺": "天同旺势，心态平和，生活安逸。", "得": "天同得地，福气不错，生活衣食无忧。", "利": "天同利位，福缘尚可，需加执行力和主动性。", "平": "天同平势，福气平常，凡事靠自己努力。", "陷": "天同陷落，性情变消极懒散，缺乏进取心。", "不": "天同失福，运势较差，容易感到疲惫无力。"},
+	"天同": {"庙": "天同入庙，性情温和，知足常乐，倾向具备安稳与调和条件。", "旺": "天同旺势，心态平和，生活安逸。", "得": "天同得地，福缘条件较稳，适合以稳定节奏推进。", "利": "天同利位，福缘尚可，需加执行力和主动性。", "平": "天同平势，福气平常，凡事靠自己努力。", "陷": "天同陷落，性情变消极懒散，缺乏进取心。", "不": "天同失福，运势较差，容易感到疲惫无力。"},
 	"廉贞": {"庙": "廉贞入庙，刚柔并济，执法力强，处事圆融。", "旺": "廉贞旺势，能力出众，做事有条理。", "得": "廉贞得地，做事认真负责，有一定管理能力。", "利": "廉贞利位，能力尚可但范围有限。", "平": "廉贞平势，表現平稳，无特别突出之处。", "陷": "廉贞陷落，性格变偏执或多疑，易与人摩擦。", "不": "廉贞失势，自律能力下降，容易放纵或消极。"},
 	"贪狼": {"庙": "贪狼入庙，多才多艺，魅力四射，社交能力极强。", "旺": "贪狼旺势，交际手腕灵活，善经营人脉。", "得": "贪狼得地，有一定才艺和社交能力。", "利": "贪狼利位，欲望心重，需学会知足。", "平": "贪狼平势，才华表现一般，社交能力尚可。", "陷": "贪狼陷落，容易沉迷于物质享受或不良嗜好。", "不": "贪狼失守，贪欲过盛，易招惹麻烦。"},
 	"巨门": {"庙": "巨门入庙，口才犀利，分析能力极强，善辩论谈判。", "旺": "巨门旺势，表达能力强，善发现问题本质。", "得": "巨门得地，思维清晰，有较好分析和表达能力。", "平": "巨门平势，口才和分析能力尚可。", "陷": "巨门陷落，言语容易招惹是非，须谨言慎行。"},
@@ -64,7 +64,7 @@ var STAR_BRIGHTNESS_AUX = map[string]map[string]string{
 	"文曲": {"庙": "文曲入庙，才艺超群，表达能力强。", "旺": "文曲旺势，多才多艺，文艺方面表现突出。", "得": "文曲得地，有一定文艺才华。", "利": "文曲利位，才艺展示需借助时机。", "平": "文曲平势，才艺表现平常。", "陷": "文曲陷落，才艺难发挥，学术受阻。", "不": "文曲失彩，才华不显。"},
 	"天魁": {"庙": "天魁入庙，贵人鼎力，机遇从天而降。", "旺": "天魁旺势，贵人相助，机会连连。", "得": "天魁得地，有一定机遇，得贵人提携。", "利": "天魁利位，机遇需主动把握。", "平": "天魁平势，机遇平平。", "陷": "天魁陷落，机遇难寻，贵人无力。", "不": "天魁失机，运势不佳。"},
 	"天钺": {"庙": "天钺入庙，机遇独特，创新能力强。", "旺": "天钺旺势，敢于突破，机会佳。", "得": "天钺得地，有独特机遇，可有所作为。", "利": "天钺利位，机遇与风险并存。", "平": "天钺平势，机遇平常。", "陷": "天钺陷落，机遇变风险，行事需谨慎。", "不": "天钺失势，机会流失。"},
-	"擎羊": {"庙": "擎羊入庙，冲劲十足，敢于冒险。", "旺": "擎羊旺势，行动力强，果断敢冲。", "得": "擎羊得地，有一定冲劲，可有所作为。", "利": "擎羊利位，冲动有风险，宜稳。", "平": "擎羊平势，冲劲平常。", "陷": "擎羊陷落，冲动误事，易有血光之灾。", "不": "擎羊失制，灾祸易生。"},
+	"擎羊": {"庙": "擎羊入庙，冲劲十足，敢于冒险。", "旺": "擎羊旺势，行动力强，果断敢冲。", "得": "擎羊得地，有一定冲劲，可有所作为。", "利": "擎羊利位，冲动有风险，宜稳。", "平": "擎羊平势，冲劲平常。", "陷": "擎羊陷落，冲动误事，冲突与损伤成本需预先控制。", "不": "擎羊失制，风险暴露增加，需要以规则和边界约束。"},
 	"陀罗": {"庙": "陀罗入庙，恒心毅力，耐久力强。", "旺": "陀罗旺势，意志坚定，不轻言放弃。", "得": "陀罗得地，有一定耐力，做事能坚持。", "利": "陀罗利位，耐力有极限，需适度调节。", "平": "陀罗平势，耐力平常。", "陷": "陀罗陷落，意志动摇，易生拖延。", "不": "陀罗失持，毅力不足。"},
 	"火星": {"庙": "火星入庙，爆发力强，行动迅猛。", "旺": "火星旺势，冲劲十足，敢闯敢拼。", "得": "火星得地，有一定爆发力，能成就大事。", "利": "火星利位，爆发力有时限，宜把握时机。", "平": "火星平势，爆发力平常。", "陷": "火星陷落，爆发力受阻，行事急躁易败。", "不": "火星失焰，动力不足。"},
 	"铃星": {"庙": "铃星入庙，细腻而有力，深藏不露。", "旺": "铃星旺势，爆发力强且持久，後劲十足。", "得": "铃星得地，有一定耐力与爆发力。", "利": "铃星利位，後劲需防后继乏力。", "平": "铃星平势，耐力平常。", "陷": "铃星陷落，耐力不足，行事易中途而废。", "不": "铃星失鸣，动力难续。"},
@@ -460,7 +460,7 @@ func starInPalace(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
 	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
 		return false
 	}
-	for _, main := range chart.Palaces[palaceIdx].MainStars {
+	for _, main := range palaceMainStars(chart.Palaces[palaceIdx]) {
 		for _, s := range starNames {
 			if main == s {
 				return true
@@ -486,7 +486,7 @@ func auxStarInPalace(chart *ZiWeiChart, palaceIdx int, starNames []string) bool 
 	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
 		return false
 	}
-	for _, aux := range chart.Palaces[palaceIdx].AuxStars {
+	for _, aux := range palaceAuxStars(chart.Palaces[palaceIdx]) {
 		for _, s := range starNames {
 			if aux == s {
 				return true
@@ -496,6 +496,14 @@ func auxStarInPalace(chart *ZiWeiChart, palaceIdx int, starNames []string) bool 
 	return false
 }
 
+func anyStarInPalace(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
+	return starInPalace(chart, palaceIdx, starNames) || auxStarInPalace(chart, palaceIdx, starNames)
+}
+
+func starPairInPalace(chart *ZiWeiChart, palaceIdx int, star1, star2 string) bool {
+	return anyStarInPalace(chart, palaceIdx, []string{star1}) && anyStarInPalace(chart, palaceIdx, []string{star2})
+}
+
 func starInSamePalace(chart *ZiWeiChart, palaceIdx int, star1, star2 string) bool {
 	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
 		return false
@@ -503,7 +511,7 @@ func starInSamePalace(chart *ZiWeiChart, palaceIdx int, star1, star2 string) boo
 	p := chart.Palaces[palaceIdx]
 	has1 := false
 	has2 := false
-	for _, s := range p.MainStars {
+	for _, s := range palaceMainStars(p) {
 		if s == star1 {
 			has1 = true
 		}
@@ -518,12 +526,8 @@ func hasBrightness(chart *ZiWeiChart, palaceIdx int, starName string, brightness
 	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
 		return false
 	}
-	b := chart.Palaces[palaceIdx].Brightness
-	if b == nil {
-		return false
-	}
-	starBright, ok := b[starName]
-	if !ok {
+	starBright := palaceStarBrightness(chart.Palaces[palaceIdx], starName)
+	if starBright == "" {
 		return false
 	}
 	for _, br := range brightness {
@@ -534,12 +538,66 @@ func hasBrightness(chart *ZiWeiChart, palaceIdx int, starName string, brightness
 	return false
 }
 
+func trineIndexes(chart *ZiWeiChart, palaceIdx int) (int, int) {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
+		return (palaceIdx + 4) % 12, (palaceIdx + 8) % 12
+	}
+	_, trine1, trine2 := chartSanfangIndexes(chart, palaceIdx)
+	return trine1, trine2
+}
+
+func sanfangIndexesWithSelf(chart *ZiWeiChart, palaceIdx int) []int {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
+		sf := ComputeSanfangSizheng(palaceIdx)
+		return []int{palaceIdx, sf[0], sf[1], sf[2]}
+	}
+	oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
+	return []int{palaceIdx, oppositeIdx, trine1Idx, trine2Idx}
+}
+
+func countMainStarsInIndexes(chart *ZiWeiChart, indexes []int, starNames []string) int {
+	if chart == nil {
+		return 0
+	}
+	seen := map[string]bool{}
+	for _, idx := range indexes {
+		if idx < 0 || idx >= 12 {
+			continue
+		}
+		for _, main := range palaceMainStars(chart.Palaces[idx]) {
+			for _, wanted := range starNames {
+				if main == wanted {
+					seen[wanted] = true
+				}
+			}
+		}
+	}
+	return len(seen)
+}
+
+func countAnyStarsInIndexes(chart *ZiWeiChart, indexes []int, starNames []string) int {
+	if chart == nil {
+		return 0
+	}
+	seen := map[string]bool{}
+	for _, idx := range indexes {
+		if idx < 0 || idx >= 12 {
+			continue
+		}
+		for _, wanted := range starNames {
+			if anyStarInPalace(chart, idx, []string{wanted}) {
+				seen[wanted] = true
+			}
+		}
+	}
+	return len(seen)
+}
+
 func hasTrine(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
 	if chart == nil {
 		return false
 	}
-	trine1 := (palaceIdx + 4) % 12
-	trine2 := (palaceIdx + 8) % 12
+	trine1, trine2 := trineIndexes(chart, palaceIdx)
 	return starInPalace(chart, trine1, starNames) || starInPalace(chart, trine2, starNames)
 }
 
@@ -547,8 +605,24 @@ func hasOpposition(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
 	if chart == nil {
 		return false
 	}
-	opposite := (palaceIdx + 6) % 12
+	opposite, _, _ := chartSanfangIndexes(chart, palaceIdx)
 	return starInPalace(chart, opposite, starNames)
+}
+
+func hasAnyStarTrine(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
+	if chart == nil {
+		return false
+	}
+	trine1, trine2 := trineIndexes(chart, palaceIdx)
+	return anyStarInPalace(chart, trine1, starNames) || anyStarInPalace(chart, trine2, starNames)
+}
+
+func hasAnyStarOpposition(chart *ZiWeiChart, palaceIdx int, starNames []string) bool {
+	if chart == nil {
+		return false
+	}
+	opposite, _, _ := chartSanfangIndexes(chart, palaceIdx)
+	return anyStarInPalace(chart, opposite, starNames)
 }
 
 // Pattern checkers
@@ -596,29 +670,15 @@ func checkShaPoLang(chart *ZiWeiChart) (bool, string) {
 	if chart == nil {
 		return false, ""
 	}
+	targets := []string{"七杀", "破军", "贪狼"}
 	for i := range chart.Palaces {
-		hasSha := starInPalace(chart, i, []string{"七杀"})
-		hasPo := starInPalace(chart, i, []string{"破军"})
-		hasTan := starInPalace(chart, i, []string{"贪狼"})
-		if (hasSha && hasPo) || (hasSha && hasTan) || (hasPo && hasTan) {
+		if countMainStarsInIndexes(chart, []int{i}, targets) >= 2 {
 			return true, "杀破狼格"
 		}
 	}
-	// Also check opposition (三方四正)
 	for i := range chart.Palaces {
-		if starInPalace(chart, i, []string{"七杀", "破军", "贪狼"}) {
-			count := 0
-			for _, s := range chart.Palaces[i].MainStars {
-				if s == "七杀" || s == "破军" || s == "贪狼" {
-					count++
-				}
-			}
-			if count >= 2 {
-				return true, "杀破狼格"
-			}
-			if hasTrine(chart, i, []string{"七杀", "破军", "贪狼"}) || hasOpposition(chart, i, []string{"七杀", "破军", "贪狼"}) {
-				return true, "杀破狼格"
-			}
+		if countMainStarsInIndexes(chart, sanfangIndexesWithSelf(chart, i), targets) >= 2 {
+			return true, "杀破狼格"
 		}
 	}
 	return false, ""
@@ -638,8 +698,7 @@ func checkJiYueTongLiang(chart *ZiWeiChart) (bool, string) {
 			}
 		}
 		if count >= 2 {
-			trine1 := (i + 4) % 12
-			trine2 := (i + 8) % 12
+			trine1, trine2 := trineIndexes(chart, i)
 			tCount := 0
 			for _, s := range chart.Palaces[trine1].MainStars {
 				if s == "天机" || s == "太阴" || s == "天同" || s == "天梁" {
@@ -1024,21 +1083,20 @@ func checkRiYueBingMing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	// 日月并明：太阳在午宫、太阴在丑宫或未宫（经典定义）
-	yangIdx := -1
-	yinIdx := -1
-	for i := 0; i < 12; i++ {
+	sunBranch := ""
+	moonBranch := ""
+	for i := range chart.Palaces {
 		if starInPalace(chart, i, []string{"太阳"}) {
-			yangIdx = i
+			sunBranch = chart.Palaces[i].Branch
 		}
 		if starInPalace(chart, i, []string{"太阴"}) {
-			yinIdx = i
+			moonBranch = chart.Palaces[i].Branch
 		}
 	}
-	if yangIdx < 0 || yinIdx < 0 {
+	if sunBranch == "" || moonBranch == "" {
 		return false, ""
 	}
-	// 太阳在午宫(6)、太阴在丑宫(1)或未宫(7)
-	if yangIdx == 6 && (yinIdx == 1 || yinIdx == 7) {
+	if sunBranch == "午" && (moonBranch == "丑" || moonBranch == "未") {
 		return true, "日月并明"
 	}
 	return false, ""
@@ -1049,21 +1107,14 @@ func checkJiXiangLiMing(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	// 紫微在午宫坐命
-	for i := 0; i < 12; i++ {
-		p := chart.Palaces[i]
-		if p.Name == "命宫" && starInPalace(chart, i, []string{"紫微"}) {
-			// 午宫 is index 6 (迁移 is 命宫+6)
-			// Check if 命宫 is 午 (we'd need branch info)
-			// For simplicity, check brightness 庙 in 迁移宫
-			for j := 0; j < 12; j++ {
-				p2 := chart.Palaces[j]
-				if p2.Name == "迁移" && starInPalace(chart, j, []string{"紫微"}) {
-					if hasBrightness(chart, j, "紫微", []string{"庙"}) {
-						return true, "极向离明"
-					}
-				}
-			}
-		}
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return false, ""
+	}
+	if chart.Palaces[mingIdx].Branch == "午" &&
+		starInPalace(chart, mingIdx, []string{"紫微"}) &&
+		hasBrightness(chart, mingIdx, "紫微", []string{"庙", "旺"}) {
+		return true, "极向离明"
 	}
 	return false, ""
 }
@@ -1092,12 +1143,8 @@ func checkWenGuiWenHua(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := range chart.Palaces {
-		hasChang := auxStarInPalace(chart, i, []string{"文昌"})
-		hasQu := auxStarInPalace(chart, i, []string{"文曲"})
-		if hasChang || hasQu {
-			if hasTrine(chart, i, []string{"文昌", "文曲"}) || hasOpposition(chart, i, []string{"文昌", "文曲"}) {
-				return true, "文桂文华"
-			}
+		if countAnyStarsInIndexes(chart, sanfangIndexesWithSelf(chart, i), []string{"文昌", "文曲"}) >= 2 {
+			return true, "文桂文华"
 		}
 	}
 	return false, ""
@@ -1149,7 +1196,7 @@ func checkJunZiZaiYe(chart *ZiWeiChart) (bool, string) {
 	}
 	// 君子在野: 紫微在亥宫且不加吉
 	for i := range chart.Palaces {
-		if starInPalace(chart, i, []string{"紫微"}) {
+		if chart.Palaces[i].Branch == "亥" && starInPalace(chart, i, []string{"紫微"}) {
 			b := chart.Palaces[i].Brightness
 			if br, ok := b["紫微"]; ok && (br == "陷" || br == "不") {
 				count := 0
@@ -1245,7 +1292,7 @@ func checkTianYiTongGong(chart *ZiWeiChart) (bool, string) {
 		return false, ""
 	}
 	for i := range chart.Palaces {
-		if starInPalace(chart, i, []string{"天魁"}) && starInPalace(chart, i, []string{"天梁"}) {
+		if starPairInPalace(chart, i, "天魁", "天梁") {
 			return true, "天乙同宫"
 		}
 	}
@@ -1443,7 +1490,7 @@ func GetEnhancedSanfang(chart *ZiWeiChart, palaceIdx int) *EnhancedSanfangResult
 	curPalace := chart.Palaces[palaceIdx]
 
 	for _, t := range oppPalace.FourHua {
-		for _, curStar := range curPalace.MainStars {
+		for _, curStar := range palaceMainStars(curPalace) {
 			if strings.Contains(t, curStar) {
 				oppSihua = append(oppSihua, t+"照"+curPalace.Name)
 			}
@@ -1454,7 +1501,7 @@ func GetEnhancedSanfang(chart *ZiWeiChart, palaceIdx int) *EnhancedSanfangResult
 	for _, triIdx := range []int{trine1Idx, trine2Idx} {
 		triPalace := chart.Palaces[triIdx]
 		for _, t := range triPalace.FourHua {
-			for _, curStar := range curPalace.MainStars {
+			for _, curStar := range palaceMainStars(curPalace) {
 				if strings.Contains(t, curStar) {
 					trineSihua = append(trineSihua, t+"拱"+curPalace.Name)
 				}
@@ -1776,50 +1823,108 @@ func estimateMarriageTiming(chartA, chartB *ZiWeiChart) string {
 
 // PalaceReading holds the full interpretation for one palace.
 type PalaceReading struct {
+	PalaceName       string `json:"palace_name"`
+	PalaceFocus      string `json:"palace_focus"`
 	MainStarAnalysis string `json:"main_star_analysis"`
 	AuxStarInfluence string `json:"aux_star_influence"`
 	SihuaInfluence   string `json:"sihua_influence"`
 	SanfangAnalysis  string `json:"sanfang_analysis"`
 	PatternNotes     string `json:"pattern_notes"`
 	Brightness       string `json:"brightness"`
+
+	Summary        string                 `json:"summary"`
+	KeyPoints      []string               `json:"key_points"`
+	Evidence       []ReadingEvidence      `json:"evidence"`
+	SanfangContext *ReadingSanfangContext `json:"sanfang_context"`
+	PatternDetails []ReadingPatternDetail `json:"pattern_details"`
+	Advice         []string               `json:"advice"`
+	RiskFlags      []string               `json:"risk_flags"`
+	Confidence     float64                `json:"confidence"`
 }
 
-// GetPalaceReading returns a full template-based reading for a palace.
+// ReadingEvidence is a single computable fact used by the front-end explanation panel.
+type ReadingEvidence struct {
+	Type   string `json:"type"`
+	Label  string `json:"label"`
+	Value  string `json:"value"`
+	Impact string `json:"impact"`
+}
+
+// ReadingSanfangContext describes the opposite and trine palace context.
+type ReadingSanfangContext struct {
+	Opposite      string   `json:"opposite"`
+	Trine1        string   `json:"trine1"`
+	Trine2        string   `json:"trine2"`
+	OppositeStars []string `json:"opposite_stars"`
+	Trine1Stars   []string `json:"trine1_stars"`
+	Trine2Stars   []string `json:"trine2_stars"`
+	Notes         []string `json:"notes"`
+}
+
+// ReadingPatternDetail explains why a pattern is considered related to this palace.
+type ReadingPatternDetail struct {
+	Name       string   `json:"name"`
+	Palace     string   `json:"palace"`
+	Stars      []string `json:"stars"`
+	Basis      string   `json:"basis"`
+	Confidence float64  `json:"confidence"`
+}
+
+// GetPalaceReading returns a structured template-based reading for a palace.
 func GetPalaceReading(chart *ZiWeiChart, palaceIdx int) *PalaceReading {
 	if chart == nil || palaceIdx < 0 || palaceIdx >= 12 {
 		return nil
 	}
 
 	p := chart.Palaces[palaceIdx]
-	reading := &PalaceReading{}
+	mainStars := palaceMainStars(p)
+	auxStars := palaceAuxStars(p)
+	reading := &PalaceReading{
+		PalaceName:     p.Name,
+		PalaceFocus:    palaceFocus(p.Name),
+		Evidence:       buildReadingEvidence(chart, palaceIdx),
+		SanfangContext: buildReadingSanfangContext(chart, palaceIdx),
+		PatternDetails: buildPatternDetailsForPalace(chart, palaceIdx),
+	}
 
 	// Main star analysis
-	if len(p.MainStars) > 0 {
-		mainStar := p.MainStars[0]
-		brightness := "平"
-		if p.Brightness != nil {
-			if br, ok := p.Brightness[mainStar]; ok {
-				brightness = br
-			}
+	if len(mainStars) > 0 {
+		reading.MainStarAnalysis = buildMainStarAnalysis(p, mainStars)
+		reading.Brightness = buildBrightnessSummary(p, mainStars)
+	} else {
+		oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
+		borrowed := mergeUniqueStrings(
+			palaceMainStars(chart.Palaces[oppositeIdx]),
+			palaceMainStars(chart.Palaces[trine1Idx]),
+			palaceMainStars(chart.Palaces[trine2Idx]),
+		)
+		if len(borrowed) > 0 {
+			reading.MainStarAnalysis = fmt.Sprintf("%s无主星，解读以对宫%s及三合%s、%s借星为主，借看星曜为%s。",
+				p.Name, chart.Palaces[oppositeIdx].Name, chart.Palaces[trine1Idx].Name, chart.Palaces[trine2Idx].Name, strings.Join(borrowed, "、"))
+		} else {
+			reading.MainStarAnalysis = fmt.Sprintf("%s无主星，且对宫与三合主星信号也偏弱，判断需提高对辅星、四化和十二神的权重。", p.Name)
 		}
-		reading.MainStarAnalysis = GetStarBrightness(mainStar, brightness)
-		reading.Brightness = brightness
+		reading.Brightness = "空宫"
 	}
 
 	// Auxiliary star influence
-	if len(p.AuxStars) > 0 {
-		influence := buildAuxStarInfluence(p.AuxStars)
+	if len(auxStars) > 0 {
+		influence := buildAuxStarInfluence(auxStars)
 		reading.AuxStarInfluence = influence
+	} else {
+		reading.AuxStarInfluence = "本宫未见辅曜或煞曜直接落入，助力与阻力的判断转由主星、四化及三方四正承担。"
 	}
 
 	// Sihua influence
 	if len(p.FourHua) > 0 {
 		influence := buildSihuaInfluence(p.FourHua)
 		reading.SihuaInfluence = influence
+	} else {
+		reading.SihuaInfluence = "本宫无本宫四化，事件推进不靠单一化曜定调，需参考三方四正是否有化禄、化权、化科、化忌会照。"
 	}
 
 	// Sanfang analysis - enhanced with SiHua interaction
-	sf := GetPalaceSanfang(palaceIdx)
+	sf := GetChartPalaceSanfang(chart, palaceIdx)
 	enhanced := GetEnhancedSanfang(chart, palaceIdx)
 
 	base := fmt.Sprintf("对宫%s，三合%s与%s，形成三方四正格局。",
@@ -1836,22 +1941,580 @@ func GetPalaceReading(chart *ZiWeiChart, palaceIdx int) *PalaceReading {
 	if len(extra) > 0 {
 		reading.SanfangAnalysis = base + " " + strings.Join(extra, "，") + "。"
 	} else {
-		reading.SanfangAnalysis = base
+		reading.SanfangAnalysis = base + buildSanfangStarSummary(reading.SanfangContext)
 	}
 
-	// Pattern notes - check if any pattern affects this palace
-	var notes []string
-	if present, name := checkZiFuTongGong(chart); present && starInPalace(chart, palaceIdx, []string{"紫微", "天府"}) {
-		notes = append(notes, name)
-	}
-	if present, name := checkShaPoLang(chart); present && starInPalace(chart, palaceIdx, []string{"七杀", "破军", "贪狼"}) {
-		notes = append(notes, name)
-	}
-	if len(notes) > 0 {
-		reading.PatternNotes = strings.Join(notes, "、") + "格局在此宫显现"
-	}
+	reading.PatternNotes = buildPatternNotes(reading.PatternDetails)
+	reading.Summary = buildPalaceSummary(chart, palaceIdx, reading)
+	reading.KeyPoints = buildKeyPoints(chart, palaceIdx, reading)
+	reading.Advice = buildReadingAdvice(chart, palaceIdx, reading)
+	reading.RiskFlags = buildRiskFlags(chart, palaceIdx)
+	reading.Confidence = buildReadingConfidence(p, reading)
 
 	return reading
+}
+
+func palaceMainStars(p PalaceInfo) []string {
+	if len(p.MainStars) > 0 {
+		return append([]string(nil), p.MainStars...)
+	}
+	names := make([]string, 0, len(p.Stars))
+	for _, s := range p.Stars {
+		if s.Type == "major" {
+			names = append(names, s.Name)
+		}
+	}
+	return names
+}
+
+func palaceAuxStars(p PalaceInfo) []string {
+	if len(p.AuxStars) > 0 {
+		return append([]string(nil), p.AuxStars...)
+	}
+	names := make([]string, 0, len(p.Stars))
+	for _, s := range p.Stars {
+		if s.Type != "major" {
+			names = append(names, s.Name)
+		}
+	}
+	return names
+}
+
+func palaceAllStarNames(p PalaceInfo) []string {
+	return mergeUniqueStrings(palaceMainStars(p), palaceAuxStars(p), p.AdjectiveStars)
+}
+
+func palaceStarBrightness(p PalaceInfo, star string) string {
+	if p.Brightness != nil {
+		if br, ok := p.Brightness[star]; ok {
+			return br
+		}
+	}
+	for _, s := range p.Stars {
+		if s.Name == star {
+			return s.Brightness
+		}
+	}
+	return ""
+}
+
+func buildMainStarAnalysis(p PalaceInfo, mainStars []string) string {
+	var parts []string
+	var descs []string
+	for _, star := range mainStars {
+		brightness := palaceStarBrightness(p, star)
+		if brightness == "" {
+			brightness = "平"
+		}
+		parts = append(parts, fmt.Sprintf("%s%s", star, formatBrightness(brightness)))
+		if desc := GetStarBrightness(star, brightness); desc != "" {
+			descs = append(descs, desc)
+		}
+	}
+	prefix := fmt.Sprintf("%s主星为%s。", p.Name, strings.Join(parts, "、"))
+	if len(descs) == 0 {
+		return prefix
+	}
+	return prefix + strings.Join(descs, "；")
+}
+
+func buildBrightnessSummary(p PalaceInfo, mainStars []string) string {
+	var parts []string
+	for _, star := range mainStars {
+		brightness := palaceStarBrightness(p, star)
+		if brightness == "" {
+			brightness = "平"
+		}
+		parts = append(parts, fmt.Sprintf("%s%s", star, formatBrightness(brightness)))
+	}
+	return strings.Join(parts, "、")
+}
+
+func formatBrightness(brightness string) string {
+	if brightness == "" {
+		return ""
+	}
+	return fmt.Sprintf("(%s)", brightness)
+}
+
+func buildReadingEvidence(chart *ZiWeiChart, palaceIdx int) []ReadingEvidence {
+	p := chart.Palaces[palaceIdx]
+	evidence := []ReadingEvidence{
+		{Type: "palace", Label: "宫位", Value: fmt.Sprintf("%s%s", p.Name, formatBranch(p.Branch)), Impact: "定位本段解读的主题与地支环境"},
+	}
+	if p.IsBodyPalace || chart.BodyPalace == p.Name || chart.BodyPalace == p.Branch {
+		evidence = append(evidence, ReadingEvidence{Type: "body_palace", Label: "身宫", Value: p.Name, Impact: "后天行动重心落在本宫，实际行为权重上升"})
+	}
+	for _, star := range palaceMainStars(p) {
+		brightness := palaceStarBrightness(p, star)
+		if brightness == "" {
+			brightness = "平"
+		}
+		evidence = append(evidence, ReadingEvidence{Type: "main_star", Label: "主星", Value: star + formatBrightness(brightness), Impact: mainStarImpact(star, brightness)})
+	}
+	if len(palaceMainStars(p)) == 0 {
+		oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
+		borrowed := mergeUniqueStrings(
+			palaceMainStars(chart.Palaces[oppositeIdx]),
+			palaceMainStars(chart.Palaces[trine1Idx]),
+			palaceMainStars(chart.Palaces[trine2Idx]),
+		)
+		evidence = append(evidence, ReadingEvidence{Type: "borrowed_star", Label: "空宫借星", Value: joinOrNone(borrowed), Impact: "本宫无主星，结论需借对宫与三合宫星曜校正"})
+	}
+	for _, star := range palaceAuxStars(p) {
+		evidence = append(evidence, ReadingEvidence{Type: auxEvidenceType(star), Label: auxEvidenceLabel(star), Value: star, Impact: auxStarImpact(star)})
+	}
+	for _, hua := range p.FourHua {
+		evidence = append(evidence, ReadingEvidence{Type: "four_hua", Label: "四化", Value: hua, Impact: fourHuaImpact(hua)})
+	}
+	for _, star := range p.AdjectiveStars {
+		evidence = append(evidence, ReadingEvidence{Type: "adjective_star", Label: "杂曜", Value: star, Impact: "补充事件色彩，用于修正主星表达方式"})
+	}
+	for _, item := range []struct {
+		label string
+		value string
+	}{
+		{"长生十二神", p.Changsheng12},
+		{"博士十二神", p.Boshi12},
+		{"将前十二神", p.JiangQian12},
+		{"岁前十二神", p.SuiQian12},
+	} {
+		if item.value != "" {
+			evidence = append(evidence, ReadingEvidence{Type: "twelve_shen", Label: item.label, Value: item.value, Impact: "用于判断阶段气势与事件触发背景"})
+		}
+	}
+	if ctx := buildReadingSanfangContext(chart, palaceIdx); ctx != nil {
+		evidence = append(evidence, ReadingEvidence{Type: "sanfang", Label: "三方四正", Value: fmt.Sprintf("对%s，三合%s、%s", ctx.Opposite, ctx.Trine1, ctx.Trine2), Impact: "校验本宫与外部宫位的会照关系"})
+	}
+	return evidence
+}
+
+func buildReadingSanfangContext(chart *ZiWeiChart, palaceIdx int) *ReadingSanfangContext {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= len(chart.Palaces) {
+		return nil
+	}
+	oppositeIdx, trine1Idx, trine2Idx := chartSanfangIndexes(chart, palaceIdx)
+	ctx := &ReadingSanfangContext{
+		Opposite:      chart.Palaces[oppositeIdx].Name,
+		Trine1:        chart.Palaces[trine1Idx].Name,
+		Trine2:        chart.Palaces[trine2Idx].Name,
+		OppositeStars: palaceAllStarNames(chart.Palaces[oppositeIdx]),
+		Trine1Stars:   palaceAllStarNames(chart.Palaces[trine1Idx]),
+		Trine2Stars:   palaceAllStarNames(chart.Palaces[trine2Idx]),
+	}
+	if len(ctx.OppositeStars) > 0 {
+		ctx.Notes = append(ctx.Notes, fmt.Sprintf("对宫%s见%s，作为本宫外部压力与镜像条件。", ctx.Opposite, strings.Join(ctx.OppositeStars, "、")))
+	}
+	if len(ctx.Trine1Stars) > 0 || len(ctx.Trine2Stars) > 0 {
+		ctx.Notes = append(ctx.Notes, fmt.Sprintf("三合%s、%s分别见%s、%s，作为本宫资源与行动路径。",
+			ctx.Trine1, ctx.Trine2, joinOrNone(ctx.Trine1Stars), joinOrNone(ctx.Trine2Stars)))
+	}
+	return ctx
+}
+
+func buildSanfangStarSummary(ctx *ReadingSanfangContext) string {
+	if ctx == nil {
+		return ""
+	}
+	return fmt.Sprintf(" 对宫星曜：%s；三合星曜：%s、%s。",
+		joinOrNone(ctx.OppositeStars), joinOrNone(ctx.Trine1Stars), joinOrNone(ctx.Trine2Stars))
+}
+
+func buildPatternDetailsForPalace(chart *ZiWeiChart, palaceIdx int) []ReadingPatternDetail {
+	if chart == nil || palaceIdx < 0 || palaceIdx >= len(chart.Palaces) {
+		return nil
+	}
+	p := chart.Palaces[palaceIdx]
+	var details []ReadingPatternDetail
+	add := func(name string, stars []string, basis string, confidence float64) {
+		if patternDetected(chart, name) && basis != "" {
+			details = append(details, ReadingPatternDetail{
+				Name:       name,
+				Palace:     p.Name,
+				Stars:      stars,
+				Basis:      basis,
+				Confidence: confidence,
+			})
+		}
+	}
+
+	pairPatterns := []struct {
+		name  string
+		star1 string
+		star2 string
+	}{
+		{"紫府同宫", "紫微", "天府"},
+		{"紫破同宫", "紫微", "破军"},
+		{"廉府双星", "廉贞", "天府"},
+		{"同梁双星", "天同", "天梁"},
+		{"巨日同宫", "巨门", "太阳"},
+		{"武贪格", "武曲", "贪狼"},
+		{"廉贞破军同宫", "廉贞", "破军"},
+		{"廉贞七杀同宫庙旺", "廉贞", "七杀"},
+		{"廉贞七杀同宫落陷", "廉贞", "七杀"},
+		{"廉贞贪狼同宫落陷", "廉贞", "贪狼"},
+	}
+	for _, pp := range pairPatterns {
+		if starInSamePalace(chart, palaceIdx, pp.star1, pp.star2) {
+			add(pp.name, []string{pp.star1, pp.star2}, fmt.Sprintf("%s、%s同在%s", pp.star1, pp.star2, p.Name), 0.92)
+		}
+	}
+	if starInPalace(chart, palaceIdx, []string{"贪狼"}) && auxStarInPalace(chart, palaceIdx, []string{"火星"}) {
+		add("火贪格", []string{"火星", "贪狼"}, fmt.Sprintf("火星、贪狼同在%s", p.Name), 0.9)
+	}
+	if starInPalace(chart, palaceIdx, []string{"贪狼"}) && auxStarInPalace(chart, palaceIdx, []string{"铃星"}) {
+		add("铃贪格", []string{"铃星", "贪狼"}, fmt.Sprintf("铃星、贪狼同在%s", p.Name), 0.9)
+	}
+	if patternDetected(chart, "杀破狼格") {
+		targets := []string{"七杀", "破军", "贪狼"}
+		stars := starsInIndexes(chart, sanfangIndexesWithSelf(chart, palaceIdx), targets)
+		if len(stars) >= 2 && anyStarInPalace(chart, palaceIdx, targets) {
+			add("杀破狼格", stars, fmt.Sprintf("%s在%s三方四正会照", strings.Join(stars, "、"), p.Name), 0.86)
+		}
+	}
+	if patternDetected(chart, "三奇嘉会") {
+		if basis, stars := sanqiBasisForPalace(chart, palaceIdx); basis != "" {
+			add("三奇嘉会", stars, basis, 0.88)
+		}
+	}
+	if patternDetected(chart, "科权禄三会") {
+		if basis, stars := sanqiBasisForPalace(chart, palaceIdx); basis != "" {
+			add("科权禄三会", stars, basis, 0.88)
+		}
+	}
+	return details
+}
+
+func patternDetected(chart *ZiWeiChart, name string) bool {
+	for _, p := range chart.Patterns {
+		if p == name {
+			return true
+		}
+	}
+	for _, pc := range patternCheckers {
+		if pc.name == name {
+			ok, _ := pc.checker(chart)
+			return ok
+		}
+	}
+	return false
+}
+
+func sanqiBasisForPalace(chart *ZiWeiChart, palaceIdx int) (string, []string) {
+	mingIdx := findPalaceIndex(chart, "命宫")
+	if mingIdx < 0 {
+		return "", nil
+	}
+	indexes := sanfangIndexesWithSelf(chart, mingIdx)
+	if !containsInt(indexes, palaceIdx) {
+		return "", nil
+	}
+	var huaTypes []string
+	var huaStars []string
+	for _, hua := range []string{"化禄", "化权", "化科"} {
+		for _, idx := range indexes {
+			for _, item := range chart.Palaces[idx].FourHua {
+				if strings.Contains(item, hua) {
+					huaTypes = append(huaTypes, fmt.Sprintf("%s在%s", item, chart.Palaces[idx].Name))
+					huaStars = append(huaStars, item)
+				}
+			}
+		}
+	}
+	if len(huaTypes) < 3 {
+		return "", nil
+	}
+	return "化禄、化权、化科落在命宫三方四正：" + strings.Join(huaTypes, "、"), uniqueStrings(huaStars)
+}
+
+func buildPatternNotes(details []ReadingPatternDetail) string {
+	if len(details) == 0 {
+		return "本宫未见可由当前规则直接验证的格局标签，解读以星曜、四化、三方四正为准。"
+	}
+	notes := make([]string, 0, len(details))
+	for _, d := range details {
+		notes = append(notes, fmt.Sprintf("%s：%s", d.Name, d.Basis))
+	}
+	return strings.Join(notes, "；")
+}
+
+func buildPalaceSummary(chart *ZiWeiChart, palaceIdx int, reading *PalaceReading) string {
+	p := chart.Palaces[palaceIdx]
+	mainStars := palaceMainStars(p)
+	if len(mainStars) == 0 {
+		return fmt.Sprintf("%s为空宫，判断重点借对宫%s与三合%s、%s；当前结论以借星、四化和辅煞曜共同校正。",
+			p.Name, reading.SanfangContext.Opposite, reading.SanfangContext.Trine1, reading.SanfangContext.Trine2)
+	}
+	summary := fmt.Sprintf("%s以%s为核心，亮度为%s", p.Name, strings.Join(mainStars, "、"), reading.Brightness)
+	if len(p.FourHua) > 0 {
+		summary += "，并见" + strings.Join(p.FourHua, "、")
+	}
+	if p.IsBodyPalace || chart.BodyPalace == p.Name || chart.BodyPalace == p.Branch {
+		summary += "；此宫同时为身宫，后天行动权重提高"
+	}
+	summary += "。"
+	return summary
+}
+
+func buildKeyPoints(chart *ZiWeiChart, palaceIdx int, reading *PalaceReading) []string {
+	p := chart.Palaces[palaceIdx]
+	var points []string
+	mainStars := palaceMainStars(p)
+	if len(mainStars) > 0 {
+		points = append(points, fmt.Sprintf("主星组合：%s，亮度：%s。", strings.Join(mainStars, "、"), reading.Brightness))
+	} else if reading.SanfangContext != nil {
+		points = append(points, fmt.Sprintf("空宫借星：对宫%s，三合%s、%s。", reading.SanfangContext.Opposite, reading.SanfangContext.Trine1, reading.SanfangContext.Trine2))
+	}
+	if len(p.FourHua) > 0 {
+		points = append(points, "本宫四化："+strings.Join(p.FourHua, "、")+"。")
+	}
+	if tough := filterStars(palaceAuxStars(p), toughStarSet()); len(tough) > 0 {
+		points = append(points, "煞曜提示："+strings.Join(tough, "、")+"，需要控制执行成本与风险暴露。")
+	}
+	if p.IsBodyPalace || chart.BodyPalace == p.Name || chart.BodyPalace == p.Branch {
+		points = append(points, "身宫落此宫，现实行动与长期习惯会反复落到本宫主题。")
+	}
+	if len(reading.PatternDetails) > 0 {
+		points = append(points, "相关格局："+strings.Join(patternDetailNames(reading.PatternDetails), "、")+"。")
+	}
+	return points
+}
+
+func buildReadingAdvice(chart *ZiWeiChart, palaceIdx int, reading *PalaceReading) []string {
+	p := chart.Palaces[palaceIdx]
+	focus := palaceFocus(p.Name)
+	var advice []string
+	if len(palaceMainStars(p)) == 0 {
+		advice = append(advice, fmt.Sprintf("%s为空宫，倾向受对宫与三合条件牵动；在做%s判断时，先核对外部关系与资源来源。", p.Name, focus))
+	}
+	if len(p.FourHua) > 0 {
+		advice = append(advice, fmt.Sprintf("%s见%s，倾向把%s议题具体化；执行时按化禄取资源、化权定责任、化科留凭证、化忌设边界。", p.Name, strings.Join(p.FourHua, "、"), focus))
+	}
+	if tough := filterStars(palaceAuxStars(p), toughStarSet()); len(tough) > 0 {
+		advice = append(advice, fmt.Sprintf("%s见%s，倾向带来压力与突发成本；建议把%s事项拆成可复盘步骤，并预设止损线。", p.Name, strings.Join(tough, "、"), focus))
+	}
+	if soft := filterStars(palaceAuxStars(p), softStarSet()); len(soft) > 0 {
+		advice = append(advice, fmt.Sprintf("%s见%s，倾向有协作、贵人与表达助力；建议把%s事项放到可见场景中争取支持。", p.Name, strings.Join(soft, "、"), focus))
+	}
+	if len(advice) == 0 {
+		advice = append(advice, fmt.Sprintf("%s判断以%s为主；建议围绕%s建立稳定节奏，再看流年四化触发点。", p.Name, reading.Brightness, focus))
+	}
+	return advice
+}
+
+func buildRiskFlags(chart *ZiWeiChart, palaceIdx int) []string {
+	p := chart.Palaces[palaceIdx]
+	var risks []string
+	for _, star := range filterStars(palaceAuxStars(p), toughStarSet()) {
+		risks = append(risks, fmt.Sprintf("%s入%s，提示压力、冲突或耗损需要被纳入计划。", star, p.Name))
+	}
+	for _, hua := range p.FourHua {
+		if strings.Contains(hua, "化忌") {
+			risks = append(risks, fmt.Sprintf("%s在%s，提示执着点与阻滞点需要提前设边界。", hua, p.Name))
+		}
+	}
+	for _, star := range palaceMainStars(p) {
+		br := palaceStarBrightness(p, star)
+		if br == "陷" || br == "不" {
+			risks = append(risks, fmt.Sprintf("%s%s在%s，提示该星优势受环境限制，需靠三方四正补强。", star, formatBrightness(br), p.Name))
+		}
+	}
+	if len(palaceMainStars(p)) == 0 {
+		risks = append(risks, fmt.Sprintf("%s为空宫，单宫断语置信度降低，应连同对宫与三合宫判断。", p.Name))
+	}
+	return risks
+}
+
+func buildReadingConfidence(p PalaceInfo, reading *PalaceReading) float64 {
+	confidence := 0.64
+	if len(palaceMainStars(p)) > 0 {
+		confidence += 0.1
+	} else {
+		confidence -= 0.08
+	}
+	if len(p.FourHua) > 0 {
+		confidence += 0.05
+	}
+	if reading.SanfangContext != nil && len(reading.SanfangContext.Notes) > 0 {
+		confidence += 0.05
+	}
+	if len(reading.PatternDetails) > 0 {
+		confidence += 0.05
+	}
+	if len(reading.Evidence) >= 6 {
+		confidence += 0.04
+	}
+	if confidence > 0.95 {
+		confidence = 0.95
+	}
+	if confidence < 0.45 {
+		confidence = 0.45
+	}
+	return confidence
+}
+
+func mainStarImpact(star, brightness string) string {
+	if brightness == "陷" || brightness == "不" {
+		return fmt.Sprintf("%s主导本宫，但亮度受限，倾向增加阻力与修正成本", star)
+	}
+	return fmt.Sprintf("%s主导本宫判断，亮度用于校正发挥程度", star)
+}
+
+func auxEvidenceType(star string) string {
+	if toughStarSet()[star] {
+		return "tough_star"
+	}
+	if softStarSet()[star] {
+		return "soft_star"
+	}
+	return "aux_star"
+}
+
+func auxEvidenceLabel(star string) string {
+	if toughStarSet()[star] {
+		return "煞曜"
+	}
+	if softStarSet()[star] {
+		return "辅曜"
+	}
+	return "辅杂曜"
+}
+
+func auxStarImpact(star string) string {
+	if toughStarSet()[star] {
+		return "提示压力、冲突、耗损或突发变量，需要用流程和边界承接"
+	}
+	if softStarSet()[star] {
+		return "提示协作、贵人、表达或文书助力，可以作为补强条件"
+	}
+	if star == "天马" {
+		return "提示移动、变化与流动性，适合用动态策略处理"
+	}
+	if star == "禄存" {
+		return "提示存量资源与积累能力，适合用保守节奏承接"
+	}
+	return "补充本宫事件色彩，需结合主星与四化判断"
+}
+
+func fourHuaImpact(hua string) string {
+	switch {
+	case strings.Contains(hua, "化禄"):
+		return "资源、收益与顺势条件增强"
+	case strings.Contains(hua, "化权"):
+		return "责任、控制权与执行强度增强"
+	case strings.Contains(hua, "化科"):
+		return "名声、凭证、学习与修饰能力增强"
+	case strings.Contains(hua, "化忌"):
+		return "阻滞、执着与代价显化，需要边界管理"
+	default:
+		return "四化修正本宫星曜表达"
+	}
+}
+
+func palaceFocus(name string) string {
+	focus := map[string]string{
+		"命宫": "性格、选择与自我定位",
+		"兄弟": "同辈、协作与资源分配",
+		"夫妻": "亲密关系、承诺与协商",
+		"子女": "子女、下属与创造输出",
+		"财帛": "收入、现金流与资源配置",
+		"疾厄": "健康、压力与恢复节奏",
+		"迁移": "外部机会、出行与社会形象",
+		"交友": "朋友、团队与合作对象",
+		"事业": "职业、责任与长期成就",
+		"田宅": "家庭、不动产与安全感",
+		"福德": "精神状态、享受与内在稳定",
+		"父母": "长辈、制度与支持来源",
+	}
+	if v, ok := focus[name]; ok {
+		return v
+	}
+	return name
+}
+
+func softStarSet() map[string]bool {
+	return map[string]bool{"左辅": true, "右弼": true, "文昌": true, "文曲": true, "天魁": true, "天钺": true}
+}
+
+func toughStarSet() map[string]bool {
+	return map[string]bool{"擎羊": true, "陀罗": true, "火星": true, "铃星": true, "地空": true, "地劫": true}
+}
+
+func filterStars(stars []string, allowed map[string]bool) []string {
+	var out []string
+	for _, s := range stars {
+		if allowed[s] {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func starsInIndexes(chart *ZiWeiChart, indexes []int, wanted []string) []string {
+	var stars []string
+	for _, idx := range indexes {
+		if idx < 0 || idx >= len(chart.Palaces) {
+			continue
+		}
+		for _, star := range wanted {
+			if anyStarInPalace(chart, idx, []string{star}) {
+				stars = append(stars, star)
+			}
+		}
+	}
+	return uniqueStrings(stars)
+}
+
+func mergeUniqueStrings(groups ...[]string) []string {
+	var merged []string
+	for _, group := range groups {
+		merged = append(merged, group...)
+	}
+	return uniqueStrings(merged)
+}
+
+func uniqueStrings(in []string) []string {
+	seen := make(map[string]bool, len(in))
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if s == "" || seen[s] {
+			continue
+		}
+		seen[s] = true
+		out = append(out, s)
+	}
+	return out
+}
+
+func joinOrNone(in []string) string {
+	if len(in) == 0 {
+		return "无"
+	}
+	return strings.Join(in, "、")
+}
+
+func formatBranch(branch string) string {
+	if branch == "" {
+		return ""
+	}
+	return fmt.Sprintf("(%s)", branch)
+}
+
+func containsInt(in []int, target int) bool {
+	for _, v := range in {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}
+
+func patternDetailNames(details []ReadingPatternDetail) []string {
+	names := make([]string, 0, len(details))
+	for _, detail := range details {
+		names = append(names, detail.Name)
+	}
+	return uniqueStrings(names)
 }
 
 func buildAuxStarInfluence(auxStars []string) string {
@@ -1873,16 +2536,16 @@ func getAuxStarDesc(star string) string {
 		"右弼": "右弼星入此宮，得同儕或晚輩之助，善於配合他人，團隊協作能力強。",
 		"文昌": "文昌星入此宮，才華出眾，學業優異，思維敏捷，能言善辯。",
 		"文曲": "文曲星入此宮，才藝出眾，具有藝術天賦和審美眼光，口才流利。",
-		"天魁": "天魁星入此宮，為天乙貴人，一生多得貴人提攜，遇事逢凶化吉。",
-		"天钺": "天鉞星入此宮，為玉堂貴人，多得好友和同事之助，具有號召力。",
-		"擎羊": "擎羊星入此宮，性格剛烈好勝，行事衝動，須注意控制脾氣。",
+		"天魁": "天魁星入此宮，為天乙貴人，傾向帶來貴人、資格或制度助力。",
+		"天钺": "天鉞星入此宮，為玉堂貴人，傾向得到同儕、好友或合作場景助力。",
+		"擎羊": "擎羊星入此宮，性格剛烈好勝，行事衝動，宜用規則控制脾氣與衝突成本。",
 		"陀罗": "陀羅星入此宮，做事拖延猶豫，容易錯失良機，須培養果斷的習慣。",
 		"火星": "火星入此宮，脾氣急躁，行事衝動，容易因一時之氣而誤事。",
 		"铃星": "鈴星入此宮，內心多憂慮煩惱，容易鑽牛角尖，須學會釋放壓力。",
 		"地空": "地空星入此宮，想法天馬行空，有時脫離現實，須務實面對人生。",
 		"地劫": "地劫星入此宮，人生多波折起伏，須做好風險防範和應急準備。",
 		"禄存": "祿存入此宮，財祿豐厚，衣食無憂，善於累積財富。",
-		"天马": "天馬入此宮，奔波勞碌，一生多變動和遷移，適合需要流動性的工作。",
+		"天马": "天馬入此宮，奔波與變動信號較強，適合需要流動性與快速調度的工作。",
 	}
 	if desc, ok := descMap[star]; ok {
 		return desc
@@ -1905,19 +2568,9 @@ func buildSihuaInfluence(fourHua []string) string {
 
 func getFourHuaDesc(star string) string {
 	huaTypeMap := map[string]int{"化禄": 0, "化权": 1, "化科": 2, "化忌": 3}
-	// Parse star name to find the transformation type
-	for huaIdx, stars := range SI_HUA_TABLE {
-		for _, s := range stars {
-			if strings.Contains(star, s) {
-				return getHuaDesc(s, huaIdx)
-			}
-		}
-	}
-	// Direct match from fourHua strings
 	for huaStr, huaIdx := range huaTypeMap {
 		if strings.Contains(star, huaStr) {
-			// Extract star name
-			starName := strings.TrimPrefix(star, huaStr)
+			starName := strings.ReplaceAll(star, huaStr, "")
 			return getHuaDesc(starName, huaIdx)
 		}
 	}
@@ -1936,10 +2589,10 @@ func getHuaDesc(starName string, huaType int) string {
 
 func getHuaEffectSummary(huaType int) string {
 	effects := []string{
-		"财运与事业顺利发展",
-		"权力与执行力增强",
-		"学业与名声提升",
-		"需注意是非与调整",
+		"资源、收益与顺势条件增强",
+		"责任、控制权与执行强度增强",
+		"名声、凭证、学习与修饰能力增强",
+		"阻滞、执着与代价显化，需要边界管理",
 	}
 	if huaType >= 0 && huaType < len(effects) {
 		return effects[huaType]
@@ -2144,12 +2797,12 @@ func checkBanKongZheChiGe(chart *ZiWeiChart) (bool, string) {
 	if mingIdx < 0 {
 		return false, ""
 	}
-	qianYiIdx := (mingIdx + 6) % 12
+	qianYiIdx, _, _ := chartSanfangIndexes(chart, mingIdx)
 	if !palaceHasHua(chart, qianYiIdx, "化忌") {
 		return false, ""
 	}
 	luckyStars := []string{"左辅", "右弼", "文昌", "文曲", "天魁", "天钺"}
-	sanfang := []int{mingIdx, qianYiIdx, (mingIdx + 4) % 12, (mingIdx + 8) % 12}
+	sanfang := sanfangIndexesWithSelf(chart, mingIdx)
 	for _, idx := range sanfang {
 		for _, aux := range chart.Palaces[idx].AuxStars {
 			for _, lucky := range luckyStars {
@@ -2214,7 +2867,7 @@ func checkKeQuanLuSanHui(chart *ZiWeiChart) (bool, string) {
 	if mingIdx < 0 {
 		return false, ""
 	}
-	sanfang := []int{mingIdx, (mingIdx + 4) % 12, (mingIdx + 6) % 12, (mingIdx + 8) % 12}
+	sanfang := sanfangIndexesWithSelf(chart, mingIdx)
 	hasKe, hasQuan, hasLu := false, false, false
 	for _, idx := range sanfang {
 		if palaceHasHua(chart, idx, "化科") {

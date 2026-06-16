@@ -31,19 +31,19 @@ type WeeklyFortuneHandler struct {
 func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 	var req model.WeeklyFortuneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	chart, err := h.Charts.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
@@ -55,13 +55,13 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		chart.BirthHour, chart.BirthMin, gender,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to compute chart: " + err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to compute chart: "+err.Error())
 		return
 	}
 
 	startDate, err := time.ParseInLocation("2006-01-02", req.StartDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid start_date format, use YYYY-MM-DD"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid start_date format, use YYYY-MM-DD")
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 
 	trendJSON, _ := json.Marshal(result.ElementTrend)
 
-	c.JSON(http.StatusOK, model.WeeklyFortuneResponse{
+	respondJSON(c, http.StatusOK, model.WeeklyFortuneResponse{
 		DailyFortunes: dailyFortunes,
 		WeeklyScore:   result.WeeklyScore,
 		ElementTrend:  string(trendJSON),

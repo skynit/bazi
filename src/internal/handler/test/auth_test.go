@@ -299,14 +299,16 @@ func TestMeAuthenticated(t *testing.T) {
 		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var userResp model.RegisterResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &userResp); err != nil {
+	var resp struct {
+		User model.RegisterResponse `json:"user"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to parse response: %v", err)
 	}
-	if userResp.Username != "eve" {
-		t.Fatalf("expected username eve, got %s", userResp.Username)
+	if resp.User.Username != "eve" {
+		t.Fatalf("expected username eve, got %s", resp.User.Username)
 	}
-	if userResp.Email != "eve@example.com" {
-		t.Fatalf("expected email eve@example.com, got %s", userResp.Email)
+	if resp.User.Email != "eve@example.com" {
+		t.Fatalf("expected email eve@example.com, got %s", resp.User.Email)
 	}
 }

@@ -32,7 +32,7 @@ type HistoryHandler struct {
 func (h *HistoryHandler) ListCharts(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
@@ -47,15 +47,20 @@ func (h *HistoryHandler) ListCharts(c *gin.Context) {
 
 	charts, total, err := h.Charts.ListByUser(userID.(uint), page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query charts"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to query charts")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"charts":    charts,
-		"total":     total,
-		"page":      page,
-		"page_size": pageSize,
+	items := make([]model.ChartSummaryResponse, 0, len(charts))
+	for _, chart := range charts {
+		items = append(items, chartSummaryResponse(chart))
+	}
+
+	respondJSON(c, http.StatusOK, model.ChartListResponse{
+		Charts:   items,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
 	})
 }
 
@@ -63,42 +68,42 @@ func (h *HistoryHandler) ListCharts(c *gin.Context) {
 func (h *HistoryHandler) GetChart(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid chart id"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid chart id")
 		return
 	}
 
 	chart, err := h.Charts.FindByIDForUser(uint(id), userID.(uint))
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, chart)
+	respondJSON(c, http.StatusOK, chartDetailResponse(*chart))
 }
 
 // FortuneHistoryList handles GET /api/fortune/history?chart_id=X.
 func (h *HistoryHandler) FortuneHistoryList(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	chartID, err := strconv.ParseUint(c.Query("chart_id"), 10, 64)
 	if err != nil || chartID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id is required")
 		return
 	}
 
 	chart, err := h.Charts.FindByIDForUser(uint(chartID), userID.(uint))
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
@@ -113,11 +118,11 @@ func (h *HistoryHandler) FortuneHistoryList(c *gin.Context) {
 
 	items, total, err := h.FortuneHistory.ListByChartID(uint(chartID), page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query fortune history"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to query fortune history")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	respondJSON(c, http.StatusOK, gin.H{
 		"items":     items,
 		"total":     total,
 		"page":      page,

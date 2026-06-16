@@ -35,13 +35,13 @@ func mustJSON(v interface{}) json.RawMessage {
 func (h *ChartHandler) Chart(c *gin.Context) {
 	var req model.ChartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
@@ -50,13 +50,13 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 		Input: input, CalendarType: req.CalendarType, Gender: req.Gender,
 	})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, err.Error())
 		return
 	}
 
 	result, err := h.Bazi.Calculate(parsed.Year, parsed.Month, parsed.Day, parsed.Hour, parsed.Minute, parsed.Gender)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, err.Error())
 		return
 	}
 
@@ -83,12 +83,12 @@ func (h *ChartHandler) Chart(c *gin.Context) {
 	}
 	if h.Store != nil {
 		if err := h.Store.Create(chart); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "save failed: " + err.Error()})
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "save failed: "+err.Error())
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	respondJSON(c, http.StatusOK, gin.H{
 		"id":                 chart.ID,
 		"year_pillar":        result.YearPillar,
 		"month_pillar":       result.MonthPillar,

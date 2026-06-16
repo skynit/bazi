@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 interface SectionData {
   title: string
@@ -7,8 +7,42 @@ interface SectionData {
   tags: string[]
 }
 
+interface ReadingEvidence {
+  type: string
+  label: string
+  value: string
+  impact: string
+}
+
+interface SanfangContext {
+  opposite: string
+  trine1: string
+  trine2: string
+  opposite_stars: string[]
+  trine1_stars: string[]
+  trine2_stars: string[]
+  notes: string[]
+}
+
+interface PatternDetail {
+  name: string
+  palace: string
+  stars: string[]
+  basis: string
+  confidence: number
+}
+
 interface PalaceReading {
   palaceName: string
+  palaceFocus?: string
+  summary?: string
+  keyPoints?: string[]
+  evidence?: ReadingEvidence[]
+  sanfangContext?: SanfangContext | null
+  patternDetails?: PatternDetail[]
+  advice?: string[]
+  riskFlags?: string[]
+  confidence?: number
   mainStarAnalysis: SectionData
   auxStarInfluence: SectionData
   sihuaInfluence: SectionData
@@ -16,271 +50,518 @@ interface PalaceReading {
   patternAnnotations: SectionData
 }
 
-defineProps<{
+const props = defineProps<{
   palaceReading: PalaceReading
 }>()
 
 const expanded = ref(true)
 
+const confidencePercent = computed(() => {
+  const raw = props.palaceReading.confidence ?? 0
+  if (!raw) return 0
+  return Math.round(raw * 100)
+})
+
+const groupedEvidence = computed(() => {
+  const groups: Record<string, ReadingEvidence[]> = {}
+  for (const item of props.palaceReading.evidence || []) {
+    const key = item.type || 'other'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(item)
+  }
+  return groups
+})
+
+const evidenceOrder = [
+  'palace',
+  'body_palace',
+  'main_star',
+  'borrowed_star',
+  'four_hua',
+  'soft_star',
+  'tough_star',
+  'aux_star',
+  'adjective_star',
+  'twelve_shen',
+  'sanfang',
+]
+
+const orderedEvidence = computed(() => {
+  const known = evidenceOrder
+    .filter(type => groupedEvidence.value[type]?.length)
+    .flatMap(type => groupedEvidence.value[type])
+  const extra = Object.entries(groupedEvidence.value)
+    .filter(([type]) => !evidenceOrder.includes(type))
+    .flatMap(([, items]) => items)
+  return [...known, ...extra]
+})
+
+const legacySections = computed(() => [
+  props.palaceReading.mainStarAnalysis,
+  props.palaceReading.auxStarInfluence,
+  props.palaceReading.sihuaInfluence,
+  props.palaceReading.sanFangSiZheng,
+  props.palaceReading.patternAnnotations,
+].filter(section => section?.content))
+
 function toggle() {
   expanded.value = !expanded.value
+}
+
+function evidenceClass(type: string) {
+  return `evidence-${type.replaceAll('_', '-')}`
+}
+
+function formatConfidence(value: number) {
+  return `${Math.round(value * 100)}%`
 }
 </script>
 
 <template>
-  <div class="interpretation-card" :class="{ expanded }">
-    <!-- Card header (always visible, clickable) -->
-    <div class="card-header" @click="toggle">
-      <div class="flex items-center gap-3">
-        <span class="text-xl">{{ expanded ? '✨' : '📜' }}</span>
-        <div>
-          <h3 class="card-title">{{ palaceReading.palaceName }} 详解</h3>
-          <p class="card-subtitle">点击{{ expanded ? '收起' : '展开' }}查看完整解读</p>
-        </div>
-      </div>
-      <span class="toggle-icon">{{ expanded ? '▲' : '▼' }}</span>
-    </div>
+  <article class="interpretation-panel" :class="{ collapsed: !expanded }">
+    <button class="panel-header" type="button" @click="toggle">
+      <span class="header-kicker">命盘详解</span>
+      <span class="header-title">{{ palaceReading.palaceName }}</span>
+      <span v-if="palaceReading.palaceFocus" class="focus-pill">{{ palaceReading.palaceFocus }}</span>
+      <span v-if="confidencePercent" class="confidence-pill">依据 {{ confidencePercent }}%</span>
+      <span class="toggle-icon">{{ expanded ? '收起' : '展开' }}</span>
+    </button>
 
-    <!-- Expandable content -->
     <transition name="expand">
-      <div v-if="expanded" class="card-body">
-        <!-- Section: 主星特性 -->
-        <section class="reading-section">
-          <h4 class="section-heading">
-            <span class="section-marker">✦</span>
-            {{ palaceReading.mainStarAnalysis.title || '主星特性' }}
-          </h4>
-          <p class="section-text">{{ palaceReading.mainStarAnalysis.content }}</p>
-          <div v-if="palaceReading.mainStarAnalysis.tags.length" class="tag-row">
-            <span
-              v-for="(tag, i) in palaceReading.mainStarAnalysis.tags"
-              :key="'ms-' + i"
-              class="reading-tag main-star"
-              >{{ tag }}</span
-            >
+      <div v-if="expanded" class="panel-body">
+        <section class="overview-band">
+          <p class="overview-text">
+            {{ palaceReading.summary || palaceReading.mainStarAnalysis.content }}
+          </p>
+          <div v-if="palaceReading.keyPoints?.length" class="key-point-grid">
+            <div v-for="point in palaceReading.keyPoints" :key="point" class="key-point">
+              {{ point }}
+            </div>
           </div>
         </section>
 
-        <!-- Section: 辅星影响 -->
-        <section class="reading-section">
-          <h4 class="section-heading">
-            <span class="section-marker">◇</span>
-            {{ palaceReading.auxStarInfluence.title || '辅星影响' }}
-          </h4>
-          <p class="section-text">{{ palaceReading.auxStarInfluence.content }}</p>
-          <div v-if="palaceReading.auxStarInfluence.tags.length" class="tag-row">
-            <span
-              v-for="(tag, i) in palaceReading.auxStarInfluence.tags"
-              :key="'as-' + i"
-              class="reading-tag aux-star"
-              >{{ tag }}</span
+        <section v-if="orderedEvidence.length" class="reading-block">
+          <div class="block-title-row">
+            <h4 class="block-title">计算依据</h4>
+            <span class="block-count">{{ orderedEvidence.length }} 项</span>
+          </div>
+          <div class="evidence-grid">
+            <div
+              v-for="item in orderedEvidence"
+              :key="item.type + item.label + item.value"
+              class="evidence-card"
+              :class="evidenceClass(item.type)"
             >
+              <div class="evidence-head">
+                <span class="evidence-label">{{ item.label }}</span>
+                <strong class="evidence-value">{{ item.value }}</strong>
+              </div>
+              <p class="evidence-impact">{{ item.impact }}</p>
+            </div>
           </div>
         </section>
 
-        <!-- Section: 四化影响 -->
-        <section class="reading-section">
-          <h4 class="section-heading">
-            <span class="section-marker">◈</span>
-            {{ palaceReading.sihuaInfluence.title || '四化影响' }}
-          </h4>
-          <p class="section-text">{{ palaceReading.sihuaInfluence.content }}</p>
-          <div v-if="palaceReading.sihuaInfluence.tags.length" class="tag-row">
-            <span
-              v-for="(tag, i) in palaceReading.sihuaInfluence.tags"
-              :key="'sh-' + i"
-              class="reading-tag sihua-star"
-              >{{ tag }}</span
-            >
+        <section v-if="palaceReading.sanfangContext" class="reading-block">
+          <h4 class="block-title">三方四正</h4>
+          <div class="sanfang-layout">
+            <div class="sanfang-node opposite">
+              <span class="node-label">对宫</span>
+              <strong>{{ palaceReading.sanfangContext.opposite }}</strong>
+              <p>{{ palaceReading.sanfangContext.opposite_stars?.join('、') || '无主辅星' }}</p>
+            </div>
+            <div class="sanfang-node">
+              <span class="node-label">三合</span>
+              <strong>{{ palaceReading.sanfangContext.trine1 }}</strong>
+              <p>{{ palaceReading.sanfangContext.trine1_stars?.join('、') || '无主辅星' }}</p>
+            </div>
+            <div class="sanfang-node">
+              <span class="node-label">三合</span>
+              <strong>{{ palaceReading.sanfangContext.trine2 }}</strong>
+              <p>{{ palaceReading.sanfangContext.trine2_stars?.join('、') || '无主辅星' }}</p>
+            </div>
+          </div>
+          <ul v-if="palaceReading.sanfangContext.notes?.length" class="note-list">
+            <li v-for="note in palaceReading.sanfangContext.notes" :key="note">{{ note }}</li>
+          </ul>
+        </section>
+
+        <section v-if="palaceReading.patternDetails?.length" class="reading-block">
+          <h4 class="block-title">格局依据</h4>
+          <div class="pattern-list">
+            <div v-for="pattern in palaceReading.patternDetails" :key="pattern.name + pattern.basis" class="pattern-card">
+              <div class="pattern-head">
+                <strong>{{ pattern.name }}</strong>
+                <span>{{ formatConfidence(pattern.confidence) }}</span>
+              </div>
+              <p>{{ pattern.basis }}</p>
+              <div v-if="pattern.stars?.length" class="mini-tags">
+                <span v-for="star in pattern.stars" :key="star">{{ star }}</span>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- Section: 三方四正 -->
-        <section class="reading-section">
-          <h4 class="section-heading">
-            <span class="section-marker">△</span>
-            {{ palaceReading.sanFangSiZheng.title || '三方四正' }}
-          </h4>
-          <p class="section-text">{{ palaceReading.sanFangSiZheng.content }}</p>
-          <div v-if="palaceReading.sanFangSiZheng.tags.length" class="tag-row">
-            <span
-              v-for="(tag, i) in palaceReading.sanFangSiZheng.tags"
-              :key="'sf-' + i"
-              class="reading-tag sanfang-star"
-              >{{ tag }}</span
-            >
+        <section class="advice-risk-grid">
+          <div v-if="palaceReading.advice?.length" class="reading-block advice-block">
+            <h4 class="block-title">行动建议</h4>
+            <ul class="note-list">
+              <li v-for="item in palaceReading.advice" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+          <div v-if="palaceReading.riskFlags?.length" class="reading-block risk-block">
+            <h4 class="block-title">风险提示</h4>
+            <ul class="note-list">
+              <li v-for="item in palaceReading.riskFlags" :key="item">{{ item }}</li>
+            </ul>
           </div>
         </section>
 
-        <!-- Section: 格局标注 -->
-        <section class="reading-section">
-          <h4 class="section-heading">
-            <span class="section-marker">★</span>
-            {{ palaceReading.patternAnnotations.title || '格局标注' }}
-          </h4>
-          <p class="section-text">{{ palaceReading.patternAnnotations.content }}</p>
-          <div v-if="palaceReading.patternAnnotations.tags.length" class="tag-row">
-            <span
-              v-for="(tag, i) in palaceReading.patternAnnotations.tags"
-              :key="'pa-' + i"
-              class="reading-tag pattern-star"
-              >{{ tag }}</span
-            >
+        <section v-if="!orderedEvidence.length && legacySections.length" class="reading-block legacy-block">
+          <h4 class="block-title">基础解读</h4>
+          <div class="legacy-section" v-for="section in legacySections" :key="section.title">
+            <strong>{{ section.title }}</strong>
+            <p>{{ section.content }}</p>
+            <div v-if="section.tags?.length" class="mini-tags">
+              <span v-for="tag in section.tags" :key="tag">{{ tag }}</span>
+            </div>
           </div>
         </section>
       </div>
     </transition>
-  </div>
+  </article>
 </template>
 
 <style scoped>
 @reference "tailwindcss";
-.interpretation-card {
-  @apply rounded-xl border overflow-hidden;
-  background: var(--glass);
-  border-color: var(--line-strong);
-  backdrop-filter: blur(12px);
+
+.interpretation-panel {
+  @apply overflow-hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--accent) 8%, transparent), transparent 38%),
+    color-mix(in oklab, var(--surface-1) 90%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
-.interpretation-card:hover {
-  border-color: var(--line-focus);
-}
-
-.card-header {
-  @apply flex items-center justify-between p-4 cursor-pointer select-none;
+.panel-header {
+  @apply w-full border-0 cursor-pointer text-left;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: color-mix(in oklab, var(--surface-2) 72%, transparent);
   border-bottom: 1px solid var(--line-subtle);
 }
 
-.expanded .card-header {
-  border-bottom-color: var(--line-strong);
-}
-
-.card-title {
-  @apply text-base font-bold m-0;
-  color: var(--accent);
-}
-
-.card-subtitle {
-  @apply text-xs m-0 mt-0.5;
+.header-kicker {
+  @apply text-xs font-semibold;
   color: var(--text-muted);
 }
 
+.header-title {
+  @apply text-base font-bold;
+  color: var(--accent);
+}
+
+.confidence-pill {
+  @apply text-xs font-semibold;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.1);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+}
+
+.focus-pill {
+  @apply text-xs font-semibold;
+  color: var(--text);
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+  border: 1px solid var(--line-subtle);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  overflow-wrap: anywhere;
+}
+
 .toggle-icon {
+  @apply text-xs font-semibold;
+  color: var(--text-muted);
+}
+
+.panel-body {
+  @apply flex flex-col gap-4 p-4;
+}
+
+.overview-band {
+  @apply flex flex-col gap-3;
+}
+
+.overview-text {
+  @apply m-0 text-sm leading-relaxed;
+  color: var(--text);
+}
+
+.key-point-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.key-point {
+  @apply text-xs leading-relaxed;
+  padding: 0.55rem 0.65rem;
+  color: var(--text);
+  background: color-mix(in oklab, var(--accent) 5%, transparent);
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+}
+
+.reading-block {
+  @apply flex flex-col gap-3;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.block-title-row {
+  @apply flex items-center justify-between gap-2;
+}
+
+.block-title {
+  @apply m-0 text-sm font-bold;
+  color: var(--text);
+}
+
+.block-count {
+  @apply text-xs;
+  color: var(--text-muted);
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.5rem;
+}
+
+.evidence-card {
+  @apply flex flex-col gap-2;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-0) 72%, transparent);
+}
+
+.evidence-head {
+  @apply flex items-start justify-between gap-2;
+}
+
+.evidence-label {
+  @apply text-xs font-semibold;
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.evidence-value {
+  @apply text-sm text-right;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.evidence-impact {
+  @apply m-0 text-xs leading-relaxed;
+  color: var(--text-soft);
+}
+
+.evidence-tough-star,
+.evidence-four-hua {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.04);
+}
+
+.evidence-soft-star,
+.evidence-body-palace {
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.evidence-main-star {
+  border-color: rgba(161, 98, 7, 0.2);
+  background: rgba(161, 98, 7, 0.05);
+}
+
+.sanfang-layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.sanfang-node {
+  @apply flex flex-col gap-1;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 4%, transparent);
+}
+
+.sanfang-node.opposite {
+  background: rgba(220, 38, 38, 0.04);
+}
+
+.node-label {
+  @apply text-xs font-semibold;
+  color: var(--text-muted);
+}
+
+.sanfang-node strong {
+  @apply text-sm;
+  color: var(--text);
+}
+
+.sanfang-node p {
+  @apply m-0 text-xs leading-relaxed;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.pattern-list {
+  @apply flex flex-col gap-2;
+}
+
+.pattern-card {
+  padding: 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 5%, transparent);
+}
+
+.pattern-head {
+  @apply flex items-center justify-between gap-2;
+}
+
+.pattern-head strong {
   @apply text-sm;
   color: var(--accent);
 }
 
-.card-body {
-  @apply p-4 flex flex-col gap-4;
+.pattern-head span {
+  @apply text-xs font-semibold;
+  color: var(--text-muted);
 }
 
-.reading-section {
-  @apply pb-3 border-b border-dashed;
-  border-color: var(--line-subtle);
-}
-
-.reading-section:last-child {
-  @apply border-b-0 pb-0;
-}
-
-.section-heading {
-  @apply flex items-center gap-1.5 text-sm font-bold mb-2 m-0;
-  color: var(--accent);
-}
-
-.section-marker {
-  color: var(--danger);
-  font-size: 12px;
-}
-
-.section-text {
-  @apply text-sm leading-relaxed m-0 mb-2;
+.pattern-card p {
+  @apply m-0 mt-2 text-xs leading-relaxed;
   color: var(--text);
 }
 
-.tag-row {
-  @apply flex flex-wrap gap-1.5;
+.advice-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.75rem;
 }
 
-.reading-tag {
-  @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-medium;
-}
-
-.main-star {
-  background-color: rgba(251, 113, 133, 0.12);
-  color: var(--crimson);
-  border: 1px solid rgba(251, 113, 133, 0.2);
-}
-
-:global(.dark) .main-star {
-  background-color: rgba(251, 113, 133, 0.15);
-  color: #f08080;
-  border-color: rgba(251, 113, 133, 0.25);
-}
-
-.aux-star {
-  background-color: var(--accent-dim);
-  color: var(--accent);
+.advice-block,
+.risk-block {
   border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  padding: 0.75rem;
 }
 
-:global(.dark) .aux-star {
-  background-color: rgba(203, 213, 225, 0.08);
-  border-color: rgba(203, 213, 225, 0.2);
+.advice-block {
+  background: rgba(15, 118, 110, 0.04);
 }
 
-.sihua-star {
-  background-color: rgba(234, 179, 8, 0.12);
-  color: #a16207;
-  border: 1px solid rgba(234, 179, 8, 0.2);
+.risk-block {
+  background: rgba(220, 38, 38, 0.04);
 }
 
-:global(.dark) .sihua-star {
-  background-color: rgba(253, 230, 138, 0.1);
-  color: #fde68a;
-  border-color: rgba(253, 230, 138, 0.2);
+.note-list {
+  @apply m-0 pl-4 text-xs leading-relaxed;
+  color: var(--text);
 }
 
-.sanfang-star {
-  background-color: rgba(22, 163, 74, 0.1);
-  color: #16a34a;
-  border: 1px solid rgba(22, 163, 74, 0.2);
+.note-list li + li {
+  margin-top: 0.4rem;
 }
 
-:global(.dark) .sanfang-star {
-  background-color: rgba(34, 139, 34, 0.1);
-  color: #90ee90;
-  border-color: rgba(34, 139, 34, 0.2);
+.legacy-block {
+  opacity: 0.9;
 }
 
-.pattern-star {
-  background-color: rgba(126, 34, 206, 0.1);
-  color: #7c3aed;
-  border: 1px solid rgba(126, 34, 206, 0.2);
+.legacy-section {
+  @apply flex flex-col gap-1;
 }
 
-:global(.dark) .pattern-star {
-  background-color: rgba(128, 0, 128, 0.1);
-  color: #da90d0;
-  border-color: rgba(128, 0, 128, 0.2);
+.legacy-section strong {
+  @apply text-xs;
+  color: var(--accent);
 }
 
-/* Expand/collapse transition */
+.legacy-section p {
+  @apply m-0 text-xs leading-relaxed;
+  color: var(--text-soft);
+}
+
+.mini-tags {
+  @apply flex flex-wrap gap-1.5 mt-2;
+}
+
+.mini-tags span {
+  @apply text-xs font-semibold;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+}
+
 .expand-enter-active,
 .expand-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 .expand-enter-from,
 .expand-leave-to {
   opacity: 0;
-  max-height: 0;
+  transform: translateY(-4px);
 }
 
-.expand-enter-to,
-.expand-leave-from {
-  opacity: 1;
-  max-height: 2000px;
+:global(.dark) {
+  .confidence-pill {
+    color: #86efac;
+    background: rgba(74, 222, 128, 0.1);
+    border-color: rgba(74, 222, 128, 0.18);
+  }
+
+  .evidence-soft-star,
+  .evidence-body-palace {
+    border-color: rgba(96, 165, 250, 0.18);
+    background: rgba(96, 165, 250, 0.06);
+  }
+
+  .evidence-tough-star,
+  .evidence-four-hua,
+  .sanfang-node.opposite,
+  .risk-block {
+    background: rgba(251, 113, 133, 0.06);
+    border-color: rgba(251, 113, 133, 0.16);
+  }
+}
+
+@media (max-width: 640px) {
+  .panel-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .header-kicker,
+  .focus-pill,
+  .confidence-pill {
+    grid-column: 1 / -1;
+  }
+
+  .sanfang-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

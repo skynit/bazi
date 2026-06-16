@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import client from '../api/client'
+import { fetchChart, type ChartDetail } from '../api/chart'
+import { fetchZiWeiChart, fetchZiWeiOverlay, fetchZiWeiPeriod } from '../api/ziwei'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
 
@@ -54,8 +55,42 @@ interface SectionData {
   tags: string[]
 }
 
+interface ReadingEvidence {
+  type: string
+  label: string
+  value: string
+  impact: string
+}
+
+interface SanfangContext {
+  opposite: string
+  trine1: string
+  trine2: string
+  opposite_stars: string[]
+  trine1_stars: string[]
+  trine2_stars: string[]
+  notes: string[]
+}
+
+interface PatternDetail {
+  name: string
+  palace: string
+  stars: string[]
+  basis: string
+  confidence: number
+}
+
 interface PalaceReading {
   palaceName: string
+  palaceFocus?: string
+  summary?: string
+  keyPoints?: string[]
+  evidence?: ReadingEvidence[]
+  sanfangContext?: SanfangContext | null
+  patternDetails?: PatternDetail[]
+  advice?: string[]
+  riskFlags?: string[]
+  confidence?: number
   mainStarAnalysis: SectionData
   auxStarInfluence: SectionData
   sihuaInfluence: SectionData
@@ -94,6 +129,20 @@ const availableYears = ref<number[]>([])
 const selectedLiunianYear = ref<number>(new Date().getFullYear())
 const loadingTab = ref(false)
 
+function mapBirthInfo(chart: ChartDetail): BirthInfo {
+  const month = String(chart.birth_month).padStart(2, '0')
+  const day = String(chart.birth_day).padStart(2, '0')
+  const hour = String(chart.birth_hour).padStart(2, '0')
+  const minute = String(chart.birth_min || 0).padStart(2, '0')
+  return {
+    name: chart.name || '未命名',
+    gender: chart.gender,
+    solarDate: `${chart.birth_year}-${month}-${day} ${hour}:${minute}`,
+    lunarDate: chart.calendar_type === 'LUNAR' ? '农历生日' : '',
+    baziChartId: chart.id,
+  }
+}
+
 // Load chart data
 async function loadZiWeiChart() {
   loading.value = true
@@ -101,21 +150,19 @@ async function loadZiWeiChart() {
   try {
     const chartId = route.params.chartId
     // First fetch the chart to get birth info
-    const chartResp = await client.get(`/charts/${chartId}`)
-    const chart = chartResp.data.chart || chartResp.data
+    const chart = await fetchChart(String(chartId))
     if (!chart || !chart.birth_year) {
       error.value = '未找到命盘数据，请先生成八字命盘后再查看紫微斗数。'
       loading.value = false
       return
     }
     // Then calculate ziwei by chart id so the backend can cache the result.
-    const resp = await client.post('/ziwei/chart', {
+    const data = await fetchZiWeiChart({
       chart_id: Number(chartId),
     })
-    const data = resp.data
 
     chartData.value = data
-    birthInfo.value = chart  // chart from /charts/:id has birth info
+    birthInfo.value = mapBirthInfo(chart)
 
     // Generate available years for overlay (current year ± 5)
     const currentYear = new Date().getFullYear()
@@ -141,12 +188,12 @@ onMounted(() => {
 async function loadOverlay(year: number) {
   try {
     const chartId = route.params.chartId
-    const resp = await client.post('/ziwei/overlay', {
+    const data = await fetchZiWeiOverlay({
       chart_id: Number(chartId),
       year,
     })
     // Always update with fresh data keyed by year for caching
-    liunianOverlay.value = { ...resp.data, year }
+    liunianOverlay.value = { ...data, year }
   } catch {
     // Overlay data optional, don't block
   }
@@ -162,29 +209,29 @@ async function switchTab(tab: string) {
     switch (tab) {
       case 'dayun':
         if (!dayunData.value.length) {
-          const resp = await client.post('/ziwei/period', {
+          const data = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'dayun',
           })
-          dayunData.value = resp.data.periods || []
+          dayunData.value = data.periods || []
         }
         break
       case 'liunian':
         {
           const year = selectedLiunianYear.value
-          const resp = await client.post('/ziwei/period', {
+          const data = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'liunian',
             year,
           })
-          liunianData.value = resp.data.periods || []
+          liunianData.value = data.periods || []
           // Also fetch interpretation
-          const interpResp = await client.post('/ziwei/period', {
+          const interpData = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'liunian_interpretation',
             year,
           })
-          liunianInterp.value[year] = interpResp.data.periods?.[0] || null
+          liunianInterp.value[year] = interpData.periods?.[0] || null
         }
         break
       case 'liuyue':
@@ -193,20 +240,20 @@ async function switchTab(tab: string) {
           const month = new Date().getMonth() + 1
           const key = `${year}-${month}`
           if (!liuyueInterp.value[key]) {
-            const resp = await client.post('/ziwei/period', {
+            const data = await fetchZiWeiPeriod({
               chart_id: Number(chartId),
               period_type: 'liuyue',
               year,
               month,
             })
-            liuyueData.value = resp.data.periods || []
-            const interpResp = await client.post('/ziwei/period', {
+            liuyueData.value = data.periods || []
+            const interpData = await fetchZiWeiPeriod({
               chart_id: Number(chartId),
               period_type: 'liuyue_interpretation',
               year,
               month,
             })
-            liuyueInterp.value[key] = interpResp.data.periods?.[0] || null
+            liuyueInterp.value[key] = interpData.periods?.[0] || null
           }
         }
         break
@@ -217,39 +264,39 @@ async function switchTab(tab: string) {
           const day = new Date().getDate()
           const key = `${year}-${month}-${day}`
           if (!liuriInterp.value[key]) {
-            const resp = await client.post('/ziwei/period', {
+            const data = await fetchZiWeiPeriod({
               chart_id: Number(chartId),
               period_type: 'liuri',
               year,
               month,
               day,
             })
-            liuriData.value = resp.data.periods || []
-            const interpResp = await client.post('/ziwei/period', {
+            liuriData.value = data.periods || []
+            const interpData = await fetchZiWeiPeriod({
               chart_id: Number(chartId),
               period_type: 'liuri_interpretation',
               year,
               month,
               day,
             })
-            liuriInterp.value[key] = interpResp.data.periods?.[0] || null
+            liuriInterp.value[key] = interpData.periods?.[0] || null
           }
         }
         break
       case 'sihua':
         if (!Object.keys(sihuaData.value).length) {
-          const resp = await client.post('/ziwei/period', {
+          const data = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'sihua_feixing',
           })
-          sihuaData.value = resp.data.periods || {}
+          sihuaData.value = data.periods || {}
         }
         if (!Object.keys(sihuaChainData.value).length) {
-          const chainResp = await client.post('/ziwei/period', {
+          const chainData = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'sihua_chain',
           })
-          sihuaChainData.value = chainResp.data.chain || {}
+          sihuaChainData.value = chainData.chain || {}
         }
         break
     }
@@ -263,14 +310,23 @@ async function switchTab(tab: string) {
 async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
   if (!route.params.chartId) return
   try {
-    const resp = await client.post('/ziwei/period', {
+    const data = await fetchZiWeiPeriod({
       chart_id: Number(route.params.chartId),
       period_type: 'palace_reading',
       palace_idx: palaceIdx,
     })
-    const reading = resp.data.reading
+    const reading = data.reading
     selectedPalace.value = {
-      palaceName: palace.name,
+      palaceName: reading.palace_name || palace.name,
+      palaceFocus: reading.palace_focus || '',
+      summary: reading.summary || '',
+      keyPoints: reading.key_points || [],
+      evidence: reading.evidence || [],
+      sanfangContext: reading.sanfang_context || null,
+      patternDetails: reading.pattern_details || [],
+      advice: reading.advice || [],
+      riskFlags: reading.risk_flags || [],
+      confidence: reading.confidence || 0,
       mainStarAnalysis: {
         title: '主星特性',
         content: reading.main_star_analysis || '',
@@ -320,6 +376,48 @@ function majorStars(p: any): StarInfo[] {
 function auxStars(p: any): StarInfo[] {
   return (p?.stars || []).filter((s: StarInfo) => s.type !== 'major')
 }
+
+function palaceMajorSignal(p: PalaceData): string {
+  const stars = (p?.stars || [])
+    .filter(s => s.type === 'major')
+    .map(s => s.brightness ? `${s.name}${s.brightness}` : s.name)
+  if (!stars.length) return '空宫'
+  return stars.slice(0, 3).join('、')
+}
+
+function palaceSupportSignal(p: PalaceData): string {
+  const soft = (p?.stars || []).filter(s => ['soft', 'lucun', 'tianma'].includes(s.type)).length
+  const tough = (p?.stars || []).filter(s => s.type === 'tough').length
+  const parts = []
+  if (soft) parts.push(`辅${soft}`)
+  if (tough) parts.push(`煞${tough}`)
+  return parts.length ? parts.join(' / ') : '辅煞少'
+}
+
+function palaceFourHuaLabel(p: PalaceData): string {
+  const count = p?.four_hua?.length || 0
+  return count ? `四化 ${count}` : '无四化'
+}
+
+function palaceFourHuaTitle(p: PalaceData): string {
+  return p?.four_hua?.length ? p.four_hua.join('、') : '本宫无四化'
+}
+
+const chartOverviewItems = computed(() => {
+  const chart = chartData.value
+  if (!chart) return []
+  return [
+    { label: '命主', value: chart.life_master || '未定', hint: '先天性格取象' },
+    { label: '身主', value: chart.body_master || '未定', hint: '后天行动取象' },
+    { label: '五行局', value: chart.five_bureau || '未定', hint: '命盘局数底色' },
+    { label: '身宫', value: chart.body_palace || chart.earthly_branch_of_body_palace || '未定', hint: '现实行动重心' },
+  ]
+})
+
+const chartPatternPreview = computed(() => {
+  const patterns = chartData.value?.patterns || []
+  return patterns.slice(0, 6)
+})
 
 const currentLiuyueInterp = computed(() => {
   if (!liuyueData.value[0]) return null
@@ -452,7 +550,27 @@ const sihuaChainGroups = computed(() => {
         <div class="tab-content">
           <!-- 命盘详解 -->
           <div v-if="activeTab === 'mingpan'" class="mingpan-tab">
-            <p class="tab-desc">选择一个宫位查看主星、辅星、四化详细解读</p>
+            <p class="tab-desc">总览命盘底色，选择宫位查看主星、辅星、四化和三方四正依据</p>
+
+            <section class="chart-overview-panel" v-if="chartData">
+              <div class="overview-items">
+                <div v-for="item in chartOverviewItems" :key="item.label" class="overview-item">
+                  <span class="overview-label">{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                  <small>{{ item.hint }}</small>
+                </div>
+              </div>
+              <div class="overview-patterns">
+                <span class="overview-label">格局</span>
+                <div v-if="chartPatternPreview.length" class="overview-pattern-list">
+                  <span v-for="pattern in chartPatternPreview" :key="pattern">{{ pattern }}</span>
+                  <span v-if="(chartData.patterns?.length || 0) > chartPatternPreview.length" class="more-patterns">
+                    +{{ (chartData.patterns?.length || 0) - chartPatternPreview.length }}
+                  </span>
+                </div>
+                <p v-else>暂无可由当前规则直接验证的格局标签</p>
+              </div>
+            </section>
 
             <div class="palace-quick-grid">
               <button
@@ -467,6 +585,9 @@ const sihuaChainGroups = computed(() => {
               >
                 <span class="palace-pill-name">{{ palace.name }}</span>
                 <span class="palace-pill-branch">{{ palace.branch }}</span>
+                <span class="palace-pill-stars">{{ palaceMajorSignal(palace) }}</span>
+                <span class="palace-pill-meta" :title="palaceFourHuaTitle(palace)">{{ palaceFourHuaLabel(palace) }}</span>
+                <span class="palace-pill-meta support">{{ palaceSupportSignal(palace) }}</span>
                 <span v-if="chartData && (palace.name === chartData.body_palace || palace.is_body_palace)" class="body-badge">身</span>
               </button>
             </div>
@@ -819,21 +940,110 @@ const sihuaChainGroups = computed(() => {
   display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding-top: 2.5rem; padding-bottom: 2.5rem; color: var(--text-muted);
 }
 
+.chart-overview-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.65fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-2) 66%, transparent);
+}
+
+.overview-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 0.5rem;
+}
+
+.overview-item {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-0) 70%, transparent);
+}
+
+.overview-label {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.overview-item strong {
+  display: block;
+  margin-top: 0.18rem;
+  font-size: 0.86rem;
+  color: var(--accent);
+}
+
+.overview-item small {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.56rem;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.overview-patterns {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 4%, transparent);
+}
+
+.overview-pattern-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+}
+
+.overview-pattern-list span {
+  max-width: 100%;
+  padding: 0.08rem 0.4rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
+  color: var(--accent);
+  font-size: 0.58rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.overview-pattern-list .more-patterns {
+  color: var(--text-muted);
+}
+
+.overview-patterns p {
+  margin: 0.45rem 0 0;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
 /* Palace quick grid */
 .palace-quick-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 0.375rem;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
 }
 .palace-pill {
-  display: flex; flex-direction: column; align-items: center; gap: 0.125rem;
-  padding: 0.5rem 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  min-height: 92px;
+  padding: 0.55rem 0.6rem;
   background: var(--accent-dim);
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
   cursor: pointer; transition: all 0.2s;
   font-family: var(--font-sans);
+  text-align: left;
 }
 .palace-pill:hover {
   background: color-mix(in oklab, var(--accent) 8%, transparent);
@@ -850,12 +1060,33 @@ const sihuaChainGroups = computed(() => {
 }
 .palace-pill-name {
   font-size: 0.75rem; font-weight: 600; color: var(--text);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 .palace-pill-branch {
-  font-size: 0.58rem; color: var(--text-muted);
+  font-size: 0.58rem; color: var(--text-muted); text-align:right;
+}
+.palace-pill-stars {
+  grid-column: 1 / -1;
+  min-height: 1rem;
+  font-size: 0.64rem;
+  line-height: 1.25;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+.palace-pill-meta {
+  justify-self: start;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  background: color-mix(in oklab, var(--surface-2) 72%, transparent);
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  padding: 0.05rem 0.35rem;
+}
+.palace-pill-meta.support {
+  justify-self: end;
 }
 .body-badge {
+  justify-self: end;
   font-size: 0.5rem; background: rgba(251, 113, 133, 0.12); color: var(--danger);
   padding: 0.05rem 0.25rem; border-radius: 3px; font-weight: 600;
 }
@@ -1056,5 +1287,15 @@ const sihuaChainGroups = computed(() => {
   .score-bad { background:rgba(251, 113, 133,0.12); color:#f08080; }
 
   .interp-value.danger { color:#f08080; }
+}
+
+@media (max-width: 720px) {
+  .chart-overview-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .palace-quick-grid {
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  }
 }
 </style>

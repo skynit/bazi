@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 const (
 	CalendarSolar = "SOLAR"
 	CalendarLunar = "LUNAR"
@@ -299,7 +301,46 @@ type FeedbackSummaryResponse struct {
 
 type ErrorResponse struct {
 	Error   string `json:"error"`
+	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+type ChartSummaryResponse struct {
+	ID           uint   `json:"id"`
+	Name         string `json:"name"`
+	Gender       string `json:"gender"`
+	BirthYear    int    `json:"birth_year"`
+	BirthMonth   int    `json:"birth_month"`
+	BirthDay     int    `json:"birth_day"`
+	BirthHour    int    `json:"birth_hour"`
+	BirthMin     int    `json:"birth_min"`
+	CalendarType string `json:"calendar_type"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+}
+
+type ChartDetailResponse struct {
+	ChartSummaryResponse
+	YearPillar    json.RawMessage `json:"year_pillar"`
+	MonthPillar   json.RawMessage `json:"month_pillar"`
+	DayPillar     json.RawMessage `json:"day_pillar"`
+	HourPillar    json.RawMessage `json:"hour_pillar"`
+	FiveElements  json.RawMessage `json:"five_elements"`
+	ElementDetail json.RawMessage `json:"element_detail"`
+	BodyStrength  json.RawMessage `json:"body_strength"`
+	TenGods       json.RawMessage `json:"ten_gods"`
+	NaYin         json.RawMessage `json:"na_yin"`
+	DaYunStart    json.RawMessage `json:"da_yun_start"`
+	DaYun         json.RawMessage `json:"da_yun"`
+	ZiWeiResult   json.RawMessage `json:"ziwei_result"`
+	ZiWeiComputed bool            `json:"ziwei_computed"`
+}
+
+type ChartListResponse struct {
+	Charts   []ChartSummaryResponse `json:"charts"`
+	Total    int64                  `json:"total"`
+	Page     int                    `json:"page"`
+	PageSize int                    `json:"page_size"`
 }
 
 type HistoryResponse struct {

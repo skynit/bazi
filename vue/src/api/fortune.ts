@@ -114,6 +114,14 @@ export function parseTrend(json: string): ElementTrendPoint[] {
   try { return JSON.parse(json) as ElementTrendPoint[] } catch { return [] }
 }
 
+export async function fetchDaily(chartId: number, queryDate?: string) {
+  const { data } = await client.post<FortuneDay>('/fortune', {
+    chart_id: chartId,
+    query_date: queryDate,
+  })
+  return data
+}
+
 export async function fetchWeekly(chartId: number, startDate: string) {
   const { data } = await client.post<WeeklyFortuneResponse>('/fortune/weekly', {
     chart_id: chartId,

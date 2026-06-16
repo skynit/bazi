@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import client from '../api/client'
+import { fetchMe as fetchCurrentUser, login as loginApi, register as registerApi } from '../api/auth'
 
 export interface User {
   id: number
   username: string
   email: string
-  created_at: string
+  created_at?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -24,16 +24,18 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login(username: string, password: string) {
-    const res = await client.post('/auth/login', { username, password })
-    console.log('Auth store login response:', res.data)
-    setToken(res.data.token)
-    user.value = res.data.user
+    const data = await loginApi(username, password)
+    setToken(data.token)
+    await fetchMe()
   }
 
   async function register(username: string, email: string, password: string) {
-    const res = await client.post('/auth/register', { username, email, password })
-    setToken(res.data.token)
-    user.value = res.data.user
+    const data = await registerApi(username, email, password)
+    setToken(data.token)
+    user.value = data.user || null
+    if (!user.value) {
+      await fetchMe()
+    }
   }
 
   function logout() {
@@ -42,8 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchMe() {
-    const res = await client.get('/auth/me')
-    user.value = res.data.user
+    user.value = await fetchCurrentUser()
   }
 
   const isLoggedIn = () => !!token.value

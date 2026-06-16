@@ -89,7 +89,7 @@ func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
 
 func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 	if _, exists := c.Get("userID"); !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
@@ -99,13 +99,13 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 		ChartID   uint   `json:"chart_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	svc := h.Service
 	if svc == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
 
@@ -121,11 +121,11 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 		userID, _ := c.Get("userID")
 		birthChart, err := h.Charts.FindByIDForUser(req.ChartID, userID.(uint))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "chart lookup failed"})
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "chart lookup failed")
 			return
 		}
 		if birthChart == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+			respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 			return
 		}
 
@@ -133,7 +133,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			// Serve cached result
 			var cached ziwei.ZiWeiChart
 			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
-				c.JSON(http.StatusOK, mapChartToResponse(&cached))
+				respondJSON(c, http.StatusOK, mapChartToResponse(&cached))
 				return
 			}
 			// If unmarshal fails, fall through to recompute
@@ -141,7 +141,7 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 
 		chart, err := svc.CalculateChart(birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("chart calculation failed: %v", err)})
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("chart calculation failed: %v", err))
 			return
 		}
 
@@ -155,18 +155,18 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			}
 		}
 
-		c.JSON(http.StatusOK, mapChartToResponse(chart))
+		respondJSON(c, http.StatusOK, mapChartToResponse(chart))
 		return
 	}
 
 	// No chart_id: compute from raw birth data (original behavior)
 	chart, err := svc.CalculateChart(req.BirthYear, req.BirthMonth, req.BirthDay, req.BirthHour, req.BirthMin, req.Gender)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("chart calculation failed: %v", err)})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("chart calculation failed: %v", err))
 		return
 	}
 
-	c.JSON(http.StatusOK, mapChartToResponse(chart))
+	respondJSON(c, http.StatusOK, mapChartToResponse(chart))
 }
 
 // RegisterZiWeiRoutes registers the ZiWei chart calculation route.

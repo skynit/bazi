@@ -20,8 +20,25 @@ export interface FeedbackResponse {
   status: string
 }
 
+export interface FeedbackSummaryItem {
+  rating: FeedbackRating
+  count: number
+}
+
+export interface FeedbackSummaryResponse {
+  chart_id: number
+  total: number
+  items: FeedbackSummaryItem[]
+}
+
 export async function submitFeedback(payload: FeedbackRequest) {
   const { data } = await client.post<FeedbackResponse>('/feedback', payload)
   return data
 }
 
+export async function fetchFeedbackSummary(chartId: number) {
+  const { data } = await client.get<FeedbackSummaryResponse>('/feedback/summary', {
+    params: { chart_id: chartId },
+  })
+  return data
+}

@@ -71,7 +71,7 @@ type PeriodSummary struct {
 	Liunian LiunianSummaryItem `json:"liunian"`
 	Liuyue  LiuyueSummaryItem  `json:"liuyue"`
 	Liuri   LiuriSummaryItem   `json:"liuri"`
-	Advice  PeriodAdvice        `json:"advice"`
+	Advice  PeriodAdvice       `json:"advice"`
 }
 
 type LiunianSummaryItem struct {
@@ -193,10 +193,10 @@ func getShiShen(stem, dayStem int) string {
 		return "劫财"
 	}
 
-	isSeal := ((stemEle + 1) % 5 == dayEle)
-	isFood := ((dayEle + 1) % 5 == stemEle)
-	isOfficer := ((stemEle + 2) % 5 == dayEle)
-	isWealth := ((dayEle + 2) % 5 == stemEle)
+	isSeal := ((stemEle+1)%5 == dayEle)
+	isFood := ((dayEle+1)%5 == stemEle)
+	isOfficer := ((stemEle+2)%5 == dayEle)
+	isWealth := ((dayEle+2)%5 == stemEle)
 
 	switch {
 	case isSeal:
@@ -311,9 +311,10 @@ func (s *PeriodInterpreter) evaluateScore(stem int, periodBranch int) int {
 	}
 
 	rel := relationPair(periodBranch, s.birthData.DayBranch)
-	if rel == "六冲" || rel == "自刑" || rel == "伏吟" || rel == "三刑" {
+	switch rel {
+	case "六冲", "自刑", "伏吟", "三刑":
 		score -= 10
-	} else if rel == "六合" {
+	case "六合":
 		score += 10
 	}
 

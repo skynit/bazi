@@ -1,6 +1,20 @@
 import axios from 'axios'
 import router from '../router'
 
+export interface ApiErrorResponse {
+  error: string
+  code?: string
+  message?: string
+}
+
+export function getApiErrorMessage(error: unknown, fallback = '请求失败'): string {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    const payload = error.response?.data
+    return payload?.message || payload?.error || fallback
+  }
+  return error instanceof Error ? error.message : fallback
+}
+
 const client = axios.create({
   baseURL: '/api',
   timeout: 15000,

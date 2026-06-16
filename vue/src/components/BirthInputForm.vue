@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import client from '../api/client'
+import { createChart } from '../api/chart'
 import { Button } from '@/components/ui/button'
 
 const router = useRouter()
@@ -49,7 +49,7 @@ async function handleSubmit() {
   loading.value = true
   errMsg.value = ''
   try {
-    const res = await client.post('/chart', {
+    const data = await createChart({
       birth_year: form.value.year,
       birth_month: form.value.month,
       birth_day: form.value.day,
@@ -59,14 +59,14 @@ async function handleSubmit() {
       gender: form.value.gender.toUpperCase(),
       name: '',
     })
-    sessionStorage.setItem('lastChart', JSON.stringify(res.data))
+    sessionStorage.setItem('lastChart', JSON.stringify(data))
     const birthInfo = {
       year: form.value.year,
       month: form.value.month,
       day: form.value.day,
       shichen: form.value.shichen,
       gender: form.value.gender,
-      chartId: res.data.id,
+      chartId: data.id,
     }
     localStorage.setItem('bazi_last_birth', JSON.stringify(birthInfo))
     router.push('/chart/new?_t=' + Date.now())

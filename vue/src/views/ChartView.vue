@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import client from '../api/client'
+import { fetchChart, fetchCharts } from '../api/chart'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
 import ComputationLog from '../components/ComputationLog.vue'
@@ -77,9 +77,7 @@ async function fetchSavedCharts() {
   chartsLoading.value = true
   chartsError.value = ''
   try {
-    const { data } = await client.get('/charts', {
-      params: { page: 1, page_size: 10 },
-    })
+    const data = await fetchCharts(1, 10)
     savedCharts.value = data.charts
     showPicker.value = data.charts.length > 0
   } catch (err: any) {
@@ -124,8 +122,7 @@ async function loadChart() {
   loading.value = true
   error.value = ''
   try {
-    const res = await client.get(`/charts/${route.params.id}`)
-    const chart = res.data.chart || res.data
+    const chart = await fetchChart(String(route.params.id))
     chartData.value = chart
     cacheLastBirthFromChart(chart)
   } catch (err: any) {

@@ -27,18 +27,18 @@ type AuthHandler struct {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	if req.Username == "" || req.Password == "" || req.Email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username, email, and password are required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "username, email, and password are required")
 		return
 	}
 
 	// Check for duplicate username.
 	if existing, _ := h.Store.FindByUsername(req.Username); existing != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "username already exists"})
+		respondError(c, http.StatusConflict, ErrCodeConflict, "username already exists")
 		return
 	}
 
@@ -47,22 +47,22 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Email:    req.Email,
 	}
 	if err := user.SetPassword(req.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to hash password")
 		return
 	}
 
 	if err := h.Store.Create(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to create user")
 		return
 	}
 
 	token, err := middleware.GenerateToken(user.ID, user.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to generate token")
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	respondJSON(c, http.StatusCreated, gin.H{
 		"user": model.RegisterResponse{
 			ID:       user.ID,
 			Username: user.Username,
@@ -76,28 +76,28 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req model.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	user, err := h.Store.FindByUsername(req.Username)
 	if err != nil || user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "invalid username or password")
 		return
 	}
 
 	if !user.CheckPassword(req.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "invalid username or password")
 		return
 	}
 
 	token, err := middleware.GenerateToken(user.ID, user.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to generate token")
 		return
 	}
 
-	c.JSON(http.StatusOK, model.LoginResponse{Token: token})
+	respondJSON(c, http.StatusOK, model.LoginResponse{Token: token})
 }
 
 // Me handles GET /api/auth/me.
@@ -105,25 +105,27 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Me(c *gin.Context) {
 	userIDVal, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	userID, ok := userIDVal.(uint)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id in context"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "invalid user id in context")
 		return
 	}
 
 	user, err := h.Store.FindByID(userID)
 	if err != nil || user == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "user not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, model.RegisterResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+	respondJSON(c, http.StatusOK, gin.H{
+		"user": model.RegisterResponse{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+		},
 	})
 }

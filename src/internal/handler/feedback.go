@@ -31,42 +31,42 @@ type FeedbackHandler struct {
 func (h *FeedbackHandler) Create(c *gin.Context) {
 	uid, ok := authUserID(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	var req model.FeedbackRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 	if req.ChartID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id is required")
 		return
 	}
 	rating := strings.TrimSpace(req.Rating)
 	if !validFeedbackRating(rating) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid rating"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid rating")
 		return
 	}
 	comment := strings.TrimSpace(req.Comment)
 	if utf8.RuneCountInString(comment) > maxFeedbackCommentRunes {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "comment is too long"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "comment is too long")
 		return
 	}
 	if h == nil || h.Charts == nil || h.Feedback == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
 	chart, err := h.Charts.FindByIDForUser(req.ChartID, uid)
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
 	tagsJSON, err := json.Marshal(cleanFeedbackTags(req.Tags))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tags"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid tags")
 		return
 	}
 	targetType := strings.TrimSpace(req.TargetType)
@@ -87,39 +87,39 @@ func (h *FeedbackHandler) Create(c *gin.Context) {
 		ConsentTraining: req.ConsentTraining,
 	}
 	if err := h.Feedback.Create(feedback); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save feedback"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to save feedback")
 		return
 	}
 
-	c.JSON(http.StatusOK, model.FeedbackResponse{ID: feedback.ID, Status: "ok"})
+	respondJSON(c, http.StatusOK, model.FeedbackResponse{ID: feedback.ID, Status: "ok"})
 }
 
 func (h *FeedbackHandler) Summary(c *gin.Context) {
 	uid, ok := authUserID(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 	chartID, ok := parseUintQuery(c, "chart_id")
 	if !ok || chartID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id is required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id is required")
 		return
 	}
 	if h == nil || h.Charts == nil || h.Feedback == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "service not available"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
 	chart, err := h.Charts.FindByIDForUser(uint(chartID), uid)
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 	items, total, err := h.Feedback.SummaryByChartID(uid, uint(chartID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to query feedback"})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to query feedback")
 		return
 	}
-	c.JSON(http.StatusOK, model.FeedbackSummaryResponse{
+	respondJSON(c, http.StatusOK, model.FeedbackSummaryResponse{
 		ChartID: uint(chartID),
 		Total:   total,
 		Items:   items,

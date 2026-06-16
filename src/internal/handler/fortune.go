@@ -23,24 +23,24 @@ type FortuneHandler struct {
 func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 	var req model.FortuneRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	if req.ChartID == 0 || req.QueryDate == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "chart_id and query_date are required"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart_id and query_date are required")
 		return
 	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	chart, err := h.ChartStore.FindByIDForUser(req.ChartID, userID.(uint))
 	if err != nil || chart == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "chart not found"})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
 
@@ -51,13 +51,13 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		chart.BirthHour, chart.BirthMin, gender,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to compute chart: " + err.Error()})
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to compute chart: "+err.Error())
 		return
 	}
 
 	queryDate, err := time.ParseInLocation("2006-01-02", req.QueryDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query_date format, expected YYYY-MM-DD"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid query_date format, expected YYYY-MM-DD")
 		return
 	}
 
@@ -134,5 +134,5 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 	resp.Analysis = analysis
 	resp.Score = analysis.Overall.Score
 
-	c.JSON(http.StatusOK, resp)
+	respondJSON(c, http.StatusOK, resp)
 }

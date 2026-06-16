@@ -55,7 +55,7 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint, userID uint) (*ziwei.ZiWeiCh
 func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
@@ -69,13 +69,13 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		ChartID2   uint   `json:"chart_id2"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	chart, _, err := h.getChart(req.ChartID, userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, err.Error())
 		return
 	}
 
@@ -102,7 +102,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				Description: dayunDesc(d.Palace, d.StartAge),
 			}
 		}
-		c.JSON(http.StatusOK, gin.H{"periods": enriched})
+		respondJSON(c, http.StatusOK, gin.H{"periods": enriched})
 
 	case "liunian":
 		year := req.Year
@@ -113,7 +113,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		resp := mapChartToResponse(liunian)
 		resp["year"] = year
 		resp["description"] = fmt.Sprintf("%d年流年星曜分布，各宫依次更换", year)
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
 
 	case "liuyue":
 		month := req.Month
@@ -129,7 +129,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		resp["year"] = year
 		resp["month"] = month
 		resp["description"] = fmt.Sprintf("%d年%d月流月星曜分布", year, month)
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
 
 	case "liuri":
 		day := req.Day
@@ -150,26 +150,26 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		resp["month"] = month
 		resp["day"] = day
 		resp["description"] = fmt.Sprintf("%d年%d月%d日流日星曜分布", year, month, day)
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
 
 	case "sihua_feixing":
 		flying := svc.AnalyzeFlyingStars(chart)
 		// Remove unused fields, return clean struct
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"periods":     flying,
 			"description": "四化飞星：化禄/化权/化科/化忌在各宫的分布",
 		})
 
 	case "sihua_chain":
 		chain := svc.AnalyzeSihuaChain(chart)
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"chain":       chain,
 			"description": "四化飞星链式分析：追踪每颗四化星的来源宫位与链式影响",
 		})
 
 	case "self_mutagen":
 		result := svc.AnalyzeSelfMutagen(chart)
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"self_mutagens": result,
 			"description":   "自化检测：分析星曜在同宫的自化现象（化禄/化权/化科/化忌留本宫）",
 		})
@@ -177,21 +177,21 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 	case "palace_reading":
 		reading := svc.GetPalaceReading(chart, req.PalaceIdx)
 		if reading == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid palace index"})
+			respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid palace index")
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"reading": reading,
 		})
 
 	case "heming":
 		chart2, _, err := h.getChart(req.ChartID2, userID.(uint))
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			respondError(c, http.StatusNotFound, ErrCodeNotFound, err.Error())
 			return
 		}
 		result := svc.AnalyzeHeming(chart, chart2)
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"heming": result,
 		})
 
@@ -203,7 +203,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		liunian := svc.CalculateLiunian(chart, year)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiunian(liunian, year)
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{
 			{
 				"year":             result.Year,
 				"gan_zhi":          result.GanZhi,
@@ -228,7 +228,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		liuyue := svc.CalculateLiuyue(chart, month)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiuyue(liuyue, year, month)
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{
 			{
 				"year":             result.Year,
 				"month":            result.Month,
@@ -268,7 +268,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				"score":       ha.Score,
 			}
 		}
-		c.JSON(http.StatusOK, gin.H{"periods": []gin.H{
+		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{
 			{
 				"year":             result.Year,
 				"month":            result.Month,
@@ -304,7 +304,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		liuri := svc.CalculateLiuri(chart, day)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		summary := interp.SummarizeAll(liunian, liuyue, liuri, year, month, day)
-		c.JSON(http.StatusOK, gin.H{"summary": summary})
+		respondJSON(c, http.StatusOK, gin.H{"summary": summary})
 
 	case "liu_nian_stars":
 		year := req.Year
@@ -312,13 +312,13 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			year = time.Now().Year()
 		}
 		liunian := svc.CalculateLiunian(chart, year)
-		c.JSON(http.StatusOK, gin.H{
+		respondJSON(c, http.StatusOK, gin.H{
 			"palaces": liunian.LiuNianStars,
 			"year":    year,
 		})
 
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown period_type"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "unknown period_type")
 	}
 }
 
@@ -326,7 +326,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
@@ -335,13 +335,13 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 		Year    int  `json:"year"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid"})
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid request body")
 		return
 	}
 
 	chart, _, err := h.getChart(req.ChartID, userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		respondError(c, http.StatusNotFound, ErrCodeNotFound, err.Error())
 		return
 	}
 
@@ -349,7 +349,7 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 	result := mapChartToResponse(liunian)
 	result["year"] = req.Year
 	result["liu_nian_stars"] = liunian.LiuNianStars
-	c.JSON(http.StatusOK, result)
+	respondJSON(c, http.StatusOK, result)
 }
 
 func dayunDesc(palace string, startAge int) string {

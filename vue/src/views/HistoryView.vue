@@ -1,37 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import client from '../api/client'
-interface BirthChart {
-  id: number
-  name: string
-  gender: string
-  birth_year: number
-  birth_month: number
-  birth_day: number
-  birth_hour: number
-  birth_min: number
-  calendar_type: string
-  created_at: string
-}
-
-interface ChartListResponse {
-  charts: BirthChart[]
-  total: number
-  page: number
-  page_size: number
-}
+import { fetchCharts as fetchChartList, type ChartSummary } from '../api/chart'
 
 const router = useRouter()
 
-const charts = ref<BirthChart[]>([])
+const charts = ref<ChartSummary[]>([])
 const loading = ref(true)
 const error = ref('')
 const total = ref(0)
 const page = ref(1)
 const pageSize = 10
 
-function formatBirth(c: BirthChart): string {
+function formatBirth(c: ChartSummary): string {
   const m = String(c.birth_month).padStart(2, '0')
   const d = String(c.birth_day).padStart(2, '0')
   const h = String(c.birth_hour).padStart(2, '0')
@@ -56,13 +37,11 @@ function goFortuneHistory(chartId: number) {
   router.push(`/fortune?chart_id=${chartId}`)
 }
 
-async function fetchCharts(p: number) {
+async function loadCharts(p: number) {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await client.get<ChartListResponse>('/charts', {
-      params: { page: p, page_size: pageSize },
-    })
+    const data = await fetchChartList(p, pageSize)
     charts.value = data.charts
     total.value = data.total
     page.value = data.page
@@ -74,15 +53,15 @@ async function fetchCharts(p: number) {
 }
 
 function prevPage() {
-  if (page.value > 1) fetchCharts(page.value - 1)
+  if (page.value > 1) loadCharts(page.value - 1)
 }
 
 function nextPage() {
-  if (page.value * pageSize < total.value) fetchCharts(page.value + 1)
+  if (page.value * pageSize < total.value) loadCharts(page.value + 1)
 }
 
 onMounted(() => {
-  fetchCharts(1)
+  loadCharts(1)
 })
 </script>
 
@@ -119,7 +98,7 @@ onMounted(() => {
           </svg>
         </div>
         <p class="error-text">{{ error }}</p>
-        <button class="btn-retry" @click="fetchCharts(1)">重新加载</button>
+        <button class="btn-retry" @click="loadCharts(1)">重新加载</button>
       </div>
 
       <!-- Chart List -->
@@ -135,7 +114,7 @@ onMounted(() => {
                 <span class="meta-sep">·</span>
                 <span>{{ formatBirth(chart) }}</span>
               </p>
-              <p class="card-date">创建于 {{ formatDate(chart.created_at) }}</p>
+              <p class="card-date">创建于 {{ formatDate(chart.created_at || '') }}</p>
             </div>
           </div>
           <div class="card-actions">

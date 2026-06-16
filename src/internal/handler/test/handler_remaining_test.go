@@ -65,12 +65,7 @@ func TestListCharts_PaginationEdgeCases(t *testing.T) {
 				return
 			}
 
-			var resp struct {
-				Charts   []model.BirthChart `json:"charts"`
-				Total    int64              `json:"total"`
-				Page     int                `json:"page"`
-				PageSize int                `json:"page_size"`
-			}
+			var resp model.ChartListResponse
 			if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 				t.Fatalf("failed to parse: %v", err)
 			}
