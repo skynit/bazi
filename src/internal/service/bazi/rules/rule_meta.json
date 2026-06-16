@@ -1,0 +1,100 @@
+{
+  "rule_version": "bazi-rules-2026-06-16",
+  "school": "子平八字-扶抑调候-v1",
+  "tables": [
+    {
+      "key": "ten_god_matrix",
+      "name": "十神矩阵",
+      "version": "2026-06-16.1",
+      "school": "子平十神",
+      "source": "五行生克与阴阳同异",
+      "description": "以日干为主，按同我、我生、生我、我克、克我与阴阳同异推导十神。"
+    },
+    {
+      "key": "hidden_stems",
+      "name": "地支藏干",
+      "version": "2026-06-16.1",
+      "school": "子平藏干",
+      "source": "tyme4go MAIN/MIDDLE/RESIDUAL",
+      "description": "按本气、中气、余气返回藏干，并在强弱评分中采用 0.6/0.3/0.1 权重。"
+    },
+    {
+      "key": "nayin",
+      "name": "六十甲子纳音",
+      "version": "2026-06-16.1",
+      "school": "纳音五行",
+      "source": "内置三十纳音知识库",
+      "description": "六十甲子映射到三十纳音，并附纳音五行、取象与断语。"
+    },
+    {
+      "key": "twelve_stage",
+      "name": "十二长生",
+      "version": "2026-06-16.1",
+      "school": "长生十二宫",
+      "source": "阳顺阴逆长生表",
+      "description": "用于日课地支状态和身强评分的长生、临官、帝旺等阶段判断。"
+    },
+    {
+      "key": "branch_relations",
+      "name": "刑冲合害破",
+      "version": "2026-06-16.1",
+      "school": "地支作用",
+      "source": "三命通会、协纪辨方书常用关系表",
+      "description": "覆盖六合、六冲、六害、三刑、六破、三合、三会。"
+    },
+    {
+      "key": "shensha",
+      "name": "神煞规则",
+      "version": "2026-06-16.1",
+      "school": "子平神煞",
+      "source": "内置年干、年支、月支、日干、日柱及全局神煞表",
+      "description": "按柱位和全局条件触发天乙、太极、禄神、华盖、驿马等神煞。"
+    },
+    {
+      "key": "tiaohou",
+      "name": "调候用神",
+      "version": "2026-06-16.1",
+      "school": "穷通宝鉴",
+      "source": "日干十二月调候表",
+      "description": "以日干、月令取调候喜忌，并参与中和命局的喜用排序。"
+    },
+    {
+      "key": "body_strength",
+      "name": "身强身弱评分",
+      "version": "2026-06-16.1",
+      "school": "扶抑法",
+      "source": "得令40%、得地30%、得势20%、得生10% + 禄刃加成",
+      "description": "输出分项分数、归一化权重、后验修正与喜忌证据。"
+    },
+    {
+      "key": "fortune_layers",
+      "name": "运势分层",
+      "version": "2026-06-16.1",
+      "school": "大运流年流月小运叠加",
+      "source": "命局与查询日期干支作用",
+      "description": "按大运、流年、流月、小运分层输出干支、年龄/年份、关系、神煞与五行变化。"
+    }
+  ],
+  "body_strength": {
+    "weights": {
+      "ling": 0.4,
+      "di": 0.3,
+      "shi": 0.2,
+      "sheng": 0.1,
+      "bonus": 1.0
+    },
+    "normalizers": {
+      "ling": 3.0,
+      "di": 7.0,
+      "shi_sigmoid_divisor": 1.5,
+      "sheng_sigmoid_divisor": 1.5
+    },
+    "adjustment_thresholds": {
+      "deling_restrict_ratio": 0.4,
+      "deling_multiplier": 0.75,
+      "shiling_support_force": 5.0,
+      "shiling_blend_self": 0.75,
+      "shiling_blend_neutral": 0.25
+    }
+  }
+}

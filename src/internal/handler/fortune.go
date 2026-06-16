@@ -107,6 +107,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		TiaoHou:             data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
 		SeasonElementAdvice: fortune.SeasonElementAdvice,
 		FlowImpact:          fortune.FlowImpact,
+		ShengKeAnalysis:     model.ShengKeAnalysis(fortune.ShengKe),
 		FortuneLayers:       fortune.Layers,
 	}
 	// 日课推算结果

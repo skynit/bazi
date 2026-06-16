@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bazi/internal/model"
+	"bazi/internal/service/bazi"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
@@ -73,6 +74,9 @@ func chartSummaryResponse(chart model.BirthChart) model.ChartSummaryResponse {
 func chartDetailResponse(chart model.BirthChart) model.ChartDetailResponse {
 	return model.ChartDetailResponse{
 		ChartSummaryResponse: chartSummaryResponse(chart),
+		RuleVersion:          bazi.RuleVersion,
+		School:               bazi.RuleSchool,
+		RuleMeta:             bazi.DefaultRuleMeta(),
 		YearPillar:           jsonFromDB(chart.YearPillar),
 		MonthPillar:          jsonFromDB(chart.MonthPillar),
 		DayPillar:            jsonFromDB(chart.DayPillar),
@@ -89,6 +93,59 @@ func chartDetailResponse(chart model.BirthChart) model.ChartDetailResponse {
 	}
 }
 
+func chartDetailResponseWithBazi(chart model.BirthChart, result *bazi.BaziResult) model.ChartDetailResponse {
+	resp := chartDetailResponse(chart)
+	if result == nil {
+		return resp
+	}
+
+	resp.RuleVersion = result.RuleVersion
+	resp.School = result.School
+	resp.RuleMeta = result.RuleMeta
+	resp.YearPillar = jsonFromValue(result.YearPillar)
+	resp.MonthPillar = jsonFromValue(result.MonthPillar)
+	resp.DayPillar = jsonFromValue(result.DayPillar)
+	resp.HourPillar = jsonFromValue(result.HourPillar)
+	resp.FiveElements = jsonFromValue(result.FiveElements)
+	resp.ElementDetail = jsonFromValue(result.ElementDetail)
+	resp.BodyStrength = jsonFromValue(result.BodyStrength)
+	resp.TenGods = jsonFromValue(result.TenGods)
+	resp.NaYin = jsonFromValue(result.NaYin)
+	resp.HiddenStems = jsonFromValue(result.HiddenStems)
+	resp.DaYunStart = jsonFromValue(result.DaYunInfo)
+	resp.DaYun = jsonFromValue(result.DaYunInfo)
+	resp.ClashHarmony = jsonFromValue(result.ClashHarmony)
+	resp.GanZhiAnalysis = jsonFromValue(result.GanZhiAnalysis)
+	resp.PatternAnalysis = jsonFromValue(result.PatternAnalysis)
+	resp.MingGong = jsonFromValue(result.MingGong)
+	resp.RiZhuDesc = result.RiZhuDesc
+	resp.PillarDetails = jsonFromValue(result.PillarDetails)
+	resp.TiaoHou = result.DayStemTiaoHou
+	resp.Tiaohou = jsonFromValue(result.Tiaohou)
+	resp.GlobalShenSha = jsonFromValue(result.GlobalShenSha)
+	resp.GlobalShenShaDetails = jsonFromValue(result.GlobalShenShaDetails)
+	resp.JinBuHuan = result.DayStemJinBuHuan
+	resp.DayShenSha = jsonFromValue(result.DayShenSha)
+	resp.DayShenShaDetails = jsonFromValue(result.DayShenShaDetails)
+	resp.SeasonText = result.SeasonText
+	resp.SeasonTextMonth = result.SeasonTextMonth
+	resp.RiZhuPoem = result.RiZhuPoem
+	resp.RiZhuSource = result.RiZhuSource
+	resp.RiZhuComment = result.RiZhuComment
+	resp.RiZhuHourDetail = result.RiZhuHourDetail
+	resp.ShenShaByPillar = jsonFromValue(result.ShenShaByPillar)
+	resp.ShenShaSummary = jsonFromValue(result.ShenShaSummary)
+	resp.TenGodProportion = jsonFromValue(result.TenGodProportion)
+	resp.TenGodAnalysis = jsonFromValue(result.TenGodAnalysis)
+	resp.WuxingSeasonNote = result.WuxingSeasonNote
+	resp.WuXingFlow = jsonFromValue(result.WuXingFlow)
+	resp.TongGuan = jsonFromValue(result.TongGuan)
+	resp.MissingElements = jsonFromValue(result.MissingElements)
+	resp.FlowPatternDesc = result.FlowPatternDesc
+	resp.DaYunFlow = jsonFromValue(result.DaYunFlow)
+	return resp
+}
+
 func jsonFromDB(raw datatypes.JSON) json.RawMessage {
 	if len(raw) == 0 || !json.Valid(raw) {
 		return json.RawMessage("null")
@@ -96,6 +153,14 @@ func jsonFromDB(raw datatypes.JSON) json.RawMessage {
 	out := make([]byte, len(raw))
 	copy(out, raw)
 	return json.RawMessage(out)
+}
+
+func jsonFromValue(v interface{}) json.RawMessage {
+	b, err := json.Marshal(v)
+	if err != nil || !json.Valid(b) {
+		return json.RawMessage("null")
+	}
+	return json.RawMessage(b)
 }
 
 func formatAPITime(t time.Time) string {

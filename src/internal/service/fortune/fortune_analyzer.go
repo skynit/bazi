@@ -5,62 +5,16 @@ import (
 	"strings"
 	"time"
 
+	"bazi/internal/model"
 	bazipkg "bazi/internal/service/bazi"
 	"bazi/internal/service/data"
 )
 
-// FortuneAnalysis is the detailed daily fortune reading.
-type FortuneAnalysis struct {
-	SolarDate   string          `json:"solar_date"`
-	LunarDate   string          `json:"lunar_date"`
-	UserBazi    string          `json:"user_bazi"`
-	TodayGanZhi string          `json:"today_gan_zhi"`
-	TodayElem   string          `json:"today_element"`
-	Overall     OverallAnalysis `json:"overall"`
-	Categories  []CategoryScore `json:"categories"`
-	Hourly      []HourlyFortune `json:"hourly"`
-	LuckyGuide  LuckyGuide      `json:"lucky_guide"`
-}
-
-type OverallAnalysis struct {
-	Score       int    `json:"score"`
-	BaseScore   int    `json:"base_score"`
-	DetailScore int    `json:"detail_score"`
-	Stars       string `json:"stars"`
-	Level       string `json:"level"`
-	Summary     string `json:"summary"`
-	KeyTip      string `json:"key_tip"`
-}
-
-type CategoryScore struct {
-	Name     string   `json:"name"`
-	Score    int      `json:"score"`
-	Weight   int      `json:"weight"`
-	Stars    string   `json:"stars"`
-	Level    string   `json:"level"`
-	Trend    string   `json:"trend"`
-	Keywords []string `json:"keywords"`
-	Analysis string   `json:"analysis"`
-	Advice   string   `json:"advice"`
-}
-
-type HourlyFortune struct {
-	Shichen    string `json:"shichen"`
-	TimeRange  string `json:"time_range"`
-	Mood       string `json:"mood"`
-	Suggestion string `json:"suggestion"`
-}
-
-type LuckyGuide struct {
-	Colors           string   `json:"colors"`
-	Numbers          string   `json:"numbers"`
-	Actions          string   `json:"actions"`
-	AvoidDir         string   `json:"avoid_dir"`
-	FaceDir          string   `json:"face_dir"`
-	Outfit           string   `json:"outfit"`
-	FavorableElems   []string `json:"favorable_elems"`   // 喜用五行
-	UnfavorableElems []string `json:"unfavorable_elems"` // 忌五行
-}
+type FortuneAnalysis = model.FortuneAnalysis
+type OverallAnalysis = model.OverallAnalysis
+type CategoryScore = model.CategoryScore
+type HourlyFortune = model.HourlyFortune
+type LuckyGuide = model.LuckyGuide
 
 // data.GanElements and data.ZhiElements are defined in data_gans.go.
 // Use data.GanElements[GanIndex(gan)] for stem elements and data.ZhiElements[ZhiIndex(zhi)] for branch elements.
@@ -952,7 +906,10 @@ func isUnfavorable(elem string, dislike []string) bool {
 
 // ── 格式化输出 ───────────────────────────────────────────────
 
-func (fa *FortuneAnalysis) FormatAnalysis() string {
+func FormatAnalysis(fa *FortuneAnalysis) string {
+	if fa == nil {
+		return ""
+	}
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("%s 运势详解\n", fa.SolarDate))
 	sb.WriteString(fmt.Sprintf("您的八字：%s\n", fa.UserBazi))

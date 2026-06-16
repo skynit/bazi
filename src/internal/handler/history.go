@@ -6,6 +6,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
+	"bazi/internal/service/bazi"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,7 @@ type FortuneHistoryStore interface {
 type HistoryHandler struct {
 	Charts         ChartListStore
 	FortuneHistory FortuneHistoryStore
+	Bazi           *bazi.BaziService
 }
 
 // ListCharts handles GET /api/charts.
@@ -84,7 +86,24 @@ func (h *HistoryHandler) GetChart(c *gin.Context) {
 		return
 	}
 
-	respondJSON(c, http.StatusOK, chartDetailResponse(*chart))
+	resp := chartDetailResponse(*chart)
+	if h.Bazi != nil {
+		result, err := h.Bazi.Calculate(
+			chart.BirthYear,
+			chart.BirthMonth,
+			chart.BirthDay,
+			chart.BirthHour,
+			chart.BirthMin,
+			normalizeGender(chart.Gender),
+		)
+		if err != nil {
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to calculate birth chart")
+			return
+		}
+		resp = chartDetailResponseWithBazi(*chart, result)
+	}
+
+	respondJSON(c, http.StatusOK, resp)
 }
 
 // FortuneHistoryList handles GET /api/fortune/history?chart_id=X.
@@ -132,7 +151,7 @@ func (h *HistoryHandler) FortuneHistoryList(c *gin.Context) {
 
 // RegisterHistoryRoutes registers history routes on the given router.
 func RegisterHistoryRoutes(router *gin.Engine, charts ChartListStore, fortuneHistory FortuneHistoryStore) {
-	h := &HistoryHandler{Charts: charts, FortuneHistory: fortuneHistory}
+	h := &HistoryHandler{Charts: charts, FortuneHistory: fortuneHistory, Bazi: &bazi.BaziService{}}
 
 	api := router.Group("/api")
 	api.Use(middleware.AuthMiddleware())

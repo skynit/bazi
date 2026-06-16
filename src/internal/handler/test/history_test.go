@@ -171,6 +171,12 @@ func TestGetChartByID(t *testing.T) {
 	if chart.Name != "Test Chart" {
 		t.Errorf("expected chart name 'Test Chart', got '%s'", chart.Name)
 	}
+	if chart.RuleVersion == "" || chart.School == "" {
+		t.Fatalf("expected rule version and school, got version=%q school=%q", chart.RuleVersion, chart.School)
+	}
+	if len(chart.RuleMeta.Tables) == 0 {
+		t.Fatal("expected chart detail rule metadata")
+	}
 
 	var raw map[string]interface{}
 	if err := json.Unmarshal(w.Body.Bytes(), &raw); err != nil {
@@ -181,6 +187,26 @@ func TestGetChartByID(t *testing.T) {
 	}
 	if _, ok := raw["DeletedAt"]; ok {
 		t.Error("chart detail DTO must not expose gorm deleted state")
+	}
+	for _, key := range []string{
+		"ten_gods",
+		"gan_zhi_analysis",
+		"pillar_details",
+		"ming_gong",
+		"tiaohou",
+		"day_shen_sha",
+		"shen_sha_by_pillar",
+		"shen_sha_summary",
+		"ten_god_analysis",
+		"flow_pattern_desc",
+		"dayun_flow",
+	} {
+		if value, ok := raw[key]; !ok || value == nil {
+			t.Errorf("chart detail DTO missing display field %q", key)
+		}
+	}
+	if desc, ok := raw["flow_pattern_desc"].(string); !ok || desc == "" {
+		t.Error("chart detail DTO should include non-empty flow_pattern_desc for fortune tab")
 	}
 }
 

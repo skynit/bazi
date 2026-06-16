@@ -12,16 +12,69 @@ import (
 
 var layerElementOrder = []string{"木", "火", "土", "金", "水"}
 
+// PeriodLayerCalculator calculates one fortune-period layer.
+type PeriodLayerCalculator interface {
+	Key() string
+	Calculate(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer
+}
+
+type daYunLayerCalculator struct{}
+type liuNianLayerCalculator struct{}
+type liuYueLayerCalculator struct{}
+type xiaoYunLayerCalculator struct{}
+
+func (daYunLayerCalculator) Key() string   { return "dayun" }
+func (liuNianLayerCalculator) Key() string { return "liunian" }
+func (liuYueLayerCalculator) Key() string  { return "liuyue" }
+func (xiaoYunLayerCalculator) Key() string { return "xiaoyun" }
+
+func (daYunLayerCalculator) Calculate(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
+	return buildDaYunLayer(bazi, queryDate, birthYear)
+}
+
+func (liuNianLayerCalculator) Calculate(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
+	return buildLiuNianLayer(bazi, queryDate)
+}
+
+func (liuYueLayerCalculator) Calculate(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
+	return buildLiuYueLayer(bazi, queryDate, birthYear)
+}
+
+func (xiaoYunLayerCalculator) Calculate(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
+	return buildXiaoYunLayer(bazi, queryDate, birthYear)
+}
+
+var defaultPeriodLayerCalculators = []PeriodLayerCalculator{
+	daYunLayerCalculator{},
+	liuNianLayerCalculator{},
+	liuYueLayerCalculator{},
+	xiaoYunLayerCalculator{},
+}
+
 // BuildFortuneLayers returns 大运、流年、流月、小运 as explicit layers.
 func BuildFortuneLayers(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayerSet {
-	return model.FortuneLayerSet{
+	return BuildFortuneLayersWithCalculators(bazi, queryDate, birthYear, defaultPeriodLayerCalculators)
+}
+
+func BuildFortuneLayersWithCalculators(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int, calculators []PeriodLayerCalculator) model.FortuneLayerSet {
+	layers := model.FortuneLayerSet{
 		RuleVersion: bazipkg.RuleVersion,
 		School:      bazipkg.RuleSchool,
-		DaYun:       buildDaYunLayer(bazi, queryDate, birthYear),
-		LiuNian:     buildLiuNianLayer(bazi, queryDate),
-		LiuYue:      buildLiuYueLayer(bazi, queryDate, birthYear),
-		XiaoYun:     buildXiaoYunLayer(bazi, queryDate, birthYear),
 	}
+	for _, calculator := range calculators {
+		layer := calculator.Calculate(bazi, queryDate, birthYear)
+		switch calculator.Key() {
+		case "dayun":
+			layers.DaYun = layer
+		case "liunian":
+			layers.LiuNian = layer
+		case "liuyue":
+			layers.LiuYue = layer
+		case "xiaoyun":
+			layers.XiaoYun = layer
+		}
+	}
+	return layers
 }
 
 func buildDaYunLayer(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
@@ -94,6 +147,7 @@ func baseLayer(key, name, pillar string, bazi *bazipkg.BaziResult, queryDate tim
 		ElementChange:    pillarElementChange(gan, zhi),
 		Relations:        layerRelations(gan, zhi, bazi, queryDate),
 		ActivatedShenSha: layerShenShaNames(gan, zhi, bazi),
+		ShenShaDetails:   layerShenShaDetails(gan, zhi, bazi),
 	}
 	if gan != "" {
 		layer.TenGod = bazipkg.ClassifyTenGod(gan, bazi.DayPillar.Gan, false)
@@ -234,6 +288,13 @@ func layerShenShaNames(gan, zhi string, bazi *bazipkg.BaziResult) []string {
 		}
 	}
 	return names
+}
+
+func layerShenShaDetails(gan, zhi string, bazi *bazipkg.BaziResult) []model.ShenShaActivation {
+	if gan == "" || zhi == "" {
+		return nil
+	}
+	return calcShenShaActivation(gan, zhi, bazi)
 }
 
 func offsetPillar(p model.Pillar, offset int) string {

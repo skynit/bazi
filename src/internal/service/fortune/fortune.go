@@ -91,13 +91,7 @@ type ElementTrendPoint struct {
 	Earth float64 `json:"earth"`
 }
 
-// ShengKeAnalysis describes the generating/overcoming (生克) relationship
-// between the user's day pillar and the query date's day pillar.
-type ShengKeAnalysis struct {
-	DayStemRelation   string `json:"day_stem_relation"`
-	DayBranchRelation string `json:"day_branch_relation"`
-	Summary           string `json:"summary"`
-}
+type ShengKeAnalysis = model.ShengKeAnalysis
 
 var stemToElement = map[string]string{
 	"甲": "木", "乙": "木",

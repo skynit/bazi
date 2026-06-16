@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="太极">
+  <circle cx="32" cy="32" r="30" fill="#f8fafc" stroke="#111827" stroke-width="3"/>
+  <path d="M32 2a30 30 0 0 1 0 60 15 15 0 0 1 0-30 15 15 0 0 0 0-30Z" fill="#111827"/>
+  <circle cx="32" cy="17" r="5" fill="#111827"/>
+  <circle cx="32" cy="47" r="5" fill="#f8fafc"/>
+</svg>

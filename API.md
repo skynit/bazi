@@ -167,7 +167,7 @@ GET /api/charts?page=1&page_size=10
 GET /api/charts/:id
 ```
 
-响应为 `ChartDetailResponse` DTO，不直接返回 `BirthChart` 存储模型；包含基础出生信息、四柱与分析 JSON、`da_yun_start`、兼容别名 `da_yun`、`ziwei_result`、`ziwei_computed`。不会返回 `user_id`、`DeletedAt`、关联 `User` 等持久化内部字段。
+响应为 `ChartDetailResponse` DTO，不直接返回 `BirthChart` 存储模型；包含基础出生信息、四柱、十神、神煞、干支关系、格局、调候、命宫、运势详批所需字段、`da_yun_start`、兼容别名 `da_yun`、`ziwei_result`、`ziwei_computed`。历史详情会按出生信息重新计算确定性展示字段，保证与新建排盘响应一致；不会返回 `user_id`、`DeletedAt`、关联 `User` 等持久化内部字段。
 
 ## 运势
 

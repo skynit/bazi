@@ -114,6 +114,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 	resp := model.FortuneResponse{
 		RuleVersion:         df.Layers.RuleVersion,
 		School:              df.Layers.School,
+		RuleMeta:            bazi.DefaultRuleMeta(),
 		SolarDate:           df.Date,
 		DayGanZhi:           df.DayPillar.Gan + df.DayPillar.Zhi,
 		YiJi:                yiJi,
@@ -130,6 +131,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		TodayElements:       df.TodayElements,
 		SeasonElementAdvice: df.SeasonElementAdvice,
 		FlowImpact:          df.FlowImpact,
+		ShengKeAnalysis:     model.ShengKeAnalysis(df.ShengKe),
 		FortuneLayers:       df.Layers,
 	}
 	if rikuyo := df.Rikuyo; rikuyo != nil {

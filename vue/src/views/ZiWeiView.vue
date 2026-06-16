@@ -414,11 +414,6 @@ const chartOverviewItems = computed(() => {
   ]
 })
 
-const chartPatternPreview = computed(() => {
-  const patterns = chartData.value?.patterns || []
-  return patterns.slice(0, 6)
-})
-
 const currentLiuyueInterp = computed(() => {
   if (!liuyueData.value[0]) return null
   const key = `${selectedLiunianYear.value}-${liuyueData.value[0].month}`
@@ -562,11 +557,8 @@ const sihuaChainGroups = computed(() => {
               </div>
               <div class="overview-patterns">
                 <span class="overview-label">格局</span>
-                <div v-if="chartPatternPreview.length" class="overview-pattern-list">
-                  <span v-for="pattern in chartPatternPreview" :key="pattern">{{ pattern }}</span>
-                  <span v-if="(chartData.patterns?.length || 0) > chartPatternPreview.length" class="more-patterns">
-                    +{{ (chartData.patterns?.length || 0) - chartPatternPreview.length }}
-                  </span>
+                <div v-if="chartData.patterns?.length" class="overview-pattern-list">
+                  <span v-for="(pattern, index) in chartData.patterns" :key="index">{{ pattern }}</span>
                 </div>
                 <p v-else>暂无可由当前规则直接验证的格局标签</p>
               </div>

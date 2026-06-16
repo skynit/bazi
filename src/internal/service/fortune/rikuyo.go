@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"bazi/internal/model"
 	bazipkg "bazi/internal/service/bazi"
 	"bazi/internal/service/data"
 )
@@ -48,15 +49,15 @@ type RikuyoResult struct {
 	FavorScore     int    `json:"favor_score"`
 
 	// 格局信息
-	PatternName         string   `json:"pattern_name"`
-	PatternType         string   `json:"pattern_type"`
-	PatternFavorable    []string `json:"pattern_favorable"`
-	PatternUnfavorable  []string `json:"pattern_unfavorable"`
+	PatternName        string   `json:"pattern_name"`
+	PatternType        string   `json:"pattern_type"`
+	PatternFavorable   []string `json:"pattern_favorable"`
+	PatternUnfavorable []string `json:"pattern_unfavorable"`
 
 	// 建除十二神
-	JianChuName   string `json:"jian_chu_name"`
-	JianChuFavor  string `json:"jian_chu_favor"`
-	JianChuDesc   string `json:"jian_chu_desc"`
+	JianChuName  string `json:"jian_chu_name"`
+	JianChuFavor string `json:"jian_chu_favor"`
+	JianChuDesc  string `json:"jian_chu_desc"`
 
 	// 彭祖百忌
 	PengzuGanTaboo string `json:"pengzu_gan_taboo"`
@@ -72,83 +73,14 @@ type RikuyoResult struct {
 	DayClassAdvice  string `json:"day_class_advice"`
 }
 
-// HiddenStemGod 地支藏干及其十神
-type HiddenStemGod struct {
-	Stem      string `json:"stem"`       // 藏干天干
-	Type      string `json:"type"`       // 本气/中气/余气
-	Element   string `json:"element"`    // 五行
-	TenGod    string `json:"ten_god"`    // 十神名称
-	Favorable bool   `json:"favorable"`  // 喜还是忌
-}
-
-// StemRelation 天干关系
-type StemRelation struct {
-	Type       string `json:"type"`       // 五合/相克/相生
-	Target     string `json:"target"`     // 命局天干
-	Detail     string `json:"detail"`     // 具体关系描述
-	IsFavorable bool  `json:"is_favorable"`
-	Note       string `json:"note"`       // 备注（如贪合忘克）
-}
-
-// BranchRelation 地支关系
-type BranchRelation struct {
-	Type       string `json:"type"`       // 六合/六冲/六害/三刑/三合/三会
-	Target     string `json:"target"`     // 命局地支
-	Detail     string `json:"detail"`
-	IsFavorable bool  `json:"is_favorable"`
-}
-
-// ShenShaActivation 神煞引动
-type ShenShaActivation struct {
-	Name        string `json:"name"`         // 神煞名称
-	Type        string `json:"type"`         // 吉神/凶煞
-	Description string `json:"description"`  // 含义
-	Activation  string `json:"activation"`   // 引动方式
-}
-
-// DaYunInfluence 大运影响
-type DaYunInfluence struct {
-	CurrentPillar string `json:"current_pillar"` // 当前大运干支
-	StartAge      int    `json:"start_age"`      // 起运年龄
-	EndAge        int    `json:"end_age"`        // 结束年龄
-	TenGod        string `json:"ten_god"`        // 大运天干对日主的十神
-	Favorable     bool   `json:"favorable"`      // 大运是否有利
-	Relation      string `json:"relation"`       // 今日与大运的关系
-	Score         int    `json:"score"`          // 大运对今日的影响分
-	Description   string `json:"description"`
-}
-
-// LiuNianInfluence 流年影响
-type LiuNianInfluence struct {
-	YearPillar  string `json:"year_pillar"`  // 流年干支
-	TenGod      string `json:"ten_god"`      // 流年天干对日主的十神
-	Favorable   bool   `json:"favorable"`    // 流年是否有利
-	Relation    string `json:"relation"`     // 今日与流年的关系
-	TaiSuiRelation string `json:"tai_sui_relation"` // 太岁关系（岁伤日干/日犯岁君）
-	Score       int    `json:"score"`
-	Description string `json:"description"`
-}
-
-// AdvanceRetreat 进退气分析
-type AdvanceRetreat struct {
-	Phase       string `json:"phase"`       // 进气/当令/退气/无气
-	PhaseDesc   string `json:"phase_desc"`  // 阶段描述
-	Element     string `json:"element"`     // 分析的五行
-	Score       int    `json:"score"`       // 进退气得分
-	Description string `json:"description"` // 综合说明
-}
-
-// YongShenImpact 用神综合影响
-type YongShenImpact struct {
-	TiaoHouElement string `json:"tiao_hou_element"` // 调候用神五行
-	TiaoHouHit     bool   `json:"tiao_hou_hit"`     // 今日是否生扶调候用神
-	TongGuanElement string `json:"tong_guan_element"` // 通关用神五行
-	TongGuanHit    bool   `json:"tong_guan_hit"`
-	FuYiElements   []string `json:"fu_yi_elements"`  // 扶抑喜用五行
-	FuYiHit        bool   `json:"fu_yi_hit"`
-	Score          int    `json:"score"`
-	Description    string `json:"description"`
-}
+type HiddenStemGod = model.HiddenStemGod
+type StemRelation = model.StemRelation
+type BranchRelation = model.BranchRelation
+type ShenShaActivation = model.ShenShaActivation
+type DaYunInfluence = model.DaYunInfluence
+type LiuNianInfluence = model.LiuNianInfluence
+type AdvanceRetreat = model.AdvanceRetreat
+type YongShenImpact = model.YongShenImpact
 
 // ── 速查表数据 ──────────────────────────────────────────────
 
@@ -192,29 +124,29 @@ var stageDescriptions = map[string]string{
 	"冠带": "气渐长，如少年加冠。主渐进成长，学业有成。",
 	"临官": "气旺盛，如入仕为官。主兴盛发达，事业顺遂。",
 	"帝旺": "气极盛，如日中天。主极盛巅峰，但盛极必衰。",
-	"衰": "气始退，如人过壮年。主退败渐衰，力不从心。",
-	"病": "气已弱，如人患病。主困顿多事，诸事不顺。",
-	"死": "气已绝，如人已死。主丧祸大凶，宜守不宜进。",
-	"墓": "气收藏，如入墓库。主停滞阻滞，蓄势待发。",
-	"绝": "气完全消失，如断根之木。主断绝极凶，但绝处逢生。",
-	"胎": "气重新凝聚，如胎儿孕育。主孕育潜伏，韬光养晦。",
-	"养": "气渐充盈，如婴儿哺育。主滋养蓄势，蓄积力量。",
+	"衰":  "气始退，如人过壮年。主退败渐衰，力不从心。",
+	"病":  "气已弱，如人患病。主困顿多事，诸事不顺。",
+	"死":  "气已绝，如人已死。主丧祸大凶，宜守不宜进。",
+	"墓":  "气收藏，如入墓库。主停滞阻滞，蓄势待发。",
+	"绝":  "气完全消失，如断根之木。主断绝极凶，但绝处逢生。",
+	"胎":  "气重新凝聚，如胎儿孕育。主孕育潜伏，韬光养晦。",
+	"养":  "气渐充盈，如婴儿哺育。主滋养蓄势，蓄积力量。",
 }
 
 // hiddenStemMap 地支藏干表 [地支索引] = {本气, 中气, 余气}
 var hiddenStemMap = [12][3]string{
-	{"癸", "", ""},       // 子
-	{"己", "癸", "辛"},   // 丑
-	{"甲", "丙", "戊"},   // 寅
-	{"乙", "", ""},       // 卯
-	{"戊", "乙", "癸"},   // 辰
-	{"丙", "庚", "戊"},   // 巳
-	{"丁", "己", ""},     // 午
-	{"己", "丁", "乙"},   // 未
-	{"庚", "壬", "戊"},   // 申
-	{"辛", "", ""},       // 酉
-	{"戊", "辛", "丁"},   // 戌
-	{"壬", "甲", ""},     // 亥
+	{"癸", "", ""},   // 子
+	{"己", "癸", "辛"}, // 丑
+	{"甲", "丙", "戊"}, // 寅
+	{"乙", "", ""},   // 卯
+	{"戊", "乙", "癸"}, // 辰
+	{"丙", "庚", "戊"}, // 巳
+	{"丁", "己", ""},  // 午
+	{"己", "丁", "乙"}, // 未
+	{"庚", "壬", "戊"}, // 申
+	{"辛", "", ""},   // 酉
+	{"戊", "辛", "丁"}, // 戌
+	{"壬", "甲", ""},  // 亥
 }
 
 // stemCombineMap 天干五合 map[天干] = 合化对象
@@ -508,37 +440,37 @@ func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *R
 	dayClassSummary, dayClassAdvice := calcDayClassSummary(jianChuName, jianChuFav, huangDaoName, huangDaoFav, pengzuGan, pengzuZhi)
 
 	return &RikuyoResult{
-		TodayTenGod:      tenGod,
-		TenGodFavorable:  tenGodFavorable,
-		TenGodDesc:       tenGodDescriptions[tenGod],
-		TwelveStage:      stage,
-		StageFavorable:   stageFav,
-		StageDesc:        stageDescriptions[stage],
-		StageFlexible:    flexible,
-		HiddenStems:      hiddenStems,
-		StemRelations:    stemRels,
-		BranchRelations:  branchRels,
-		ActivatedShenSha: shenSha,
-		DaYunInfluence:   daYun,
-		LiuNianInfluence: liuNian,
-		AdvanceRetreat:   advanceRetreat,
-		YongShenImpact:   yongShen,
-		OverallVerdict:   verdict,
-		FavorScore:       score,
-		PatternName:         bazi.PatternAnalysis.PatternName,
-		PatternType:         bazi.PatternAnalysis.PatternType,
-		PatternFavorable:    bazi.PatternAnalysis.FavorableElements,
-		PatternUnfavorable:  bazi.PatternAnalysis.UnfavorableElements,
-		JianChuName:      jianChuName,
-		JianChuFavor:     jianChuFav,
-		JianChuDesc:      jianChuD,
-		PengzuGanTaboo:   pengzuGan,
-		PengzuZhiTaboo:   pengzuZhi,
-		HuangDaoName:      huangDaoName,
-		HuangDaoFavorable: huangDaoFav,
-		HuangDaoDesc:      huangDaoDesc,
-		DayClassSummary:   dayClassSummary,
-		DayClassAdvice:    dayClassAdvice,
+		TodayTenGod:        tenGod,
+		TenGodFavorable:    tenGodFavorable,
+		TenGodDesc:         tenGodDescriptions[tenGod],
+		TwelveStage:        stage,
+		StageFavorable:     stageFav,
+		StageDesc:          stageDescriptions[stage],
+		StageFlexible:      flexible,
+		HiddenStems:        hiddenStems,
+		StemRelations:      stemRels,
+		BranchRelations:    branchRels,
+		ActivatedShenSha:   shenSha,
+		DaYunInfluence:     daYun,
+		LiuNianInfluence:   liuNian,
+		AdvanceRetreat:     advanceRetreat,
+		YongShenImpact:     yongShen,
+		OverallVerdict:     verdict,
+		FavorScore:         score,
+		PatternName:        bazi.PatternAnalysis.PatternName,
+		PatternType:        bazi.PatternAnalysis.PatternType,
+		PatternFavorable:   bazi.PatternAnalysis.FavorableElements,
+		PatternUnfavorable: bazi.PatternAnalysis.UnfavorableElements,
+		JianChuName:        jianChuName,
+		JianChuFavor:       jianChuFav,
+		JianChuDesc:        jianChuD,
+		PengzuGanTaboo:     pengzuGan,
+		PengzuZhiTaboo:     pengzuZhi,
+		HuangDaoName:       huangDaoName,
+		HuangDaoFavorable:  huangDaoFav,
+		HuangDaoDesc:       huangDaoDesc,
+		DayClassSummary:    dayClassSummary,
+		DayClassAdvice:     dayClassAdvice,
 	}
 }
 
@@ -899,47 +831,40 @@ func calcShenShaActivation(todayGan, todayZhi string, bazi *bazipkg.BaziResult) 
 	if guas, ok := tianYiGuiren[dayGan]; ok {
 		for _, g := range guas {
 			if todayZhi == g {
-				result = append(result, ShenShaActivation{
-					Name:        "天乙贵人",
-					Type:        "吉神",
-					Description: "命中最尊贵之神，所至之处凶煞隐避。主当日有贵人相助，逢凶化吉。",
-					Activation:  fmt.Sprintf("今日地支%s为%s的天乙贵人位", todayZhi, dayGan),
-				})
+				result = append(result, newShenShaActivation("天乙贵人", "吉神", "命中最尊贵之神，所至之处凶煞隐避。主当日有贵人相助，逢凶化吉。", fmt.Sprintf("今日地支%s为%s的天乙贵人位", todayZhi, dayGan)))
 			}
 		}
 	}
 
 	// 驿马
 	if yiMa[dayZhi] == todayZhi {
-		result = append(result, ShenShaActivation{
-			Name:        "驿马",
-			Type:        "吉神",
-			Description: "主出行变动、消息到来。当日有出行、变动之象。",
-			Activation:  fmt.Sprintf("今日地支%s为日支%s的驿马位", todayZhi, dayZhi),
-		})
+		result = append(result, newShenShaActivation("驿马", "吉神", "主出行变动、消息到来。当日有出行、变动之象。", fmt.Sprintf("今日地支%s为日支%s的驿马位", todayZhi, dayZhi)))
 	}
 
 	// 桃花
 	if taoHua[dayZhi] == todayZhi {
-		result = append(result, ShenShaActivation{
-			Name:        "桃花",
-			Type:        "吉神",
-			Description: "主异性缘、人缘佳。当日社交活跃，人缘旺盛。",
-			Activation:  fmt.Sprintf("今日地支%s为日支%s的桃花位", todayZhi, dayZhi),
-		})
+		result = append(result, newShenShaActivation("桃花", "吉神", "主异性缘、人缘佳。当日社交活跃，人缘旺盛。", fmt.Sprintf("今日地支%s为日支%s的桃花位", todayZhi, dayZhi)))
 	}
 
 	// 禄神
 	if luShen[dayGan] == todayZhi {
-		result = append(result, ShenShaActivation{
-			Name:        "禄神",
-			Type:        "吉神",
-			Description: "主俸禄、财禄。当日得禄，事业财运有助力。",
-			Activation:  fmt.Sprintf("今日地支%s为%s的禄神位", todayZhi, dayGan),
-		})
+		result = append(result, newShenShaActivation("禄神", "吉神", "主俸禄、财禄。当日得禄，事业财运有助力。", fmt.Sprintf("今日地支%s为%s的禄神位", todayZhi, dayGan)))
 	}
 
 	return result
+}
+
+func newShenShaActivation(name, typ, description, activation string) ShenShaActivation {
+	meta := bazipkg.LookupShenShaMeta(name)
+	return ShenShaActivation{
+		Name:        name,
+		Type:        typ,
+		Category:    meta.Category,
+		Polarity:    meta.Polarity,
+		Priority:    meta.Priority,
+		Description: description,
+		Activation:  activation,
+	}
 }
 
 // ── 步骤七：大运叠加 ──────────────────────────────────────

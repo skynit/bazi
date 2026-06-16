@@ -97,7 +97,7 @@ func main() {
 		ah := &handler.AIStubHandler{}
 		api.POST("/fortune/ai", ah.AnalyzeFortune)
 		api.GET("/auth/me", auth.Me)
-		hh := &handler.HistoryHandler{Charts: cs, FortuneHistory: fs}
+		hh := &handler.HistoryHandler{Charts: cs, FortuneHistory: fs, Bazi: baziSvc}
 		api.GET("/charts", hh.ListCharts)
 		api.GET("/charts/:id", hh.GetChart)
 		api.GET("/fortune/history", hh.FortuneHistoryList)
