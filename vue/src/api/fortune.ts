@@ -27,6 +27,9 @@ export interface FortuneGuide {
 
 /** Backend FortuneResponse — server JSON keys (snake_case). */
 export interface FortuneDay {
+  rule_version?: string
+  school?: string
+  rule_meta?: unknown
   solar_date: string
   lunar_date?: string
   day_gan_zhi: string
@@ -65,7 +68,38 @@ export interface FortuneDay {
   pattern_unfavorable?: string[]
   overall_verdict?: string
   favor_score?: number
+  fortune_layers?: FortuneLayerSet
   element_images?: Array<{ element: string; image_url: string; description: string }>
+}
+
+export interface FortuneLayerSet {
+  rule_version: string
+  school: string
+  dayun: FortuneLayer
+  liunian: FortuneLayer
+  liuyue: FortuneLayer
+  xiaoyun: FortuneLayer
+}
+
+export interface FortuneLayer {
+  key: string
+  name: string
+  pillar: string
+  gan: string
+  zhi: string
+  start_age?: number
+  end_age?: number
+  age?: number
+  year?: number
+  month?: number
+  ten_god: string
+  favorable: boolean
+  score: number
+  relations: Array<{ target: string; type: string; detail: string; score: number }>
+  activated_shen_sha: string[]
+  element_change: Record<string, number>
+  description: string
+  evidence: string[]
 }
 
 export interface FortuneSummary {

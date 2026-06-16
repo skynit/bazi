@@ -56,6 +56,9 @@ func (s *BaziService) CalculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, h
 	ec := tyme.EightChar{}.FromSixtyCycle(*yearSC, *monthSC, *daySC, *hourSC)
 
 	result := &BaziResult{
+		RuleVersion: RuleVersion,
+		School:      RuleSchool,
+		RuleMeta:    DefaultRuleMeta(),
 		YearPillar:  yearP,
 		MonthPillar: monthP,
 		DayPillar:   dayP,

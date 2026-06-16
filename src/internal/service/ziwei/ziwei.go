@@ -312,6 +312,11 @@ func (s *ZiWeiService) GetPalaceReading(chart *ZiWeiChart, palaceIdx int) *Palac
 	return GetPalaceReading(chart, palaceIdx)
 }
 
+// BuildQueryView returns a precomputed query surface for palace/star lookups.
+func (s *ZiWeiService) BuildQueryView(chart *ZiWeiChart) *QueryView {
+	return BuildQueryView(chart)
+}
+
 // AnalyzeHeming performs compatibility analysis between two charts.
 func (s *ZiWeiService) AnalyzeHeming(chartA, chartB *ZiWeiChart) *HemingResult {
 	return AnalyzeHeming(chartA, chartB)

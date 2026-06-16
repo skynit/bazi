@@ -37,46 +37,49 @@ type BaziService struct{}
 
 // BaziResult holds the complete BaZi calculation output.
 type BaziResult struct {
-	YearPillar       model.Pillar         `json:"year_pillar"`
-	MonthPillar      model.Pillar         `json:"month_pillar"`
-	DayPillar        model.Pillar         `json:"day_pillar"`
-	HourPillar       model.Pillar         `json:"hour_pillar"`
-	FiveElements     map[string]int       `json:"five_elements"`
-	ElementDetail    []ElementStrength    `json:"element_detail"`
-	BodyStrength     BodyStrengthResult   `json:"body_strength"`
-	TenGods          map[string]string    `json:"ten_gods"`
-	NaYin            map[string]NaYinInfo `json:"na_yin"`
-	HiddenStems      map[string][]string  `json:"hidden_stems"`
-	DaYunInfo        DaYunInfo            `json:"da_yun_info"`
-	ClashHarmony     []ClashRelation      `json:"clash_harmony"`
-	GanZhiAnalysis   GanZhiAnalysis       `json:"gan_zhi_analysis"`
-	PatternAnalysis PatternAnalysis      `json:"pattern_analysis"`
-	MingGong         data.MingGongDetail      `json:"ming_gong"`
-	RiZhuDesc        string               `json:"ri_zhu_desc"`
-	PillarDetails    []PillarDetail       `json:"pillar_details"`
-	DayStemTiaoHou   string               `json:"tiao_hou"`
-	DayStemJinBuHuan string               `json:"jin_bu_huan"`
-	DayShenSha       []string             `json:"day_shen_sha"`
-	ShenShaByPillar  []PillarShenSha      `json:"shen_sha_by_pillar"`
-	GlobalShenSha    []string             `json:"global_shen_sha"`
-	ShenShaSummary   *ShenShaSummary      `json:"shen_sha_summary"`
-	SeasonText       string               `json:"season_text"`
-	SeasonTextMonth  string               `json:"season_text_month"` // month-specific data.YueTexts when available
-	TenGodProportion []TenGodRatio        `json:"ten_god_proportion"`
-	TenGodAnalysis   *TenGodAnalysis      `json:"ten_god_analysis"`
-	RiZhuPoem        string               `json:"ri_zhu_poem"`
-	RiZhuSource      string               `json:"ri_zhu_source"`
-	RiZhuComment     string               `json:"ri_zhu_comment"`
-	RiZhuHourDetail  string               `json:"ri_zhu_hour_detail"`
-	JiaZiDetail      *data.JiaZiEntry            `json:"jia_zi_detail"`       // 《三命通会》60甲子性质
-	WuxingSeasonNote string                     `json:"wuxing_season_note"`  // 五行四时论分析
-	HealthNote       string                     `json:"health_note"`         // 五行疾病提示
-	Tiaohou          *TiaohouResult             `json:"tiaohou"`             // 《穷通宝鉴》调候用神分析
-	WuXingFlow       data.WuXingFlowAnalysis    `json:"wuxing_flow"`         // 五行流通分析
-	TongGuan         data.TongGuanAnalysis      `json:"tong_guan"`           // 通关用神
-	MissingElements  data.MissingElementAnalysis `json:"missing_elements"`    // 缺失五行
-	FlowPatternDesc  string                     `json:"flow_pattern_desc"`   // 流通格局描述
-	DaYunFlow        []data.DaYunFlowItem        `json:"dayun_flow"`          // 大运流通影响
+	RuleVersion      string                      `json:"rule_version"`
+	School           string                      `json:"school"`
+	RuleMeta         RuleMeta                    `json:"rule_meta"`
+	YearPillar       model.Pillar                `json:"year_pillar"`
+	MonthPillar      model.Pillar                `json:"month_pillar"`
+	DayPillar        model.Pillar                `json:"day_pillar"`
+	HourPillar       model.Pillar                `json:"hour_pillar"`
+	FiveElements     map[string]int              `json:"five_elements"`
+	ElementDetail    []ElementStrength           `json:"element_detail"`
+	BodyStrength     BodyStrengthResult          `json:"body_strength"`
+	TenGods          map[string]string           `json:"ten_gods"`
+	NaYin            map[string]NaYinInfo        `json:"na_yin"`
+	HiddenStems      map[string][]string         `json:"hidden_stems"`
+	DaYunInfo        DaYunInfo                   `json:"da_yun_info"`
+	ClashHarmony     []ClashRelation             `json:"clash_harmony"`
+	GanZhiAnalysis   GanZhiAnalysis              `json:"gan_zhi_analysis"`
+	PatternAnalysis  PatternAnalysis             `json:"pattern_analysis"`
+	MingGong         data.MingGongDetail         `json:"ming_gong"`
+	RiZhuDesc        string                      `json:"ri_zhu_desc"`
+	PillarDetails    []PillarDetail              `json:"pillar_details"`
+	DayStemTiaoHou   string                      `json:"tiao_hou"`
+	DayStemJinBuHuan string                      `json:"jin_bu_huan"`
+	DayShenSha       []string                    `json:"day_shen_sha"`
+	ShenShaByPillar  []PillarShenSha             `json:"shen_sha_by_pillar"`
+	GlobalShenSha    []string                    `json:"global_shen_sha"`
+	ShenShaSummary   *ShenShaSummary             `json:"shen_sha_summary"`
+	SeasonText       string                      `json:"season_text"`
+	SeasonTextMonth  string                      `json:"season_text_month"` // month-specific data.YueTexts when available
+	TenGodProportion []TenGodRatio               `json:"ten_god_proportion"`
+	TenGodAnalysis   *TenGodAnalysis             `json:"ten_god_analysis"`
+	RiZhuPoem        string                      `json:"ri_zhu_poem"`
+	RiZhuSource      string                      `json:"ri_zhu_source"`
+	RiZhuComment     string                      `json:"ri_zhu_comment"`
+	RiZhuHourDetail  string                      `json:"ri_zhu_hour_detail"`
+	JiaZiDetail      *data.JiaZiEntry            `json:"jia_zi_detail"`      // 《三命通会》60甲子性质
+	WuxingSeasonNote string                      `json:"wuxing_season_note"` // 五行四时论分析
+	HealthNote       string                      `json:"health_note"`        // 五行疾病提示
+	Tiaohou          *TiaohouResult              `json:"tiaohou"`            // 《穷通宝鉴》调候用神分析
+	WuXingFlow       data.WuXingFlowAnalysis     `json:"wuxing_flow"`        // 五行流通分析
+	TongGuan         data.TongGuanAnalysis       `json:"tong_guan"`          // 通关用神
+	MissingElements  data.MissingElementAnalysis `json:"missing_elements"`   // 缺失五行
+	FlowPatternDesc  string                      `json:"flow_pattern_desc"`  // 流通格局描述
+	DaYunFlow        []data.DaYunFlowItem        `json:"dayun_flow"`         // 大运流通影响
 }
 
 // ElementStrength holds the strength breakdown for one element.
@@ -90,15 +93,51 @@ type ElementStrength struct {
 
 // BodyStrengthResult holds the body strength conclusion.
 type BodyStrengthResult struct {
-	Verdict    string   `json:"verdict"`
-	Like       []string `json:"like"`
-	Dislike    []string `json:"dislike"`
-	TotalScore float64  `json:"total_score"`
-	LingScore  float64  `json:"ling_score"`
-	DiScore    float64  `json:"di_score"`
-	ShiScore   float64  `json:"shi_score"`
-	ShengScore float64  `json:"sheng_score"`
-	LuBonus    float64  `json:"lu_bonus"`
+	RuleVersion string                   `json:"rule_version"`
+	School      string                   `json:"school"`
+	Verdict     string                   `json:"verdict"`
+	Like        []string                 `json:"like"`
+	Dislike     []string                 `json:"dislike"`
+	TotalScore  float64                  `json:"total_score"`
+	LingScore   float64                  `json:"ling_score"`
+	DiScore     float64                  `json:"di_score"`
+	ShiScore    float64                  `json:"shi_score"`
+	ShengScore  float64                  `json:"sheng_score"`
+	LuBonus     float64                  `json:"lu_bonus"`
+	Components  []BodyStrengthComponent  `json:"components"`
+	Evidence    []BodyStrengthEvidence   `json:"evidence"`
+	Adjustments []BodyStrengthAdjustment `json:"adjustments"`
+	Summary     string                   `json:"summary"`
+}
+
+// BodyStrengthComponent is one weighted part of the strength score.
+type BodyStrengthComponent struct {
+	Key             string  `json:"key"`
+	Name            string  `json:"name"`
+	RawScore        float64 `json:"raw_score"`
+	NormalizedScore float64 `json:"normalized_score"`
+	Weight          float64 `json:"weight"`
+	WeightedScore   float64 `json:"weighted_score"`
+	Description     string  `json:"description"`
+}
+
+// BodyStrengthEvidence is a computable fact that affected the verdict.
+type BodyStrengthEvidence struct {
+	Component string  `json:"component"`
+	Polarity  string  `json:"polarity"`
+	Source    string  `json:"source"`
+	Item      string  `json:"item"`
+	Score     float64 `json:"score"`
+	Reason    string  `json:"reason"`
+}
+
+// BodyStrengthAdjustment records posterior corrections such as 得令不旺.
+type BodyStrengthAdjustment struct {
+	Name        string  `json:"name"`
+	Before      float64 `json:"before"`
+	After       float64 `json:"after"`
+	Reason      string  `json:"reason"`
+	Description string  `json:"description"`
 }
 
 // DaYunInfo describes the major fortune cycle (大运).
@@ -167,7 +206,11 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 
 	ec := st.GetLunarHour().GetEightChar()
 
-	result := &BaziResult{}
+	result := &BaziResult{
+		RuleVersion: RuleVersion,
+		School:      RuleSchool,
+		RuleMeta:    DefaultRuleMeta(),
+	}
 
 	// --- four pillars ---
 	result.YearPillar = pillarFromSixtyCycle(ec.GetYear())
@@ -536,9 +579,9 @@ func isRestrict(gan string, dayElem string) bool {
 	// 我克(耗): day克gan
 	ke := map[string]string{"木": "土", "火": "金", "土": "水", "金": "木", "水": "火"}
 	sheng := map[string]string{"木": "火", "火": "土", "土": "金", "金": "水", "水": "木"}
-	return ke[tg.WuXing] == dayElem ||        // 克我
-		sheng[dayElem] == tg.WuXing ||        // 我生(泄)
-		ke[dayElem] == tg.WuXing              // 我克(耗)
+	return ke[tg.WuXing] == dayElem || // 克我
+		sheng[dayElem] == tg.WuXing || // 我生(泄)
+		ke[dayElem] == tg.WuXing // 我克(耗)
 }
 
 // zangGanWeight returns the藏干 weight for a given earth branch position.
@@ -588,6 +631,56 @@ func changShengWeight(dayElem, branch string) float64 {
 	return 1.0
 }
 
+func hideStemTypeLabel(t tyme.HideHeavenStemType) string {
+	switch t {
+	case tyme.MAIN:
+		return "本气"
+	case tyme.MIDDLE:
+		return "中气"
+	case tyme.RESIDUAL:
+		return "余气"
+	default:
+		return "藏干"
+	}
+}
+
+func normalizedBodyScore(v float64) float64 {
+	if v < 0 {
+		return 0
+	}
+	if v > 1 {
+		return 1
+	}
+	return math.Round(v*10000) / 10000
+}
+
+func verdictForBodyStrength(score float64) string {
+	switch {
+	case score > 0.7:
+		return "身旺"
+	case score > 0.5:
+		return "偏旺"
+	case score > 0.4:
+		return "中和"
+	case score > 0.3:
+		return "偏弱"
+	default:
+		return "身弱"
+	}
+}
+
+func bodyStrengthSummary(dayGan, dayElem, verdict string, totalScore float64, like, dislike []string) string {
+	return fmt.Sprintf(
+		"%s日主属%s，综合得分%.3f，判为%s。喜%s，忌%s。",
+		dayGan,
+		dayElem,
+		totalScore,
+		verdict,
+		strings.Join(like, "、"),
+		strings.Join(dislike, "、"),
+	)
+}
+
 func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	dayStem := ec.GetDay().GetHeavenStem()
 	dayElem := dayStem.GetElement().GetName()
@@ -597,6 +690,16 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 
 	// 1. 得令
 	lingScore := getYueLingScore(dayElem, monthElem)
+	evidence := []BodyStrengthEvidence{
+		{
+			Component: "ling",
+			Polarity:  "support",
+			Source:    "月令",
+			Item:      monthBranch.GetName(),
+			Score:     lingScore,
+			Reason:    fmt.Sprintf("日主%s遇%s月，月令五行为%s，得令原始分%.2f。", dayElem, monthBranch.GetName(), monthElem, lingScore),
+		},
+	}
 
 	pillars := [](func() tyme.SixtyCycle){ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour}
 
@@ -629,6 +732,14 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 					w *= 1.2
 				}
 				diScore += w
+				evidence = append(evidence, BodyStrengthEvidence{
+					Component: "di",
+					Polarity:  "support",
+					Source:    branchName,
+					Item:      hName,
+					Score:     w,
+					Reason:    fmt.Sprintf("%s支%s为%s，属%s同气通根，长生权重%.1f。", branchName, hName, hideStemTypeLabel(hhs.GetType()), dayElem, csW),
+				})
 			}
 		}
 	}
@@ -645,9 +756,11 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	if luZhi, ok := luMap[dayGanName]; ok {
 		if dayBranchName == luZhi {
 			luBonus += 0.08 // 专禄：日支为禄，直接加成
+			evidence = append(evidence, BodyStrengthEvidence{Component: "bonus", Polarity: "support", Source: "日支", Item: dayBranchName, Score: 0.08, Reason: "日支坐禄，专禄加成。"})
 		}
 		if monthBranchName == luZhi {
 			luBonus += 0.06 // 建禄：月支为禄
+			evidence = append(evidence, BodyStrengthEvidence{Component: "bonus", Polarity: "support", Source: "月支", Item: monthBranchName, Score: 0.06, Reason: "月支建禄，月令得禄加成。"})
 		}
 	}
 
@@ -655,9 +768,11 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	if renZhi, ok := renMap[dayGanName]; ok {
 		if dayBranchName == renZhi {
 			luBonus += 0.07 // 阳刃：日支为刃
+			evidence = append(evidence, BodyStrengthEvidence{Component: "bonus", Polarity: "support", Source: "日支", Item: dayBranchName, Score: 0.07, Reason: "日支坐阳刃，加成日主根气。"})
 		}
 		if monthBranchName == renZhi {
 			luBonus += 0.05 // 月刃：月支为刃
+			evidence = append(evidence, BodyStrengthEvidence{Component: "bonus", Polarity: "support", Source: "月支", Item: monthBranchName, Score: 0.05, Reason: "月支见阳刃，加成月令根气。"})
 		}
 	}
 
@@ -677,24 +792,46 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		}
 		if tg.WuXing == dayElem {
 			// 比肩 1.0，劫财 0.8（阴阳异，助力稍弱）
+			score := 0.8
+			godName := "劫财"
 			if GanInfoOf(gan).yang == GanInfoOf(dayStem.GetName()).yang {
-				supportWeight += 1.0 // 比肩
+				score = 1.0
+				godName = "比肩"
 			} else {
-				supportWeight += 0.8 // 劫财
+				score = 0.8
 			}
+			supportWeight += score
+			evidence = append(evidence, BodyStrengthEvidence{
+				Component: "shi",
+				Polarity:  "support",
+				Source:    []string{"年干", "月干", "日干", "时干"}[i],
+				Item:      gan,
+				Score:     score,
+				Reason:    fmt.Sprintf("%s透出%s，属%s，帮扶日主。", gan, godName, dayElem),
+			})
 		} else if isRestrict(gan, dayElem) {
 			// 官杀 -1.2，食伤 -0.8，财 -0.6
 			godName := ClassifyTenGod(gan, dayStem.GetName(), false)
+			score := 1.0
 			switch godName {
 			case "正官", "七杀":
-				restrictWeight += 1.2
+				score = 1.2
 			case "食神", "伤官":
-				restrictWeight += 0.8
+				score = 0.8
 			case "正财", "偏财":
-				restrictWeight += 0.6
+				score = 0.6
 			default:
-				restrictWeight += 1.0
+				score = 1.0
 			}
+			restrictWeight += score
+			evidence = append(evidence, BodyStrengthEvidence{
+				Component: "shi",
+				Polarity:  "restrict",
+				Source:    []string{"年干", "月干", "日干", "时干"}[i],
+				Item:      gan,
+				Score:     -score,
+				Reason:    fmt.Sprintf("%s透出%s，属克泄耗力量。", gan, godName),
+			})
 		}
 	}
 	// 日支藏干：坐下有根最贴身，权重×1.5
@@ -707,23 +844,45 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 			continue
 		}
 		if tg.WuXing == dayElem {
+			score := w * 0.8
+			godName := "劫财"
 			if GanInfoOf(hiddenGan).yang == GanInfoOf(dayStem.GetName()).yang {
-				supportWeight += w // 比肩
+				score = w
+				godName = "比肩"
 			} else {
-				supportWeight += w * 0.8 // 劫财
+				score = w * 0.8
 			}
+			supportWeight += score
+			evidence = append(evidence, BodyStrengthEvidence{
+				Component: "shi",
+				Polarity:  "support",
+				Source:    "日支藏干",
+				Item:      hiddenGan,
+				Score:     score,
+				Reason:    fmt.Sprintf("日支藏%s为%s，坐下贴身帮扶。", hiddenGan, godName),
+			})
 		} else if isRestrict(hiddenGan, dayElem) {
 			godName := ClassifyTenGod(hiddenGan, dayStem.GetName(), false)
+			score := w
 			switch godName {
 			case "正官", "七杀":
-				restrictWeight += w * 1.2
+				score = w * 1.2
 			case "食神", "伤官":
-				restrictWeight += w * 0.8
+				score = w * 0.8
 			case "正财", "偏财":
-				restrictWeight += w * 0.6
+				score = w * 0.6
 			default:
-				restrictWeight += w * 1.0
+				score = w * 1.0
 			}
+			restrictWeight += score
+			evidence = append(evidence, BodyStrengthEvidence{
+				Component: "shi",
+				Polarity:  "restrict",
+				Source:    "日支藏干",
+				Item:      hiddenGan,
+				Score:     -score,
+				Reason:    fmt.Sprintf("日支藏%s为%s，贴身形成克泄耗。", hiddenGan, godName),
+			})
 		}
 	}
 	shiScore := supportWeight - restrictWeight
@@ -738,13 +897,32 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		tg := fn().GetHeavenStem()
 		if isYinStar(tg.GetName(), dayElem) {
 			shengScore += 1.0
+			evidence = append(evidence, BodyStrengthEvidence{
+				Component: "sheng",
+				Polarity:  "support",
+				Source:    []string{"年干", "月干", "日干", "时干"}[i],
+				Item:      tg.GetName(),
+				Score:     1.0,
+				Reason:    fmt.Sprintf("%s透出印星，生扶日主%s。", tg.GetName(), dayStem.GetName()),
+			})
 		}
 	}
 	// 地支藏干印星
 	for _, fn := range pillars {
 		for _, hhs := range fn().GetEarthBranch().GetHideHeavenStems() {
 			if isYinStar(hhs.GetHeavenStem().GetName(), dayElem) {
-				shengScore += zangGanWeight(hhs.GetType())
+				score := zangGanWeight(hhs.GetType())
+				shengScore += score
+				branchName := fn().GetEarthBranch().GetName()
+				stemName := hhs.GetHeavenStem().GetName()
+				evidence = append(evidence, BodyStrengthEvidence{
+					Component: "sheng",
+					Polarity:  "support",
+					Source:    branchName,
+					Item:      stemName,
+					Score:     score,
+					Reason:    fmt.Sprintf("%s中藏%s为印星，%s生扶日主。", branchName, stemName, hideStemTypeLabel(hhs.GetType())),
+				})
 			}
 		}
 	}
@@ -755,27 +933,23 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	//   微调：得令权重从50%降至40%，避免月令主导过度；
 	//   得地从25%升至30%，通根有根为身强最实质指标；
 	//   得势从15%升至20%，比劫印星天干透出力量显著
-	normLing := lingScore / 3.0                            // lingScore最大3
-	normDi := diScore / 7.0                                // diScore理论最大约7
-	normShi := 1.0 / (1.0 + math.Exp(-shiScore/1.5))      // sigmoid归一化，分母1.5使曲线更陡峭
-	normSheng := 1.0 / (1.0 + math.Exp(-shengScore/1.5))  // sigmoid归一化
+	normLing := lingScore / 3.0                          // lingScore最大3
+	normDi := diScore / 7.0                              // diScore理论最大约7
+	normShi := 1.0 / (1.0 + math.Exp(-shiScore/1.5))     // sigmoid归一化，分母1.5使曲线更陡峭
+	normSheng := 1.0 / (1.0 + math.Exp(-shengScore/1.5)) // sigmoid归一化
 	totalScore := normLing*0.40 + normDi*0.30 + normShi*0.20 + normSheng*0.10 + luBonus
+	components := []BodyStrengthComponent{
+		{Key: "ling", Name: "得令", RawScore: lingScore, NormalizedScore: normalizedBodyScore(normLing), Weight: 0.40, WeightedScore: normLing * 0.40, Description: "月令为提纲，按日主五行与月支五行旺相休囚死取分。"},
+		{Key: "di", Name: "得地", RawScore: diScore, NormalizedScore: normalizedBodyScore(normDi), Weight: 0.30, WeightedScore: normDi * 0.30, Description: "四支藏干中同五行通根，结合本中余气、长生权重和透干加成。"},
+		{Key: "shi", Name: "得势", RawScore: shiScore, NormalizedScore: normalizedBodyScore(normShi), Weight: 0.20, WeightedScore: normShi * 0.20, Description: "天干与日支藏干的比劫印助减去官杀食伤财的克泄耗。"},
+		{Key: "sheng", Name: "得生", RawScore: shengScore, NormalizedScore: normalizedBodyScore(normSheng), Weight: 0.10, WeightedScore: normSheng * 0.10, Description: "天干和地支藏干中的印星生扶力量。"},
+		{Key: "bonus", Name: "禄刃加成", RawScore: luBonus, NormalizedScore: normalizedBodyScore(luBonus), Weight: 1.00, WeightedScore: luBonus, Description: "专禄、建禄、阳刃、月刃直接加成。"},
+	}
 
 	var verdict string
 	var like, dislike []string
 	// 判定阈值：以 0.5 为中和中心，向两侧阶梯划分
-	switch {
-	case totalScore > 0.7:
-		verdict = "身旺"
-	case totalScore > 0.5:
-		verdict = "偏旺"
-	case totalScore > 0.4:
-		verdict = "中和"
-	case totalScore > 0.3:
-		verdict = "偏弱"
-	default:
-		verdict = "身弱"
-	}
+	verdict = verdictForBodyStrength(totalScore)
 
 	// 5. 后验修正："得令不旺失令不衰"
 	// 经典依据：滴天髓"春木虽强金太重而木亦危"
@@ -786,6 +960,7 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	supportingMap := map[string]string{
 		"木": "水", "火": "木", "土": "火", "金": "土", "水": "金",
 	}
+	var adjustments []BodyStrengthAdjustment
 	if lingScore >= 2.0 { // 得令
 		reElem := restrainingMap[dayElem]
 		restrainingForce := 0.0
@@ -804,7 +979,15 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		}
 		// 阈值从0.6降至0.4：克我力量占比超40%即触发降级
 		if selfForce > 0 && restrainingForce/selfForce > 0.4 {
+			before := totalScore
 			totalScore *= 0.75
+			adjustments = append(adjustments, BodyStrengthAdjustment{
+				Name:        "得令不旺",
+				Before:      before,
+				After:       totalScore,
+				Reason:      fmt.Sprintf("克我%s力量%.2f / 自身生扶%.2f > 40%%。", reElem, restrainingForce, selfForce),
+				Description: "虽得月令，但克制力量过重，降低旺度一级。",
+			})
 			if verdict == "身旺" {
 				verdict = "偏旺"
 			} else if verdict == "偏旺" {
@@ -829,7 +1012,15 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 		}
 		// 阈值从8.0降至5.0：生扶力量达5.0即触发升级
 		if supportingForce >= 5.0 {
+			before := totalScore
 			totalScore = totalScore*0.75 + 0.5*0.25
+			adjustments = append(adjustments, BodyStrengthAdjustment{
+				Name:        "失令不衰",
+				Before:      before,
+				After:       totalScore,
+				Reason:      fmt.Sprintf("生扶%s及同气%s力量合计%.2f，达到修正阈值。", spElem, dayElem, supportingForce),
+				Description: "虽失月令，但命局另有生扶根气，提升衰弱判断。",
+			})
 			if verdict == "身弱" {
 				verdict = "偏弱"
 			} else if verdict == "偏弱" {
@@ -876,15 +1067,21 @@ func calcBodyStrengthV2(ec *tyme.EightChar) BodyStrengthResult {
 	}
 
 	return BodyStrengthResult{
-		Verdict:    verdict,
-		Like:       like,
-		Dislike:    dislike,
-		TotalScore: totalScore,
-		LingScore:  lingScore,
-		DiScore:    diScore,
-		ShiScore:   shiScore,
-		ShengScore: shengScore,
-		LuBonus:    luBonus,
+		RuleVersion: RuleVersion,
+		School:      RuleSchool,
+		Verdict:     verdict,
+		Like:        like,
+		Dislike:     dislike,
+		TotalScore:  totalScore,
+		LingScore:   lingScore,
+		DiScore:     diScore,
+		ShiScore:    shiScore,
+		ShengScore:  shengScore,
+		LuBonus:     luBonus,
+		Components:  components,
+		Evidence:    evidence,
+		Adjustments: adjustments,
+		Summary:     bodyStrengthSummary(dayStem.GetName(), dayElem, verdict, totalScore, like, dislike),
 	}
 }
 

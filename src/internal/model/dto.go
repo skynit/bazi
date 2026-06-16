@@ -125,6 +125,9 @@ type FortuneGuide struct {
 }
 
 type FortuneResponse struct {
+	RuleVersion string      `json:"rule_version,omitempty"`
+	School      string      `json:"school,omitempty"`
+	RuleMeta    interface{} `json:"rule_meta,omitempty"`
 	// almanac day fields
 	SolarDate           string         `json:"solar_date"`
 	LunarDate           string         `json:"lunar_date"`
@@ -173,6 +176,7 @@ type FortuneResponse struct {
 	LiuNianInfluence interface{} `json:"liunian_influence"`
 	AdvanceRetreat   interface{} `json:"advance_retreat"`
 	YongShenImpact   interface{} `json:"yongshen_impact"`
+	FortuneLayers    interface{} `json:"fortune_layers"`
 	OverallVerdict   string      `json:"overall_verdict"`
 	FavorScore       int         `json:"favor_score"`
 

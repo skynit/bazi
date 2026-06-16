@@ -78,6 +78,9 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		luckyNum = fortune.LuckyNumbers[0]
 	}
 	resp := model.FortuneResponse{
+		RuleVersion:         baziResult.RuleVersion,
+		School:              baziResult.School,
+		RuleMeta:            baziResult.RuleMeta,
 		SolarDate:           fortune.Date,
 		LunarDate:           fortune.LunarDate,
 		DayGanZhi:           fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
@@ -104,6 +107,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		TiaoHou:             data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
 		SeasonElementAdvice: fortune.SeasonElementAdvice,
 		FlowImpact:          fortune.FlowImpact,
+		FortuneLayers:       fortune.Layers,
 	}
 	// 日课推算结果
 	if rikuyo := fortune.Rikuyo; rikuyo != nil {
@@ -122,6 +126,7 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
 		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
 		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.FortuneLayers = fortune.Layers
 		resp.OverallVerdict = rikuyo.OverallVerdict
 		resp.FavorScore = rikuyo.FavorScore
 		resp.PatternName = rikuyo.PatternName

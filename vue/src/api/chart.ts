@@ -15,6 +15,9 @@ export interface ChartSummary {
 }
 
 export interface ChartDetail extends ChartSummary {
+  rule_version?: string
+  school?: string
+  rule_meta?: unknown
   year_pillar?: unknown
   month_pillar?: unknown
   day_pillar?: unknown

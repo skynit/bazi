@@ -29,33 +29,34 @@ func NewFortuneEngine() *FortuneEngine {
 
 // DailyFortune is a single-day fortune result.
 type DailyFortune struct {
-	Date                string               `json:"date"`
-	DayPillar           model.Pillar         `json:"day_pillar"`
-	Score               int                  `json:"score"`
-	LuckyColor          string               `json:"lucky_color"`
-	LuckyNumbers        []int                `json:"lucky_numbers"`
-	WealthDir           string               `json:"wealth_dir"`
-	Guide               *model.FortuneGuide  `json:"guide,omitempty"`
-	ClashZodiac         string               `json:"clash_zodiac"`
-	AuspiciousHours     []string             `json:"auspicious_hours"`
-	Yi                  []model.YiJiItem     `json:"yi"`
-	Ji                  []model.YiJiItem     `json:"ji"`
-	ShengKe             ShengKeAnalysis      `json:"sheng_ke"`
-	ElementImages       []model.ElementImage `json:"element_images"`
-	TodayElements       map[string]int       `json:"today_elements"`
-	SeasonElementAdvice string               `json:"season_element_advice"`
-	FlowImpact          string               `json:"flow_impact"`
-	Rikuyo              *RikuyoResult        `json:"rikuyo"`
-	LunarDate           string               `json:"lunar_date"`
-	WeekDay             string               `json:"week_day"`
-	ShengXiao           string               `json:"sheng_xiao"`
-	JiShen              string               `json:"ji_shen"`
-	XiongShen           string               `json:"xiong_shen"`
-	TaiShen             string               `json:"tai_shen"`
-	WuXing              string               `json:"wu_xing"`
-	PengZu              string               `json:"peng_zu"`
-	Gua                 string               `json:"gua"`
-	JieQi               string               `json:"jie_qi"`
+	Date                string                `json:"date"`
+	DayPillar           model.Pillar          `json:"day_pillar"`
+	Score               int                   `json:"score"`
+	LuckyColor          string                `json:"lucky_color"`
+	LuckyNumbers        []int                 `json:"lucky_numbers"`
+	WealthDir           string                `json:"wealth_dir"`
+	Guide               *model.FortuneGuide   `json:"guide,omitempty"`
+	ClashZodiac         string                `json:"clash_zodiac"`
+	AuspiciousHours     []string              `json:"auspicious_hours"`
+	Yi                  []model.YiJiItem      `json:"yi"`
+	Ji                  []model.YiJiItem      `json:"ji"`
+	ShengKe             ShengKeAnalysis       `json:"sheng_ke"`
+	ElementImages       []model.ElementImage  `json:"element_images"`
+	TodayElements       map[string]int        `json:"today_elements"`
+	SeasonElementAdvice string                `json:"season_element_advice"`
+	FlowImpact          string                `json:"flow_impact"`
+	Rikuyo              *RikuyoResult         `json:"rikuyo"`
+	Layers              model.FortuneLayerSet `json:"fortune_layers"`
+	LunarDate           string                `json:"lunar_date"`
+	WeekDay             string                `json:"week_day"`
+	ShengXiao           string                `json:"sheng_xiao"`
+	JiShen              string                `json:"ji_shen"`
+	XiongShen           string                `json:"xiong_shen"`
+	TaiShen             string                `json:"tai_shen"`
+	WuXing              string                `json:"wu_xing"`
+	PengZu              string                `json:"peng_zu"`
+	Gua                 string                `json:"gua"`
+	JieQi               string                `json:"jie_qi"`
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
@@ -263,6 +264,7 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 		SeasonElementAdvice: getSeasonElementAdvice(userChart.DayPillar.Gan, ec.GetMonth().GetEarthBranch().GetName()),
 		FlowImpact:          analyzeDayFlowImpact(userChart, dayPillar),
 		Rikuyo:              rikuyo,
+		Layers:              BuildFortuneLayers(userChart, queryDate, birthYear),
 		LunarDate:           almanac.LunarDate,
 		WeekDay:             almanac.WeekDay,
 		ShengXiao:           almanac.ShengXiao,

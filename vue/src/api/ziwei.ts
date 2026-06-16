@@ -15,6 +15,43 @@ export type ZiWeiPeriodType =
   | 'liuri_interpretation'
   | 'period_summary'
   | 'liu_nian_stars'
+  | 'query_view'
+
+export interface ZiWeiQueryView {
+  rule_version: string
+  school: string
+  palaces: ZiWeiPalaceQuery[]
+  star_index: Record<string, string[]>
+  patterns: string[]
+}
+
+export interface ZiWeiPalaceQuery {
+  name: string
+  branch: string
+  index: number
+  is_body_palace: boolean
+  main_stars: string[]
+  aux_stars: string[]
+  adjective_stars: string[]
+  all_stars: string[]
+  has_star: Record<string, boolean>
+  four_hua: string[]
+  sanfang_sizheng: {
+    opposite: string
+    trine1: string
+    trine2: string
+    opposite_stars: string[]
+    trine1_stars: string[]
+    trine2_stars: string[]
+    all_stars: string[]
+  }
+  surrounded_palaces: Array<{
+    name: string
+    branch: string
+    role: string
+    stars: string[]
+  }>
+}
 
 export interface ZiWeiChartRequest {
   chart_id?: number

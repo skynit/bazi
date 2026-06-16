@@ -184,6 +184,12 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			"reading": reading,
 		})
 
+	case "query_view":
+		respondJSON(c, http.StatusOK, gin.H{
+			"query_view":  svc.BuildQueryView(chart),
+			"description": "紫微查询视图：预计算宫位 has_star、star_index 与三方四正星曜索引。",
+		})
+
 	case "heming":
 		chart2, _, err := h.getChart(req.ChartID2, userID.(uint))
 		if err != nil {

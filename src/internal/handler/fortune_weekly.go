@@ -112,6 +112,8 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 	}
 
 	resp := model.FortuneResponse{
+		RuleVersion:         df.Layers.RuleVersion,
+		School:              df.Layers.School,
 		SolarDate:           df.Date,
 		DayGanZhi:           df.DayPillar.Gan + df.DayPillar.Zhi,
 		YiJi:                yiJi,
@@ -128,6 +130,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		TodayElements:       df.TodayElements,
 		SeasonElementAdvice: df.SeasonElementAdvice,
 		FlowImpact:          df.FlowImpact,
+		FortuneLayers:       df.Layers,
 	}
 	if rikuyo := df.Rikuyo; rikuyo != nil {
 		resp.TodayTenGod = rikuyo.TodayTenGod
@@ -145,6 +148,7 @@ func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
 		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
 		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
 		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.FortuneLayers = df.Layers
 		resp.OverallVerdict = rikuyo.OverallVerdict
 		resp.FavorScore = rikuyo.FavorScore
 		resp.PatternName = rikuyo.PatternName

@@ -84,6 +84,7 @@ func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
 		"liu_nian_stars":                chart.LiuNianStars,
 		"liu_yue_stars":                 chart.LiuYueStars,
 		"liu_ri_stars":                  chart.LiuRiStars,
+		"query_view":                    ziwei.BuildQueryView(chart),
 	}
 }
 
