@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import type {
+  ZiWeiOverlayAnalysis,
+  ZiWeiOverlayFocusPalace,
+  ZiWeiOverlayTrigger,
+} from '../api/ziwei'
 
 interface StarInfo {
   name: string
@@ -35,7 +40,9 @@ interface Props {
     palaces: PalaceData[]
     year: number
     liu_nian_stars?: string[][]
+    overlay_analysis?: ZiWeiOverlayAnalysis
   }
+  overlayAnalysis?: ZiWeiOverlayAnalysis
   availableYears: number[]
 }
 
@@ -47,9 +54,14 @@ const emit = defineEmits<{
 
 const mode = ref<'base' | 'overlay'>('base')
 const selectedYear = ref<number>(new Date().getFullYear())
+const focusedBranch = ref<string | undefined>(undefined)
 
 const isDark = ref(document.documentElement.classList.contains('dark'))
 let themeObserver: MutationObserver | null = null
+
+function list<T>(items: T[] | null | undefined): T[] {
+  return Array.isArray(items) ? items : []
+}
 
 onMounted(() => {
   themeObserver = new MutationObserver(() => {
@@ -63,48 +75,24 @@ onUnmounted(() => {
   themeObserver = null
 })
 
-// Gold palette for 本命盘 — light mode
 const goldMetaLight: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#e11d48,#be123c)', text: '#fffaf8' },
-  '旺': { bg: 'linear-gradient(135deg,#ea580c,#c2410c)', text: '#fffaf8' },
-  '得': { bg: 'linear-gradient(135deg,#eab308,#a16207)', text: '#fffaf8' },
-  '利': { bg: 'linear-gradient(135deg,#16a34a,#15803d)', text: '#fffaf8' },
-  '平': { bg: 'linear-gradient(135deg,#6b7280,#4b5563)', text: '#fffaf8' },
-  '不': { bg: 'linear-gradient(135deg,#0e7490,#0c5a74)', text: '#fffaf8' },
+  '庙': { bg: 'linear-gradient(135deg,#b91c1c,#7f1d1d)', text: '#fffaf8' },
+  '旺': { bg: 'linear-gradient(135deg,#c2410c,#9a3412)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#ca8a04,#854d0e)', text: '#fffaf8' },
+  '利': { bg: 'linear-gradient(135deg,#15803d,#166534)', text: '#fffaf8' },
+  '平': { bg: 'linear-gradient(135deg,#64748b,#475569)', text: '#fffaf8' },
+  '不': { bg: 'linear-gradient(135deg,#0e7490,#155e75)', text: '#fffaf8' },
   '陷': { bg: 'linear-gradient(135deg,#44403c,#292524)', text: '#e7e5e4' },
 }
 
-// Gold palette for 本命盘 — dark mode
 const goldMetaDark: Record<string, { bg: string; text: string }> = {
   '庙': { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8' },
-  '旺': { bg: 'linear-gradient(135deg,#FF8C00,#CC5500)', text: '#fffaf8' },
-  '得': { bg: 'linear-gradient(135deg,#fde68a,#94a3b8)', text: '#10140f' },
-  '利': { bg: 'linear-gradient(135deg,#34d399,#059669)', text: '#00140e' },
-  '平': { bg: 'linear-gradient(135deg,#808080,#696969)', text: '#fffaf8' },
-  '不': { bg: 'linear-gradient(135deg,#5F9EA0,#4682B4)', text: '#fffaf8' },
-  '陷': { bg: 'linear-gradient(135deg,#2B3A42,#1a252e)', text: '#dbe4e8' },
-}
-
-// Purple palette for 流年盘 — light mode
-const purpleMetaLight: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', text: '#fffaf8' },
-  '旺': { bg: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', text: '#fffaf8' },
-  '得': { bg: 'linear-gradient(135deg,#a78bfa,#8b5cf6)', text: '#1a1030' },
-  '利': { bg: 'linear-gradient(135deg,#6d28d9,#5b21b6)', text: '#fffaf8' },
-  '平': { bg: 'linear-gradient(135deg,#6b5b95,#5a4a84)', text: '#fffaf8' },
-  '不': { bg: 'linear-gradient(135deg,#5b4a84,#4a3a7a)', text: '#fffaf8' },
-  '陷': { bg: 'linear-gradient(135deg,#3d3060,#2d2050)', text: '#d4c8f0' },
-}
-
-// Purple palette for 流年盘 — dark mode
-const purpleMetaDark: Record<string, { bg: string; text: string }> = {
-  '庙': { bg: 'linear-gradient(135deg,#7B2D8B,#4B0082)', text: '#fffaf8' },
-  '旺': { bg: 'linear-gradient(135deg,#9B59B6,#8E44AD)', text: '#fffaf8' },
-  '得': { bg: 'linear-gradient(135deg,#8E6DBB,#6B5B95)', text: '#fffaf8' },
-  '利': { bg: 'linear-gradient(135deg,#5D4B8B,#4A3A7A)', text: '#fffaf8' },
-  '平': { bg: 'linear-gradient(135deg,#7A6B9B,#655580)', text: '#fffaf8' },
-  '不': { bg: 'linear-gradient(135deg,#6B5B95,#5A4A84)', text: '#f0edf7' },
-  '陷': { bg: 'linear-gradient(135deg,#3D2B5B,#2D1B4A)', text: '#e3dff0' },
+  '旺': { bg: 'linear-gradient(135deg,#fb923c,#c2410c)', text: '#fffaf8' },
+  '得': { bg: 'linear-gradient(135deg,#facc15,#a16207)', text: '#17120a' },
+  '利': { bg: 'linear-gradient(135deg,#34d399,#047857)', text: '#02140e' },
+  '平': { bg: 'linear-gradient(135deg,#94a3b8,#64748b)', text: '#07111f' },
+  '不': { bg: 'linear-gradient(135deg,#38bdf8,#0369a1)', text: '#06111a' },
+  '陷': { bg: 'linear-gradient(135deg,#334155,#1e293b)', text: '#dbe4e8' },
 }
 
 function baseMeta(brightness: string) {
@@ -112,42 +100,32 @@ function baseMeta(brightness: string) {
   return meta[brightness] || meta['陷']
 }
 
-function overlayMeta(brightness: string) {
-  const meta = isDark.value ? purpleMetaDark : purpleMetaLight
-  return meta[brightness] || meta['陷']
-}
-
 function onYearChange() {
   emit('year-change', selectedYear.value)
 }
 
-// Sync selectedYear when prop changes (e.g., after year switch)
-watch(() => props.liunianChart?.year, (y) => {
-  if (y) selectedYear.value = y
+watch(() => props.liunianChart?.year, (year) => {
+  if (year) selectedYear.value = year
 }, { immediate: true })
 
+const analysis = computed(() => props.overlayAnalysis || props.liunianChart?.overlay_analysis)
+
 const baseLookup = computed<Record<string, PalaceData>>(() => {
-  const m: Record<string, PalaceData> = {}
-  props.baseChart.palaces.forEach((p) => { m[p.branch] = p })
-  return m
+  const map: Record<string, PalaceData> = {}
+  list(props.baseChart?.palaces).forEach((palace) => {
+    map[palace.branch] = palace
+  })
+  return map
 })
 
-// Use a reactive ref for liunianChart to ensure Vue tracks it properly
-const liunianPalaces = computed(() => props.liunianChart?.palaces || [])
-const liunianLookup = computed<Record<string, PalaceData>>(() => {
-  const m: Record<string, PalaceData> = {}
-  liunianPalaces.value.forEach((p) => { m[p.branch] = p })
-  return m
-})
-// liunianStars indexed by palace index
 const liunianStarsMap = computed<Record<string, string[]>>(() => {
-  const m: Record<string, string[]> = {}
-  const stars = props.liunianChart?.liu_nian_stars || []
-  const palaces = props.liunianChart?.palaces || []
+  const map: Record<string, string[]> = {}
+  const stars = list<string[]>(props.liunianChart?.liu_nian_stars)
+  const palaces = list(props.liunianChart?.palaces)
   for (let i = 0; i < palaces.length; i++) {
-    m[palaces[i].branch] = stars[i] || []
+    map[palaces[i].branch] = list(stars[i])
   }
-  return m
+  return map
 })
 
 const branchIndexMap: Record<string, number> = {
@@ -156,36 +134,23 @@ const branchIndexMap: Record<string, number> = {
 }
 const indexBranchMap = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 
-function fixIdx(i: number): number {
-  return ((i % 12) + 12) % 12
+const branchOrder = ['巳', '午', '未', '申', '辰', '酉', '卯', '戌', '寅', '丑', '子', '亥']
+const branchGridPosition: Record<string, { row: number; col: number }> = {
+  '巳': { row: 1, col: 1 },
+  '午': { row: 1, col: 2 },
+  '未': { row: 1, col: 3 },
+  '申': { row: 1, col: 4 },
+  '辰': { row: 2, col: 1 },
+  '酉': { row: 2, col: 4 },
+  '卯': { row: 3, col: 1 },
+  '戌': { row: 3, col: 4 },
+  '寅': { row: 4, col: 1 },
+  '丑': { row: 4, col: 2 },
+  '子': { row: 4, col: 3 },
+  '亥': { row: 4, col: 4 },
 }
 
-function sanfangBranches(branch: string): { opposite: string; trine1: string; trine2: string } {
-  const idx = branchIndexMap[branch]
-  if (idx === undefined) return { opposite: '', trine1: '', trine2: '' }
-  return {
-    opposite: indexBranchMap[fixIdx(idx + 6)],
-    trine1: indexBranchMap[fixIdx(idx + 4)],
-    trine2: indexBranchMap[fixIdx(idx - 4)],
-  }
-}
-
-const focusedBranch = ref<string | undefined>(undefined)
-
-function palaceHighlightClass(branch: string): string {
-  if (!focusedBranch.value) return ''
-  if (branch === focusedBranch.value) return 'zw-focused'
-  const sf = sanfangBranches(focusedBranch.value)
-  if (branch === sf.opposite) return 'zw-opposite'
-  if (branch === sf.trine1 || branch === sf.trine2) return 'zw-surrounded'
-  return ''
-}
-
-const gridRef = ref<HTMLElement | null>(null)
-
-type Point = { x: number; y: number }
-
-const branchAnchorPercent: Record<string, Point> = {
+const branchAnchorPercent: Record<string, { x: number; y: number }> = {
   '巳': { x: 12.5, y: 12.5 },
   '午': { x: 37.5, y: 12.5 },
   '未': { x: 62.5, y: 12.5 },
@@ -200,60 +165,169 @@ const branchAnchorPercent: Record<string, Point> = {
   '亥': { x: 87.5, y: 87.5 },
 }
 
-const svgLines = computed<{ from: Point; to: Point; type: 'opposite' | 'trine' }[]>(() => {
+const allTriggers = computed<ZiWeiOverlayTrigger[]>(() => [
+  ...list(analysis.value?.four_hua),
+  ...list(analysis.value?.annual_stars),
+])
+
+const triggersByBranch = computed<Record<string, ZiWeiOverlayTrigger[]>>(() => {
+  const map: Record<string, ZiWeiOverlayTrigger[]> = {}
+  allTriggers.value.forEach((trigger) => {
+    if (!map[trigger.branch]) map[trigger.branch] = []
+    map[trigger.branch].push(trigger)
+  })
+  return map
+})
+
+const fourHuaTargets = computed(() => list(analysis.value?.four_hua))
+const annualStarTargets = computed(() => list(analysis.value?.annual_stars))
+const focusPalaces = computed(() => list(analysis.value?.focus_palaces))
+
+const centerTitle = computed(() => (
+  mode.value === 'overlay' ? (analysis.value?.gan_zhi || `${selectedYear.value}年`) : '本命盘'
+))
+
+const centerSubtitle = computed(() => {
+  if (mode.value === 'overlay') return `${selectedYear.value}年流年叠盘`
+  const soulPalace = props.baseChart.earthly_branch_of_soul_palace || '—'
+  const bodyPalace = props.baseChart.earthly_branch_of_body_palace || '—'
+  return `命宫 ${soulPalace} · 身宫 ${bodyPalace}`
+})
+
+function fixIdx(index: number): number {
+  return ((index % 12) + 12) % 12
+}
+
+function sanfangBranches(branch: string): { opposite: string; trine1: string; trine2: string } {
+  const idx = branchIndexMap[branch]
+  if (idx === undefined) return { opposite: '', trine1: '', trine2: '' }
+  return {
+    opposite: indexBranchMap[fixIdx(idx + 6)],
+    trine1: indexBranchMap[fixIdx(idx + 4)],
+    trine2: indexBranchMap[fixIdx(idx + 8)],
+  }
+}
+
+const svgLines = computed<{ from: { x: number; y: number }; to: { x: number; y: number }; type: 'opposite' | 'trine' }[]>(() => {
   if (!focusedBranch.value) return []
-  const sf = sanfangBranches(focusedBranch.value)
   const from = branchAnchorPercent[focusedBranch.value]
+  const sf = sanfangBranches(focusedBranch.value)
   if (!from) return []
-  const lines: { from: Point; to: Point; type: 'opposite' | 'trine' }[] = []
-  const opp = branchAnchorPercent[sf.opposite]
-  const t1 = branchAnchorPercent[sf.trine1]
-  const t2 = branchAnchorPercent[sf.trine2]
-  if (opp) lines.push({ from, to: opp, type: 'opposite' })
-  if (t1) lines.push({ from, to: t1, type: 'trine' })
-  if (t2) lines.push({ from, to: t2, type: 'trine' })
+  const lines: { from: { x: number; y: number }; to: { x: number; y: number }; type: 'opposite' | 'trine' }[] = []
+  const opposite = branchAnchorPercent[sf.opposite]
+  const trine1 = branchAnchorPercent[sf.trine1]
+  const trine2 = branchAnchorPercent[sf.trine2]
+  if (opposite) lines.push({ from, to: opposite, type: 'opposite' })
+  if (trine1) lines.push({ from, to: trine1, type: 'trine' })
+  if (trine2) lines.push({ from, to: trine2, type: 'trine' })
   return lines
 })
 
-const branchOrder = ['巳', '午', '未', '申', '辰', '卯', '酉', '戌', '寅', '丑', '子', '亥']
-const row1Branches = branchOrder.slice(0, 4)
-const row4Branches = branchOrder.slice(8, 12)
-
-interface RichStar { name: string; brightness: string }
-function richStars(p: PalaceData | undefined): RichStar[] {
-  if (!p) return []
-  return p.stars || []
-}
-function liunianStars(p: PalaceData | undefined): RichStar[] {
-  if (!p) return []
-  return p.stars || []
-}
-function palaceSihua(p: PalaceData | undefined): string[] {
-  return p?.four_hua || []
+function basePalaceAt(branch: string): PalaceData | undefined {
+  return baseLookup.value[branch]
 }
 
-function basePalaceAt(b: string): PalaceData | undefined { return baseLookup.value[b] }
-function liunianPalaceAt(b: string): PalaceData | undefined {
-  if (!props.liunianChart) return undefined
-  return liunianLookup.value[b]
+function richStars(palace: PalaceData | undefined): StarInfo[] {
+  return list(palace?.stars)
 }
-// liunianStarsAt returns the 流年星耀 for a given branch
-function liunianStarsAt(b: string): string[] {
-  return liunianStarsMap.value[b] || []
+
+function displayStars(palace: PalaceData | undefined): StarInfo[] {
+  const stars = richStars(palace)
+  return mode.value === 'overlay' ? stars.slice(0, 5) : stars
+}
+
+function hiddenStarCount(palace: PalaceData | undefined): number {
+  const count = richStars(palace).length - displayStars(palace).length
+  return count > 0 ? count : 0
+}
+
+function palaceSihua(palace: PalaceData | undefined): string[] {
+  return list(palace?.four_hua)
+}
+
+function liunianStarsAt(branch: string): string[] {
+  return list(liunianStarsMap.value[branch])
+}
+
+function triggerChipsAt(branch: string): ZiWeiOverlayTrigger[] {
+  return list(triggersByBranch.value[branch])
+}
+
+function branchStyle(branch: string) {
+  const pos = branchGridPosition[branch]
+  return {
+    gridColumn: String(pos.col),
+    gridRow: String(pos.row),
+  }
+}
+
+function palaceHighlightClass(branch: string): string {
+  if (!focusedBranch.value) return ''
+  if (branch === focusedBranch.value) return 'zw-focused'
+  const sf = sanfangBranches(focusedBranch.value)
+  if (branch === sf.opposite) return 'zw-opposite'
+  if (branch === sf.trine1 || branch === sf.trine2) return 'zw-surrounded'
+  return ''
+}
+
+function overlayImpactClass(branch: string): string {
+  if (mode.value !== 'overlay') return ''
+  const triggers = triggerChipsAt(branch)
+  if (triggers.some((trigger) => trigger.polarity === 'watch' || trigger.type === '化忌')) return 'zw-impact-watch'
+  if (triggers.some((trigger) => trigger.polarity === 'good')) return 'zw-impact-good'
+  if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'zw-impact-move'
+  if (triggers.length) return 'zw-impact-neutral'
+  return ''
+}
+
+function triggerClass(trigger: ZiWeiOverlayTrigger): string {
+  if (trigger.polarity === 'watch' || trigger.type === '化忌') return 'is-watch'
+  if (trigger.polarity === 'good') return 'is-good'
+  if (trigger.polarity === 'movement') return 'is-move'
+  return 'is-neutral'
+}
+
+function triggerLabel(trigger: ZiWeiOverlayTrigger): string {
+  return trigger.star ? `${trigger.star}${trigger.type}` : trigger.type
+}
+
+function fallbackChipClass(label: string): string {
+  if (label.includes('化忌') || label.includes('流羊') || label.includes('流陀')) return 'is-watch'
+  if (label.includes('化禄') || label.includes('化科') || label.includes('流禄')) return 'is-good'
+  if (label.includes('流马')) return 'is-move'
+  return 'is-neutral'
+}
+
+function focusPalaceClass(item: ZiWeiOverlayFocusPalace): string {
+  const triggers = list(item.triggers)
+  if (triggers.some((trigger) => trigger.polarity === 'watch' || trigger.type === '化忌')) return 'is-watch'
+  if (triggers.some((trigger) => trigger.polarity === 'good')) return 'is-good'
+  if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'is-move'
+  return 'is-neutral'
+}
+
+function scoreClass(score?: number): string {
+  if (!score && score !== 0) return 'score-neutral'
+  if (score >= 70) return 'score-good'
+  if (score < 45) return 'score-watch'
+  return 'score-neutral'
+}
+
+function overlaySummary(): string {
+  return analysis.value?.summary || `${selectedYear.value}年叠盘会标出流年四化、流禄、流羊、流陀和流马落宫，用来判断本年哪些宫位被时间层触发。`
 }
 </script>
 
 <template>
-  <div class="zw-overlay">
-    <!-- Controls -->
+  <section class="zw-overlay">
     <div class="zw-controls">
-      <div class="zw-toggle">
-        <button class="zw-tab" :class="{ 'is-active': mode === 'base' }" @click="mode = 'base'">
+      <div class="zw-toggle" aria-label="紫微盘显示模式">
+        <button class="zw-tab" :class="{ 'is-active': mode === 'base' }" type="button" @click="mode = 'base'">
           <span class="zw-tab-dot zw-dot-gold"></span>
           本命盘
         </button>
-        <button class="zw-tab" :class="{ 'is-active': mode === 'overlay' }" @click="mode = 'overlay'">
-          <span class="zw-tab-dot zw-dot-purple"></span>
+        <button class="zw-tab" :class="{ 'is-active': mode === 'overlay' }" type="button" @click="mode = 'overlay'">
+          <span class="zw-tab-dot zw-dot-year"></span>
           流年叠盘
         </button>
       </div>
@@ -261,630 +335,1117 @@ function liunianStarsAt(b: string): string[] {
       <div v-if="mode === 'overlay'" class="zw-year-select">
         <span class="zw-year-label">流年</span>
         <select v-model="selectedYear" class="zw-select" @change="onYearChange">
-          <option v-for="y in availableYears" :key="y" :value="y">{{ y }}年</option>
+          <option v-for="year in availableYears" :key="year" :value="year">{{ year }}年</option>
         </select>
       </div>
     </div>
 
-    <!-- Chart grid -->
-    <div class="zw-grid-wrap">
-      <div class="zw-grid" :class="{ 'zw-grid-overlay': mode === 'overlay' }" ref="gridRef">
-
-      <!-- Row 1 -->
-      <template v-for="branch in row1Branches" :key="'r1-' + branch">
-        <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt(branch)?.is_body_palace }, palaceHighlightClass(branch)]" @mouseenter="focusedBranch = branch" @mouseleave="focusedBranch = undefined">
-          <div class="zw-cell-header">
-            <span class="zw-palace-name">{{ basePalaceAt(branch)?.name || branch }}</span>
-            <span class="zw-branch">{{ branch }}<template v-if="basePalaceAt(branch)?.heavenly_stem"> · {{ basePalaceAt(branch)?.heavenly_stem }}</template></span>
-            <span v-if="basePalaceAt(branch)?.is_body_palace" class="zw-body-tag">身宫</span>
-          </div>
-          <div class="zw-stars">
-            <span
-              v-for="(star, si) in richStars(basePalaceAt(branch))"
-              :key="'bs-' + si"
-              class="zw-star zw-star-gold"
-              :style="{ background: baseMeta(star.brightness).bg }"
-            >{{ star.name }}</span>
-            <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
-          </div>
-          <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
-          <div v-if="mode === 'overlay' && liunianPalaceAt(branch)" class="zw-overlay-stars">
-            <div class="zw-overlay-label">流年</div>
-            <span
-              v-for="(star, si) in liunianStars(liunianPalaceAt(branch))"
-              :key="'ls-' + si"
-              class="zw-star zw-star-purple"
-              :style="{ background: overlayMeta(star.brightness).bg }"
-            >{{ star.name }}</span>
-          </div>
-          <div v-if="mode === 'overlay' && liunianStarsAt(branch).length" class="zw-liuyao">
-            <span
-              v-for="(star, si) in liunianStarsAt(branch)"
-              :key="'ly-' + si"
-              class="zw-liuyao-chip"
-            >{{ star }}</span>
+    <section v-if="mode === 'overlay'" class="zw-overlay-guide">
+      <div class="zw-guide-main">
+        <span class="zw-kicker">年度叠盘依据</span>
+        <div class="zw-guide-title-row">
+          <h3>{{ selectedYear }}年 <span>{{ analysis?.gan_zhi || '流年' }}</span></h3>
+          <div class="zw-score" :class="scoreClass(analysis?.score)">
+            <strong>{{ analysis?.score ?? '—' }}</strong>
+            <span>年势分</span>
           </div>
         </div>
-      </template>
-
-      <!-- Row 2: 辰 + center + 酉 -->
-      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('辰')?.is_body_palace }, palaceHighlightClass('辰')]" @mouseenter="focusedBranch = '辰'" @mouseleave="focusedBranch = undefined">
-        <div class="zw-cell-header">
-          <span class="zw-palace-name">{{ basePalaceAt('辰')?.name || '辰' }}</span>
-          <span class="zw-branch">辰<template v-if="basePalaceAt('辰')?.heavenly_stem"> · {{ basePalaceAt('辰')?.heavenly_stem }}</template></span>
-          <span v-if="basePalaceAt('辰')?.is_body_palace" class="zw-body-tag">身宫</span>
-        </div>
-        <div class="zw-stars">
-<span
-              v-for="(star, si) in richStars(basePalaceAt('辰'))"
-              :key="'bs-' + si"
-              class="zw-star zw-star-gold"
-              :style="{ background: baseMeta(star.brightness).bg }"
-            >{{ star.name }}</span>
-        </div>
-        <div v-if="basePalaceAt('辰')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('辰')?.changsheng_12 }}</span></div>
-        <div v-if="mode === 'overlay' && liunianPalaceAt('辰')" class="zw-overlay-stars">
-          <div class="zw-overlay-label">流年</div>
-          <span
-            v-for="(star, si) in (liunianStars(liunianPalaceAt('辰')))"
-            :key="'ls-' + si"
-            class="zw-star zw-star-purple"
-            :style="{ background: overlayMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="mode === 'overlay' && liunianStarsAt('辰').length" class="zw-liuyao">
-          <span v-for="(star, si) in liunianStarsAt('辰')" :key="'ly-' + si" class="zw-liuyao-chip">{{ star }}</span>
+        <p class="zw-guide-summary">{{ overlaySummary() }}</p>
+        <div class="zw-guide-meta">
+          <span v-if="analysis?.shi_shen">十神：{{ analysis.shi_shen }}</span>
+          <span v-if="analysis?.tone">{{ analysis.tone }}</span>
+          <span v-if="analysis?.key_tips">{{ analysis.key_tips }}</span>
         </div>
       </div>
-
-      <!-- Center: 命宫核心 -->
-      <div class="zw-center" :class="{ 'zw-center-overlay': mode === 'overlay' }">
-        <div class="zw-center-glow"></div>
-        <div class="zw-center-title">命宫核心</div>
-        <div class="zw-center-row">
-          <span class="zw-center-lbl">命主</span>
-          <span class="zw-center-val">{{ baseChart.life_master }}</span>
-        </div>
-        <div class="zw-center-row">
-          <span class="zw-center-lbl">身主</span>
-          <span class="zw-center-val">{{ baseChart.body_master }}</span>
-        </div>
-        <div class="zw-center-row">
-          <span class="zw-center-lbl">五行局</span>
-          <span class="zw-center-val">{{ baseChart.five_bureau }}</span>
-        </div>
-        <div v-if="mode === 'overlay'" class="zw-center-row zw-center-year">
-          <span class="zw-center-lbl">流年</span>
-          <span class="zw-center-val zw-year-val">{{ selectedYear }}</span>
-        </div>
+      <div class="zw-method-grid">
+        <article v-for="step in list(analysis?.method)" :key="step.label" class="zw-method-card">
+          <span>{{ step.label }}</span>
+          <strong>{{ step.value }}</strong>
+          <p>{{ step.meaning }}</p>
+        </article>
       </div>
+    </section>
 
-      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('酉')?.is_body_palace }, palaceHighlightClass('酉')]" @mouseenter="focusedBranch = '酉'" @mouseleave="focusedBranch = undefined">
-        <div class="zw-cell-header">
-          <span class="zw-palace-name">{{ basePalaceAt('酉')?.name || '酉' }}</span>
-          <span class="zw-branch">酉<template v-if="basePalaceAt('酉')?.heavenly_stem"> · {{ basePalaceAt('酉')?.heavenly_stem }}</template></span>
-          <span v-if="basePalaceAt('酉')?.is_body_palace" class="zw-body-tag">身宫</span>
-        </div>
-        <div class="zw-stars">
-          <span
-            v-for="(star, si) in (richStars(basePalaceAt('酉')))"
-            :key="'bs-' + si"
-            class="zw-star zw-star-gold"
-            :style="{ background: baseMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="basePalaceAt('酉')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('酉')?.changsheng_12 }}</span></div>
-        <div v-if="mode === 'overlay' && liunianPalaceAt('酉')" class="zw-overlay-stars">
-          <div class="zw-overlay-label">流年</div>
-          <span
-            v-for="(star, si) in (liunianStars(liunianPalaceAt('酉')))"
-            :key="'ls-' + si"
-            class="zw-star zw-star-purple"
-            :style="{ background: overlayMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="mode === 'overlay' && liunianStarsAt('酉').length" class="zw-liuyao">
-          <span v-for="(star, si) in liunianStarsAt('酉')" :key="'ly-' + si" class="zw-liuyao-chip">{{ star }}</span>
-        </div>
-      </div>
+    <div class="zw-workspace" :class="{ 'is-overlay': mode === 'overlay' }">
+      <div class="zw-grid-wrap">
+        <div class="zw-grid" :class="{ 'zw-grid-overlay': mode === 'overlay' }">
+          <button
+            v-for="branch in branchOrder"
+            :key="branch"
+            class="zw-cell"
+            :class="[
+              { 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt(branch)?.is_body_palace },
+              palaceHighlightClass(branch),
+              overlayImpactClass(branch),
+            ]"
+            :style="branchStyle(branch)"
+            type="button"
+            @mouseenter="focusedBranch = branch"
+            @mouseleave="focusedBranch = undefined"
+            @focus="focusedBranch = branch"
+            @blur="focusedBranch = undefined"
+          >
+            <div class="zw-cell-header">
+              <span class="zw-palace-name">{{ basePalaceAt(branch)?.name || branch }}</span>
+              <span class="zw-branch">{{ branch }}<template v-if="basePalaceAt(branch)?.heavenly_stem"> · {{ basePalaceAt(branch)?.heavenly_stem }}</template></span>
+              <span v-if="basePalaceAt(branch)?.is_body_palace" class="zw-body-tag">身宫</span>
+            </div>
 
-      <!-- Row 3: 卯 (cols 2-3 taken by zw-center) -->
-      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('卯')?.is_body_palace }, palaceHighlightClass('卯')]" @mouseenter="focusedBranch = '卯'" @mouseleave="focusedBranch = undefined">
-        <div class="zw-cell-header">
-          <span class="zw-palace-name">{{ basePalaceAt('卯')?.name || '卯' }}</span>
-          <span class="zw-branch">卯<template v-if="basePalaceAt('卯')?.heavenly_stem"> · {{ basePalaceAt('卯')?.heavenly_stem }}</template></span>
-          <span v-if="basePalaceAt('卯')?.is_body_palace" class="zw-body-tag">身宫</span>
-        </div>
-        <div class="zw-stars">
-          <span
-            v-for="(star, si) in (richStars(basePalaceAt('卯')))"
-            :key="'bs-' + si"
-            class="zw-star zw-star-gold"
-            :style="{ background: baseMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="basePalaceAt('卯')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('卯')?.changsheng_12 }}</span></div>
-        <div v-if="mode === 'overlay' && liunianPalaceAt('卯')" class="zw-overlay-stars">
-          <div class="zw-overlay-label">流年</div>
-          <span
-            v-for="(star, si) in (liunianStars(liunianPalaceAt('卯')))"
-            :key="'ls-' + si"
-            class="zw-star zw-star-purple"
-            :style="{ background: overlayMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="mode === 'overlay' && liunianStarsAt('卯').length" class="zw-liuyao">
-          <span v-for="(star, si) in liunianStarsAt('卯')" :key="'ly-' + si" class="zw-liuyao-chip">{{ star }}</span>
-        </div>
-      </div>
+            <div class="zw-stars">
+              <span
+                v-for="(star, index) in displayStars(basePalaceAt(branch))"
+                :key="star.name + index"
+                class="zw-star"
+                :style="{ background: baseMeta(star.brightness).bg, color: baseMeta(star.brightness).text }"
+              >
+                {{ star.name }}
+              </span>
+              <span v-if="hiddenStarCount(basePalaceAt(branch))" class="zw-more-star">+{{ hiddenStarCount(basePalaceAt(branch)) }}</span>
+              <span v-for="hua in palaceSihua(basePalaceAt(branch))" :key="hua" class="zw-sihua-tag">{{ hua }}</span>
+            </div>
 
-      <!-- cols 2-3 occupied by zw-center -->
+            <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve">
+              <span>{{ basePalaceAt(branch)?.changsheng_12 }}</span>
+            </div>
 
-      <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt('戌')?.is_body_palace }, palaceHighlightClass('戌')]" @mouseenter="focusedBranch = '戌'" @mouseleave="focusedBranch = undefined">
-        <div class="zw-cell-header">
-          <span class="zw-palace-name">{{ basePalaceAt('戌')?.name || '戌' }}</span>
-          <span class="zw-branch">戌<template v-if="basePalaceAt('戌')?.heavenly_stem"> · {{ basePalaceAt('戌')?.heavenly_stem }}</template></span>
-          <span v-if="basePalaceAt('戌')?.is_body_palace" class="zw-body-tag">身宫</span>
-        </div>
-        <div class="zw-stars">
-          <span
-            v-for="(star, si) in (richStars(basePalaceAt('戌')))"
-            :key="'bs-' + si"
-            class="zw-star zw-star-gold"
-            :style="{ background: baseMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="basePalaceAt('戌')?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt('戌')?.changsheng_12 }}</span></div>
-        <div v-if="mode === 'overlay' && liunianPalaceAt('戌')" class="zw-overlay-stars">
-          <div class="zw-overlay-label">流年</div>
-          <span
-            v-for="(star, si) in (liunianStars(liunianPalaceAt('戌')))"
-            :key="'ls-' + si"
-            class="zw-star zw-star-purple"
-            :style="{ background: overlayMeta(star.brightness).bg }"
-          >{{ star.name }}</span>
-        </div>
-        <div v-if="mode === 'overlay' && liunianStarsAt('戌').length" class="zw-liuyao">
-          <span v-for="(star, si) in liunianStarsAt('戌')" :key="'ly-' + si" class="zw-liuyao-chip">{{ star }}</span>
-        </div>
-      </div>
+            <div v-if="mode === 'overlay'" class="zw-trigger-strip">
+              <template v-if="triggerChipsAt(branch).length">
+                <span
+                  v-for="trigger in triggerChipsAt(branch)"
+                  :key="trigger.type + trigger.star + trigger.palace + trigger.branch"
+                  class="zw-trigger-chip"
+                  :class="triggerClass(trigger)"
+                  :title="trigger.meaning"
+                >
+                  {{ triggerLabel(trigger) }}
+                </span>
+              </template>
+              <template v-else-if="liunianStarsAt(branch).length">
+                <span
+                  v-for="star in liunianStarsAt(branch)"
+                  :key="star"
+                  class="zw-trigger-chip"
+                  :class="fallbackChipClass(star)"
+                >
+                  {{ star }}
+                </span>
+              </template>
+              <span v-else class="zw-no-trigger">本年未重点触发</span>
+            </div>
+          </button>
 
-      <!-- Row 4 -->
-      <template v-for="branch in row4Branches" :key="'r4-' + branch">
-        <div class="zw-cell" :class="[{ 'zw-cell-overlay': mode === 'overlay', 'zw-cell-body': basePalaceAt(branch)?.is_body_palace }, palaceHighlightClass(branch)]" @mouseenter="focusedBranch = branch" @mouseleave="focusedBranch = undefined">
-          <div class="zw-cell-header">
-            <span class="zw-palace-name">{{ basePalaceAt(branch)?.name || branch }}</span>
-            <span class="zw-branch">{{ branch }}<template v-if="basePalaceAt(branch)?.heavenly_stem"> · {{ basePalaceAt(branch)?.heavenly_stem }}</template></span>
-            <span v-if="basePalaceAt(branch)?.is_body_palace" class="zw-body-tag">身宫</span>
-          </div>
-          <div class="zw-stars">
-            <span
-              v-for="(star, si) in richStars(basePalaceAt(branch))"
-              :key="'bs-' + si"
-              class="zw-star zw-star-gold"
-              :style="{ background: baseMeta(star.brightness).bg }"
-            >{{ star.name }}</span>
-            <span v-for="(sh, si) in palaceSihua(basePalaceAt(branch))" :key="'bsh-' + si" class="zw-sihua-tag">{{ sh }}</span>
-          </div>
-          <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve"><span class="zw-twelve-tag">{{ basePalaceAt(branch)?.changsheng_12 }}</span></div>
-          <div v-if="mode === 'overlay' && liunianPalaceAt(branch)" class="zw-overlay-stars">
-            <div class="zw-overlay-label">流年</div>
-            <span
-              v-for="(star, si) in liunianStars(liunianPalaceAt(branch))"
-              :key="'ls-' + si"
-              class="zw-star zw-star-purple"
-              :style="{ background: overlayMeta(star.brightness).bg }"
-            >{{ star.name }}</span>
-          </div>
-          <div v-if="mode === 'overlay' && liunianStarsAt(branch).length" class="zw-liuyao">
-            <span
-              v-for="(star, si) in liunianStarsAt(branch)"
-              :key="'ly-' + si"
-              class="zw-liuyao-chip"
-            >{{ star }}</span>
+          <div class="zw-center" :class="{ 'zw-center-overlay': mode === 'overlay' }">
+            <div class="zw-center-head">
+              <span class="zw-center-kicker">{{ mode === 'overlay' ? '年度判读' : '命宫核心' }}</span>
+              <strong class="zw-center-title">{{ centerTitle }}</strong>
+              <span class="zw-center-subtitle">{{ centerSubtitle }}</span>
+            </div>
+
+            <div class="zw-center-duo">
+              <span class="zw-center-major">
+                <small>命主</small>
+                <b>{{ baseChart.life_master || '—' }}</b>
+              </span>
+              <span class="zw-center-major">
+                <small>身主</small>
+                <b>{{ baseChart.body_master || '—' }}</b>
+              </span>
+            </div>
+
+            <div class="zw-center-grid">
+              <span><small>五行局</small><b>{{ baseChart.five_bureau || '—' }}</b></span>
+              <span v-if="mode === 'overlay'"><small>流年</small><b>{{ selectedYear }}</b></span>
+            </div>
           </div>
         </div>
-      </template>
+
+        <svg
+          v-if="svgLines.length"
+          class="zw-svg-overlay"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <line
+            v-for="(line, index) in svgLines"
+            :key="'line-' + index"
+            :x1="line.from.x"
+            :y1="line.from.y"
+            :x2="line.to.x"
+            :y2="line.to.y"
+            :class="line.type === 'opposite' ? 'is-opposite' : 'is-trine'"
+            stroke-linecap="round"
+          />
+        </svg>
       </div>
 
-      <!-- SVG connection lines for sanfang sizheng -->
-      <svg
-        v-if="svgLines.length"
-        class="zw-svg-overlay"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <filter id="glow-line" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="0.8" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <linearGradient id="grad-opposite" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(186,130,255,0.95)" />
-            <stop offset="100%" stop-color="rgba(186,130,255,0.3)" />
-          </linearGradient>
-          <linearGradient id="grad-trine" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(206,168,255,0.85)" />
-            <stop offset="100%" stop-color="rgba(206,168,255,0.2)" />
-          </linearGradient>
-        </defs>
-        <line
-          v-for="(l, i) in svgLines"
-          :key="'line-' + i"
-          :x1="l.from.x" :y1="l.from.y"
-          :x2="l.to.x" :y2="l.to.y"
-          :stroke="l.type === 'opposite' ? 'url(#grad-opposite)' : 'url(#grad-trine)'"
-          :stroke-width="l.type === 'opposite' ? 0.7 : 0.5"
-          stroke-dasharray="120"
-          stroke-linecap="round"
-          filter="url(#glow-line)"
-          class="zw-svg-line"
-          :class="{ 'zw-svg-line-opp': l.type === 'opposite' }"
-        />
-        <circle
-          v-for="(l, i) in svgLines"
-          :key="'dot-to-' + i"
-          :cx="l.to.x" :cy="l.to.y"
-          r="0.8"
-          :fill="l.type === 'opposite' ? 'rgba(186,130,255,0.8)' : 'rgba(206,168,255,0.6)'"
-          filter="url(#glow-line)"
-        />
-        <circle
-          v-for="(l, i) in svgLines"
-          :key="'dot-from-' + i"
-          :cx="l.from.x" :cy="l.from.y"
-          r="0.8"
-          fill="rgba(142,109,187,0.8)"
-          filter="url(#glow-line)"
-        />
-      </svg>
+      <aside v-if="mode === 'overlay'" class="zw-overlay-side">
+        <section class="zw-evidence-block">
+          <div class="zw-side-heading">
+            <span>四化飞星</span>
+            <small>{{ fourHuaTargets.length }}项</small>
+          </div>
+          <div class="zw-trigger-list">
+            <article
+              v-for="trigger in fourHuaTargets"
+              :key="trigger.type + trigger.star + trigger.branch"
+              class="zw-trigger-card"
+              :class="triggerClass(trigger)"
+            >
+              <div>
+                <strong>{{ triggerLabel(trigger) }}</strong>
+                <span>{{ trigger.branch }} · {{ trigger.palace }}</span>
+              </div>
+              <p>{{ trigger.meaning }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="zw-evidence-block">
+          <div class="zw-side-heading">
+            <span>流禄羊陀马</span>
+            <small>{{ annualStarTargets.length }}项</small>
+          </div>
+          <div class="zw-trigger-list compact">
+            <article
+              v-for="trigger in annualStarTargets"
+              :key="trigger.type + trigger.branch"
+              class="zw-trigger-card"
+              :class="triggerClass(trigger)"
+            >
+              <div>
+                <strong>{{ trigger.type }}</strong>
+                <span>{{ trigger.branch }} · {{ trigger.palace }}</span>
+              </div>
+              <p>{{ trigger.meaning }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="zw-evidence-block">
+          <div class="zw-side-heading">
+            <span>重点宫位</span>
+            <small>{{ focusPalaces.length }}个</small>
+          </div>
+          <div class="zw-focus-list">
+            <article
+              v-for="item in focusPalaces"
+              :key="item.palace + item.branch"
+              class="zw-focus-card"
+              :class="focusPalaceClass(item)"
+              @mouseenter="focusedBranch = item.branch"
+              @mouseleave="focusedBranch = undefined"
+            >
+              <header>
+                <strong>{{ item.palace }}</strong>
+                <span>{{ item.branch }}宫 · 权重 {{ item.score }}</span>
+              </header>
+              <div v-if="list(item.main_stars).length" class="zw-mini-tags">
+                <span v-for="star in list(item.main_stars)" :key="star">{{ star }}</span>
+              </div>
+              <p>{{ item.advice }}</p>
+            </article>
+          </div>
+        </section>
+      </aside>
     </div>
 
-    <!-- Legend -->
     <div class="zw-legend">
-      <div class="zw-legend-item">
-        <span class="zw-legend-swatch zw-swatch-gold"></span>
-        <span class="zw-legend-text">本命星曜</span>
-      </div>
-      <div v-if="mode === 'overlay'" class="zw-legend-item">
-        <span class="zw-legend-swatch zw-swatch-purple"></span>
-        <span class="zw-legend-text">流年星曜</span>
-      </div>
-      <div class="zw-legend-item">
-        <span class="zw-legend-swatch zw-swatch-focused"></span>
-        <span class="zw-legend-text">本宫</span>
-      </div>
-      <div class="zw-legend-item">
-        <span class="zw-legend-swatch zw-swatch-opposite"></span>
-        <span class="zw-legend-text">对宫</span>
-      </div>
-      <div class="zw-legend-item">
-        <span class="zw-legend-swatch zw-swatch-surrounded"></span>
-        <span class="zw-legend-text">三合</span>
-      </div>
+      <span><i class="swatch base"></i>本命星曜</span>
+      <span v-if="mode === 'overlay'"><i class="swatch good"></i>助力</span>
+      <span v-if="mode === 'overlay'"><i class="swatch watch"></i>注意</span>
+      <span v-if="mode === 'overlay'"><i class="swatch move"></i>移动变化</span>
+      <span><i class="swatch focus"></i>悬停三方四正</span>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
-/* ── Page ── */
 .zw-overlay {
   width: 100%;
-  background: var(--surface-1);
+  padding: 1.2rem;
   border: 1px solid var(--line-subtle);
-  border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: 0 20px 80px rgba(0,0,0,0.12);
-}
-:global(.dark) .zw-overlay {
-  background: linear-gradient(160deg, rgba(20,14,35,0.95) 0%, rgba(8,5,15,0.98) 100%);
-  box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--surface-1) 92%, transparent), var(--surface-0)),
+    var(--surface-1);
+  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
 }
 
-/* ── Controls ── */
-.zw-controls {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 1rem;
-  flex-wrap: wrap; gap: 0.75rem;
+:global(.dark) .zw-overlay {
+  background:
+    linear-gradient(145deg, rgba(8, 13, 20, 0.98), rgba(15, 18, 27, 0.96)),
+    var(--surface-1);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
 }
+
+.zw-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
 .zw-toggle {
   display: flex;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  border-radius: 10px;
+  gap: 3px;
   padding: 3px;
-  gap: 2px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 9px;
+  background: var(--glass-bg);
 }
+
 .zw-tab {
-  display: flex; align-items: center; gap: 6px;
-  padding: 0.45rem 1rem;
-  border: none; border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0.35rem 0.85rem;
+  border: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--text-dim);
-  font-size: 0.8rem; font-weight: 600;
-  cursor: pointer; transition: all 0.3s;
-  letter-spacing: 0.5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
 }
-.zw-tab:hover { color: var(--text-muted); background: var(--glass-bg-hover); }
-.zw-tab.is-active { background: var(--glass-bg-hover); color: var(--accent); }
+
+.zw-tab:hover,
+.zw-tab.is-active {
+  background: var(--glass-bg-hover);
+  color: var(--text);
+}
+
 .zw-tab-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
-.zw-dot-gold { background: var(--text-muted); box-shadow: 0 0 8px color-mix(in oklab, var(--text-muted) 50%, transparent); }
-.zw-dot-purple { background: var(--accent); box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 50%, transparent); }
-.zw-year-select { display: flex; align-items: center; gap: 0.5rem; }
-.zw-year-label { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 1px; }
+
+.zw-dot-gold { background: #d6a44b; }
+.zw-dot-year { background: #22c55e; }
+
+.zw-year-select {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.zw-year-label {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .zw-select {
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 7px;
   background: var(--glass-bg);
+  color: var(--text);
+  font-weight: 800;
+  outline: none;
+}
+
+.zw-select:focus {
+  border-color: color-mix(in oklab, #22c55e 55%, var(--line-subtle));
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+.zw-overlay-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+
+.zw-kicker,
+.zw-center-kicker {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.zw-guide-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+
+.zw-guide-title-row h3 {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.zw-guide-title-row h3 span {
+  color: #16a34a;
+}
+
+:global(.dark) .zw-guide-title-row h3 span {
+  color: #86efac;
+}
+
+.zw-score {
+  display: grid;
+  place-items: center;
+  min-width: 74px;
+  min-height: 62px;
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
-  color: var(--accent);
-  font-size: 0.82rem; font-weight: 700;
-  padding: 0.35rem 0.75rem;
-  cursor: pointer; outline: none;
-  transition: border-color 0.3s;
+  background: var(--surface-1);
 }
-:global(.dark) .zw-select {
-  border-color: rgba(142,109,187,0.25);
-  color: #8E6DBB;
-}
-.zw-select:hover { border-color: var(--line-focus); }
-:global(.dark) .zw-select:hover { border-color: rgba(142,109,187,0.45); }
 
-/* ── Grid ── */
+.zw-score strong {
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.zw-score span {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.score-good { border-color: rgba(34, 197, 94, 0.35); }
+.score-watch { border-color: rgba(244, 63, 94, 0.35); }
+.score-neutral { border-color: rgba(14, 165, 233, 0.28); }
+
+.zw-guide-summary {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+.zw-guide-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.zw-guide-meta span {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--surface-1) 78%, transparent);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.zw-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.zw-method-card {
+  padding: 0.7rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-1) 78%, transparent);
+}
+
+.zw-method-card span {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.zw-method-card strong {
+  display: block;
+  margin: 0.24rem 0;
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.zw-method-card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.zw-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.zw-workspace.is-overlay {
+  grid-template-columns: minmax(560px, 1fr) minmax(300px, 0.38fr);
+  align-items: start;
+}
+
 .zw-grid-wrap {
   position: relative;
-  overflow: visible;
+  min-width: 0;
 }
+
 .zw-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: repeat(4, minmax(110px, auto));
   gap: 2px;
-  background: var(--surface-0);
+  overflow: hidden;
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
-  overflow: hidden;
+  background: var(--surface-0);
 }
-:global(.dark) .zw-grid {
-  background: rgba(0,0,0,0.4);
-}
-.zw-grid-overlay { background: var(--surface-2); border-color: var(--line-subtle); }
-:global(.dark) .zw-grid-overlay { background: rgba(20,15,40,0.6); border-color: rgba(142,109,187,0.12); }
 
-/* SVG overlay for connection lines */
+.zw-cell,
+.zw-center {
+  min-width: 0;
+  border: 0;
+  background: var(--surface-2);
+}
+
+.zw-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 110px;
+  padding: 0.6rem 0.4rem;
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.zw-cell:hover,
+.zw-cell:focus-visible {
+  z-index: 2;
+  background: var(--surface-3);
+  outline: none;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+.zw-cell-overlay {
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface-2));
+}
+
+:global(.dark) .zw-cell {
+  background: linear-gradient(180deg, rgba(16, 20, 28, 0.92), rgba(9, 12, 18, 0.96));
+}
+
+:global(.dark) .zw-cell-overlay {
+  background: linear-gradient(180deg, rgba(30,25,45,0.85) 0%, rgba(20,15,35,0.9) 100%);
+}
+
+.zw-cell-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin-bottom: 2px;
+}
+
+.zw-palace-name {
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.zw-branch {
+  color: var(--text-dim);
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.zw-body-tag {
+  width: fit-content;
+  padding: 0.05rem 0.28rem;
+  border-radius: 4px;
+  background: rgba(244, 63, 94, 0.12);
+  color: #e11d48;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.zw-stars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  flex: 1 1 auto;
+}
+
+.zw-star,
+.zw-more-star,
+.zw-sihua-tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 20px;
+  padding: 0.08rem 0.38rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 850;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.zw-star {
+  color: var(--destructive-foreground);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.zw-star:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.zw-more-star {
+  border: 1px solid var(--line-subtle);
+  background: var(--glass-bg);
+  color: var(--text-dim);
+}
+
+.zw-sihua-tag {
+  border: 1px solid color-mix(in oklab, var(--crimson) 30%, transparent);
+  background: color-mix(in oklab, var(--crimson) 15%, transparent);
+  color: var(--crimson);
+  border-radius: 20px;
+}
+
+:global(.dark) .zw-sihua-tag {
+  color: #fbbf24;
+}
+
+.zw-twelve {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.zw-twelve span {
+  color: var(--accent);
+  font-size: 0.5rem;
+  background: var(--glass-bg);
+  padding: 0px 3px;
+  border-radius: 2px;
+}
+
+.zw-trigger-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+  min-height: 24px;
+  padding-top: 0.38rem;
+  border-top: 1px dashed var(--line-subtle);
+}
+
+.zw-trigger-chip {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 20px;
+  align-items: center;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 5px;
+  font-size: 0.64rem;
+  font-weight: 850;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.is-good {
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  background: rgba(34, 197, 94, 0.11) !important;
+  color: #15803d !important;
+}
+
+.is-watch {
+  border-color: rgba(244, 63, 94, 0.34) !important;
+  background: rgba(244, 63, 94, 0.11) !important;
+  color: #be123c !important;
+}
+
+.is-move {
+  border-color: rgba(14, 165, 233, 0.34) !important;
+  background: rgba(14, 165, 233, 0.11) !important;
+  color: #0369a1 !important;
+}
+
+.is-neutral {
+  border-color: rgba(148, 163, 184, 0.32) !important;
+  background: rgba(148, 163, 184, 0.11) !important;
+  color: var(--text-muted) !important;
+}
+
+:global(.dark) .is-good { color: #86efac !important; }
+:global(.dark) .is-watch { color: #fda4af !important; }
+:global(.dark) .is-move { color: #7dd3fc !important; }
+
+.zw-no-trigger {
+  color: var(--text-dim);
+  font-size: 0.63rem;
+}
+
+.zw-impact-good {
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.22);
+}
+
+.zw-impact-watch {
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.24);
+}
+
+.zw-impact-move {
+  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.22);
+}
+
+.zw-impact-neutral {
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+.zw-cell-body {
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.32);
+}
+
+.zw-focused {
+  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 12%, transparent);
+}
+
+.zw-opposite {
+  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 10%, transparent);
+}
+
+.zw-surrounded {
+  background: color-mix(in oklab, var(--accent) 12%, transparent) !important;
+  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 6%, transparent);
+}
+
+.zw-center {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-content: center;
+  gap: 0.68rem;
+  overflow: hidden;
+  padding: 1rem 1.05rem;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 58%),
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 5%, transparent), transparent 48%),
+    color-mix(in oklab, var(--surface-2) 96%, var(--surface-0));
+  text-align: center;
+}
+
+.zw-center::before,
+.zw-center::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.zw-center::before {
+  inset: 0.62rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 14%, transparent);
+  border-radius: 7px;
+}
+
+.zw-center::after {
+  top: 0.8rem;
+  right: 0.72rem;
+  bottom: 0.8rem;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--crimson) 68%, var(--accent)));
+  opacity: 0.48;
+}
+
+.zw-center-overlay {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(34, 197, 94, 0.12), transparent 58%),
+    linear-gradient(145deg, rgba(34, 197, 94, 0.08), rgba(14, 165, 233, 0.06)),
+    color-mix(in oklab, var(--surface-2) 96%, var(--surface-0));
+}
+
+.zw-center-head,
+.zw-center-duo,
+.zw-center-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.zw-center-head {
+  display: grid;
+  justify-items: center;
+  gap: 0.22rem;
+}
+
+.zw-center-title {
+  color: var(--text);
+  font-family: var(--font-serif), serif;
+  font-size: 1.42rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.zw-center-subtitle {
+  max-width: 100%;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.zw-center-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.46rem;
+}
+
+.zw-center-major {
+  display: grid;
+  justify-items: center;
+  gap: 0.16rem;
+  min-width: 0;
+  min-height: 56px;
+  padding: 0.48rem 0.58rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--line-subtle));
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-1) 72%, transparent), color-mix(in oklab, var(--surface-2) 86%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--text) 5%, transparent);
+}
+
+.zw-center-major small,
+.zw-center-grid small {
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.zw-center-major b {
+  max-width: 100%;
+  color: var(--accent);
+  font-family: var(--font-serif), serif;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.zw-center-grid {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 100%;
+}
+
+.zw-center-grid span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  min-width: 0;
+  padding: 0.22rem 0.48rem;
+  border: 1px solid color-mix(in oklab, var(--line-subtle) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-1) 48%, transparent);
+  color: var(--text-dim);
+}
+
+.zw-center-grid b {
+  max-width: 100%;
+  color: var(--text);
+  font-size: 0.76rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .zw-svg-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 10;
-  overflow: visible;
-}
-.zw-svg-line {
-  animation: zw-line-draw 0.4s ease-out both, zw-pulse 2.5s ease-in-out 0.4s infinite;
-}
-.zw-svg-line-opp {
-  animation: zw-line-draw-opp 0.35s ease-out both, zw-pulse-opp 2.5s ease-in-out 0.35s infinite;
-}
-@keyframes zw-line-draw {
-  from { stroke-dashoffset: 120; opacity: 0; }
-  to { stroke-dashoffset: 0; opacity: 1; }
-}
-@keyframes zw-line-draw-opp {
-  from { stroke-dashoffset: 120; opacity: 0; }
-  to { stroke-dashoffset: 0; opacity: 1; }
-}
-@keyframes zw-pulse {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 0.55; }
-}
-@keyframes zw-pulse-opp {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 0.6; }
+  z-index: 5;
 }
 
-/* ── Cell ── */
-.zw-cell {
-  background: var(--surface-2);
-  min-height: 110px;
-  padding: 0.6rem 0.4rem;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  position: relative;
-  transition: background 0.3s;
-}
-:global(.dark) .zw-cell {
-  background: linear-gradient(180deg, rgba(12,12,14,0.85) 0%, rgba(6,6,8,0.92) 100%);
-}
-.zw-cell:hover { background: var(--surface-3); }
-:global(.dark) .zw-cell:hover { background: linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(12,12,16,0.96) 100%); }
-.zw-cell-overlay { background: color-mix(in oklab, var(--accent) 8%, var(--surface-2)); }
-:global(.dark) .zw-cell-overlay { background: linear-gradient(180deg, rgba(30,25,45,0.85) 0%, rgba(20,15,35,0.9) 100%); }
-.zw-cell-overlay:hover { background: color-mix(in oklab, var(--accent) 12%, var(--surface-3)); }
-:global(.dark) .zw-cell-overlay:hover { background: linear-gradient(180deg, rgba(40,35,60,0.9) 0%, rgba(25,20,45,0.95) 100%); }
-
-/* Cell header */
-.zw-cell-header {
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
-  margin-bottom: 2px;
-}
-.zw-palace-name {
-  font-size: 0.7rem; font-weight: 800;
-  color: var(--accent); letter-spacing: 1px;
-}
-.zw-branch {
-  font-size: 0.58rem; color: var(--text-soft);
+.zw-svg-overlay line {
+  stroke-width: 0.55;
+  stroke-dasharray: 2 1.4;
+  opacity: 0.82;
 }
 
-/* Stars */
-.zw-stars { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; flex: 1 1 auto; }
-.zw-star {
-  display: inline-block;
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 0.68rem; font-weight: 800;
-  color: var(--destructive-foreground);
-  white-space: nowrap;
-  letter-spacing: 0.5px;
-  line-height: 1.4;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.zw-star-gold {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.zw-star:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-.zw-star-purple {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+.zw-svg-overlay .is-opposite {
+  stroke: rgba(34, 197, 94, 0.78);
 }
 
-/* Sihua */
-.zw-sihua-tag {
-  font-size: 0.58rem; font-weight: 700;
-  padding: 1px 5px;
-  background: color-mix(in oklab, var(--crimson) 15%, transparent);
-  border: 1px solid color-mix(in oklab, var(--crimson) 30%, transparent);
-  border-radius: 20px;
-  color: var(--crimson);
+.zw-svg-overlay .is-trine {
+  stroke: rgba(245, 158, 11, 0.68);
 }
 
-/* Overlay stars */
-.zw-overlay-stars {
-  display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px;
-  margin-top: auto;
-  padding-top: 4px;
-  border-top: 1px dashed var(--line-subtle);
-  width: 100%;
-}
-.zw-overlay-label {
-  font-size: 0.55rem; font-weight: 700;
-  color: var(--text-soft);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  width: 100%;
-  text-align: center;
-  margin-bottom: 1px;
+.zw-overlay-side {
+  display: grid;
+  gap: 0.85rem;
 }
 
-/* 流耀 */
-.zw-liuyao {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
-  margin-top: 3px; padding-top: 3px;
-  border-top: 1px dashed color-mix(in oklab, var(--accent) 15%, var(--line-subtle));
-  width: 100%;
-}
-.zw-liuyao-chip {
-  font-size: 0.52rem; font-weight: 600;
-  padding: 0px 4px;
-  background: color-mix(in oklab, var(--accent) 8%, var(--glass-bg));
-  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--line-subtle));
-  border-radius: 3px;
-  color: var(--accent);
-  white-space: nowrap;
+.zw-evidence-block {
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface-1) 86%, transparent);
+  overflow: hidden;
 }
 
-/* ── Center ── */
-.zw-center {
-  background: var(--surface-1);
-  grid-row: span 2;
-  grid-column: span 2;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px;
+.zw-side-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.zw-side-heading span {
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.zw-side-heading small {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.zw-trigger-list,
+.zw-focus-list {
+  display: grid;
+  gap: 0.55rem;
   padding: 0.75rem;
-  position: relative; overflow: hidden;
-  border-left: 1px solid var(--line-subtle);
-  border-right: 1px solid var(--line-subtle);
 }
-:global(.dark) .zw-center {
-  background: linear-gradient(180deg, rgba(12,12,14,0.9) 0%, rgba(3,4,4,0.95) 100%);
-  border-left-color: rgba(203, 213, 225,0.06);
-  border-right-color: rgba(203, 213, 225,0.06);
+
+.zw-trigger-list.compact {
+  gap: 0.45rem;
 }
-.zw-center-overlay {
+
+.zw-trigger-card,
+.zw-focus-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.68rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
   background: var(--surface-2);
-  border-left-color: var(--line-subtle);
-  border-right-color: var(--line-subtle);
 }
-:global(.dark) .zw-center-overlay {
-  background: linear-gradient(180deg, rgba(50,40,80,0.9) 0%, rgba(25,20,50,0.95) 100%);
-  border-left-color: rgba(142,109,187,0.1);
-  border-right-color: rgba(142,109,187,0.1);
-}
-.zw-center-glow {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle, color-mix(in oklab, var(--text-muted) 6%, transparent), transparent 70%);
-  pointer-events: none;
-}
-:global(.dark) .zw-center-glow {
-  background: radial-gradient(circle, rgba(203, 213, 225,0.06), transparent 70%);
-}
-.zw-center-overlay .zw-center-glow {
-  background: radial-gradient(circle, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%);
-}
-:global(.dark) .zw-center-overlay .zw-center-glow {
-  background: radial-gradient(circle, rgba(142,109,187,0.08), transparent 70%);
-}
-.zw-center-title {
-  font-family: var(--font-serif);
-  font-size: 0.78rem; font-weight: 800;
-  color: var(--accent); letter-spacing: 2px;
-  text-shadow: 0 0 20px color-mix(in oklab, var(--accent) 30%, transparent);
-  position: relative;
-}
-.zw-center-overlay .zw-center-title {
-  color: #6d28d9;
-  text-shadow: 0 0 20px color-mix(in oklab, var(--accent) 40%, transparent);
-}
-:global(.dark) .zw-center-overlay .zw-center-title {
-  color: #8E6DBB;
-  text-shadow: 0 0 20px rgba(142,109,187,0.4);
-}
-.zw-center-row { display: flex; flex-direction: column; align-items: center; gap: 0; position: relative; }
-.zw-center-lbl { font-size: 0.55rem; color: var(--text-soft); letter-spacing: 1px; text-transform: uppercase; }
-.zw-center-val { font-size: 0.78rem; font-weight: 800; color: var(--text); }
-.zw-year-val { color: var(--accent); font-size: 0.9rem; text-shadow: 0 0 15px color-mix(in oklab, var(--accent) 40%, transparent); }
-:global(.dark) .zw-year-val { color: #8E6DBB; text-shadow: 0 0 15px rgba(142,109,187,0.4); }
 
+.zw-trigger-card div,
+.zw-focus-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
 
-/* ── Legend ── */
+.zw-trigger-card strong,
+.zw-focus-card strong {
+  color: inherit;
+  font-size: 0.84rem;
+}
+
+.zw-trigger-card span,
+.zw-focus-card header span {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.zw-trigger-card p,
+.zw-focus-card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.zw-mini-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.zw-mini-tags span {
+  padding: 0.08rem 0.36rem;
+  border-radius: 4px;
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .zw-legend {
-  display: flex; justify-content: center; gap: 2rem;
-  margin-top: 1rem; padding-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.3rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
   border-top: 1px solid var(--line-subtle);
-}
-.zw-legend-item { display: flex; align-items: center; gap: 0.5rem; }
-.zw-legend-swatch {
-  width: 10px; height: 10px; border-radius: 3px;
-}
-.zw-swatch-gold { background: linear-gradient(135deg, var(--text-muted), var(--text-dim)); box-shadow: 0 0 8px color-mix(in oklab, var(--text-muted) 40%, transparent); }
-.zw-swatch-purple { background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent) 70%, var(--text-dim))); box-shadow: 0 0 8px color-mix(in oklab, var(--accent) 40%, transparent); }
-.zw-swatch-focused { background: color-mix(in oklab, var(--accent) 50%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 70%, transparent); }
-.zw-swatch-opposite { background: color-mix(in oklab, var(--accent) 40%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent); }
-.zw-swatch-surrounded { background: color-mix(in oklab, var(--accent) 25%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 50%, transparent); }
-.zw-legend-text { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 1px; }
-
-/* Body palace */
-.zw-cell-body { border: 1px solid color-mix(in oklab, var(--crimson) 30%, var(--line-subtle)); }
-.zw-body-tag { font-size: 0.48rem; font-weight: 700; background: rgba(251, 113, 133, 0.12); color: var(--danger); padding: 0px 3px; border-radius: 2px; margin-left: 2px; }
-
-/* ── Sanfang Sizheng highlight ── */
-.zw-focused {
-  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 12%, transparent);
-}
-.zw-opposite {
-  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 10%, transparent);
-}
-.zw-surrounded {
-  background: color-mix(in oklab, var(--accent) 12%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 6%, transparent);
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  font-weight: 750;
+  justify-content: center;
 }
 
-/* Twelve stars */
-.zw-twelve { display: flex; justify-content: center; margin-top: 1px; }
-.zw-twelve-tag { font-size: 0.5rem; color: var(--accent); background: var(--glass-bg); padding: 0px 3px; border-radius: 2px; }
+.zw-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.swatch.base { background: #d6a44b; }
+.swatch.good { background: #22c55e; }
+.swatch.watch { background: #f43f5e; }
+.swatch.move { background: #0ea5e9; }
+.swatch.focus { background: #f59e0b; }
+
+@media (max-width: 1180px) {
+  .zw-workspace.is-overlay,
+  .zw-overlay-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .zw-workspace.is-overlay {
+    display: grid;
+  }
+}
+
+@media (max-width: 720px) {
+  .zw-overlay {
+    padding: 0.8rem;
+  }
+
+  .zw-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .zw-grid {
+    grid-template-columns: repeat(4, minmax(72px, 1fr));
+    grid-template-rows: repeat(4, minmax(104px, auto));
+  }
+
+  .zw-cell {
+    min-height: 104px;
+    padding: 0.42rem;
+  }
+
+  .zw-palace-name {
+    font-size: 0.72rem;
+  }
+
+  .zw-star,
+  .zw-trigger-chip,
+  .zw-more-star,
+  .zw-sihua-tag {
+    font-size: 0.58rem;
+    padding-inline: 0.25rem;
+  }
+
+  .zw-center {
+    gap: 0.34rem;
+    padding: 0.48rem;
+  }
+
+  .zw-center::before {
+    inset: 0.32rem;
+    border-radius: 5px;
+  }
+
+  .zw-center::after {
+    top: 0.32rem;
+    right: 0.32rem;
+    bottom: 0.32rem;
+    width: 2px;
+  }
+
+  .zw-center-head {
+    gap: 0.08rem;
+  }
+
+  .zw-center-kicker {
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+  }
+
+  .zw-center-title {
+    font-size: 1rem;
+  }
+
+  .zw-center-subtitle {
+    font-size: 0.56rem;
+    line-height: 1.2;
+  }
+
+  .zw-center-duo {
+    gap: 0.24rem;
+  }
+
+  .zw-center-major {
+    min-height: 42px;
+    padding: 0.28rem 0.22rem;
+    border-radius: 6px;
+  }
+
+  .zw-center-major small,
+  .zw-center-grid small {
+    font-size: 0.52rem;
+  }
+
+  .zw-center-major b {
+    font-size: 0.9rem;
+  }
+
+  .zw-center-grid {
+    justify-content: center;
+    gap: 0.22rem;
+  }
+
+  .zw-center-grid span {
+    gap: 0.22rem;
+    padding: 0.18rem 0.34rem;
+  }
+
+  .zw-center-grid b {
+    font-size: 0.64rem;
+  }
+
+  .zw-guide-title-row {
+    flex-direction: column;
+  }
+}
 </style>

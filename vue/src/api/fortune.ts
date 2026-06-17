@@ -6,6 +6,13 @@ export interface FortuneGuideItem {
   value: string
   element?: string
   reason: string
+  category?: string
+  priority?: number
+  intensity?: string
+  timing?: string
+  method?: string
+  source?: string
+  impact?: string
 }
 
 export interface FortuneGuide {

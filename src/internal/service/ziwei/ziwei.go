@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/6tail/tyme4go/tyme"
 )
@@ -159,6 +160,36 @@ func (s *ZiWeiService) CalculateChart(year, month, day, hour, minute int, gender
 	return chart, nil
 }
 
+// AttachBirthData restores runtime-only calculation fields on a chart loaded
+// from JSON cache. Cached charts intentionally omit these fields, but period
+// analysis depends on them for 大限 direction, 干支, and 五行局 metadata.
+func (s *ZiWeiService) AttachBirthData(chart *ZiWeiChart, year, month, day, hour, minute int, gender string) error {
+	if chart == nil {
+		return fmt.Errorf("chart is nil")
+	}
+	birth, err := buildBirthData(year, month, day, hour, minute, gender)
+	if err != nil {
+		return fmt.Errorf("build birth data: %w", err)
+	}
+	chart.birthData = birth
+	chart.YearStem = birth.YearStem
+	chart.YearBranch = birth.YearBranch
+	soulBranch, ok := BranchIndex[chart.EarthlyBranchOfSoulPalace]
+	if !ok {
+		soulBranch = birth.YearBranch
+	}
+	bodyBranch, ok := BranchIndex[chart.EarthlyBranchOfBodyPalace]
+	if !ok {
+		bodyBranch = soulBranch
+	}
+	chart.SoulBranch = soulBranch
+	chart.BodyBranch = bodyBranch
+	chart.SoulStem = GetPalaceStem(birth.YearStem, chart.SoulBranch)
+	chart.JuValue = calcFiveBureau(chart.SoulStem, chart.SoulBranch)
+	restoreRuntimeStarFields(chart)
+	return nil
+}
+
 // DetectLocalPatterns detects patterns using the local knowledge layer.
 func (s *ZiWeiService) DetectLocalPatterns(chart *ZiWeiChart) []string {
 	return DetectLocalPatterns(chart)
@@ -202,12 +233,7 @@ func (s *ZiWeiService) CalculateLiunian(chart *ZiWeiChart, targetYear int) *ZiWe
 	for i := 0; i < 12; i++ {
 		palaceStars := make([]string, 0)
 
-		for _, star := range result.Palaces[i].MainStars {
-			if label, ok := liunianHua[star]; ok {
-				palaceStars = append(palaceStars, star+label)
-			}
-		}
-		for _, star := range result.Palaces[i].AuxStars {
+		for _, star := range palaceStarNames(result.Palaces[i]) {
 			if label, ok := liunianHua[star]; ok {
 				palaceStars = append(palaceStars, star+label)
 			}
@@ -218,21 +244,20 @@ func (s *ZiWeiService) CalculateLiunian(chart *ZiWeiChart, targetYear int) *ZiWe
 		tlIdx := fixIndex(luZnIdx - 1)
 		tmIdx := TianmaBranchIdx[liunianBranch]
 
-		branchName := BranchNames[fixIndex(liunianBranch)]
-		if i == luZnIdx {
+		palaceBranchIdx, ok := BranchIndex[result.Palaces[i].Branch]
+		if ok && palaceBranchIdx == luZnIdx {
 			palaceStars = append(palaceStars, "流禄")
 		}
-		if i == qyIdx {
+		if ok && palaceBranchIdx == qyIdx {
 			palaceStars = append(palaceStars, "流羊")
 		}
-		if i == tlIdx {
+		if ok && palaceBranchIdx == tlIdx {
 			palaceStars = append(palaceStars, "流陀")
 		}
-		if i == tmIdx {
+		if ok && palaceBranchIdx == tmIdx {
 			palaceStars = append(palaceStars, "流马")
 		}
 
-		_ = branchName
 		liunianStars[i] = palaceStars
 	}
 	result.LiuNianStars = liunianStars
@@ -240,66 +265,136 @@ func (s *ZiWeiService) CalculateLiunian(chart *ZiWeiChart, targetYear int) *ZiWe
 	return &result
 }
 
-// CalculateLiuyue computes the 流月 overlay.
+// CalculateLiuyue computes the 流月 overlay using the natal year as a
+// compatibility fallback. New callers should prefer CalculateLiuyueForYear.
 func (s *ZiWeiService) CalculateLiuyue(chart *ZiWeiChart, lunarMonth int) *ZiWeiChart {
+	year := timeNowYear()
+	if chart != nil && chart.birthData != nil {
+		year = chart.birthData.SolarYear
+	}
+	return s.CalculateLiuyueForYear(chart, year, lunarMonth)
+}
+
+// CalculateLiuyueForYear computes the 流月 overlay for a target year/month.
+func (s *ZiWeiService) CalculateLiuyueForYear(chart *ZiWeiChart, year, month int) *ZiWeiChart {
 	if chart == nil {
 		return nil
 	}
 	result := *chart
 
-	yearStem := chart.YearStem
-	if chart.birthData != nil {
-		yearStem = chart.birthData.YearStem
-	}
-	liuyueStem := (yearStem*2 + lunarMonth - 1) % 10
-	if liuyueStem < 0 {
-		liuyueStem += 10
-	}
+	liuyueStem, _ := targetMonthStemBranch(year, month)
 	liuyueHua := calcFourHua(liuyueStem)
 	var liuyueStars [12][]string
 	for i := 0; i < 12; i++ {
-		palaceStars := make([]string, 0)
-		for _, star := range result.Palaces[i].MainStars {
-			if label, ok := liuyueHua[star]; ok {
-				palaceStars = append(palaceStars, star+label)
-			}
-		}
-		liuyueStars[i] = palaceStars
+		liuyueStars[i] = periodHuaStars(result.Palaces[i], liuyueHua)
 	}
 	result.LiuYueStars = liuyueStars
 
 	return &result
 }
 
-// CalculateLiuri computes the 流日 overlay.
+// CalculateLiuri computes the 流日 overlay using the natal date as a
+// compatibility fallback. New callers should prefer CalculateLiuriForDate.
 func (s *ZiWeiService) CalculateLiuri(chart *ZiWeiChart, lunarDay int) *ZiWeiChart {
+	year, month := timeNowYear(), 1
+	if chart != nil && chart.birthData != nil {
+		year = chart.birthData.SolarYear
+		month = chart.birthData.SolarMonth
+	}
+	return s.CalculateLiuriForDate(chart, year, month, lunarDay)
+}
+
+// CalculateLiuriForDate computes the 流日 overlay for a target solar date.
+func (s *ZiWeiService) CalculateLiuriForDate(chart *ZiWeiChart, year, month, day int) *ZiWeiChart {
 	if chart == nil {
 		return nil
 	}
 	result := *chart
 
-	dayStem := chart.YearStem
-	if chart.birthData != nil {
-		dayStem = chart.birthData.DayStem
-	}
-	liuriStem := (dayStem*2 + lunarDay - 1) % 10
-	if liuriStem < 0 {
-		liuriStem += 10
-	}
+	liuriStem, _ := targetDayStemBranch(year, month, day)
 	liuriHua := calcFourHua(liuriStem)
 	var liuriStars [12][]string
 	for i := 0; i < 12; i++ {
-		palaceStars := make([]string, 0)
-		for _, star := range result.Palaces[i].MainStars {
-			if label, ok := liuriHua[star]; ok {
-				palaceStars = append(palaceStars, star+label)
-			}
-		}
-		liuriStars[i] = palaceStars
+		liuriStars[i] = periodHuaStars(result.Palaces[i], liuriHua)
 	}
 	result.LiuRiStars = liuriStars
 
 	return &result
+}
+
+func restoreRuntimeStarFields(chart *ZiWeiChart) {
+	if chart == nil {
+		return
+	}
+	for i := range chart.Palaces {
+		p := &chart.Palaces[i]
+		if p.Brightness == nil {
+			p.Brightness = map[string]string{}
+		}
+		p.MainStars = p.MainStars[:0]
+		p.AuxStars = p.AuxStars[:0]
+		for _, star := range p.Stars {
+			if star.Name == "" {
+				continue
+			}
+			if star.Brightness != "" {
+				p.Brightness[star.Name] = star.Brightness
+			}
+			if star.Type == "major" {
+				p.MainStars = append(p.MainStars, star.Name)
+			} else {
+				p.AuxStars = append(p.AuxStars, star.Name)
+			}
+		}
+	}
+}
+
+func periodHuaStars(p PalaceInfo, hua map[string]string) []string {
+	palaceStars := make([]string, 0)
+	for _, star := range palaceAllStarNames(p) {
+		if label, ok := hua[star]; ok {
+			palaceStars = append(palaceStars, star+label)
+		}
+	}
+	return palaceStars
+}
+
+func targetMonthStemBranch(year, month int) (int, int) {
+	if month < 1 || month > 12 {
+		month = int(time.Now().Month())
+	}
+	st, err := tyme.SolarTime{}.FromYmdHms(year, month, 15, 12, 0, 0)
+	if err == nil {
+		monthName := st.GetLunarHour().GetEightChar().GetMonth().GetName()
+		runes := []rune(monthName)
+		if len(runes) >= 2 {
+			return stemFromRune(runes[0]), branchFromRune(runes[1])
+		}
+	}
+	yearStem := fixMod(year-4, 10)
+	return fixMod(yearStem*2+month-1, 10), fixMod(2+month-1, 12)
+}
+
+func targetDayStemBranch(year, month, day int) (int, int) {
+	if month < 1 || month > 12 {
+		month = int(time.Now().Month())
+	}
+	if day < 1 || day > 31 {
+		day = time.Now().Day()
+	}
+	st, err := tyme.SolarTime{}.FromYmdHms(year, month, day, 12, 0, 0)
+	if err == nil {
+		dayName := st.GetLunarHour().GetEightChar().GetDay().GetName()
+		runes := []rune(dayName)
+		if len(runes) >= 2 {
+			return stemFromRune(runes[0]), branchFromRune(runes[1])
+		}
+	}
+	return fixMod(day-1, 10), fixMod(2+day-1, 12)
+}
+
+func timeNowYear() int {
+	return time.Now().Year()
 }
 
 // AnalyzeSihuaChain performs full sihua chain analysis.

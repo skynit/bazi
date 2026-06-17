@@ -394,6 +394,74 @@ func TestLiunian_Stars(t *testing.T) {
 	}
 }
 
+func TestLiunian_StarsUsePalaceBranch(t *testing.T) {
+	svc := NewZiWeiService()
+
+	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+
+	targetYear := 2024 // 甲辰
+	yearStem, yearBranch := annualStemBranch(targetYear)
+	liunianChart := svc.CalculateLiunian(chart, targetYear)
+
+	expected := map[string]string{
+		"流禄": BranchNames[LucunBranchIdx[yearStem]],
+		"流羊": BranchNames[fixIndex(LucunBranchIdx[yearStem]+1)],
+		"流陀": BranchNames[fixIndex(LucunBranchIdx[yearStem]-1)],
+		"流马": BranchNames[TianmaBranchIdx[yearBranch]],
+	}
+
+	for star, wantBranch := range expected {
+		found := false
+		for i, stars := range liunianChart.LiuNianStars {
+			for _, got := range stars {
+				if got != star {
+					continue
+				}
+				found = true
+				if liunianChart.Palaces[i].Branch != wantBranch {
+					t.Fatalf("%s 落在 %s宫(%s), want branch %s", star, liunianChart.Palaces[i].Name, liunianChart.Palaces[i].Branch, wantBranch)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("%s not found", star)
+		}
+	}
+}
+
+func TestLiunianOverlayAnalysis_BuildsEvidence(t *testing.T) {
+	svc := NewZiWeiService()
+
+	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+
+	liunianChart := svc.CalculateLiunian(chart, 2024)
+	analysis := svc.AnalyzeLiunianOverlay(chart, liunianChart, 2024)
+	if analysis == nil {
+		t.Fatal("AnalyzeLiunianOverlay returned nil")
+	}
+	if analysis.GanZhi != "甲辰" {
+		t.Fatalf("GanZhi=%q, want 甲辰", analysis.GanZhi)
+	}
+	if len(analysis.Method) == 0 {
+		t.Fatal("Method should not be empty")
+	}
+	if len(analysis.FourHua) == 0 {
+		t.Fatal("FourHua should not be empty")
+	}
+	if len(analysis.AnnualStars) != 4 {
+		t.Fatalf("AnnualStars length=%d, want 4", len(analysis.AnnualStars))
+	}
+	if len(analysis.FocusPalaces) == 0 {
+		t.Fatal("FocusPalaces should not be empty")
+	}
+}
+
 // TestLiunian_FourHuaInjection verifies that the liunian chart injects
 // four hua labels into the LiuNianStars for stars in the target year's
 // SiHuaTable.

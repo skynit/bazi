@@ -81,6 +81,118 @@ export interface ZiWeiOverlayRequest {
   year: number
 }
 
+export interface ZiWeiPeriodHighlight {
+  label: string
+  value: string
+  note: string
+}
+
+export interface ZiWeiPeriodEvidence {
+  type: string
+  label: string
+  value: string
+  impact: string
+}
+
+export interface ZiWeiPeriodPalaceFocus {
+  palace: string
+  branch: string
+  score: number
+  level: string
+  main_stars: string[]
+  aux_stars: string[]
+  period_stars: string[]
+  four_hua: string[]
+  sanfang: string[]
+  reason: string
+  suggestion: string
+}
+
+export interface ZiWeiDayunStageAnalysis {
+  start_age: number
+  end_age: number
+  palace: string
+  branch: string
+  score: number
+  tone: string
+  main_stars: string[]
+  aux_stars: string[]
+  four_hua: string[]
+  sanfang: string[]
+  summary: string
+  advice: string[]
+  current: boolean
+}
+
+export interface ZiWeiPeriodAnalysis {
+  rule_version: string
+  school: string
+  layer: 'dayun' | 'liunian' | 'liuyue' | 'liuri' | string
+  title: string
+  time_label: string
+  gan_zhi?: string
+  score: number
+  tone: string
+  summary: string
+  method: string[]
+  highlights: ZiWeiPeriodHighlight[]
+  focus_palaces: ZiWeiPeriodPalaceFocus[]
+  evidence: ZiWeiPeriodEvidence[]
+  recommendations: string[]
+  risks: string[]
+  dayun_stages?: ZiWeiDayunStageAnalysis[]
+}
+
+export interface ZiWeiPeriodResponse<T = unknown> {
+  periods?: T[]
+  analysis?: ZiWeiPeriodAnalysis | null
+  year?: number
+  month?: number
+  day?: number
+  period_key?: string
+  [key: string]: unknown
+}
+
+export interface ZiWeiOverlayMethodStep {
+  label: string
+  value: string
+  meaning: string
+}
+
+export interface ZiWeiOverlayTrigger {
+  type: string
+  star?: string
+  palace: string
+  branch: string
+  meaning: string
+  polarity: 'good' | 'watch' | 'movement' | 'neutral' | string
+}
+
+export interface ZiWeiOverlayFocusPalace {
+  palace: string
+  branch: string
+  score: number
+  triggers: ZiWeiOverlayTrigger[]
+  main_stars: string[]
+  advice: string
+}
+
+export interface ZiWeiOverlayAnalysis {
+  year: number
+  gan_zhi: string
+  stem: string
+  branch: string
+  shi_shen?: string
+  score: number
+  tone: string
+  key_tips: string
+  summary: string
+  method: ZiWeiOverlayMethodStep[]
+  four_hua: ZiWeiOverlayTrigger[]
+  annual_stars: ZiWeiOverlayTrigger[]
+  focus_palaces: ZiWeiOverlayFocusPalace[]
+}
+
 export async function fetchZiWeiChart(payload: ZiWeiChartRequest) {
   const { data } = await client.post('/ziwei/chart', payload)
   return data

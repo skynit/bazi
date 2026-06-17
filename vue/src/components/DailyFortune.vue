@@ -166,56 +166,125 @@ function trendLabel(trend?: string) {
             }} · {{ fortuneGuide.confidence }}%</span>
         </div>
 
-        <div class="guide-axis">
-          <span>主 {{ fortuneGuide.primary_element || '—' }}</span>
-          <span>辅 {{ fortuneGuide.secondary_element || '—' }}</span>
-          <span>忌 {{ fortuneGuide.avoid_element || '—' }}</span>
-        </div>
+        <div class="guide-hero">
+          <div class="guide-brief">
+            <div class="guide-axis">
+              <span>主 {{ fortuneGuide.primary_element || '—' }}</span>
+              <span>辅 {{ fortuneGuide.secondary_element || '—' }}</span>
+              <span>忌 {{ fortuneGuide.avoid_element || '—' }}</span>
+            </div>
+            <p v-if="fortuneGuide.strategy" class="guide-strategy">{{ fortuneGuide.strategy }}</p>
+          </div>
 
-        <div class="guide-essentials">
-          <div class="guide-item" v-if="fortuneGuide.lucky_colors?.[0]?.value">
-            <span class="guide-label">幸运色</span>
-            <span class="guide-value">
-              <span class="color-swatch" :style="{ background: fortuneGuide.lucky_colors?.[0]?.value }"></span>
-              {{ fortuneGuide.lucky_colors?.[0]?.value }}
-            </span>
-            <small class="guide-reason">{{ fortuneGuide.lucky_colors?.[0]?.reason }}</small>
-          </div>
-          <div class="guide-item" v-if="fortuneGuide.lucky_numbers?.[0]?.value">
-            <span class="guide-label">幸运数字</span>
-            <span class="guide-value guide-value-xl">{{ fortuneGuide.lucky_numbers?.[0]?.value }}</span>
-            <small class="guide-reason">{{ fortuneGuide.lucky_numbers?.[0]?.reason }}</small>
-          </div>
-          <div class="guide-item" v-if="fortuneGuide.wealth_direction?.value">
-            <span class="guide-label">财位</span>
-            <span class="guide-value">{{ fortuneGuide.wealth_direction.value }}</span>
-            <small class="guide-reason">{{ fortuneGuide.wealth_direction.reason }}</small>
-          </div>
-          <div class="guide-item" v-if="fortuneGuide.face_direction?.value">
-            <span class="guide-label">朝向</span>
-            <span class="guide-value">{{ fortuneGuide.face_direction.value }}</span>
-            <small class="guide-reason">{{ fortuneGuide.face_direction.reason }}</small>
+          <div class="guide-essentials">
+            <div class="guide-item" v-if="fortuneGuide.lucky_colors?.[0]?.value">
+              <span class="guide-label">幸运色</span>
+              <span class="guide-value">
+                <span class="color-swatch" :style="{ background: fortuneGuide.lucky_colors?.[0]?.value }"></span>
+                {{ fortuneGuide.lucky_colors?.[0]?.value }}
+              </span>
+              <small class="guide-reason">{{ fortuneGuide.lucky_colors?.[0]?.reason }}</small>
+            </div>
+            <div class="guide-item" v-if="fortuneGuide.lucky_numbers?.[0]?.value">
+              <span class="guide-label">幸运数字</span>
+              <span class="guide-value guide-value-xl">{{ fortuneGuide.lucky_numbers?.[0]?.value }}</span>
+              <small class="guide-reason">{{ fortuneGuide.lucky_numbers?.[0]?.reason }}</small>
+            </div>
+            <div class="guide-item" v-if="fortuneGuide.wealth_direction?.value">
+              <span class="guide-label">财位</span>
+              <span class="guide-value">{{ fortuneGuide.wealth_direction.value }}</span>
+              <small class="guide-reason">{{ fortuneGuide.wealth_direction.reason }}</small>
+            </div>
+            <div class="guide-item" v-if="fortuneGuide.face_direction?.value">
+              <span class="guide-label">朝向</span>
+              <span class="guide-value">{{ fortuneGuide.face_direction.value }}</span>
+              <small class="guide-reason">{{ fortuneGuide.face_direction.reason }}</small>
+            </div>
           </div>
         </div>
-
-        <p v-if="fortuneGuide.strategy" class="guide-strategy">{{ fortuneGuide.strategy }}</p>
 
         <div class="guide-action-grid">
           <div v-if="fortuneGuide.recommended_actions?.length" class="guide-list">
-            <span class="guide-list-title">宜用</span>
-            <div v-for="item in fortuneGuide.recommended_actions.slice(0, 2)"
-              :key="`action-${item.label}-${item.value}`" class="guide-mini">
-              <strong>{{ item.value }}</strong>
-              <small>{{ item.reason }}</small>
+            <div class="guide-list-head">
+              <div>
+                <span class="guide-list-title">宜用</span>
+                <strong>优先执行</strong>
+              </div>
+              <span class="guide-list-count">{{ fortuneGuide.recommended_actions.length }} 项</span>
             </div>
+            <article v-for="item in fortuneGuide.recommended_actions.slice(0, 3)"
+              :key="`action-${item.label}-${item.value}`" class="guide-mini">
+              <div class="guide-mini-top">
+                <span class="guide-mini-label">{{ item.category || item.label }}</span>
+                <strong>{{ item.value }}</strong>
+                <span v-if="item.intensity" class="guide-intensity">{{ item.intensity }}</span>
+              </div>
+              <small class="guide-mini-reason">{{ item.reason }}</small>
+              <details v-if="item.timing || item.source || item.impact || item.method" class="guide-more">
+                <summary>依据</summary>
+                <div class="guide-detail-row">
+                  <span v-if="item.timing">{{ item.timing }}</span>
+                  <span v-if="item.source">{{ item.source }}</span>
+                  <span v-if="item.impact">{{ item.impact }}</span>
+                </div>
+                <p v-if="item.method" class="guide-method">{{ item.method }}</p>
+              </details>
+            </article>
+            <details v-if="fortuneGuide.recommended_actions.length > 3" class="guide-extra">
+              <summary>展开其余 {{ fortuneGuide.recommended_actions.length - 3 }} 项</summary>
+              <div class="guide-extra-list">
+                <article v-for="item in fortuneGuide.recommended_actions.slice(3)"
+                  :key="`action-extra-${item.label}-${item.value}`" class="guide-mini guide-mini-secondary">
+                  <div class="guide-mini-top">
+                    <span class="guide-mini-label">{{ item.category || item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                    <span v-if="item.intensity" class="guide-intensity">{{ item.intensity }}</span>
+                  </div>
+                  <small class="guide-mini-reason">{{ item.reason }}</small>
+                </article>
+              </div>
+            </details>
           </div>
           <div v-if="fortuneGuide.cautions?.length" class="guide-list">
-            <span class="guide-list-title guide-list-warn">避忌</span>
-            <div v-for="item in fortuneGuide.cautions.slice(0, 2)" :key="`caution-${item.label}-${item.value}`"
-              class="guide-mini warn">
-              <strong>{{ item.value }}</strong>
-              <small>{{ item.reason }}</small>
+            <div class="guide-list-head">
+              <div>
+                <span class="guide-list-title guide-list-warn">避忌</span>
+                <strong>先避风险</strong>
+              </div>
+              <span class="guide-list-count warn">{{ fortuneGuide.cautions.length }} 项</span>
             </div>
+            <article v-for="item in fortuneGuide.cautions.slice(0, 3)" :key="`caution-${item.label}-${item.value}`"
+              class="guide-mini warn">
+              <div class="guide-mini-top">
+                <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
+                <strong>{{ item.value }}</strong>
+                <span v-if="item.intensity" class="guide-intensity warn">{{ item.intensity }}</span>
+              </div>
+              <small class="guide-mini-reason">{{ item.reason }}</small>
+              <details v-if="item.timing || item.source || item.impact || item.method" class="guide-more warn">
+                <summary>依据</summary>
+                <div class="guide-detail-row warn">
+                  <span v-if="item.timing">{{ item.timing }}</span>
+                  <span v-if="item.source">{{ item.source }}</span>
+                  <span v-if="item.impact">{{ item.impact }}</span>
+                </div>
+                <p v-if="item.method" class="guide-method">{{ item.method }}</p>
+              </details>
+            </article>
+            <details v-if="fortuneGuide.cautions.length > 3" class="guide-extra warn">
+              <summary>展开其余 {{ fortuneGuide.cautions.length - 3 }} 项</summary>
+              <div class="guide-extra-list">
+                <article v-for="item in fortuneGuide.cautions.slice(3)"
+                  :key="`caution-extra-${item.label}-${item.value}`" class="guide-mini warn guide-mini-secondary">
+                  <div class="guide-mini-top">
+                    <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                    <span v-if="item.intensity" class="guide-intensity warn">{{ item.intensity }}</span>
+                  </div>
+                  <small class="guide-mini-reason">{{ item.reason }}</small>
+                </article>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -799,7 +868,9 @@ function trendLabel(trend?: string) {
 
 /* Guide */
 .df-guide {
-  padding: 0.9rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
 .df-guide-empty {
@@ -831,11 +902,31 @@ function trendLabel(trend?: string) {
   letter-spacing: 0.08em;
 }
 
+.guide-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.guide-brief {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(var(--jade-accent-rgb), 0.07), transparent 58%),
+    var(--glass-bg);
+}
+
 .guide-axis {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .guide-axis span {
@@ -850,16 +941,17 @@ function trendLabel(trend?: string) {
 
 .guide-essentials {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+  min-width: 0;
 }
 
 .guide-item {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  min-height: 78px;
-  padding: 0.55rem 0.6rem;
+  gap: 0.16rem;
+  min-height: 66px;
+  padding: 0.5rem 0.55rem;
   background: var(--glass-bg);
   border-radius: 8px;
   border: 1px solid var(--line-subtle);
@@ -915,25 +1007,47 @@ function trendLabel(trend?: string) {
 }
 
 .guide-strategy {
-  margin: 0.55rem 0 0;
+  margin: 0;
   color: var(--accent);
   border-left: 2px solid var(--line-focus);
   padding-left: 0.55rem;
-  font-size: 0.72rem;
-  line-height: 1.55;
+  font-size: 0.78rem;
+  line-height: 1.75;
 }
 
 .guide-action-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.55rem;
+  gap: 0.75rem;
+  margin-top: 0;
 }
 
 .guide-list {
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
+  gap: 0.46rem;
+  min-width: 0;
+  padding: 0.66rem;
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.17);
+  border-radius: 10px;
+  background: rgba(var(--jade-accent-rgb), 0.035);
+}
+
+.guide-list:has(.guide-list-warn) {
+  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
+  background: color-mix(in oklab, var(--crimson) 4%, transparent);
+}
+
+.guide-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.guide-list-head > div {
+  display: grid;
+  gap: 0.12rem;
   min-width: 0;
 }
 
@@ -943,39 +1057,200 @@ function trendLabel(trend?: string) {
   letter-spacing: 0.12em;
 }
 
+.guide-list-head strong {
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
 .guide-list-warn {
   color: var(--crimson);
+}
+
+.guide-list-count {
+  font-size: 0.56rem;
+  color: rgba(var(--jade-accent-rgb), 0.82);
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
+  background: rgba(var(--jade-accent-rgb), 0.06);
+  border-radius: 999px;
+  padding: 0.08rem 0.38rem;
+}
+
+.guide-list-count.warn {
+  color: var(--crimson);
+  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
+  background: color-mix(in oklab, var(--crimson) 5%, transparent);
 }
 
 .guide-mini {
   display: flex;
   flex-direction: column;
-  gap: 0.16rem;
-  min-height: 50px;
-  padding: 0.45rem 0.52rem;
+  gap: 0.32rem;
+  min-height: 0;
+  padding: 0.58rem 0.62rem;
   border-radius: 8px;
   border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
-  background: rgba(var(--jade-accent-rgb), 0.05);
+  background: color-mix(in oklab, var(--surface-1) 78%, rgba(var(--jade-accent-rgb), 0.06));
 }
 
 .guide-mini.warn {
   border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
-  background: color-mix(in oklab, var(--crimson) 5%, transparent);
+  background: color-mix(in oklab, var(--surface-1) 78%, color-mix(in oklab, var(--crimson) 7%, transparent));
 }
 
-.guide-mini strong {
+.guide-mini-secondary {
+  padding: 0.48rem 0.54rem;
+  opacity: 0.92;
+}
+
+.guide-mini-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.guide-mini-label {
+  font-size: 0.52rem;
+  color: rgba(var(--jade-accent-rgb), 1);
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.18);
+  background: rgba(var(--jade-accent-rgb), 0.08);
+  border-radius: 5px;
+  padding: 0.08rem 0.28rem;
+  white-space: nowrap;
+}
+
+.guide-mini-label.warn {
+  color: var(--crimson);
+  border-color: color-mix(in oklab, var(--crimson) 18%, transparent);
+  background: color-mix(in oklab, var(--crimson) 6%, transparent);
+}
+
+.guide-mini-top strong {
   color: var(--text);
-  font-size: 0.76rem;
+  font-size: 0.82rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.guide-mini small {
+.guide-intensity {
+  font-size: 0.52rem;
   color: var(--text-soft);
-  line-height: 1.45;
-  font-size: 0.63rem;
+  border: 1px solid var(--line-subtle);
+  background: var(--glass-bg);
+  border-radius: 999px;
+  padding: 0.06rem 0.3rem;
+  white-space: nowrap;
+}
+
+.guide-intensity.warn {
+  color: var(--crimson);
+}
+
+.guide-mini-reason {
+  color: var(--text-soft);
+  line-height: 1.55;
+  font-size: 0.66rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.guide-more,
+.guide-extra {
+  border: 1px solid var(--line-subtle);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
+}
+
+.guide-more summary,
+.guide-extra summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.34rem 0.45rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.guide-more summary::-webkit-details-marker,
+.guide-extra summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-more summary::after,
+.guide-extra summary::after {
+  content: '+';
+  color: var(--accent);
+  font-size: 0.72rem;
+}
+
+.guide-more[open] summary::after,
+.guide-extra[open] summary::after {
+  content: '-';
+}
+
+.guide-more.warn summary::after,
+.guide-extra.warn summary::after {
+  color: var(--crimson);
+}
+
+.guide-more .guide-detail-row,
+.guide-more .guide-method {
+  margin: 0 0.45rem 0.45rem;
+}
+
+.guide-extra-list {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0 0.45rem 0.45rem;
+}
+
+.guide-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+}
+
+.guide-detail-row span {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid rgba(var(--jade-accent-rgb), 0.12);
+  background: rgba(var(--jade-accent-rgb), 0.04);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.08rem 0.34rem;
+  font-size: 0.55rem;
+  line-height: 1.25;
+}
+
+.guide-detail-row.warn span {
+  border-color: color-mix(in oklab, var(--crimson) 13%, transparent);
+  background: color-mix(in oklab, var(--crimson) 4%, transparent);
+}
+
+.guide-method {
+  margin: 0;
+  padding-left: 0.45rem;
+  border-left: 2px solid rgba(var(--jade-accent-rgb), 0.20);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.guide-mini.warn .guide-method {
+  border-left-color: color-mix(in oklab, var(--crimson) 22%, transparent);
 }
 
 .guide-footer {
@@ -2299,6 +2574,27 @@ function trendLabel(trend?: string) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .guide-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-list-head {
+    align-items: flex-start;
+  }
+
+  .guide-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-mini-top {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .guide-intensity {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
   .dimension-panel {
     padding: 0.85rem;
     border-radius: 12px;
@@ -2348,6 +2644,16 @@ function trendLabel(trend?: string) {
   .guide-essentials,
   .almanac-grid {
     grid-template-columns: 1fr;
+  }
+
+  .guide-brief,
+  .guide-list {
+    padding: 0.56rem;
+  }
+
+  .guide-more summary,
+  .guide-extra summary {
+    padding: 0.3rem 0.38rem;
   }
 }
 </style>

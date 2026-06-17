@@ -48,6 +48,15 @@ func TestBuildFortuneGuideUsesEffectiveFavor(t *testing.T) {
 	if len(guide.Cautions) < 2 || !containsGuideValue(guide.Cautions, "避免硬碰硬") {
 		t.Fatalf("expected clash caution, got %+v", guide.Cautions)
 	}
+	if len(guide.RecommendedActions) < 5 {
+		t.Fatalf("expected richer action list, got %+v", guide.RecommendedActions)
+	}
+	if guide.RecommendedActions[0].Priority == 0 || guide.RecommendedActions[0].Method == "" || guide.RecommendedActions[0].Timing == "" {
+		t.Fatalf("expected detailed action metadata, got %+v", guide.RecommendedActions[0])
+	}
+	if clash := findGuideValue(guide.Cautions, "避免硬碰硬"); clash == nil || clash.Intensity != "高" || clash.Source == "" || clash.Method == "" {
+		t.Fatalf("expected detailed clash caution, got %+v", clash)
+	}
 }
 
 func TestBuildFortuneGuideFallbackStillExplains(t *testing.T) {
@@ -70,13 +79,20 @@ func TestBuildFortuneGuideFallbackStillExplains(t *testing.T) {
 	if len(guide.LuckyColors) == 0 || len(guide.LuckyNumbers) == 0 {
 		t.Fatalf("guide should include color and number fallbacks: %+v", guide)
 	}
+	if len(guide.RecommendedActions) == 0 || guide.RecommendedActions[0].Category == "" {
+		t.Fatalf("fallback guide should include detailed action metadata: %+v", guide.RecommendedActions)
+	}
 }
 
 func containsGuideValue(items []model.FortuneGuideItem, value string) bool {
+	return findGuideValue(items, value) != nil
+}
+
+func findGuideValue(items []model.FortuneGuideItem, value string) *model.FortuneGuideItem {
 	for _, item := range items {
 		if item.Value == value {
-			return true
+			return &item
 		}
 	}
-	return false
+	return nil
 }

@@ -36,6 +36,9 @@ func (h *ZiWeiPeriodHandler) getChart(chartID uint, userID uint) (*ziwei.ZiWeiCh
 	if birthChart.ZiWeiComputed && len(birthChart.ZiWeiResult) > 0 {
 		var cached ziwei.ZiWeiChart
 		if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
+			if err := h.Service.AttachBirthData(&cached, birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender); err != nil {
+				return nil, nil, fmt.Errorf("attach birth data: %w", err)
+			}
 			return &cached, birthChart, nil
 		}
 	}
@@ -73,7 +76,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		return
 	}
 
-	chart, _, err := h.getChart(req.ChartID, userID.(uint))
+	chart, birthChart, err := h.getChart(req.ChartID, userID.(uint))
 	if err != nil {
 		respondError(c, http.StatusNotFound, ErrCodeNotFound, err.Error())
 		return
@@ -102,7 +105,9 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 				Description: dayunDesc(d.Palace, d.StartAge),
 			}
 		}
-		respondJSON(c, http.StatusOK, gin.H{"periods": enriched})
+		resp := gin.H{"periods": enriched}
+		resp["analysis"] = ziwei.BuildDayunAnalysis(chart, dayun, currentAgeFromBirthChart(birthChart))
+		respondJSON(c, http.StatusOK, resp)
 
 	case "liunian":
 		year := req.Year
@@ -113,7 +118,12 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		resp := mapChartToResponse(liunian)
 		resp["year"] = year
 		resp["description"] = fmt.Sprintf("%d年流年星曜分布，各宫依次更换", year)
-		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{
+			"periods":   []gin.H{resp},
+			"analysis":   ziwei.BuildLiunianAnalysis(chart, liunian, year),
+			"year":       year,
+			"period_key": "liunian",
+		})
 
 	case "liuyue":
 		month := req.Month
@@ -124,12 +134,18 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		if year == 0 {
 			year = time.Now().Year()
 		}
-		liuyue := svc.CalculateLiuyue(chart, month)
+		liuyue := svc.CalculateLiuyueForYear(chart, year, month)
 		resp := mapChartToResponse(liuyue)
 		resp["year"] = year
 		resp["month"] = month
 		resp["description"] = fmt.Sprintf("%d年%d月流月星曜分布", year, month)
-		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{
+			"periods":   []gin.H{resp},
+			"analysis":   ziwei.BuildLiuyueAnalysis(chart, liuyue, year, month),
+			"year":       year,
+			"month":      month,
+			"period_key": "liuyue",
+		})
 
 	case "liuri":
 		day := req.Day
@@ -144,13 +160,20 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		if month == 0 {
 			month = int(time.Now().Month())
 		}
-		liuri := svc.CalculateLiuri(chart, day)
+		liuri := svc.CalculateLiuriForDate(chart, year, month, day)
 		resp := mapChartToResponse(liuri)
 		resp["year"] = year
 		resp["month"] = month
 		resp["day"] = day
 		resp["description"] = fmt.Sprintf("%d年%d月%d日流日星曜分布", year, month, day)
-		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{resp}})
+		respondJSON(c, http.StatusOK, gin.H{
+			"periods":   []gin.H{resp},
+			"analysis":   ziwei.BuildLiuriAnalysis(chart, liuri, year, month, day),
+			"year":       year,
+			"month":      month,
+			"day":        day,
+			"period_key": "liuri",
+		})
 
 	case "sihua_feixing":
 		flying := svc.AnalyzeFlyingStars(chart)
@@ -231,7 +254,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		if year == 0 {
 			year = time.Now().Year()
 		}
-		liuyue := svc.CalculateLiuyue(chart, month)
+		liuyue := svc.CalculateLiuyueForYear(chart, year, month)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiuyue(liuyue, year, month)
 		respondJSON(c, http.StatusOK, gin.H{"periods": []gin.H{
@@ -261,7 +284,7 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 		if month == 0 {
 			month = int(time.Now().Month())
 		}
-		liuri := svc.CalculateLiuri(chart, day)
+		liuri := svc.CalculateLiuriForDate(chart, year, month, day)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		result := interp.AnalyzeLiuri(liuri, year, month, day)
 		// Convert HourlyAnalysis to []gin.H for JSON
@@ -306,8 +329,8 @@ func (h *ZiWeiPeriodHandler) Period(c *gin.Context) {
 			day = time.Now().Day()
 		}
 		liunian := svc.CalculateLiunian(chart, year)
-		liuyue := svc.CalculateLiuyue(chart, month)
-		liuri := svc.CalculateLiuri(chart, day)
+		liuyue := svc.CalculateLiuyueForYear(chart, year, month)
+		liuri := svc.CalculateLiuriForDate(chart, year, month, day)
 		interp := ziwei.NewPeriodInterpreter(chart.GetBirthData())
 		summary := interp.SummarizeAll(liunian, liuyue, liuri, year, month, day)
 		respondJSON(c, http.StatusOK, gin.H{"summary": summary})
@@ -351,10 +374,15 @@ func (h *ZiWeiPeriodHandler) Overlay(c *gin.Context) {
 		return
 	}
 
-	liunian := h.Service.CalculateLiunian(chart, req.Year)
+	year := req.Year
+	if year == 0 {
+		year = time.Now().Year()
+	}
+	liunian := h.Service.CalculateLiunian(chart, year)
 	result := mapChartToResponse(liunian)
-	result["year"] = req.Year
+	result["year"] = year
 	result["liu_nian_stars"] = liunian.LiuNianStars
+	result["overlay_analysis"] = h.Service.AnalyzeLiunianOverlay(chart, liunian, year)
 	respondJSON(c, http.StatusOK, result)
 }
 
@@ -377,6 +405,18 @@ func dayunDesc(palace string, startAge int) string {
 		return d
 	}
 	return fmt.Sprintf("%s%s-%d岁大限", palace, palace, startAge)
+}
+
+func currentAgeFromBirthChart(chart *model.BirthChart) int {
+	if chart == nil {
+		return 0
+	}
+	nowYear := time.Now().Year()
+	age := nowYear - chart.BirthYear
+	if age < 0 {
+		return 0
+	}
+	return age
 }
 
 // RegisterZiWeiPeriodRoutes registers ZiWei period and overlay routes.

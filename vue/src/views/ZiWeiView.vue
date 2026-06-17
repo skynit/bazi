@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchChart, type ChartDetail } from '../api/chart'
-import { fetchZiWeiChart, fetchZiWeiOverlay, fetchZiWeiPeriod } from '../api/ziwei'
+import { getApiErrorMessage } from '../api/client'
+import { fetchZiWeiChart, fetchZiWeiOverlay, fetchZiWeiPeriod, type ZiWeiOverlayAnalysis, type ZiWeiPeriodAnalysis } from '../api/ziwei'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
+import ZiWeiPeriodAnalysisPanel from '../components/ZiWeiPeriodAnalysisPanel.vue'
 
 const route = useRoute()
 
@@ -101,6 +103,23 @@ interface PalaceReading {
 interface LiunianChartData {
   palaces: PalaceData[]
   year: number
+  liu_nian_stars?: string[][]
+  overlay_analysis?: ZiWeiOverlayAnalysis
+}
+
+interface SihuaFlyItem {
+  from_star: string
+  to_palace: string
+  from_palace?: string
+  chain_depth?: number
+  effect?: string
+  star_affinity?: number
+}
+
+interface SihuaGroup {
+  type: string
+  css: string
+  items: SihuaFlyItem[]
 }
 
 // State
@@ -112,22 +131,26 @@ const birthInfo = ref<BirthInfo>()
 const chartData = ref<ZiWeiChartData>()
 const selectedPalace = ref<PalaceReading | null>(null)
 
-const dayunData = ref<any[]>([])
 const liunianData = ref<any[]>([])
 const liuyueData = ref<any[]>([])
-const liuriData = ref<any>({})
+const liuriData = ref<any[]>([])
 const sihuaData = ref<any>({})
 const sihuaChainData = ref<any>({})
 
-// Interpretation data (loaded per year, not cached across year changes)
-const liunianInterp = ref<Record<string, any>>({})
-const liuyueInterp = ref<Record<string, any>>({})
-const liuriInterp = ref<Record<string, any>>({})
+const dayunAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
+const liunianAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
+const liuyueAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
+const liuriAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
 
 const liunianOverlay = ref<LiunianChartData>()
 const availableYears = ref<number[]>([])
 const selectedLiunianYear = ref<number>(new Date().getFullYear())
 const loadingTab = ref(false)
+const tabError = ref('')
+
+function list<T>(items: T[] | null | undefined): T[] {
+  return Array.isArray(items) ? items : []
+}
 
 function mapBirthInfo(chart: ChartDetail): BirthInfo {
   const month = String(chart.birth_month).padStart(2, '0')
@@ -203,17 +226,18 @@ async function loadOverlay(year: number) {
 async function switchTab(tab: string) {
   activeTab.value = tab
   loadingTab.value = true
+  tabError.value = ''
 
   try {
     const chartId = route.params.chartId
     switch (tab) {
       case 'dayun':
-        if (!dayunData.value.length) {
+        if (!dayunAnalysis.value) {
           const data = await fetchZiWeiPeriod({
             chart_id: Number(chartId),
             period_type: 'dayun',
           })
-          dayunData.value = data.periods || []
+          dayunAnalysis.value = data.analysis || null
         }
         break
       case 'liunian':
@@ -224,37 +248,22 @@ async function switchTab(tab: string) {
             period_type: 'liunian',
             year,
           })
-          liunianData.value = data.periods || []
-          // Also fetch interpretation
-          const interpData = await fetchZiWeiPeriod({
-            chart_id: Number(chartId),
-            period_type: 'liunian_interpretation',
-            year,
-          })
-          liunianInterp.value[year] = interpData.periods?.[0] || null
+          liunianData.value = list(data.periods)
+          liunianAnalysis.value = data.analysis || null
         }
         break
       case 'liuyue':
         {
           const year = selectedLiunianYear.value
           const month = new Date().getMonth() + 1
-          const key = `${year}-${month}`
-          if (!liuyueInterp.value[key]) {
-            const data = await fetchZiWeiPeriod({
-              chart_id: Number(chartId),
-              period_type: 'liuyue',
-              year,
-              month,
-            })
-            liuyueData.value = data.periods || []
-            const interpData = await fetchZiWeiPeriod({
-              chart_id: Number(chartId),
-              period_type: 'liuyue_interpretation',
-              year,
-              month,
-            })
-            liuyueInterp.value[key] = interpData.periods?.[0] || null
-          }
+          const data = await fetchZiWeiPeriod({
+            chart_id: Number(chartId),
+            period_type: 'liuyue',
+            year,
+            month,
+          })
+          liuyueData.value = list(data.periods)
+          liuyueAnalysis.value = data.analysis || null
         }
         break
       case 'liuri':
@@ -262,25 +271,15 @@ async function switchTab(tab: string) {
           const year = selectedLiunianYear.value
           const month = new Date().getMonth() + 1
           const day = new Date().getDate()
-          const key = `${year}-${month}-${day}`
-          if (!liuriInterp.value[key]) {
-            const data = await fetchZiWeiPeriod({
-              chart_id: Number(chartId),
-              period_type: 'liuri',
-              year,
-              month,
-              day,
-            })
-            liuriData.value = data.periods || []
-            const interpData = await fetchZiWeiPeriod({
-              chart_id: Number(chartId),
-              period_type: 'liuri_interpretation',
-              year,
-              month,
-              day,
-            })
-            liuriInterp.value[key] = interpData.periods?.[0] || null
-          }
+          const data = await fetchZiWeiPeriod({
+            chart_id: Number(chartId),
+            period_type: 'liuri',
+            year,
+            month,
+            day,
+          })
+          liuriData.value = list(data.periods)
+          liuriAnalysis.value = data.analysis || null
         }
         break
       case 'sihua':
@@ -300,8 +299,8 @@ async function switchTab(tab: string) {
         }
         break
     }
-  } catch (err: any) {
-    // Tab data optional
+  } catch (err: unknown) {
+    tabError.value = getApiErrorMessage(err, '加载周期分析失败')
   } finally {
     loadingTab.value = false
   }
@@ -320,27 +319,27 @@ async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
       palaceName: reading.palace_name || palace.name,
       palaceFocus: reading.palace_focus || '',
       summary: reading.summary || '',
-      keyPoints: reading.key_points || [],
-      evidence: reading.evidence || [],
+      keyPoints: list(reading.key_points),
+      evidence: list(reading.evidence),
       sanfangContext: reading.sanfang_context || null,
-      patternDetails: reading.pattern_details || [],
-      advice: reading.advice || [],
-      riskFlags: reading.risk_flags || [],
+      patternDetails: list(reading.pattern_details),
+      advice: list(reading.advice),
+      riskFlags: list(reading.risk_flags),
       confidence: reading.confidence || 0,
       mainStarAnalysis: {
         title: '主星特性',
         content: reading.main_star_analysis || '',
-        tags: palace.stars.filter(s => s.type === 'major').map(s => s.name),
+        tags: list(palace.stars).filter(s => s.type === 'major').map(s => s.name),
       },
       auxStarInfluence: {
         title: '辅星影响',
         content: reading.aux_star_influence || '',
-        tags: palace.stars.filter(s => s.type !== 'major').map(s => s.name),
+        tags: list(palace.stars).filter(s => s.type !== 'major').map(s => s.name),
       },
       sihuaInfluence: {
         title: '四化影响',
         content: reading.sihua_influence || '',
-        tags: palace.four_hua || [],
+        tags: list(palace.four_hua),
       },
       sanFangSiZheng: {
         title: '三方四正',
@@ -350,7 +349,7 @@ async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
       patternAnnotations: {
         title: '格局标注',
         content: reading.pattern_notes || '',
-        tags: chartData.value?.patterns || [],
+        tags: list(chartData.value?.patterns),
       },
     }
   } catch (e) {
@@ -358,27 +357,16 @@ async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
   }
 }
 
-function onYearChange(year: number) {
-  loadOverlay(year)
-}
-
-const currentAge = computed(() => {
-  if (!birthInfo.value) return 0
-  const parts = birthInfo.value.solarDate.split('-')
-  return new Date().getFullYear() - Number(parts[0])
-})
-
-function getPalacesFromPeriod(p: any) { return p?.palaces || [] }
-
-function majorStars(p: any): StarInfo[] {
-  return (p?.stars || []).filter((s: StarInfo) => s.type === 'major')
-}
-function auxStars(p: any): StarInfo[] {
-  return (p?.stars || []).filter((s: StarInfo) => s.type !== 'major')
+async function onYearChange(year: number) {
+  selectedLiunianYear.value = year
+  await loadOverlay(year)
+  if (['liunian', 'liuyue', 'liuri'].includes(activeTab.value)) {
+    await switchTab(activeTab.value)
+  }
 }
 
 function palaceMajorSignal(p: PalaceData): string {
-  const stars = (p?.stars || [])
+  const stars = list(p?.stars)
     .filter(s => s.type === 'major')
     .map(s => s.brightness ? `${s.name}${s.brightness}` : s.name)
   if (!stars.length) return '空宫'
@@ -386,8 +374,9 @@ function palaceMajorSignal(p: PalaceData): string {
 }
 
 function palaceSupportSignal(p: PalaceData): string {
-  const soft = (p?.stars || []).filter(s => ['soft', 'lucun', 'tianma'].includes(s.type)).length
-  const tough = (p?.stars || []).filter(s => s.type === 'tough').length
+  const stars = list(p?.stars)
+  const soft = stars.filter(s => ['soft', 'lucun', 'tianma'].includes(s.type)).length
+  const tough = stars.filter(s => s.type === 'tough').length
   const parts = []
   if (soft) parts.push(`辅${soft}`)
   if (tough) parts.push(`煞${tough}`)
@@ -395,12 +384,13 @@ function palaceSupportSignal(p: PalaceData): string {
 }
 
 function palaceFourHuaLabel(p: PalaceData): string {
-  const count = p?.four_hua?.length || 0
+  const count = list(p?.four_hua).length
   return count ? `四化 ${count}` : '无四化'
 }
 
 function palaceFourHuaTitle(p: PalaceData): string {
-  return p?.four_hua?.length ? p.four_hua.join('、') : '本宫无四化'
+  const fourHua = list(p?.four_hua)
+  return fourHua.length ? fourHua.join('、') : '本宫无四化'
 }
 
 const chartOverviewItems = computed(() => {
@@ -414,38 +404,43 @@ const chartOverviewItems = computed(() => {
   ]
 })
 
-const currentLiuyueInterp = computed(() => {
-  if (!liuyueData.value[0]) return null
-  const key = `${selectedLiunianYear.value}-${liuyueData.value[0].month}`
-  return liuyueInterp.value[key] || null
+const currentAge = computed(() => {
+  if (!birthInfo.value) return 0
+  const year = Number(birthInfo.value.solarDate.slice(0, 4))
+  return new Date().getFullYear() - year
 })
 
-const currentLiuriInterp = computed(() => {
-  if (!liuriData.value[0]) return null
-  const d = liuriData.value[0]
-  const key = `${selectedLiunianYear.value}-${d.month}-${d.day}`
-  return liuriInterp.value[key] || null
-})
+function getPalacesFromPeriod(p: any): PalaceData[] {
+  return list<PalaceData>(p?.palaces)
+}
 
-const sihuaFlyGroups = computed(() => {
+function majorStars(p: any): StarInfo[] {
+  return list<StarInfo>(p?.stars).filter((s) => s.type === 'major')
+}
+
+function auxStars(p: any): StarInfo[] {
+  return list<StarInfo>(p?.stars).filter((s) => s.type !== 'major')
+}
+
+const sihuaFlyGroups = computed<SihuaGroup[]>(() => {
   const data = sihuaData.value as any
   if (!data || !data.hua_lu) return []
   return [
-    { type: '化禄', css: 'sihua-lu', items: data.hua_lu || [] },
-    { type: '化权', css: 'sihua-quan', items: data.hua_quan || [] },
-    { type: '化科', css: 'sihua-ke', items: data.hua_ke || [] },
-    { type: '化忌', css: 'sihua-ji', items: data.hua_ji || [] },
+    { type: '化禄', css: 'sihua-lu', items: list<SihuaFlyItem>(data.hua_lu) },
+    { type: '化权', css: 'sihua-quan', items: list<SihuaFlyItem>(data.hua_quan) },
+    { type: '化科', css: 'sihua-ke', items: list<SihuaFlyItem>(data.hua_ke) },
+    { type: '化忌', css: 'sihua-ji', items: list<SihuaFlyItem>(data.hua_ji) },
   ]
 })
 
-const sihuaChainGroups = computed(() => {
+const sihuaChainGroups = computed<SihuaGroup[]>(() => {
   const chain = sihuaChainData.value as any
   if (!chain || !chain.hua_lu) return []
   return [
-    { type: '化禄', css: 'sihua-lu', items: chain.hua_lu || [] },
-    { type: '化权', css: 'sihua-quan', items: chain.hua_quan || [] },
-    { type: '化科', css: 'sihua-ke', items: chain.hua_ke || [] },
-    { type: '化忌', css: 'sihua-ji', items: chain.hua_ji || [] },
+    { type: '化禄', css: 'sihua-lu', items: list<SihuaFlyItem>(chain.hua_lu) },
+    { type: '化权', css: 'sihua-quan', items: list<SihuaFlyItem>(chain.hua_quan) },
+    { type: '化科', css: 'sihua-ke', items: list<SihuaFlyItem>(chain.hua_ke) },
+    { type: '化忌', css: 'sihua-ji', items: list<SihuaFlyItem>(chain.hua_ji) },
   ]
 })
 </script>
@@ -516,6 +511,7 @@ const sihuaChainGroups = computed(() => {
            }"
           :liunian-chart="liunianOverlay"
           :available-years="availableYears"
+          :overlay-analysis="liunianOverlay.overlay_analysis"
           @year-change="onYearChange"
         />
       </div>
@@ -557,8 +553,8 @@ const sihuaChainGroups = computed(() => {
               </div>
               <div class="overview-patterns">
                 <span class="overview-label">格局</span>
-                <div v-if="chartData.patterns?.length" class="overview-pattern-list">
-                  <span v-for="(pattern, index) in chartData.patterns" :key="index">{{ pattern }}</span>
+                <div v-if="list(chartData.patterns).length" class="overview-pattern-list">
+                  <span v-for="(pattern, index) in list(chartData.patterns)" :key="index">{{ pattern }}</span>
                 </div>
                 <p v-else>暂无可由当前规则直接验证的格局标签</p>
               </div>
@@ -566,7 +562,7 @@ const sihuaChainGroups = computed(() => {
 
             <div class="palace-quick-grid">
               <button
-                v-for="(palace, idx) in (chartData?.palaces || [])"
+                v-for="(palace, idx) in list(chartData?.palaces)"
                 :key="palace.branch"
                 class="palace-pill"
                 :class="{
@@ -596,38 +592,41 @@ const sihuaChainGroups = computed(() => {
 
           <!-- 大限分析 -->
           <div v-else-if="activeTab === 'dayun'" class="data-tab">
-            <p class="tab-desc">人生各阶段十年大限，展示每阶段主要星曜和宫位变化</p>
+            <p class="tab-desc">先用十年大限定底色，再叠加流年、流月、流日看触发点</p>
             <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
-            <div v-else-if="!dayunData.length" class="empty-state-inline"><p>暂无可显示的大限数据</p></div>
-            <div v-else class="dayun-timeline">
-              <div v-for="(item, idx) in dayunData" :key="idx" class="dayun-card" :class="{ 'is-current': item.start_age <= currentAge && item.end_age >= currentAge }">
-                <div class="dayun-age-badge">
-                  <span class="age-primary">{{ item.start_age }}–{{ item.end_age }}</span>
-                  <span class="age-unit">岁</span>
-                </div>
-                <div class="dayun-body">
-                  <div class="dayun-palace">{{ item.palace_name || item.palace }}</div>
-                  <p class="dayun-desc">{{ item.description }}</p>
-                  <div v-if="item.stars?.length" class="dayun-stars"><span v-for="s in item.stars" :key="s" class="star-chip">{{ s }}</span></div>
-                </div>
-              </div>
+            <div v-else-if="tabError" class="tab-error"><strong>加载失败</strong><p>{{ tabError }}</p></div>
+            <div v-else-if="!dayunAnalysis" class="empty-state-inline"><p>暂无可显示的大限分析</p></div>
+            <div v-else>
+              <ZiWeiPeriodAnalysisPanel
+                :analysis="dayunAnalysis"
+                title="大限分析"
+                :subtitle="`当前年龄 ${currentAge} 岁`"
+              />
             </div>
           </div>
 
           <!-- 流年分析 -->
           <div v-else-if="activeTab === 'liunian'" class="data-tab">
-            <p class="tab-desc">{{ liunianData[0]?.year ? liunianData[0].year + '年' : '' }}流年各宫星曜分布，每年依次轮换</p>
+            <p class="tab-desc">{{ liunianData[0]?.year ? liunianData[0].year + '年' : '' }}先看年度干支、四化、流禄羊陀马，再落到重点宫位</p>
             <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="tabError" class="tab-error"><strong>加载失败</strong><p>{{ tabError }}</p></div>
             <div v-else-if="!liunianData.length" class="empty-state-inline"><p>暂无可显示的流年数据</p></div>
             <div v-else>
+              <ZiWeiPeriodAnalysisPanel
+                :analysis="liunianAnalysis"
+                title="流年分析"
+                :subtitle="`${selectedLiunianYear}年年度触发`"
+              />
+              <details class="period-detail-fold">
+                <summary>宫位明细</summary>
               <div v-for="p in getPalacesFromPeriod(liunianData[0])" :key="p.branch" class="palace-strip">
                 <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
                 <div class="palace-strip-stars">
                   <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
                   <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
                   <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
-                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
+                  <template v-if="list(p.adjective_stars).length"><span v-for="s in list(p.adjective_stars)" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                  <template v-if="list(p.four_hua).length"><span v-for="s in list(p.four_hua)" :key="s" class="strip-sihua">{{ s }}</span></template>
                 </div>
                 <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
                   <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
@@ -642,125 +641,87 @@ const sihuaChainGroups = computed(() => {
                   <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
                 </div>
               </div>
-            </div>
-            <!-- 流年详解析 -->
-            <div v-if="liunianInterp[selectedLiunianYear]" class="interp-card">
-              <div class="interp-header">
-                <span class="interp-year">{{ selectedLiunianYear }}年</span>
-                <span class="interp-ganZhi">{{ liunianInterp[selectedLiunianYear].gan_zhi }}</span>
-                <div class="interp-score" :class="liunianInterp[selectedLiunianYear].score >= 60 ? 'score-good' : 'score-bad'">{{ liunianInterp[selectedLiunianYear].score }}分</div>
-              </div>
-              <div class="interp-section">
-                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].gan_zhi_desc }}</span></div>
-                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].shi_shen }}</span></div>
-                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ liunianInterp[selectedLiunianYear].relation_to_ming }}</span></div>
-                <div class="interp-row"><span class="interp-label">全年基调</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].overall_tone }}</span></div>
-                <div class="interp-row tip"><span class="interp-label">重点提示</span><span class="interp-value">{{ liunianInterp[selectedLiunianYear].key_tips }}</span></div>
-              </div>
+              </details>
             </div>
           </div>
 
           <!-- 流月分析 -->
           <div v-else-if="activeTab === 'liuyue'" class="data-tab">
-            <p class="tab-desc">{{ liuyueData[0]?.year ? liuyueData[0].year + '年' + liuyueData[0].month + '月' : '' }}流月各宫星曜分布，每月依次轮换</p>
+            <p class="tab-desc">{{ liuyueData[0]?.year ? liuyueData[0].year + '年' + liuyueData[0].month + '月' : '' }}本月看哪一宫被点亮，再回头看整体月份主题</p>
             <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="tabError" class="tab-error"><strong>加载失败</strong><p>{{ tabError }}</p></div>
             <div v-else-if="!liuyueData.length" class="empty-state-inline"><p>暂无可显示的流月数据</p></div>
             <div v-else>
-              <div v-for="p in getPalacesFromPeriod(liuyueData[0])" :key="'ly-' + p.branch" class="palace-strip">
-                <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
-                <div class="palace-strip-stars">
-                  <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
-                  <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
-                  <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
-                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
+              <ZiWeiPeriodAnalysisPanel
+                :analysis="liuyueAnalysis"
+                title="流月分析"
+                :subtitle="`${liuyueData[0].year}年${liuyueData[0].month}月月度触发`"
+              />
+              <details class="period-detail-fold">
+                <summary>宫位明细</summary>
+                <div v-for="p in getPalacesFromPeriod(liuyueData[0])" :key="'ly-' + p.branch" class="palace-strip">
+                  <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
+                  <div class="palace-strip-stars">
+                    <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                    <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
+                    <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                    <template v-if="list(p.adjective_stars).length"><span v-for="s in list(p.adjective_stars)" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                    <template v-if="list(p.four_hua).length"><span v-for="s in list(p.four_hua)" :key="s" class="strip-sihua">{{ s }}</span></template>
+                  </div>
+                  <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
+                    <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
+                    <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
+                    <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
+                    <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
+                  </div>
+                  <div v-if="p.sanfang_sizheng" class="strip-sanfang">
+                    <span class="sf-label">三方四正</span>
+                    <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
+                    <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
+                    <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
+                  </div>
                 </div>
-                <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
-                  <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
-                  <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
-                  <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
-                  <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
-                </div>
-                <div v-if="p.sanfang_sizheng" class="strip-sanfang">
-                  <span class="sf-label">三方四正</span>
-                  <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
-                  <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
-                  <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
-                </div>
-              </div>
-            </div>
-            <!-- 流月详解析 -->
-            <div v-if="liuyueData[0]" class="interp-card">
-              <div class="interp-header">
-                <span class="interp-year">{{ liuyueData[0].year }}年{{ liuyueData[0].month }}月</span>
-                <span class="interp-ganZhi">{{ currentLiuyueInterp?.gan_zhi || '—' }}</span>
-                <div class="interp-score" :class="(currentLiuyueInterp?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ currentLiuyueInterp?.score || '—' }}分</div>
-              </div>
-              <div class="interp-section">
-                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ currentLiuyueInterp?.gan_zhi_desc || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ currentLiuyueInterp?.shi_shen || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ currentLiuyueInterp?.relation_to_ming || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">作用特点</span><span class="interp-value">{{ currentLiuyueInterp?.effect || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ currentLiuyueInterp?.health || '—' }}</span></div>
-              </div>
+              </details>
             </div>
           </div>
 
           <!-- 流日分析 -->
           <div v-else-if="activeTab === 'liuri'" class="data-tab">
-            <p class="tab-desc">{{ liuriData[0]?.year ? liuriData[0].year + '年' + liuriData[0].month + '月' + liuriData[0].day + '日' : '' }}流日各宫星曜分布，每日依次轮换</p>
+            <p class="tab-desc">{{ liuriData[0]?.year ? liuriData[0].year + '年' + liuriData[0].month + '月' + liuriData[0].day + '日' : '' }}先看当天触发宫位，再看时辰窗口</p>
             <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="tabError" class="tab-error"><strong>加载失败</strong><p>{{ tabError }}</p></div>
             <div v-else-if="!liuriData.length" class="empty-state-inline"><p>暂无可显示的流日数据</p></div>
             <div v-else>
-              <div v-for="p in getPalacesFromPeriod(liuriData[0])" :key="'lr-' + p.branch" class="palace-strip palace-strip-sm">
-                <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
-<div class="palace-strip-stars">
-                  <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
-                  <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
-                  <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
-                  <template v-if="p.adjective_stars?.length"><span v-for="s in p.adjective_stars" :key="s" class="strip-adj-star">{{ s }}</span></template>
-                  <template v-if="p.four_hua?.length"><span v-for="s in p.four_hua" :key="s" class="strip-sihua">{{ s }}</span></template>
-                </div>
-                <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
-                  <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
-                  <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
-                  <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
-                  <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
-                </div>
-                <div v-if="p.sanfang_sizheng" class="strip-sanfang">
-                  <span class="sf-label">三方四正</span>
-                  <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
-                  <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
-                  <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
-                </div>
-              </div>
-            </div>
-            <!-- 流日详解析 -->
-            <div v-if="liuriData[0]" class="interp-card">
-              <div class="interp-header">
-                <span class="interp-year">{{ liuriData[0].year }}年{{ liuriData[0].month }}月{{ liuriData[0].day }}日</span>
-                <span class="interp-ganZhi">{{ currentLiuriInterp?.gan_zhi || '—' }}</span>
-                <div class="interp-score" :class="(currentLiuriInterp?.score || 0) >= 60 ? 'score-good' : 'score-bad'">{{ currentLiuriInterp?.score || '—' }}分</div>
-              </div>
-              <div class="interp-section">
-                <div class="interp-row"><span class="interp-label">干支释义</span><span class="interp-value">{{ currentLiuriInterp?.gan_zhi_desc || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">十神</span><span class="interp-value">{{ currentLiuriInterp?.shi_shen || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">与命局关系</span><span class="interp-value danger">{{ currentLiuriInterp?.relation_to_ming || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">七杀作用</span><span class="interp-value">{{ currentLiuriInterp?.qi_zi_effect || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">情绪状态</span><span class="interp-value">{{ currentLiuriInterp?.emotional_state || '—' }}</span></div>
-                <div class="interp-row"><span class="interp-label">健康提示</span><span class="interp-value">{{ currentLiuriInterp?.health || '—' }}</span></div>
-              </div>
-              <div class="interp-section">
-                <p class="interp-subtitle">时辰分析</p>
-                <div class="hourly-grid">
-                  <div v-for="(h, i) in (currentLiuriInterp?.hourly_analysis || [])" :key="i" class="hour-block" :class="h.score >= 65 ? 'hour-good' : h.score < 45 ? 'hour-bad' : 'hour-neutral'">
-                    <span class="hour-time">{{ h.stem_branch }}</span>
-                    <span class="hour-effect">{{ h.effect }}</span>
-                    <span class="hour-score">{{ h.score }}分</span>
+              <ZiWeiPeriodAnalysisPanel
+                :analysis="liuriAnalysis"
+                title="流日分析"
+                :subtitle="`${liuriData[0].year}年${liuriData[0].month}月${liuriData[0].day}日当日触发`"
+              />
+              <details class="period-detail-fold">
+                <summary>宫位明细</summary>
+                <div v-for="p in getPalacesFromPeriod(liuriData[0])" :key="'lr-' + p.branch" class="palace-strip palace-strip-sm">
+                  <div class="palace-strip-header"><span class="strip-name">{{ p.name }}</span><span class="strip-branch">{{ p.branch }}</span></div>
+                  <div class="palace-strip-stars">
+                    <template v-if="majorStars(p).length"><span v-for="s in majorStars(p)" :key="s.name" class="strip-main-star" :class="{ dim: !s.brightness }">{{ s.name }}<small v-if="s.brightness">·{{s.brightness}}</small></span></template>
+                    <span v-if="!majorStars(p).length" class="strip-empty">无主星</span>
+                    <template v-if="auxStars(p).length"><span v-for="s in auxStars(p).slice(0,4)" :key="s.name" class="strip-aux-star">{{ s.name }}</span></template>
+                    <template v-if="list(p.adjective_stars).length"><span v-for="s in list(p.adjective_stars)" :key="s" class="strip-adj-star">{{ s }}</span></template>
+                    <template v-if="list(p.four_hua).length"><span v-for="s in list(p.four_hua)" :key="s" class="strip-sihua">{{ s }}</span></template>
+                  </div>
+                  <div v-if="p.changsheng_12 || p.boshi_12 || p.jiang_qian_12 || p.sui_qian_12" class="strip-twelve-stars">
+                    <span v-if="p.changsheng_12" class="twelve-tag twelve-cs">{{ p.changsheng_12 }}</span>
+                    <span v-if="p.boshi_12" class="twelve-tag twelve-bs">{{ p.boshi_12 }}</span>
+                    <span v-if="p.jiang_qian_12" class="twelve-tag twelve-jq">{{ p.jiang_qian_12 }}</span>
+                    <span v-if="p.sui_qian_12" class="twelve-tag twelve-sq">{{ p.sui_qian_12 }}</span>
+                  </div>
+                  <div v-if="p.sanfang_sizheng" class="strip-sanfang">
+                    <span class="sf-label">三方四正</span>
+                    <span v-if="p.sanfang_sizheng.opposite" class="sf-item">对{{ p.sanfang_sizheng.opposite }}</span>
+                    <span v-if="p.sanfang_sizheng.trine1" class="sf-item">三{{ p.sanfang_sizheng.trine1 }}</span>
+                    <span v-if="p.sanfang_sizheng.trine2" class="sf-item">三{{ p.sanfang_sizheng.trine2 }}</span>
                   </div>
                 </div>
-              </div>
-              <div class="interp-summary">{{ currentLiuriInterp?.summary || '—' }}</div>
+              </details>
             </div>
           </div>
 
@@ -768,6 +729,7 @@ const sihuaChainGroups = computed(() => {
           <div v-else-if="activeTab === 'sihua'" class="data-tab">
             <p class="tab-desc">四化飞星在各宫的分布，展示星曜化禄/化权/化科/化忌的飞入情况及链式分析</p>
             <div v-if="loadingTab" class="tab-loading"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+            <div v-else-if="tabError" class="tab-error"><strong>加载失败</strong><p>{{ tabError }}</p></div>
             <div v-else-if="!sihuaFlyGroups.length" class="empty-state-inline"><p>暂无可显示的四化飞星数据</p></div>
             <div v-else class="sihua-groups">
               <div v-for="grp in sihuaFlyGroups" :key="grp.type" class="sihua-group">
@@ -777,7 +739,7 @@ const sihuaChainGroups = computed(() => {
                     <span class="fly-star">{{ it.from_star }}</span><span class="fly-arrow">→</span>
                     <span class="fly-palace">{{ it.to_palace }}</span>
                     <span v-if="it.from_palace" class="fly-from">源{{ it.from_palace }}</span>
-                    <span v-if="it.chain_depth > 0" class="fly-chain">链{{ it.chain_depth }}</span>
+                    <span v-if="(it.chain_depth ?? 0) > 0" class="fly-chain">链{{ it.chain_depth }}</span>
                     <span class="fly-effect">{{ it.effect }}</span>
                   </div>
                 </div>
@@ -792,8 +754,8 @@ const sihuaChainGroups = computed(() => {
                       <span class="fly-star">{{ it.from_star }}</span><span class="fly-arrow">→</span>
                       <span class="fly-palace">{{ it.to_palace }}</span>
                       <span v-if="it.from_palace" class="fly-from">源{{ it.from_palace }}</span>
-                      <span v-if="it.chain_depth > 0" class="fly-chain">链{{ it.chain_depth }}</span>
-                      <span v-if="it.star_affinity > 0" class="fly-affinity">辅{{ it.star_affinity }}</span>
+                      <span v-if="(it.chain_depth ?? 0) > 0" class="fly-chain">链{{ it.chain_depth }}</span>
+                      <span v-if="(it.star_affinity ?? 0) > 0" class="fly-affinity">辅{{ it.star_affinity }}</span>
                     </div>
                   </div>
                 </div>
@@ -920,12 +882,53 @@ const sihuaChainGroups = computed(() => {
   @apply p-4 min-h-[200px];
 }
 
+.period-detail-fold {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-0) 68%, transparent);
+}
+
+.period-detail-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.period-detail-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
 .tab-hint {
   font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;
 }
 
 .tab-loading {
   text-align: center; font-size: 0.875rem; color: var(--text-muted); padding-top: 2rem; padding-bottom: 2rem;
+}
+
+.tab-error {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.06);
+  color: var(--danger);
+}
+
+.tab-error strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.78rem;
+}
+
+.tab-error p {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 .empty-hint {

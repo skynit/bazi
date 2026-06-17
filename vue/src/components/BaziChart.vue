@@ -84,8 +84,8 @@ const ganElement: Record<string, { name: string; elemColor: string }> = {
   乙: { name: '木', elemColor: '#34d399' },
   丙: { name: '火', elemColor: '#fb7185' },
   丁: { name: '火', elemColor: '#fb7185' },
-  戊: { name: '土', elemColor: '#fde68a' },
-  己: { name: '土', elemColor: '#fde68a' },
+  戊: { name: '土', elemColor: '#c76f12' },
+  己: { name: '土', elemColor: '#c76f12' },
   庚: { name: '金', elemColor: '#cbd5e1' },
   辛: { name: '金', elemColor: '#cbd5e1' },
   壬: { name: '水', elemColor: '#22d3ee' },
@@ -97,10 +97,10 @@ const zhiElement: Record<string, { name: string; elemColor: string }> = {
   卯: { name: '木', elemColor: '#34d399' },
   巳: { name: '火', elemColor: '#fb7185' },
   午: { name: '火', elemColor: '#fb7185' },
-  辰: { name: '土', elemColor: '#fde68a' },
-  戌: { name: '土', elemColor: '#fde68a' },
-  丑: { name: '土', elemColor: '#fde68a' },
-  未: { name: '土', elemColor: '#fde68a' },
+  辰: { name: '土', elemColor: '#c76f12' },
+  戌: { name: '土', elemColor: '#c76f12' },
+  丑: { name: '土', elemColor: '#c76f12' },
+  未: { name: '土', elemColor: '#c76f12' },
   申: { name: '金', elemColor: '#cbd5e1' },
   酉: { name: '金', elemColor: '#cbd5e1' },
   亥: { name: '水', elemColor: '#22d3ee' },
@@ -153,8 +153,25 @@ function relationSummary(detail: string): string {
   return String(detail || '').split('\n')[0] || ''
 }
 
-const elemColor = (e: string) =>
-  ({ 金: '#cbd5e1', 木: '#34d399', 水: '#22d3ee', 火: '#fb7185', 土: '#fde68a' })[e] || '#8a9a8e'
+const elemColor = (e: string) => {
+  themeVersion.value
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const lightMap: Record<string, string> = {
+    金: '#cbd5e1',
+    木: '#34d399',
+    水: '#22d3ee',
+    火: '#fb7185',
+    土: '#c76f12',
+  }
+  const darkMap: Record<string, string> = {
+    金: '#cbd5e1',
+    木: '#34d399',
+    水: '#22d3ee',
+    火: '#fb7185',
+    土: '#f59e0b',
+  }
+  return (isDark ? darkMap : lightMap)[e] || '#8a9a8e'
+}
 
 const pillarLabel = (k: string) => ({ year: '年柱', month: '月柱', day: '日柱', hour: '时柱' }[k] || k)
 
@@ -366,7 +383,7 @@ const fiveElementsOption = computed(() => {
   if (total === 0) return null
 
   // 五行配色 — 科技色盘
-  const barColors = ['#34d399', '#fb7185', '#fde68a', '#cbd5e1', '#22d3ee']
+  const barColors = ['#34d399', '#fb7185', '#c76f12', '#cbd5e1', '#22d3ee']
   const labels = ['木', '火', '土', '金', '水']
 
   return {
@@ -640,172 +657,55 @@ const tenGodChartOptions = computed(() => {
         <h2 class="chart-title">八字命盘</h2>
       </div>
 
-      <!-- Four pillars bento grid -->
+      <!-- Four-pillar axis with centered five elements -->
       <div class="pillars-bento">
-        <!-- 年柱卡片 -->
         <div
+          v-for="(pillar, pi) in pillars"
+          :key="pillar.key"
           class="bento-card bento-small"
-          :class="'bento-hover-' + ganElement[pillars[0].gan]?.name"
+          :class="[
+            'bento-hover-' + ganElement[pillar.gan]?.name,
+            { 'bento-day-card': pillar.key === 'day' },
+          ]"
+          :style="{ order: pillar.idx >= 2 ? pillar.idx + 2 : pillar.idx + 1 }"
         >
-          <div class="bento-label">{{ pillars[0].label }}</div>
+          <div class="bento-label">{{ pillar.label }}</div>
           <div class="bento-body">
-            <div class="bento-gan" :style="{ color: ganElement[pillars[0].gan]?.elemColor }">
-              <span class="bento-char">{{ pillars[0].gan }}</span>
+            <div class="bento-gan" :style="{ color: ganElement[pillar.gan]?.elemColor }">
+              <span class="bento-char">{{ pillar.gan }}</span>
               <span
                 class="elem-tag"
                 :style="{
-                  background: ganElement[pillars[0].gan]?.elemColor + '22',
-                  color: ganElement[pillars[0].gan]?.elemColor,
-                  borderColor: ganElement[pillars[0].gan]?.elemColor + '44',
+                  background: ganElement[pillar.gan]?.elemColor + '22',
+                  color: ganElement[pillar.gan]?.elemColor,
+                  borderColor: ganElement[pillar.gan]?.elemColor + '44',
                 }"
-              >{{ ganElement[pillars[0].gan]?.name }}</span>
+              >{{ ganElement[pillar.gan]?.name }}</span>
             </div>
-            <div class="bento-zhi" :style="{ color: zhiElement[pillars[0].zhi]?.elemColor }">
-              <span class="bento-char">{{ pillars[0].zhi }}</span>
+            <div class="bento-zhi" :style="{ color: zhiElement[pillar.zhi]?.elemColor }">
+              <span class="bento-char">{{ pillar.zhi }}</span>
               <span
                 class="elem-tag"
                 :style="{
-                  background: zhiElement[pillars[0].zhi]?.elemColor + '22',
-                  color: zhiElement[pillars[0].zhi]?.elemColor,
-                  borderColor: zhiElement[pillars[0].zhi]?.elemColor + '44',
+                  background: zhiElement[pillar.zhi]?.elemColor + '22',
+                  color: zhiElement[pillar.zhi]?.elemColor,
+                  borderColor: zhiElement[pillar.zhi]?.elemColor + '44',
                 }"
-              >{{ zhiElement[pillars[0].zhi]?.name }}</span>
+              >{{ zhiElement[pillar.zhi]?.name }}</span>
             </div>
-            <span v-if="chart.ten_gods?.year" class="bento-god-tag">{{ chart.ten_gods.year }}</span>
+            <span v-if="chart.ten_gods?.[pillar.key]" class="bento-god-tag">{{ chart.ten_gods[pillar.key] }}</span>
           </div>
-          <div v-if="pillarDetails[0]" class="bento-sub">
-            <span class="sheng-xiao-tag">{{ pillarDetails[0].sheng_xiao }}</span>
-            <span v-if="pillarDetails[0].empties[0]" class="empties-tag">
-              空{{ pillarDetails[0].empties[0] }}{{ pillarDetails[0].empties[1] }}
+          <div v-if="pillarDetails[pi]" class="bento-sub">
+            <span class="sheng-xiao-tag">{{ pillarDetails[pi].sheng_xiao }}</span>
+            <span v-if="pillarDetails[pi].empties[0]" class="empties-tag">
+              空{{ pillarDetails[pi].empties[0] }}{{ pillarDetails[pi].empties[1] }}
             </span>
           </div>
         </div>
 
-        <!-- 月柱卡片 -->
-        <div
-          class="bento-card bento-small"
-          :class="'bento-hover-' + ganElement[pillars[1].gan]?.name"
-        >
-          <div class="bento-label">{{ pillars[1].label }}</div>
-          <div class="bento-body">
-            <div class="bento-gan" :style="{ color: ganElement[pillars[1].gan]?.elemColor }">
-              <span class="bento-char">{{ pillars[1].gan }}</span>
-              <span
-                class="elem-tag"
-                :style="{
-                  background: ganElement[pillars[1].gan]?.elemColor + '22',
-                  color: ganElement[pillars[1].gan]?.elemColor,
-                  borderColor: ganElement[pillars[1].gan]?.elemColor + '44',
-                }"
-              >{{ ganElement[pillars[1].gan]?.name }}</span>
-            </div>
-            <div class="bento-zhi" :style="{ color: zhiElement[pillars[1].zhi]?.elemColor }">
-              <span class="bento-char">{{ pillars[1].zhi }}</span>
-              <span
-                class="elem-tag"
-                :style="{
-                  background: zhiElement[pillars[1].zhi]?.elemColor + '22',
-                  color: zhiElement[pillars[1].zhi]?.elemColor,
-                  borderColor: zhiElement[pillars[1].zhi]?.elemColor + '44',
-                }"
-              >{{ zhiElement[pillars[1].zhi]?.name }}</span>
-            </div>
-            <span v-if="chart.ten_gods?.month" class="bento-god-tag">{{ chart.ten_gods.month }}</span>
-          </div>
-          <div v-if="pillarDetails[1]" class="bento-sub">
-            <span class="sheng-xiao-tag">{{ pillarDetails[1].sheng_xiao }}</span>
-            <span v-if="pillarDetails[1].empties[0]" class="empties-tag">
-              空{{ pillarDetails[1].empties[0] }}{{ pillarDetails[1].empties[1] }}
-            </span>
-          </div>
-        </div>
-
-        <!-- 时柱主卡片 (col-span-2, 流光边框) -->
-        <div class="bento-card bento-day-wrapper">
-          <div class="bento-day-beam" aria-hidden="true"></div>
-          <div
-            class="bento-day-inner"
-            :class="'bento-hover-' + ganElement[pillars[3].gan]?.name"
-          >
-            <div class="bento-label bento-day-label">{{ pillars[3].label }}</div>
-            <div class="bento-day-body">
-              <div class="bento-day-gan" :style="{ color: ganElement[pillars[3].gan]?.elemColor }">
-                <span class="bento-day-char">{{ pillars[3].gan }}</span>
-                <span
-                  class="elem-tag elem-tag-lg"
-                  :style="{
-                    background: ganElement[pillars[3].gan]?.elemColor + '22',
-                    color: ganElement[pillars[3].gan]?.elemColor,
-                    borderColor: ganElement[pillars[3].gan]?.elemColor + '44',
-                  }"
-                >{{ ganElement[pillars[3].gan]?.name }}</span>
-              </div>
-              <div class="bento-day-divider"></div>
-              <div class="bento-day-zhi" :style="{ color: zhiElement[pillars[3].zhi]?.elemColor }">
-                <span class="bento-day-char">{{ pillars[3].zhi }}</span>
-                <span
-                  class="elem-tag elem-tag-lg"
-                  :style="{
-                    background: zhiElement[pillars[3].zhi]?.elemColor + '22',
-                    color: zhiElement[pillars[3].zhi]?.elemColor,
-                    borderColor: zhiElement[pillars[3].zhi]?.elemColor + '44',
-                  }"
-                >{{ zhiElement[pillars[3].zhi]?.name }}</span>
-              </div>
-              <span v-if="chart.ten_gods?.hour" class="bento-god-tag bento-god-tag-day">{{ chart.ten_gods.hour }}</span>
-            </div>
-            <div v-if="pillarDetails[3]" class="bento-sub bento-day-sub">
-              <span class="sheng-xiao-tag">{{ pillarDetails[3].sheng_xiao }}</span>
-              <span v-if="pillarDetails[3].empties[0]" class="empties-tag">
-                空{{ pillarDetails[3].empties[0] }}{{ pillarDetails[3].empties[1] }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 五行雷达图 -->
         <div v-if="fiveElementsOption" class="bento-card bento-radar">
           <div class="bento-label">五行分布</div>
           <v-chart class="bento-radar-chart" :option="fiveElementsOption" autoresize />
-        </div>
-
-        <!-- 日柱卡片 -->
-        <div
-          class="bento-card bento-small"
-          :class="'bento-hover-' + ganElement[pillars[2].gan]?.name"
-        >
-          <div class="bento-label">{{ pillars[2].label }}</div>
-          <div class="bento-body">
-            <div class="bento-gan" :style="{ color: ganElement[pillars[2].gan]?.elemColor }">
-              <span class="bento-char">{{ pillars[2].gan }}</span>
-              <span
-                class="elem-tag"
-                :style="{
-                  background: ganElement[pillars[2].gan]?.elemColor + '22',
-                  color: ganElement[pillars[2].gan]?.elemColor,
-                  borderColor: ganElement[pillars[2].gan]?.elemColor + '44',
-                }"
-              >{{ ganElement[pillars[2].gan]?.name }}</span>
-            </div>
-            <div class="bento-zhi" :style="{ color: zhiElement[pillars[2].zhi]?.elemColor }">
-              <span class="bento-char">{{ pillars[2].zhi }}</span>
-              <span
-                class="elem-tag"
-                :style="{
-                  background: zhiElement[pillars[2].zhi]?.elemColor + '22',
-                  color: zhiElement[pillars[2].zhi]?.elemColor,
-                  borderColor: zhiElement[pillars[2].zhi]?.elemColor + '44',
-                }"
-              >{{ zhiElement[pillars[2].zhi]?.name }}</span>
-            </div>
-            <span v-if="chart.ten_gods?.day" class="bento-god-tag bento-god-tag-day">{{ chart.ten_gods.day }}</span>
-          </div>
-          <div v-if="pillarDetails[2]" class="bento-sub">
-            <span class="sheng-xiao-tag">{{ pillarDetails[2].sheng_xiao }}</span>
-            <span v-if="pillarDetails[2].empties[0]" class="empties-tag">
-              空{{ pillarDetails[2].empties[0] }}{{ pillarDetails[2].empties[1] }}
-            </span>
-          </div>
         </div>
       </div>
 
@@ -1589,10 +1489,20 @@ const tenGodChartOptions = computed(() => {
 /* Pillars bento grid */
 .pillars-bento {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  grid-template-columns:
+    minmax(96px, 0.86fr)
+    minmax(96px, 0.86fr)
+    minmax(210px, 1.35fr)
+    minmax(96px, 0.86fr)
+    minmax(96px, 0.86fr);
+  gap: 0.55rem;
   padding: 0.75rem;
   border-bottom: 1px solid var(--line-subtle);
+  align-items: stretch;
+}
+
+.pillars-bento > .bento-card {
+  min-height: 188px;
 }
 
 .bento-card {
@@ -1605,8 +1515,13 @@ const tenGodChartOptions = computed(() => {
   overflow: hidden;
 }
 
+.bento-small {
+  display: flex;
+  flex-direction: column;
+}
+
 .bento-card.bento-small:hover,
-.bento-card.bento-day-inner:hover {
+.bento-card.bento-day-card:hover {
   background: var(--surface-2);
 }
 
@@ -1630,6 +1545,8 @@ const tenGodChartOptions = computed(() => {
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
+  flex: 1;
+  justify-content: center;
 }
 
 .bento-gan,
@@ -1648,95 +1565,25 @@ const tenGodChartOptions = computed(() => {
   text-shadow: 0 0 12px currentColor;
 }
 
-/* 日柱主卡片 — col-span-2 流光边框 */
-.bento-day-wrapper {
-  grid-column: span 2;
-  padding: 0;
-  border: none;
-  background: transparent;
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-.bento-day-beam {
-  position: absolute;
-  inset: -150%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    #22d3ee 8%,
-    transparent 16%
-  );
-  animation: bento-beam-rotate 4s linear infinite;
-  z-index: 0;
-}
-
-@keyframes bento-beam-rotate {
-  to { transform: rotate(360deg); }
-}
-
-.bento-day-inner {
-  position: relative;
-  z-index: 1;
-  margin: 1.5px;
-  background: var(--surface-0);
-  border-radius: 11px;
-  padding: 0.75rem 1rem;
-  transition: box-shadow 0.3s, background 0.3s;
-}
-
-.bento-day-label {
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.bento-day-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
-.bento-day-gan,
-.bento-day-zhi {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.bento-day-char {
-  font-family: var(--font-serif), serif;
-  font-size: 2.4rem;
-  font-weight: 700;
-  line-height: 1;
-  text-shadow: 0 0 20px currentColor;
-}
-
-.bento-day-divider {
-  width: 1px;
-  height: 3.5rem;
-  background: linear-gradient(180deg, transparent, var(--line-strong), transparent);
-}
-
-.elem-tag-lg {
-  font-size: 0.68rem;
-  padding: 0.15rem 0.5rem;
-}
-
-.bento-day-sub {
-  margin-top: 0.25rem;
+.bento-day-card {
+  border-color: var(--line-focus);
+  background:
+    linear-gradient(180deg, var(--accent-dim), transparent 145%),
+    var(--glass-bg);
 }
 
 /* 五行雷达图卡片 */
 .bento-radar {
   display: flex;
   flex-direction: column;
+  order: 3;
+  min-height: 188px;
+  padding-bottom: 0.35rem;
 }
 
 .bento-radar-chart {
+  flex: 1;
+  min-height: 148px;
   height: 148px;
   width: 100%;
 }
@@ -2865,8 +2712,8 @@ const tenGodChartOptions = computed(() => {
 .level-none { background: rgba(255, 255, 255, 0.01); }
 .level-weak .ed-total { color: var(--text-dim); }
 .level-medium .ed-total { color: var(--text-muted); }
-.level-strong .ed-total { color: #d97706; font-weight: 700; }
-.level-very-strong .ed-total { color: #c2410c; font-weight: 800; }
+.level-strong .ed-total { color: #c76f12; font-weight: 700; }
+.level-very-strong .ed-total { color: #a6540a; font-weight: 800; }
 
 /* Body Strength */
 .body-strength {
@@ -3606,10 +3453,14 @@ const tenGodChartOptions = computed(() => {
 
 :global(.dark) .god-name { color: #fb7185; }
 
-:global(.dark) .level-strong .ed-total { color: #fbbf24; }
+:global(.dark) .level-strong .ed-total { color: #f59e0b; }
 :global(.dark) .level-very-strong .ed-total { color: #f97316; }
 
-:global(.dark) .bento-day-inner { background: rgba(10,10,14,0.97); }
+:global(.dark) .bento-day-card {
+  background:
+    linear-gradient(180deg, rgba(var(--jade-accent-rgb), 0.12), transparent 150%),
+    var(--glass-bg);
+}
 
 :global(.dark) .shensha-badge.shensha-xiong { color: #f87171; }
 
@@ -3628,7 +3479,31 @@ const tenGodChartOptions = computed(() => {
   color: #f87171;
 }
 
+@media (max-width: 980px) {
+  .pillars-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bento-radar {
+    grid-column: 1 / -1;
+    min-height: 184px;
+  }
+
+  .bento-radar-chart {
+    min-height: 148px;
+    height: 148px;
+  }
+}
+
 @media (max-width: 860px) {
+  .pillars-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bento-radar {
+    grid-column: 1 / -1;
+  }
+
   .ten-gods-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3648,6 +3523,24 @@ const tenGodChartOptions = computed(() => {
 }
 
 @media (max-width: 560px) {
+  .pillars-bento {
+    grid-template-columns: 1fr;
+  }
+
+  .pillars-bento > .bento-card {
+    min-height: auto;
+  }
+
+  .bento-radar {
+    grid-column: auto;
+    min-height: 178px;
+  }
+
+  .bento-radar-chart {
+    min-height: 142px;
+    height: 142px;
+  }
+
   .overview-section {
     padding: 0.95rem 0 1.05rem;
   }

@@ -100,10 +100,17 @@ type ElementImage struct {
 }
 
 type FortuneGuideItem struct {
-	Label   string `json:"label"`
-	Value   string `json:"value"`
-	Element string `json:"element,omitempty"`
-	Reason  string `json:"reason"`
+	Label     string `json:"label"`
+	Value     string `json:"value"`
+	Element   string `json:"element,omitempty"`
+	Reason    string `json:"reason"`
+	Category  string `json:"category,omitempty"`
+	Priority  int    `json:"priority,omitempty"`
+	Intensity string `json:"intensity,omitempty"`
+	Timing    string `json:"timing,omitempty"`
+	Method    string `json:"method,omitempty"`
+	Source    string `json:"source,omitempty"`
+	Impact    string `json:"impact,omitempty"`
 }
 
 type FortuneGuide struct {

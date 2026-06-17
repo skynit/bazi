@@ -169,6 +169,59 @@ func TestZiWeiPeriodLiunian(t *testing.T) {
 	}
 }
 
+func TestZiWeiPeriodAnalysisPresent(t *testing.T) {
+	chart := &model.BirthChart{
+		BirthYear:  1984,
+		BirthMonth: 2,
+		BirthDay:   15,
+		BirthHour:  8,
+		BirthMin:   0,
+		Gender:     "男",
+	}
+	chart.ID = 1
+
+	store := &mockWeeklyChartStore{chart: chart}
+	router := setupZiWeiPeriodRouter(store)
+
+	token, err := middleware.GenerateToken(1, "testuser")
+	if err != nil {
+		t.Fatalf("failed to generate token: %v", err)
+	}
+
+	body, _ := json.Marshal(periodRequest{
+		ChartID:    1,
+		PeriodType: "liunian",
+		Year:       2024,
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/ziwei/period", strings.NewReader(string(body)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp struct {
+		Analysis struct {
+			RuleVersion string `json:"rule_version"`
+			School      string `json:"school"`
+			Score       int    `json:"score"`
+		} `json:"analysis"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+	if resp.Analysis.RuleVersion == "" || resp.Analysis.School == "" {
+		t.Fatal("expected analysis rule metadata")
+	}
+	if resp.Analysis.Score == 0 {
+		t.Fatal("expected analysis score")
+	}
+}
+
 func TestZiWeiPeriodNoJWT(t *testing.T) {
 	chart := &model.BirthChart{
 		BirthYear:  1984,
