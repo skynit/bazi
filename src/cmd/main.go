@@ -6,6 +6,7 @@ import (
 	"bazi/internal/middleware"
 	"bazi/internal/model"
 	"bazi/internal/service/bazi"
+	"bazi/internal/service/buyi"
 	"bazi/internal/service/fortune"
 	"bazi/internal/service/interpretation"
 	"bazi/internal/service/localrag"
@@ -41,14 +42,19 @@ func main() {
 	middleware.InitJWT(cfg.JWTSecret)
 
 	db := initDatabase(cfg)
+	if err := db.AutoMigrate(&model.BuyiRecord{}); err != nil {
+		log.Fatalf("Failed to migrate buyi database: %v", err)
+	}
 	cs := store.NewDBChartStore(db)
 	fs := store.NewDBFortuneStore(db)
 	feedbackStore := store.NewDBFeedbackStore(db)
+	buyiStore := store.NewDBBuyiStore(db)
 	us := store.NewDBUserStore(db)
 
 	seedAdminIfEmpty(us)
 
 	baziSvc := &bazi.BaziService{}
+	buyiSvc := buyi.NewService()
 	parser := &bazi.InputParser{}
 	engine := fortune.NewFortuneEngine()
 	ziweiSvc := ziwei.NewZiWeiService()
@@ -105,6 +111,7 @@ func main() {
 		handler.RegisterZiWeiPeriodRoutes(api, ziweiSvc, cs)
 		handler.RegisterInterpretationRoutes(api, interpretSvc)
 		handler.RegisterFeedbackRoutes(api, cs, feedbackStore)
+		handler.RegisterBuyiRoutes(api, buyiSvc, buyiStore)
 	}
 
 	log.Printf("Server starting on :%s", cfg.ServerPort)

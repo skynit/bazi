@@ -196,7 +196,7 @@ onMounted(() => {
 }
 
 .header-eyebrow {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   letter-spacing: 3px;
   color: var(--text-soft);
   text-transform: uppercase;
@@ -205,7 +205,7 @@ onMounted(() => {
 
 .page-title {
   font-family: var(--font-serif), serif;
-  font-size: 1.8rem;
+  font-size: var(--fs-4xl);
   font-weight: 700;
   color: var(--text);
   margin: 0 0 6px;
@@ -213,7 +213,7 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   margin: 0;
 }
@@ -269,7 +269,7 @@ onMounted(() => {
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), #94a3b8);
   color: #030404;
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -282,14 +282,14 @@ onMounted(() => {
 }
 
 .card-name {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--text);
   margin: 0 0 0.2rem;
 }
 
 .card-meta {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   margin: 0;
   display: flex;
@@ -303,7 +303,7 @@ onMounted(() => {
   background: var(--accent-dim);
   border: 1px solid var(--line-subtle);
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -312,7 +312,7 @@ onMounted(() => {
 }
 
 .card-date {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   margin: 0.2rem 0 0;
 }
@@ -328,7 +328,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   padding: 0.35rem 0.875rem;
   border-radius: 20px;
   border: 1px solid rgba(203, 213, 225, 0.15);
@@ -346,7 +346,7 @@ onMounted(() => {
 }
 
 .btn-icon {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   animation: spin-slow 8s linear infinite;
 }
 
@@ -375,7 +375,7 @@ onMounted(() => {
 }
 
 .error-text {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
@@ -385,7 +385,7 @@ onMounted(() => {
   color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -411,7 +411,7 @@ onMounted(() => {
   border: 1px solid var(--line-subtle);
   background: var(--glass-bg);
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
@@ -429,7 +429,7 @@ onMounted(() => {
 }
 
 .page-info {
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
@@ -450,14 +450,14 @@ onMounted(() => {
 }
 
 .empty-title {
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text);
   margin: 0 0 0.5rem;
 }
 
 .empty-sub {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   margin: 0 0 2rem;
 }
@@ -470,7 +470,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #cbd5e1, #94a3b8);
   color: #030404;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   border: none;
   border-radius: 50px;
   cursor: pointer;

@@ -303,7 +303,7 @@ const option = computed(() => {
 }
 
 .empty-title {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text-muted);
   margin: 0;
@@ -311,7 +311,7 @@ const option = computed(() => {
 }
 
 .empty-sub {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   margin: 0;
 }

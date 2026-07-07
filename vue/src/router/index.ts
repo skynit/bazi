@@ -19,6 +19,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/fortune/blessing',
+      name: 'FortuneBlessing',
+      component: () => import('../views/FortuneBlessingView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/fortune/weekly',
       name: 'FortuneWeekly',
       component: () => import('../views/WeeklyFortuneView.vue'),
@@ -28,6 +34,12 @@ const router = createRouter({
       path: '/fortune/monthly',
       name: 'FortuneMonthly',
       component: () => import('../views/MonthlyFortuneView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/buyi',
+      name: 'Buyi',
+      component: () => import('../views/BuyiView.vue'),
       meta: { requiresAuth: true },
     },
     {

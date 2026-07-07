@@ -615,7 +615,7 @@ onMounted(load)
 /* states */
 .state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 70vh; gap: 16px; color: var(--text-muted); font-size: 0.95rem;
+  min-height: 70vh; gap: 16px; color: var(--text-muted); font-size: var(--fs-sm);
 }
 .state.error p { color: var(--crimson); }
 .btn-link { color: rgba(var(--jade-accent-rgb), 1); text-decoration: none; font-weight: 600; letter-spacing: 0.04em; }
@@ -643,23 +643,23 @@ onMounted(load)
 
 .eyebrow {
   font-family: var(--font-mono), monospace;
-  font-size: 0.7rem; letter-spacing: 0.42em; color: var(--text-muted); text-transform: uppercase;
+  font-size: var(--fs-xs); letter-spacing: 0.42em; color: var(--text-muted); text-transform: uppercase;
 }
 .title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: 0.18em;
+  font-size: var(--fs-stat); font-weight: 800; letter-spacing: 0.18em;
   margin: 0; color: var(--text);
 }
-.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: 0.9rem; }
+.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: var(--fs-sm); }
 .advice {
-  font-family: var(--font-serif), serif; font-size: 1rem; line-height: 1.75;
+  font-family: var(--font-serif), serif; font-size: var(--fs-body); line-height: 1.75;
   color: var(--text); margin: 4px 0 6px; letter-spacing: 0.02em;
 }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .meta-chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px; border-radius: 999px;
-  border: 1px solid var(--line-subtle); font-size: 0.72rem;
+  border: 1px solid var(--line-subtle); font-size: var(--fs-xs);
   color: var(--text-muted); background: var(--glass-bg);
 }
 .meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--jade-accent); box-shadow: 0 0 6px var(--jade-accent); }
@@ -677,10 +677,10 @@ onMounted(load)
 .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .card-head.plain { padding: 0 4px; }
 .card-eyebrow {
-  font-size: 0.72rem; letter-spacing: 0.32em; color: var(--text-muted);
+  font-size: var(--fs-xs); letter-spacing: 0.32em; color: var(--text-muted);
   font-family: var(--font-mono), monospace; text-transform: uppercase;
 }
-.card-meta { font-size: 0.72rem; color: var(--text-soft); letter-spacing: 0.06em; }
+.card-meta { font-size: var(--fs-xs); color: var(--text-soft); letter-spacing: 0.06em; }
 
 .overview-grid {
   display: grid;
@@ -715,19 +715,19 @@ onMounted(load)
   white-space: nowrap;
 }
 .overview-label {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.28em;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 .overview-value {
   font-family: var(--font-serif), serif;
-  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-size: var(--fs-display);
   line-height: 1;
   color: var(--text);
 }
 .overview-detail {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
 }
 
@@ -746,7 +746,7 @@ onMounted(load)
 .brief-copy h2 {
   margin: 0;
   font-family: var(--font-serif), serif;
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-size: var(--fs-display);
   letter-spacing: 0.08em;
 }
 .brief-copy p {
@@ -768,10 +768,10 @@ onMounted(load)
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
   background: var(--glass-bg);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
-.band strong { font-size: 0.98rem; color: var(--text); }
+.band strong { font-size: var(--fs-sm); color: var(--text); }
 .band.good { border-color: rgba(var(--jade-accent-rgb), 0.28); }
 .band.steady { border-color: rgba(130, 145, 160, 0.22); }
 .band.caution { border-color: rgba(232, 64, 87, 0.24); }
@@ -789,7 +789,7 @@ onMounted(load)
 }
 .element-name,
 .element-value {
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .element-track {
@@ -860,19 +860,19 @@ onMounted(load)
 .phase-name,
 .key-main strong,
 .guide-group h3 {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: var(--text);
 }
 .phase-range,
 .key-main span,
 .phase-days,
 .guide-chip em {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
 }
 .phase-score {
   font-family: var(--font-serif), serif;
-  font-size: 1.4rem;
+  font-size: var(--fs-2xl);
   color: var(--text);
 }
 .phase-meter {
@@ -899,7 +899,7 @@ onMounted(load)
   margin: 0;
   line-height: 1.65;
   color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
 }
 
 .key-day {
@@ -908,7 +908,7 @@ onMounted(load)
   gap: 8px;
 }
 .key-date {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.18em;
   color: var(--text-soft);
   text-transform: uppercase;
@@ -922,7 +922,7 @@ onMounted(load)
 .guide-group { display: flex; flex-direction: column; gap: 10px; }
 .guide-group h3 {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -941,7 +941,7 @@ onMounted(load)
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
   background: rgba(var(--jade-accent-rgb), 0.06);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
 }
 .guide-chip strong { min-width: 0; }
 .guide-chip em { font-style: normal; }
@@ -971,7 +971,7 @@ onMounted(load)
   align-items: center;
   padding: 0 4px;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
 }
 .trend-legend span {
@@ -1013,7 +1013,7 @@ onMounted(load)
   color: var(--text);
   padding: 6px 14px;
   border-radius: 999px;
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease;
@@ -1022,7 +1022,7 @@ onMounted(load)
 
 .footer-nav {
   display: flex; gap: 14px; justify-content: center; padding: 8px 0;
-  font-size: 0.85rem; color: var(--text-muted);
+  font-size: var(--fs-sm); color: var(--text-muted);
 }
 .footer-nav a {
   color: rgba(var(--jade-accent-rgb), 1);

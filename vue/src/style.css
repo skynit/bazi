@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
 
@@ -34,9 +33,36 @@
   --grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
 
   /* ── Typography ── */
-  --font-serif: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
-  --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-serif: 'Noto Serif SC', 'Songti SC', 'Source Han Serif SC', 'SimSun', serif;
+  --font-sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', monospace;
+  --fs-2xs: 12px;
+  --fs-xs: 13px;
+  --fs-sm: 14px;
+  --fs-md: 15px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 20px;
+  --fs-3xl: 24px;
+  --fs-4xl: 28px;
+  --fs-5xl: 32px;
+  --fs-body: var(--fs-md);
+  --fs-caption: var(--fs-xs);
+  --fs-meta: var(--fs-2xs);
+  --fs-title: var(--fs-xl);
+  --fs-section: var(--fs-2xl);
+  --fs-display: var(--fs-3xl);
+  --fs-stat: 32px;
+  --fs-stat-lg: 40px;
+  --fs-hero: 48px;
+  --fs-hero-strong: 64px;
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-body: 1.65;
+  --lh-relaxed: 1.75;
+  --tracking-label: 0.06em;
+  --tracking-meta: 0.18em;
+  --tracking-eyebrow: 0.42em;
 
   /* ── Five-element tech colors ── */
   --elem-metal: #cbd5e1;
@@ -324,9 +350,10 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-size: var(--fs-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  line-height: 1.6;
+  line-height: var(--lh-body);
 }
 
 /* ── Ambient glow (jadense-style) ── */
@@ -392,7 +419,7 @@ body::after {
   align-items: center;
   gap: 0.6rem;
   padding: 0.875rem 1rem;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1;
   border-radius: 999px;
@@ -463,7 +490,7 @@ body::after {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 
 .btn-ghost:hover {
@@ -479,7 +506,7 @@ body::after {
   padding: 12px 16px;
   border-radius: 8px;
   width: 100%;
-  font-size: 15px;
+  font-size: var(--fs-body);
   outline: none;
   transition: all 0.3s;
   font-family: var(--font-sans);
@@ -515,7 +542,7 @@ select.input-dark {
 }
 
 .section-title {
-  font-size: 1.3rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text);
   margin-bottom: 1rem;
@@ -625,8 +652,8 @@ select.input-dark {
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
-  --font-heading: var(--font-sans);
+  --font-sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans SC', sans-serif;
+  --font-heading: var(--font-serif);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -662,6 +689,98 @@ select.input-dark {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+@utility cn-font-sans {
+  font-family: var(--font-sans);
+}
+
+@utility cn-font-heading {
+  font-family: var(--font-heading);
+}
+
+@utility cn-font-mono {
+  font-family: var(--font-mono);
+}
+
+@utility cn-text-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+@utility cn-text-body-sm {
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+}
+
+@utility cn-text-caption {
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+@utility cn-text-meta {
+  font-size: var(--fs-meta);
+  line-height: 1.25;
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+
+@utility cn-text-label {
+  font-size: var(--fs-xs);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+}
+
+@utility cn-text-title {
+  font-family: var(--font-heading);
+  font-size: var(--fs-title);
+  line-height: var(--lh-snug);
+  font-weight: 600;
+}
+
+@utility cn-text-section {
+  font-family: var(--font-heading);
+  font-size: var(--fs-section);
+  line-height: var(--lh-tight);
+  font-weight: 700;
+}
+
+@utility cn-text-display {
+  font-family: var(--font-heading);
+  font-size: var(--fs-display);
+  line-height: 1.08;
+  font-weight: 700;
+}
+
+@utility cn-text-stat {
+  font-family: var(--font-heading);
+  font-size: var(--fs-stat);
+  line-height: 0.95;
+  font-weight: 700;
+}
+
+@utility cn-text-hero {
+  font-family: var(--font-heading);
+  font-size: var(--fs-hero);
+  line-height: 1;
+  font-weight: 700;
+}
+
+@utility cn-text-hero-strong {
+  font-family: var(--font-heading);
+  font-size: var(--fs-hero-strong);
+  line-height: 0.95;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-stat: 28px;
+    --fs-stat-lg: 36px;
+    --fs-hero: 40px;
+    --fs-hero-strong: 56px;
+  }
 }
 
 @layer base {

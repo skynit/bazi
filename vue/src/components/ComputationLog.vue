@@ -115,7 +115,7 @@ onMounted(() => {
 
 .log-title {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 3px;
@@ -149,7 +149,7 @@ onMounted(() => {
 }
 
 .log-text {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.6;
   white-space: pre-wrap;
@@ -181,7 +181,7 @@ onMounted(() => {
   background: rgba(22, 163, 74, 0.08);
   border: 1px solid rgba(22, 163, 74, 0.2);
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--wuxing-mu);
   font-weight: 600;
   letter-spacing: 1px;

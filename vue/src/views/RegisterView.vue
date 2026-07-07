@@ -50,11 +50,11 @@ async function handleRegister() {
       </div>
 
       <CardHeader class="text-center pt-2 pb-0">
-        <div class="text-[10px] tracking-[3px] text-[var(--text-soft)] uppercase mb-2">BaZi Fortune</div>
-        <CardTitle class="font-[family-name:var(--font-serif)] text-[2rem] font-bold tracking-[4px]">
+        <div class="text-[var(--fs-2xs)] tracking-[3px] text-[var(--text-soft)] uppercase mb-2">BaZi Fortune</div>
+        <CardTitle class="font-[family-name:var(--font-serif)] text-[var(--fs-stat)] font-bold tracking-[4px]">
           注册
         </CardTitle>
-        <CardDescription class="text-[13px]">创建账户 · 开启命理探索</CardDescription>
+        <CardDescription class="text-[var(--fs-xs)]">创建账户 · 开启命理探索</CardDescription>
       </CardHeader>
 
       <CardContent class="px-10 pb-10">
@@ -107,8 +107,8 @@ async function handleRegister() {
       </CardContent>
 
       <CardFooter class="justify-center pb-10 pt-0">
-        <span class="text-[13px] text-[var(--text-muted)]">已有账户？</span>
-        <router-link to="/login" class="text-[13px] font-medium text-[var(--primary)] hover:underline ml-1">
+        <span class="text-[var(--fs-xs)] text-[var(--text-muted)]">已有账户？</span>
+        <router-link to="/login" class="text-[var(--fs-xs)] font-medium text-[var(--primary)] hover:underline ml-1">
           立即登录 →
         </router-link>
       </CardFooter>
@@ -152,7 +152,7 @@ async function handleRegister() {
 }
 
 .ornament-symbol {
-  font-size: 2rem;
+  font-size: var(--fs-stat);
   color: var(--accent);
   text-shadow: 0 0 20px var(--brand-glow);
   animation: symbol-glow 3s ease-in-out infinite;

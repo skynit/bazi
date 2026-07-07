@@ -277,7 +277,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 }
 
 .zw-score-seal strong {
-  font-size: 1.65rem;
+  font-size: var(--fs-3xl);
   line-height: 1;
   font-weight: 800;
   font-family: Georgia, 'Times New Roman', serif;
@@ -285,7 +285,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 
 .zw-score-seal span {
   margin-top: 0.2rem;
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -306,7 +306,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   border-radius: 5px;
   background: color-mix(in oklab, var(--surface-1) 70%, transparent);
   color: var(--period-muted);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   overflow-wrap: anywhere;
 }
 
@@ -319,14 +319,14 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 
 .zw-period-copy h3 {
   margin-top: 0.42rem;
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: 800;
 }
 
 .zw-period-copy p {
   margin: 0.35rem 0 0;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 
@@ -365,14 +365,14 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-method-body p {
   display: block;
   color: var(--period-muted);
-  font-size: 0.56rem;
+  font-size: var(--fs-2xs);
 }
 
 .zw-signal-item strong {
   display: block;
   margin-top: 0.18rem;
   color: var(--period-jade);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   overflow-wrap: anywhere;
 }
@@ -380,7 +380,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-signal-item p {
   margin: 0.25rem 0 0;
   color: var(--text-muted);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   line-height: 1.45;
 }
 
@@ -400,7 +400,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 }
 
 .zw-section-head h4 {
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -447,14 +447,14 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-age-cell strong,
 .zw-row-score {
   color: var(--period-ink);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .zw-age-cell span {
   color: var(--period-muted);
-  font-size: 0.52rem;
+  font-size: var(--fs-2xs);
 }
 
 .zw-stage-main,
@@ -470,7 +470,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-stage-title strong,
 .zw-focus-place strong {
   color: var(--period-ink);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
 }
 
 .zw-stage-main p,
@@ -480,7 +480,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-evidence-list p {
   margin: 0.22rem 0 0;
   color: var(--text-muted);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   line-height: 1.5;
 }
 
@@ -498,7 +498,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   border-radius: 5px;
   background: color-mix(in oklab, var(--surface-0) 78%, transparent);
   color: var(--text-soft);
-  font-size: 0.54rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -563,7 +563,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 
 .zw-evidence-list strong {
   color: var(--period-jade);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   overflow-wrap: anywhere;
 }
 
@@ -580,7 +580,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 .zw-note-block strong {
   display: block;
   color: var(--period-ink);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
 }
 
 .zw-note-block.is-risk strong,
@@ -598,7 +598,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   gap: 0.75rem;
   cursor: pointer;
   color: var(--period-muted);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   list-style: none;
 }
 
@@ -621,7 +621,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   margin: 0;
   padding-left: 1rem;
   color: var(--text-muted);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   line-height: 1.55;
 }
 

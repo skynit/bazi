@@ -254,7 +254,7 @@ const statusText = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   letter-spacing: 0;
 }
@@ -278,14 +278,14 @@ const statusText = computed(() => {
 
 .ai-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
   line-height: 1.35;
   font-weight: 700;
   color: var(--text);
 }
 
 .ai-status {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
   padding: 0.18rem 0.5rem;
   border-radius: 999px;
@@ -301,7 +301,7 @@ const statusText = computed(() => {
   color: var(--text);
   border-radius: 0.625rem;
   padding: 0.48rem 0.7rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 
@@ -322,7 +322,7 @@ const statusText = computed(() => {
   color: var(--text-dim);
   border-radius: 999px;
   padding: 0.4rem 0.75rem;
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 
@@ -352,14 +352,14 @@ const statusText = computed(() => {
 .ai-empty-text,
 .ai-error-text {
   margin: 0.2rem 0 0;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
 }
 
 .ai-summary {
   margin: 0;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   line-height: 1.7;
 }
 
@@ -384,19 +384,19 @@ const statusText = computed(() => {
 
 .ai-section-title {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text);
 }
 
 .ai-section-chip {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
 }
 
 .ai-section-content {
   margin: 0.45rem 0 0;
-  font-size: 0.84rem;
+  font-size: var(--fs-sm);
   line-height: 1.68;
   color: var(--text-muted);
   white-space: pre-line;
@@ -415,7 +415,7 @@ const statusText = computed(() => {
 .ai-feedback-label,
 .ai-feedback-note,
 .ai-feedback-error {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
 }
 
@@ -425,7 +425,7 @@ const statusText = computed(() => {
   color: var(--text-muted);
   border-radius: 999px;
   padding: 0.28rem 0.55rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   line-height: 1.2;
   cursor: pointer;
 }
@@ -484,14 +484,14 @@ const statusText = computed(() => {
 }
 
 .ai-citation-book {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 
 .ai-citation-meta,
 .ai-citation-score,
 .ai-citation-path {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
 }
 
@@ -503,7 +503,7 @@ const statusText = computed(() => {
 
 .ai-citation-quote {
   margin: 0.35rem 0 0;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   line-height: 1.65;
   color: var(--text-muted);
 }

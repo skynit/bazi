@@ -248,7 +248,10 @@ func getStarBrightness(starName string, branchIdx int) string {
 	if brightness, ok := StarBrightnessMap[starName]; ok {
 		return brightness[branchIdx]
 	}
-	return "平"
+	if brightness, ok := AuxStarBrightnessMap[starName]; ok {
+		return brightness[branchIdx]
+	}
+	return ""
 }
 
 // ──────────── 5. Auxiliary Star Placement ────────────

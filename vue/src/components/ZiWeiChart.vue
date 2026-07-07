@@ -432,6 +432,7 @@ function palaceAt(branch: string): PalaceData | undefined {
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- Legend -->
@@ -493,7 +494,7 @@ function palaceAt(branch: string): PalaceData | undefined {
   display: flex; align-items: center; gap: 0.75rem;
 }
 .chart-section-symbol {
-  font-size: 1.5rem; color: var(--accent);
+  font-size: var(--fs-3xl); color: var(--accent);
   text-shadow: 0 0 12px var(--accent-glow);
 }
 
@@ -502,12 +503,12 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 .chart-section-title {
   font-family: var(--font-serif);
-  font-size: 1.05rem; font-weight: 700;
+  font-size: var(--fs-lg); font-weight: 700;
   color: var(--text); margin: 0;
   letter-spacing: 2px;
 }
 .chart-section-desc {
-  font-size: 0.7rem; color: var(--text-muted);
+  font-size: var(--fs-xs); color: var(--text-muted);
   margin: 0.125rem 0 0;
 }
 
@@ -658,7 +659,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .palace-branch {
-  @apply text-[10px] leading-tight;
+  @apply text-[var(--fs-2xs)] leading-tight;
   color: var(--text-muted);
 }
 
@@ -673,7 +674,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .main-star {
-  @apply inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded-sm leading-tight;
+  @apply inline-flex items-center gap-1 px-2 py-0.5 text-[var(--fs-2xs)] font-bold rounded-sm leading-tight;
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
@@ -683,7 +684,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .brightness-dot {
-  @apply text-[9px] opacity-80 font-normal;
+  @apply text-[var(--fs-2xs)] opacity-80 font-normal;
 }
 
 .aux-section {
@@ -691,7 +692,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .aux-star {
-  @apply text-[10px] leading-tight px-1 py-px rounded;
+  @apply text-[var(--fs-2xs)] leading-tight px-1 py-px rounded;
   color: var(--text-muted);
   background: var(--accent-dim);
   border: 1px solid var(--line-subtle);
@@ -707,7 +708,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .sihua-tag {
-  @apply rounded-full px-2 py-px text-[9px] font-bold leading-tight;
+  @apply rounded-full px-2 py-px text-[var(--fs-2xs)] font-bold leading-tight;
   background: linear-gradient(135deg, var(--crimson), #be123c);
   color: var(--destructive-foreground);
   box-shadow: 0 0 6px rgba(251, 113, 133, 0.3);
@@ -791,7 +792,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .center-key {
-  @apply text-[10px] leading-tight;
+  @apply text-[var(--fs-2xs)] leading-tight;
   color: var(--text-muted);
 }
 
@@ -861,7 +862,7 @@ function palaceAt(branch: string): PalaceData | undefined {
 }
 
 .legend-item {
-  @apply flex items-center gap-2 text-[11px];
+  @apply flex items-center gap-2 text-[var(--fs-2xs)];
   color: var(--text-muted);
 }
 

@@ -55,6 +55,7 @@ const emit = defineEmits<{
 const mode = ref<'base' | 'overlay'>('base')
 const selectedYear = ref<number>(new Date().getFullYear())
 const focusedBranch = ref<string | undefined>(undefined)
+const overlaySideTab = ref<'four_hua' | 'annual_stars' | 'focus_palaces'>('four_hua')
 
 const isDark = ref(document.documentElement.classList.contains('dark'))
 let themeObserver: MutationObserver | null = null
@@ -94,6 +95,8 @@ const goldMetaDark: Record<string, { bg: string; text: string }> = {
   '不': { bg: 'linear-gradient(135deg,#38bdf8,#0369a1)', text: '#06111a' },
   '陷': { bg: 'linear-gradient(135deg,#334155,#1e293b)', text: '#dbe4e8' },
 }
+
+const brightnessLevels = ['庙', '旺', '得', '利', '平', '不', '陷']
 
 function baseMeta(brightness: string) {
   const meta = isDark.value ? goldMetaDark : goldMetaLight
@@ -182,6 +185,12 @@ const triggersByBranch = computed<Record<string, ZiWeiOverlayTrigger[]>>(() => {
 const fourHuaTargets = computed(() => list(analysis.value?.four_hua))
 const annualStarTargets = computed(() => list(analysis.value?.annual_stars))
 const focusPalaces = computed(() => list(analysis.value?.focus_palaces))
+
+const overlaySideTabs = computed(() => [
+  { key: 'four_hua' as const, label: '四化飞星', count: fourHuaTargets.value.length },
+  { key: 'annual_stars' as const, label: '流禄羊陀马', count: annualStarTargets.value.length },
+  { key: 'focus_palaces' as const, label: '重点宫位', count: focusPalaces.value.length },
+])
 
 const centerTitle = computed(() => (
   mode.value === 'overlay' ? (analysis.value?.gan_zhi || `${selectedYear.value}年`) : '本命盘'
@@ -350,11 +359,13 @@ function overlaySummary(): string {
             <span>年势分</span>
           </div>
         </div>
-        <p class="zw-guide-summary">{{ overlaySummary() }}</p>
-        <div class="zw-guide-meta">
-          <span v-if="analysis?.shi_shen">十神：{{ analysis.shi_shen }}</span>
-          <span v-if="analysis?.tone">{{ analysis.tone }}</span>
-          <span v-if="analysis?.key_tips">{{ analysis.key_tips }}</span>
+        <div class="zw-guide-reading">
+          <p class="zw-guide-summary">{{ overlaySummary() }}</p>
+          <div class="zw-guide-meta">
+            <span v-if="analysis?.shi_shen">十神：{{ analysis.shi_shen }}</span>
+            <span v-if="analysis?.tone">{{ analysis.tone }}</span>
+            <span v-if="analysis?.key_tips">{{ analysis.key_tips }}</span>
+          </div>
         </div>
       </div>
       <div class="zw-method-grid">
@@ -476,15 +487,31 @@ function overlaySummary(): string {
             stroke-linecap="round"
           />
         </svg>
+
       </div>
 
       <aside v-if="mode === 'overlay'" class="zw-overlay-side">
         <section class="zw-evidence-block">
           <div class="zw-side-heading">
-            <span>四化飞星</span>
-            <small>{{ fourHuaTargets.length }}项</small>
+            <span>流年触发</span>
+            <small>{{ selectedYear }}年</small>
           </div>
-          <div class="zw-trigger-list">
+
+          <div class="zw-side-tabs" aria-label="流年触发类型">
+            <button
+              v-for="tab in overlaySideTabs"
+              :key="tab.key"
+              type="button"
+              class="zw-side-tab"
+              :class="{ 'is-active': overlaySideTab === tab.key }"
+              @click="overlaySideTab = tab.key"
+            >
+              <span>{{ tab.label }}</span>
+              <small>{{ tab.count }}</small>
+            </button>
+          </div>
+
+          <div v-if="overlaySideTab === 'four_hua'" class="zw-trigger-list">
             <article
               v-for="trigger in fourHuaTargets"
               :key="trigger.type + trigger.star + trigger.branch"
@@ -497,15 +524,10 @@ function overlaySummary(): string {
               </div>
               <p>{{ trigger.meaning }}</p>
             </article>
+            <p v-if="!fourHuaTargets.length" class="zw-empty-line">本年未形成四化飞星触发。</p>
           </div>
-        </section>
 
-        <section class="zw-evidence-block">
-          <div class="zw-side-heading">
-            <span>流禄羊陀马</span>
-            <small>{{ annualStarTargets.length }}项</small>
-          </div>
-          <div class="zw-trigger-list compact">
+          <div v-else-if="overlaySideTab === 'annual_stars'" class="zw-trigger-list compact">
             <article
               v-for="trigger in annualStarTargets"
               :key="trigger.type + trigger.branch"
@@ -518,15 +540,10 @@ function overlaySummary(): string {
               </div>
               <p>{{ trigger.meaning }}</p>
             </article>
+            <p v-if="!annualStarTargets.length" class="zw-empty-line">本年未见流禄羊陀马落宫。</p>
           </div>
-        </section>
 
-        <section class="zw-evidence-block">
-          <div class="zw-side-heading">
-            <span>重点宫位</span>
-            <small>{{ focusPalaces.length }}个</small>
-          </div>
-          <div class="zw-focus-list">
+          <div v-else class="zw-focus-list">
             <article
               v-for="item in focusPalaces"
               :key="item.palace + item.branch"
@@ -544,6 +561,7 @@ function overlaySummary(): string {
               </div>
               <p>{{ item.advice }}</p>
             </article>
+            <p v-if="!focusPalaces.length" class="zw-empty-line">本年没有明显集中触发的重点宫位。</p>
           </div>
         </section>
       </aside>
@@ -555,6 +573,19 @@ function overlaySummary(): string {
       <span v-if="mode === 'overlay'"><i class="swatch watch"></i>注意</span>
       <span v-if="mode === 'overlay'"><i class="swatch move"></i>移动变化</span>
       <span><i class="swatch focus"></i>悬停三方四正</span>
+      <div class="zw-brightness-legend" aria-label="星曜亮度：庙、旺、得、利、平、不、陷">
+        <div class="zw-brightness-row">
+          <span
+            v-for="level in brightnessLevels"
+            :key="'dot-' + level"
+            class="zw-brightness-dot"
+            :style="{ background: baseMeta(level).bg }"
+          ></span>
+        </div>
+        <div class="zw-brightness-row zw-brightness-text">
+          <span v-for="level in brightnessLevels" :key="'label-' + level">{{ level }}</span>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -606,7 +637,7 @@ function overlaySummary(): string {
   border-radius: 6px;
   background: transparent;
   color: var(--text-dim);
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -634,7 +665,7 @@ function overlaySummary(): string {
 
 .zw-year-label {
   color: var(--text-dim);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -665,12 +696,36 @@ function overlaySummary(): string {
   background: var(--surface-1);
 }
 
+.zw-guide-main {
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex-direction: column;
+}
+
+.zw-guide-reading {
+  position: relative;
+  margin-top: clamp(3.5rem, 7vw, 5.25rem);
+  padding: 0.8rem 0.85rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--line-subtle) 82%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(var(--jade-accent-rgb), 0.045), transparent 62%),
+    color-mix(in oklab, var(--surface-1) 72%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
 .zw-kicker,
 .zw-center-kicker {
   color: var(--text-dim);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.12em;
+}
+
+.zw-guide-main > .zw-kicker {
+  font-size: var(--fs-sm);
+  letter-spacing: 0.14em;
 }
 
 .zw-guide-title-row {
@@ -685,7 +740,7 @@ function overlaySummary(): string {
   margin: 0;
   color: var(--text);
   font-family: var(--font-serif), serif;
-  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-size: var(--fs-stat-lg);
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -701,8 +756,8 @@ function overlaySummary(): string {
 .zw-score {
   display: grid;
   place-items: center;
-  min-width: 74px;
-  min-height: 62px;
+  min-width: 104px;
+  min-height: 86px;
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
   background: var(--surface-1);
@@ -710,13 +765,13 @@ function overlaySummary(): string {
 
 .zw-score strong {
   color: var(--text);
-  font-size: 1.2rem;
+  font-size: var(--fs-stat);
   line-height: 1;
 }
 
 .zw-score span {
   color: var(--text-dim);
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
@@ -725,7 +780,7 @@ function overlaySummary(): string {
 .score-neutral { border-color: rgba(14, 165, 233, 0.28); }
 
 .zw-guide-summary {
-  margin: 0.75rem 0 0;
+  margin: 0;
   color: var(--text-muted);
   line-height: 1.75;
 }
@@ -734,17 +789,20 @@ function overlaySummary(): string {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.8rem;
+  margin-top: 0.75rem;
 }
 
 .zw-guide-meta span {
+  min-width: 0;
+  max-width: 100%;
   padding: 0.28rem 0.55rem;
   border: 1px solid var(--line-subtle);
   border-radius: 6px;
   background: color-mix(in oklab, var(--surface-1) 78%, transparent);
   color: var(--text-soft);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .zw-method-grid {
@@ -762,7 +820,7 @@ function overlaySummary(): string {
 
 .zw-method-card span {
   color: var(--text-dim);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -770,14 +828,14 @@ function overlaySummary(): string {
   display: block;
   margin: 0.24rem 0;
   color: var(--text);
-  font-size: 0.84rem;
+  font-size: var(--fs-sm);
   line-height: 1.45;
 }
 
 .zw-method-card p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   line-height: 1.6;
 }
 
@@ -859,14 +917,14 @@ function overlaySummary(): string {
 
 .zw-palace-name {
   color: var(--accent);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 900;
   letter-spacing: 1px;
 }
 
 .zw-branch {
   color: var(--text-dim);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -876,7 +934,7 @@ function overlaySummary(): string {
   border-radius: 4px;
   background: rgba(244, 63, 94, 0.12);
   color: #e11d48;
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
 }
 
@@ -899,7 +957,7 @@ function overlaySummary(): string {
   min-height: 20px;
   padding: 0.08rem 0.38rem;
   border-radius: 4px;
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 850;
   line-height: 1.25;
   white-space: nowrap;
@@ -941,7 +999,7 @@ function overlaySummary(): string {
 
 .zw-twelve span {
   color: var(--accent);
-  font-size: 0.5rem;
+  font-size: var(--fs-2xs);
   background: var(--glass-bg);
   padding: 0px 3px;
   border-radius: 2px;
@@ -964,7 +1022,7 @@ function overlaySummary(): string {
   padding: 0.05rem 0.35rem;
   border: 1px solid var(--line-subtle);
   border-radius: 5px;
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   font-weight: 850;
   line-height: 1.25;
   white-space: nowrap;
@@ -1000,7 +1058,7 @@ function overlaySummary(): string {
 
 .zw-no-trigger {
   color: var(--text-dim);
-  font-size: 0.63rem;
+  font-size: var(--fs-2xs);
 }
 
 .zw-impact-good {
@@ -1101,7 +1159,7 @@ function overlaySummary(): string {
 .zw-center-title {
   color: var(--text);
   font-family: var(--font-serif), serif;
-  font-size: 1.42rem;
+  font-size: var(--fs-2xl);
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -1109,7 +1167,7 @@ function overlaySummary(): string {
 .zw-center-subtitle {
   max-width: 100%;
   color: var(--text-soft);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 750;
   line-height: 1.35;
 }
@@ -1137,7 +1195,7 @@ function overlaySummary(): string {
 .zw-center-major small,
 .zw-center-grid small {
   color: var(--text-dim);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 850;
   line-height: 1.2;
 }
@@ -1146,7 +1204,7 @@ function overlaySummary(): string {
   max-width: 100%;
   color: var(--accent);
   font-family: var(--font-serif), serif;
-  font-size: 1.15rem;
+  font-size: var(--fs-xl);
   line-height: 1.1;
   letter-spacing: 0;
   overflow-wrap: anywhere;
@@ -1176,7 +1234,7 @@ function overlaySummary(): string {
 .zw-center-grid b {
   max-width: 100%;
   color: var(--text);
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -1204,6 +1262,45 @@ function overlaySummary(): string {
   stroke: rgba(245, 158, 11, 0.68);
 }
 
+.zw-brightness-legend {
+  position: absolute;
+  right: 0;
+  bottom: 0.42rem;
+  display: grid;
+  justify-items: end;
+  gap: 0.18rem;
+  padding: 0 0.12rem;
+  pointer-events: none;
+}
+
+.zw-brightness-row {
+  display: grid;
+  grid-template-columns: repeat(7, 0.72rem);
+  justify-items: center;
+  align-items: center;
+  gap: 0.08rem;
+}
+
+.zw-brightness-dot {
+  width: 0.44rem;
+  height: 0.44rem;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.zw-brightness-text {
+  color: var(--text-soft);
+  font-size: 0.58rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.zw-brightness-text span {
+  display: block;
+}
+
 .zw-overlay-side {
   display: grid;
   gap: 0.85rem;
@@ -1227,14 +1324,68 @@ function overlaySummary(): string {
 
 .zw-side-heading span {
   color: var(--text);
-  font-size: 0.86rem;
+  font-size: var(--fs-sm);
   font-weight: 900;
 }
 
 .zw-side-heading small {
   color: var(--text-dim);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
+}
+
+.zw-side-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.72rem 0.75rem 0;
+}
+
+.zw-side-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-height: 30px;
+  padding: 0.26rem 0.56rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  background: var(--glass-bg);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  font-weight: 850;
+  line-height: 1.2;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.zw-side-tab:hover,
+.zw-side-tab.is-active {
+  border-color: color-mix(in oklab, var(--accent) 32%, var(--line-subtle));
+  background: color-mix(in oklab, var(--accent) 12%, var(--glass-bg));
+  color: var(--text);
+}
+
+.zw-side-tab:hover {
+  transform: translateY(-1px);
+}
+
+.zw-side-tab small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-0) 74%, transparent);
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+  font-weight: 900;
+}
+
+.zw-side-tab.is-active small {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 .zw-trigger-list,
@@ -1269,13 +1420,13 @@ function overlaySummary(): string {
 .zw-trigger-card strong,
 .zw-focus-card strong {
   color: inherit;
-  font-size: 0.84rem;
+  font-size: var(--fs-sm);
 }
 
 .zw-trigger-card span,
 .zw-focus-card header span {
   color: var(--text-dim);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   white-space: nowrap;
 }
 
@@ -1283,7 +1434,18 @@ function overlaySummary(): string {
 .zw-focus-card p {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
+  line-height: 1.65;
+}
+
+.zw-empty-line {
+  margin: 0;
+  padding: 0.7rem;
+  border: 1px dashed var(--line-subtle);
+  border-radius: 8px;
+  color: var(--text-dim);
+  background: var(--glass-bg);
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 
@@ -1298,24 +1460,27 @@ function overlaySummary(): string {
   border-radius: 4px;
   background: var(--glass-bg);
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
 }
 
 .zw-legend {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.8rem 1.3rem;
   margin-top: 1rem;
   padding-top: 0.8rem;
   border-top: 1px solid var(--line-subtle);
   color: var(--text-dim);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 750;
   justify-content: center;
+  min-height: 2.05rem;
 }
 
-.zw-legend span {
+.zw-legend > span {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1343,6 +1508,10 @@ function overlaySummary(): string {
   .zw-workspace.is-overlay {
     display: grid;
   }
+
+  .zw-guide-reading {
+    margin-top: 1rem;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1365,14 +1534,14 @@ function overlaySummary(): string {
   }
 
   .zw-palace-name {
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
   }
 
   .zw-star,
   .zw-trigger-chip,
   .zw-more-star,
   .zw-sihua-tag {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     padding-inline: 0.25rem;
   }
 
@@ -1398,16 +1567,16 @@ function overlaySummary(): string {
   }
 
   .zw-center-kicker {
-    font-size: 0.56rem;
+    font-size: var(--fs-2xs);
     letter-spacing: 0.08em;
   }
 
   .zw-center-title {
-    font-size: 1rem;
+    font-size: var(--fs-body);
   }
 
   .zw-center-subtitle {
-    font-size: 0.56rem;
+    font-size: var(--fs-2xs);
     line-height: 1.2;
   }
 
@@ -1423,11 +1592,11 @@ function overlaySummary(): string {
 
   .zw-center-major small,
   .zw-center-grid small {
-    font-size: 0.52rem;
+    font-size: var(--fs-2xs);
   }
 
   .zw-center-major b {
-    font-size: 0.9rem;
+    font-size: var(--fs-sm);
   }
 
   .zw-center-grid {
@@ -1441,7 +1610,29 @@ function overlaySummary(): string {
   }
 
   .zw-center-grid b {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
+  }
+
+  .zw-brightness-legend {
+    position: static;
+    flex-basis: 100%;
+    margin-left: auto;
+    gap: 0.16rem;
+    padding: 0;
+  }
+
+  .zw-brightness-row {
+    grid-template-columns: repeat(7, 0.58rem);
+    gap: 0.06rem;
+  }
+
+  .zw-brightness-dot {
+    width: 0.38rem;
+    height: 0.38rem;
+  }
+
+  .zw-brightness-text {
+    font-size: 0.5rem;
   }
 
   .zw-guide-title-row {

@@ -22,7 +22,7 @@ defineProps<{
 }
 
 .np-kicker {
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   margin-bottom: 0.45rem;
 }
@@ -31,6 +31,6 @@ defineProps<{
   margin: 0;
   color: var(--text-muted);
   line-height: 1.7;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 </style>

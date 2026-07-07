@@ -99,7 +99,7 @@ const tone = computed(() => {
 
 .number {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: 4rem;
+  font-size: var(--fs-hero-strong);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -107,7 +107,7 @@ const tone = computed(() => {
 }
 
 .unit {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   letter-spacing: 0.2em;
   margin-top: -2px;
@@ -115,7 +115,7 @@ const tone = computed(() => {
 
 .label {
   margin-top: 6px;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.32em;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -123,7 +123,7 @@ const tone = computed(() => {
 
 .caption {
   margin-top: 2px;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   letter-spacing: 0.06em;
 }

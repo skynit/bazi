@@ -71,7 +71,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 }
 
 .header-text {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 3px;
   color: var(--text-soft);
   text-transform: uppercase;
@@ -124,19 +124,19 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 }
 
 .orb-inner {
-  font-size: 1.25rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   text-shadow: 0 0 12px currentColor;
 }
 
 .element-name {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   letter-spacing: 1px;
 }
 
 .element-desc {
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   text-align: center;
   margin: 0;

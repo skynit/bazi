@@ -758,7 +758,7 @@ function trendLabel(trend?: string) {
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 1px;
   cursor: pointer;
@@ -812,7 +812,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-solar {
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text);
   margin: 0;
@@ -820,14 +820,14 @@ function trendLabel(trend?: string) {
 }
 
 .df-weekday {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 400;
   color: var(--text-dim);
   margin-left: 0.5rem;
 }
 
 .df-lunar {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   margin: 0;
 }
@@ -851,7 +851,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-pillar-val {
-  font-size: 2.75rem;
+  font-size: var(--fs-hero);
   font-weight: 950;
   color: var(--accent);
   letter-spacing: 0.05em;
@@ -860,7 +860,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-sx {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   margin: 0;
   text-align: right;
@@ -880,13 +880,13 @@ function trendLabel(trend?: string) {
 
 .df-guide-empty p {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 
 .guide-precision {
   margin-left: auto;
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: rgba(var(--jade-accent-rgb), 1);
   background: rgba(var(--jade-accent-rgb), 0.08);
   border: 1px solid rgba(var(--jade-accent-rgb), 0.18);
@@ -897,7 +897,7 @@ function trendLabel(trend?: string) {
 }
 
 .guide-confidence {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   letter-spacing: 0.08em;
 }
@@ -935,7 +935,7 @@ function trendLabel(trend?: string) {
   border: 1px solid var(--line-subtle);
   background: var(--glass-bg);
   color: var(--text-muted);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -963,14 +963,14 @@ function trendLabel(trend?: string) {
 }
 
 .guide-label {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .guide-value {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text);
   font-weight: 500;
   display: flex;
@@ -981,7 +981,7 @@ function trendLabel(trend?: string) {
 
 .guide-value-xl {
   color: var(--accent);
-  font-size: 1.08rem;
+  font-size: var(--fs-lg);
   font-weight: 900;
   letter-spacing: 1px;
   text-shadow: 0 0 20px var(--accent-glow);
@@ -997,7 +997,7 @@ function trendLabel(trend?: string) {
 }
 
 .guide-reason {
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   line-height: 1.5;
   color: var(--text-soft);
   display: -webkit-box;
@@ -1011,7 +1011,7 @@ function trendLabel(trend?: string) {
   color: var(--accent);
   border-left: 2px solid var(--line-focus);
   padding-left: 0.55rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   line-height: 1.75;
 }
 
@@ -1052,14 +1052,14 @@ function trendLabel(trend?: string) {
 }
 
 .guide-list-title {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: rgba(var(--jade-accent-rgb), 1);
   letter-spacing: 0.12em;
 }
 
 .guide-list-head strong {
   color: var(--text);
-  font-size: 0.88rem;
+  font-size: var(--fs-sm);
   line-height: 1.2;
 }
 
@@ -1068,7 +1068,7 @@ function trendLabel(trend?: string) {
 }
 
 .guide-list-count {
-  font-size: 0.56rem;
+  font-size: var(--fs-2xs);
   color: rgba(var(--jade-accent-rgb), 0.82);
   border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
   background: rgba(var(--jade-accent-rgb), 0.06);
@@ -1111,7 +1111,7 @@ function trendLabel(trend?: string) {
 }
 
 .guide-mini-label {
-  font-size: 0.52rem;
+  font-size: var(--fs-2xs);
   color: rgba(var(--jade-accent-rgb), 1);
   border: 1px solid rgba(var(--jade-accent-rgb), 0.18);
   background: rgba(var(--jade-accent-rgb), 0.08);
@@ -1128,7 +1128,7 @@ function trendLabel(trend?: string) {
 
 .guide-mini-top strong {
   color: var(--text);
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1136,7 +1136,7 @@ function trendLabel(trend?: string) {
 }
 
 .guide-intensity {
-  font-size: 0.52rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   border: 1px solid var(--line-subtle);
   background: var(--glass-bg);
@@ -1152,7 +1152,7 @@ function trendLabel(trend?: string) {
 .guide-mini-reason {
   color: var(--text-soft);
   line-height: 1.55;
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1175,7 +1175,7 @@ function trendLabel(trend?: string) {
   padding: 0.34rem 0.45rem;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   list-style: none;
 }
@@ -1189,7 +1189,7 @@ function trendLabel(trend?: string) {
 .guide-extra summary::after {
   content: '+';
   color: var(--accent);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
 }
 
 .guide-more[open] summary::after,
@@ -1227,7 +1227,7 @@ function trendLabel(trend?: string) {
   color: var(--text-muted);
   border-radius: 999px;
   padding: 0.08rem 0.34rem;
-  font-size: 0.55rem;
+  font-size: var(--fs-2xs);
   line-height: 1.25;
 }
 
@@ -1241,7 +1241,7 @@ function trendLabel(trend?: string) {
   padding-left: 0.45rem;
   border-left: 2px solid rgba(var(--jade-accent-rgb), 0.20);
   color: var(--text-muted);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1272,7 +1272,7 @@ function trendLabel(trend?: string) {
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
   color: var(--text-muted);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
 }
 
 .guide-note {
@@ -1285,7 +1285,7 @@ function trendLabel(trend?: string) {
   padding: 0.45rem 0.6rem;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   list-style: none;
 }
@@ -1308,7 +1308,7 @@ function trendLabel(trend?: string) {
   margin: 0;
   padding: 0 0.6rem 0.6rem;
   border-top: 1px solid var(--line-subtle);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   line-height: 1.55;
 }
@@ -1333,7 +1333,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-sec-title {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--accent);
   margin: 0;
@@ -1354,7 +1354,7 @@ function trendLabel(trend?: string) {
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
   border-radius: 20px;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   transition: all 0.25s;
 }
@@ -1388,7 +1388,7 @@ function trendLabel(trend?: string) {
 
 .df-el-name {
   width: 14px;
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   color: var(--text-soft);
   flex-shrink: 0;
@@ -1410,7 +1410,7 @@ function trendLabel(trend?: string) {
 
 .df-el-num {
   width: 18px;
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   text-align: right;
   flex-shrink: 0;
@@ -1428,7 +1428,7 @@ function trendLabel(trend?: string) {
   color: var(--text-dim);
   border: 1px solid var(--line-subtle);
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
@@ -1442,7 +1442,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-ai-btn-icon {
-  font-size: 1rem;
+  font-size: var(--fs-body);
 }
 
 /* Almanac 黄历 */
@@ -1471,13 +1471,13 @@ function trendLabel(trend?: string) {
 }
 
 .almanac-label {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   letter-spacing: 0.5px;
 }
 
 .almanac-value {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -1504,7 +1504,7 @@ function trendLabel(trend?: string) {
 .analysis-item {
   display: flex;
   gap: 0.5rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   padding: 0.3rem 0.5rem;
   background: var(--glass-bg);
@@ -1562,7 +1562,7 @@ function trendLabel(trend?: string) {
 .dimension-eyebrow {
   display: block;
   color: var(--accent);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -1571,7 +1571,7 @@ function trendLabel(trend?: string) {
   margin: 0.18rem 0 0;
   color: var(--text);
   font-family: var(--font-serif);
-  font-size: 0.98rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -1591,7 +1591,7 @@ function trendLabel(trend?: string) {
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
   color: var(--text-muted);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -1656,7 +1656,7 @@ function trendLabel(trend?: string) {
 
 .dimension-rank {
   color: var(--text-soft);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -1670,7 +1670,7 @@ function trendLabel(trend?: string) {
 .dimension-name {
   display: block;
   color: var(--text);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 850;
   white-space: nowrap;
   overflow: hidden;
@@ -1681,7 +1681,7 @@ function trendLabel(trend?: string) {
   display: block;
   margin-top: 0.12rem;
   color: var(--text-soft);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1690,7 +1690,7 @@ function trendLabel(trend?: string) {
 .dimension-score {
   color: var(--accent);
   font-family: var(--font-serif);
-  font-size: 1.08rem;
+  font-size: var(--fs-lg);
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 24px var(--accent-glow);
@@ -1703,7 +1703,7 @@ function trendLabel(trend?: string) {
   background: rgba(var(--jade-accent-rgb), 0.08);
   border: 1px solid rgba(var(--jade-accent-rgb), 0.15);
   color: var(--text-muted);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-align: center;
   white-space: nowrap;
@@ -1745,14 +1745,14 @@ function trendLabel(trend?: string) {
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
   color: var(--text-muted);
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
 .dimension-analysis {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   line-height: 1.55;
 }
 
@@ -1761,7 +1761,7 @@ function trendLabel(trend?: string) {
   padding-left: 0.55rem;
   border-left: 2px solid var(--line-focus);
   color: var(--accent);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   line-height: 1.5;
 }
 
@@ -1816,7 +1816,7 @@ function trendLabel(trend?: string) {
 }
 
 .df-modal-orb {
-  font-size: 1.6rem;
+  font-size: var(--fs-3xl);
   color: var(--accent);
   text-shadow: 0 0 25px var(--accent-glow);
   animation: orb-glow 3s ease-in-out infinite;
@@ -1837,7 +1837,7 @@ function trendLabel(trend?: string) {
 .df-modal-hdr h2 {
   margin: 0;
   font-family: var(--font-serif), serif;
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text);
   letter-spacing: 2px;
@@ -1846,7 +1846,7 @@ function trendLabel(trend?: string) {
 .df-modal-close {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: var(--fs-2xl);
   color: var(--text-soft);
   cursor: pointer;
   padding: 0.25rem;
@@ -1902,14 +1902,14 @@ function trendLabel(trend?: string) {
 }
 
 .df-ai-title {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   color: var(--text);
   margin: 0;
 }
 
 .df-ai-sub {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   margin: 0;
 }
@@ -1958,7 +1958,7 @@ function trendLabel(trend?: string) {
 
 .rikuyo-score-badge {
   margin-left: auto;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 800;
   padding: 0.15rem 0.6rem;
   border-radius: 20px;
@@ -1970,7 +1970,7 @@ function trendLabel(trend?: string) {
 }
 
 .rikuyo-verdict-text {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   line-height: 1.8;
   margin: 0.5rem 0 0;
@@ -1983,7 +1983,7 @@ function trendLabel(trend?: string) {
 }
 
 .pattern-badge {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
   background: var(--accent-dim);
   padding: 0.15rem 0.5rem;
@@ -1998,7 +1998,7 @@ function trendLabel(trend?: string) {
 }
 
 .pattern-tag {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
   font-weight: 600;
@@ -2039,7 +2039,7 @@ function trendLabel(trend?: string) {
 }
 
 .rikuyo-core-label {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -2047,7 +2047,7 @@ function trendLabel(trend?: string) {
 
 .rikuyo-core-value {
   font-family: var(--font-serif);
-  font-size: 1.4rem;
+  font-size: var(--fs-2xl);
   font-weight: 900;
   letter-spacing: 2px;
   line-height: 1.2;
@@ -2064,13 +2064,13 @@ function trendLabel(trend?: string) {
 }
 
 .rikuyo-core-desc {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
 }
 
 .rikuyo-flexible {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--accent);
   font-style: italic;
   padding: 0.3rem 0.5rem;
@@ -2087,7 +2087,7 @@ function trendLabel(trend?: string) {
 
 .rikuyo-phase-tag {
   margin-left: auto;
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   padding: 0.1rem 0.5rem;
   border-radius: 10px;
@@ -2115,7 +2115,7 @@ function trendLabel(trend?: string) {
 }
 
 .rikuyo-advance-text {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.6;
   margin: 0.4rem 0 0;
@@ -2157,18 +2157,18 @@ function trendLabel(trend?: string) {
 
 .hs-stem {
   font-family: var(--font-serif);
-  font-size: 1.2rem;
+  font-size: var(--fs-2xl);
   font-weight: 900;
   color: var(--text);
 }
 
 .hs-type {
-  font-size: 0.55rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
 .hs-god {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -2181,7 +2181,7 @@ function trendLabel(trend?: string) {
 }
 
 .hs-elem {
-  font-size: 0.55rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
@@ -2215,7 +2215,7 @@ function trendLabel(trend?: string) {
 }
 
 .rel-type-tag {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
@@ -2234,12 +2234,12 @@ function trendLabel(trend?: string) {
 }
 
 .rel-detail {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
 .rel-note {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--accent);
   font-style: italic;
   margin-left: auto;
@@ -2272,14 +2272,14 @@ function trendLabel(trend?: string) {
 }
 
 .ss-name {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--text);
   margin-right: 0.5rem;
 }
 
 .ss-type-tag {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
 }
@@ -2295,14 +2295,14 @@ function trendLabel(trend?: string) {
 }
 
 .ss-desc {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0.3rem 0 0;
 }
 
 .ss-activation {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   margin: 0.2rem 0 0;
   font-style: italic;
@@ -2330,7 +2330,7 @@ function trendLabel(trend?: string) {
 }
 
 .yun-label {
-  font-size: 0.58rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2338,31 +2338,31 @@ function trendLabel(trend?: string) {
 
 .yun-pillar {
   font-family: var(--font-serif);
-  font-size: 1.3rem;
+  font-size: var(--fs-2xl);
   font-weight: 900;
   color: var(--text);
   letter-spacing: 2px;
 }
 
 .yun-god {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
 .yun-age {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
 .yun-taisui {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--crimson);
   margin: 0.2rem 0 0;
   font-style: italic;
 }
 
 .yun-desc {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0.2rem 0 0;
@@ -2396,20 +2396,20 @@ function trendLabel(trend?: string) {
 }
 
 .ys-label {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   min-width: 56px;
   flex-shrink: 0;
 }
 
 .ys-elem {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text);
 }
 
 .ys-status {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   margin-left: auto;
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
@@ -2421,7 +2421,7 @@ function trendLabel(trend?: string) {
 }
 
 .yongshen-desc {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   margin: 0.5rem 0 0;
   line-height: 1.5;
@@ -2567,7 +2567,7 @@ function trendLabel(trend?: string) {
   }
 
   .df-pillar-val {
-    font-size: 2.2rem;
+    font-size: var(--fs-stat-lg);
   }
 
   .guide-essentials {

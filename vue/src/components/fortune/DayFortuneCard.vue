@@ -130,15 +130,15 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
 }
 .left { display: flex; align-items: baseline; gap: 8px; }
 .weekday {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.18em;
   color: var(--text-muted);
   text-transform: uppercase;
 }
-.date { font-size: 0.95rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+.date { font-size: var(--fs-sm); font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
 .pillar {
   font-family: var(--font-serif), serif;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: rgba(var(--jade-accent-rgb), 1);
   letter-spacing: 0.06em;
@@ -152,12 +152,12 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
 }
 .score-num {
   font-family: var(--font-serif), serif;
-  font-size: 2rem;
+  font-size: var(--fs-stat);
   font-weight: 800;
   line-height: 1;
 }
 .ten-god {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   letter-spacing: 0.06em;
   padding: 2px 8px;
@@ -170,7 +170,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
   grid-template-columns: 1fr 1fr;
   gap: 4px 12px;
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
 }
 .lucky .row { display: flex; gap: 6px; align-items: center; min-width: 0; }
 .lucky dt { color: var(--text-soft); margin: 0; flex-shrink: 0; }
@@ -185,7 +185,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
 
 .yi, .ji, .guide {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.4;
   display: flex; gap: 6px; align-items: baseline;
@@ -194,7 +194,7 @@ const jiPreview = computed(() => (props.jiItems ?? []).slice(0, 2).join('·'))
   display: inline-block;
   padding: 1px 6px;
   border-radius: 4px;
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.05em;
 }

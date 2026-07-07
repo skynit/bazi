@@ -238,7 +238,7 @@ onMounted(load)
   min-height: 70vh;
   gap: 16px;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
 }
 .state.error p { color: var(--crimson); }
 .btn-link {
@@ -282,23 +282,23 @@ onMounted(load)
 
 .eyebrow {
   font-family: var(--font-mono), monospace;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.42em;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 .title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: var(--fs-stat);
   font-weight: 800;
   letter-spacing: 0.18em;
   margin: 0;
   color: var(--text);
 }
-.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: 0.9rem; }
+.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: var(--fs-sm); }
 .advice {
   font-family: var(--font-serif), serif;
-  font-size: 1rem;
+  font-size: var(--fs-body);
   line-height: 1.75;
   color: var(--text);
   margin: 4px 0 6px;
@@ -310,7 +310,7 @@ onMounted(load)
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   background: var(--glass-bg);
 }
@@ -339,13 +339,13 @@ onMounted(load)
 }
 .card-head.plain { padding: 0 4px; }
 .card-eyebrow {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.32em;
   color: var(--text-muted);
   font-family: var(--font-mono), monospace;
   text-transform: uppercase;
 }
-.card-meta { font-size: 0.72rem; color: var(--text-soft); letter-spacing: 0.06em; }
+.card-meta { font-size: var(--fs-xs); color: var(--text-soft); letter-spacing: 0.06em; }
 
 .grid-2 { display: grid; gap: 24px; grid-template-columns: 1fr; }
 @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
@@ -359,7 +359,7 @@ onMounted(load)
 
 .footer-nav {
   display: flex; gap: 14px; justify-content: center; padding: 8px 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 .footer-nav a {

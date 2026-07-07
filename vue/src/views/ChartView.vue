@@ -410,7 +410,7 @@ function onComputationComplete(): void {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s;
@@ -426,7 +426,7 @@ function onComputationComplete(): void {
 }
 
 .header-eyebrow {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   letter-spacing: 3px;
   color: var(--text-soft);
   text-transform: uppercase;
@@ -434,7 +434,7 @@ function onComputationComplete(): void {
 
 .header-title {
   font-family: var(--font-serif), serif;
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text);
   margin: 0;
@@ -500,7 +500,7 @@ function onComputationComplete(): void {
 }
 
 .loading-text {
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 2px;
 }
@@ -521,7 +521,7 @@ function onComputationComplete(): void {
 }
 
 .error-title {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-align: center;
   margin: 0;
@@ -533,7 +533,7 @@ function onComputationComplete(): void {
   color: var(--destructive-foreground);
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -562,7 +562,7 @@ function onComputationComplete(): void {
   background: var(--accent-dim);
   border: 1px solid var(--line-strong);
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   letter-spacing: 1px;
 }
@@ -619,7 +619,7 @@ function onComputationComplete(): void {
   background: linear-gradient(135deg, var(--accent), #94a3b8);
   color: var(--bg);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   border: none;
   border-radius: 50px;
   cursor: pointer;
@@ -642,7 +642,7 @@ function onComputationComplete(): void {
   background: transparent;
   color: var(--accent);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   border: 1px solid var(--line-strong);
   border-radius: 50px;
   cursor: pointer;
@@ -657,12 +657,12 @@ function onComputationComplete(): void {
 }
 
 .btn-icon {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   animation: spin-slow 8s linear infinite;
 }
 
 .btn-icon-secondary {
-  font-size: 1rem;
+  font-size: var(--fs-body);
 }
 
 /* Rechart link */
@@ -674,7 +674,7 @@ function onComputationComplete(): void {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s;
@@ -702,7 +702,7 @@ function onComputationComplete(): void {
 }
 
 .empty-title {
-  font-size: 1rem;
+  font-size: var(--fs-body);
   color: var(--text-muted);
   margin: 0 0 1.5rem;
 }
@@ -722,7 +722,7 @@ function onComputationComplete(): void {
 }
 
 .picker-error-text {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-align: center;
   margin: 0;
@@ -746,7 +746,7 @@ function onComputationComplete(): void {
   background: var(--accent-dim);
   border: 1px solid var(--line-strong);
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   letter-spacing: 1px;
 }
@@ -781,7 +781,7 @@ function onComputationComplete(): void {
   border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), #94a3b8);
   color: var(--bg);
-  font-size: 1rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -797,13 +797,13 @@ function onComputationComplete(): void {
 }
 
 .picker-name {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text);
 }
 
 .picker-meta {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -837,7 +837,7 @@ function onComputationComplete(): void {
 }
 
 .divider-text {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   letter-spacing: 1px;
 }
@@ -851,7 +851,7 @@ function onComputationComplete(): void {
   background: transparent;
   color: var(--accent);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   border: 1px solid var(--line-strong);
   border-radius: 50px;
   cursor: pointer;

@@ -276,6 +276,69 @@ func TestChart_MajorStarsMatchIztroFixture(t *testing.T) {
 	}
 }
 
+func TestStarBrightnessMapMatchesIztro(t *testing.T) {
+	wantMain := map[string][12]string{
+		"紫微": {"平", "庙", "旺", "旺", "得", "旺", "庙", "庙", "旺", "旺", "得", "旺"},
+		"天机": {"庙", "陷", "得", "旺", "利", "平", "庙", "陷", "得", "旺", "利", "平"},
+		"太阳": {"陷", "不", "旺", "庙", "旺", "旺", "旺", "得", "得", "陷", "不", "陷"},
+		"武曲": {"旺", "庙", "得", "利", "庙", "平", "旺", "庙", "得", "利", "庙", "平"},
+		"天同": {"旺", "不", "利", "平", "平", "庙", "陷", "不", "旺", "平", "平", "庙"},
+		"廉贞": {"平", "利", "庙", "平", "利", "陷", "平", "利", "庙", "平", "利", "陷"},
+		"天府": {"庙", "庙", "庙", "得", "庙", "得", "旺", "庙", "得", "旺", "庙", "得"},
+		"太阴": {"庙", "庙", "旺", "陷", "陷", "陷", "不", "不", "利", "不", "旺", "庙"},
+		"贪狼": {"旺", "庙", "平", "利", "庙", "陷", "旺", "庙", "平", "利", "庙", "陷"},
+		"巨门": {"旺", "不", "庙", "庙", "陷", "旺", "旺", "不", "庙", "庙", "陷", "旺"},
+		"天相": {"庙", "庙", "庙", "陷", "得", "得", "庙", "得", "庙", "陷", "得", "得"},
+		"天梁": {"庙", "旺", "庙", "庙", "庙", "陷", "庙", "旺", "陷", "得", "庙", "陷"},
+		"七杀": {"旺", "庙", "庙", "旺", "庙", "平", "旺", "庙", "庙", "庙", "庙", "平"},
+		"破军": {"庙", "旺", "得", "陷", "旺", "平", "庙", "旺", "得", "陷", "旺", "平"},
+	}
+	for star, want := range wantMain {
+		if got := StarBrightnessMap[star]; got != want {
+			t.Errorf("StarBrightnessMap[%s] = %v, want %v", star, got, want)
+		}
+	}
+
+	wantAux := map[string][12]string{
+		"文昌": {"得", "庙", "陷", "利", "得", "庙", "陷", "利", "得", "庙", "陷", "利"},
+		"文曲": {"得", "庙", "平", "旺", "得", "庙", "陷", "旺", "得", "庙", "陷", "旺"},
+		"火星": {"陷", "得", "庙", "利", "陷", "得", "庙", "利", "陷", "得", "庙", "利"},
+		"铃星": {"陷", "得", "庙", "利", "陷", "得", "庙", "利", "陷", "得", "庙", "利"},
+		"擎羊": {"陷", "庙", "", "陷", "庙", "", "陷", "庙", "", "陷", "庙", ""},
+		"陀罗": {"", "庙", "陷", "", "庙", "陷", "", "庙", "陷", "", "庙", "陷"},
+	}
+	for star, want := range wantAux {
+		if got := AuxStarBrightnessMap[star]; got != want {
+			t.Errorf("AuxStarBrightnessMap[%s] = %v, want %v", star, got, want)
+		}
+	}
+
+	for _, star := range []string{"左辅", "右弼", "天魁", "天钺", "禄存", "天马", "地空", "地劫"} {
+		if got := getStarBrightness(star, BranchIndex["酉"]); got != "" {
+			t.Errorf("%s has unsupported brightness %q, want empty", star, got)
+		}
+	}
+}
+
+func TestChartBrightness_GuiWeiMingPalace(t *testing.T) {
+	svc := NewZiWeiService()
+	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+
+	ming := chart.Palaces[0]
+	if ming.Name != "命宫" || ming.Branch != "酉" {
+		t.Fatalf("命宫 = %s/%s, want 命宫/酉", ming.Name, ming.Branch)
+	}
+	if got := palaceStarBrightness(ming, "廉贞"); got != "平" {
+		t.Errorf("命宫廉贞亮度 = %q, want 平", got)
+	}
+	if got := palaceStarBrightness(ming, "破军"); got != "陷" {
+		t.Errorf("命宫破军亮度 = %q, want 陷", got)
+	}
+}
+
 // ════════════════════════════════════════════════════════════════
 // 紫微/天府 定位测试
 // 使用 iztro 公式: offset even → pos = quotient + offset - 1; odd → pos = quotient - offset - 1

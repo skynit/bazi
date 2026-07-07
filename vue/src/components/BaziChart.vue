@@ -1233,37 +1233,45 @@ const tenGodChartOptions = computed(() => {
 
         <!-- ═══ Tab: 神煞 (shensha) ═══ -->
         <div v-show="activeTab === 'shensha'" class="tab-content">
-          <div v-if="shenShaCategorySummary.length" class="analysis-block">
-            <div class="block-title">神煞分类</div>
-            <span class="block-desc">按吉凶倾向与用途归类，分类只作为阅读索引，具体判断仍看柱位、触发条件和全局组合</span>
+          <section v-if="shenShaCategorySummary.length" class="analysis-block shensha-overview-card">
+            <div class="shensha-overview-head">
+              <div>
+                <div class="block-title">神煞分类</div>
+                <span class="block-desc">按吉凶倾向与用途归类，分类只作为阅读索引，具体判断仍看柱位、触发条件和全局组合</span>
+              </div>
+              <span class="shensha-overview-count">{{ shenShaDetails.length }} 项</span>
+            </div>
             <div class="evidence-table-list shensha-category-pills">
-              <span v-for="item in shenShaCategorySummary" :key="item.category" class="evidence-table-pill">
+              <span v-for="item in shenShaCategorySummary" :key="item.category" class="evidence-table-pill shensha-pill">
                 {{ item.category }} · {{ item.count }}
               </span>
             </div>
-            <div class="shen-sha-detail-list shensha-meta-list">
-              <div v-for="item in shenShaDetails" :key="item.name + item.source" class="shen-sha-detail-row" :class="polarityClass(item.polarity)">
-                <span class="shen-sha-detail-name">{{ item.name }}</span>
-                <span class="shen-sha-detail-meta">{{ item.category }} · 优先级 {{ item.priority }}</span>
+            <div class="shensha-grid">
+              <article v-for="item in shenShaDetails" :key="item.name + item.source" class="shen-sha-detail-row shensha-detail-card" :class="polarityClass(item.polarity)">
+                <div class="shen-sha-detail-top">
+                  <span class="shen-sha-detail-name">{{ item.name }}</span>
+                  <span class="shen-sha-detail-meta">{{ item.category }}</span>
+                  <span class="shen-sha-detail-priority">优先级 {{ item.priority }}</span>
+                </div>
                 <span class="shen-sha-detail-desc">{{ item.description }}</span>
-              </div>
+              </article>
             </div>
-          </div>
+          </section>
 
           <!-- ShenSha (grouped by pillar when available) -->
           <template v-if="groupedShenSha">
             <template v-for="group in groupedShenSha" :key="group.pillar">
-              <div v-if="group.items && group.items.length" class="analysis-block">
-                <div class="shen-sha-group-title">
+              <section v-if="group.items && group.items.length" class="analysis-block shensha-group-card">
+                <div class="shen-sha-group-title shensha-group-head">
                   <span class="shen-sha-group-dot" :style="{ background: pillarShenShaColor(group.pillar) }"></span>
-                  {{ group.label }}神煞
+                  <span class="shen-sha-group-label">{{ group.label }}神煞</span>
                   <span class="shen-sha-group-role">· {{ group.role }}</span>
                 </div>
                 <div class="shen-sha-list">
                   <article
                     v-for="sha in group.items"
                     :key="sha.name + sha.target + sha.desc"
-                    class="shen-sha-row"
+                    class="shen-sha-row shensha-row-card"
                     :style="{ background: pillarShenShaBg(group.pillar) }"
                   >
                     <span class="shen-sha-name" :style="{ color: pillarShenShaColor(group.pillar) }">{{ sha.name }}</span>
@@ -1271,19 +1279,19 @@ const tenGodChartOptions = computed(() => {
                     <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
                   </article>
                 </div>
-              </div>
+              </section>
             </template>
-            <div v-if="globalShenSha.length" class="analysis-block">
-              <div class="shen-sha-group-title">
+            <section v-if="globalShenSha.length" class="analysis-block shensha-group-card">
+              <div class="shen-sha-group-title shensha-group-head">
                 <span class="shen-sha-group-dot" style="background: var(--accent)"></span>
-                全局组合神煞
+                <span class="shen-sha-group-label">全局组合神煞</span>
                 <span class="shen-sha-group-role">· 多柱配合</span>
               </div>
               <div class="shen-sha-list">
                 <article
                   v-for="sha in globalShenSha"
                   :key="sha.name + sha.target + sha.desc"
-                  class="shen-sha-row"
+                  class="shen-sha-row shensha-row-card"
                   :style="{ background: 'var(--accent-dim)' }"
                 >
                   <span class="shen-sha-name" :style="{ color: 'var(--accent)' }">{{ sha.name }}</span>
@@ -1291,27 +1299,27 @@ const tenGodChartOptions = computed(() => {
                   <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
                 </article>
               </div>
-            </div>
-            <div v-if="showSummary" class="analysis-block shen-sha-summary-block">
+            </section>
+            <section v-if="showSummary" class="analysis-block shensha-summary-card">
               <div class="shen-sha-summary-title">{{ props.chart.shen_sha_summary.title }}</div>
               <ul class="shen-sha-summary-list">
                 <li v-for="line in props.chart.shen_sha_summary.description" :key="line.slice(0, 16)">
                   {{ line }}
                 </li>
               </ul>
-            </div>
+            </section>
           </template>
-          <div v-else-if="parsedDayShenSha.length" class="analysis-block">
+          <section v-else-if="parsedDayShenSha.length" class="analysis-block shensha-group-card">
             <div class="block-title">日柱神煞</div>
             <span class="block-desc">日柱天干地支所临神煞，揭示先天吉凶信息</span>
             <div class="shen-sha-list">
-              <article v-for="sha in parsedDayShenSha" :key="sha.name + sha.target + sha.desc" class="shen-sha-row">
+              <article v-for="sha in parsedDayShenSha" :key="sha.name + sha.target + sha.desc" class="shen-sha-row shensha-row-card">
                 <span class="shen-sha-name">{{ sha.name }}</span>
                 <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
                 <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
               </article>
             </div>
-          </div>
+          </section>
         </div><!-- /shensha tab -->
 
         <!-- ═══ Tab: 运势详批 (fortune) ═══ -->
@@ -1461,6 +1469,11 @@ const tenGodChartOptions = computed(() => {
   z-index: 1;
 }
 
+.chart-card.glass-card:hover {
+  box-shadow: 0 0 0 1px var(--line-strong), var(--shadow-xs);
+  transform: none;
+}
+
 /* Header */
 .chart-header {
   background: linear-gradient(180deg, var(--line-subtle), transparent);
@@ -1470,7 +1483,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .header-eyebrow {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   letter-spacing: 3px;
   color: var(--text-soft);
   text-transform: uppercase;
@@ -1479,7 +1492,7 @@ const tenGodChartOptions = computed(() => {
 
 .chart-title {
   font-family: var(--font-serif), serif;
-  font-size: 1.25rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text);
   margin: 0;
@@ -1533,7 +1546,7 @@ const tenGodChartOptions = computed(() => {
 .bento-hover-水:hover { box-shadow: inset 0 0 30px color-mix(in oklab, var(--wuxing-shui) 7%, transparent); }
 
 .bento-label {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 1px;
   margin-bottom: 0.4rem;
@@ -1559,7 +1572,7 @@ const tenGodChartOptions = computed(() => {
 
 .bento-char {
   font-family: var(--font-serif), serif;
-  font-size: 1.6rem;
+  font-size: var(--fs-3xl);
   font-weight: 700;
   line-height: 1;
   text-shadow: 0 0 12px currentColor;
@@ -1600,7 +1613,7 @@ const tenGodChartOptions = computed(() => {
 
 .elem-tag {
   display: inline-block;
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   padding: 0.1rem 0.35rem;
   border-radius: 3px;
   border: 1px solid;
@@ -1609,7 +1622,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .bento-god-tag {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   background: var(--surface-2);
@@ -1621,144 +1634,184 @@ const tenGodChartOptions = computed(() => {
 }
 
 .bento-god-tag-day {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   padding: 0.15rem 0.5rem;
   background: var(--line-strong);
   border-color: var(--line-focus);
   color: var(--accent);
 }
 
-/* ===== 天干地支关系 — 紧凑内联布局 ===== */
+/* ===== 天干地支关系 — information ledger ===== */
 
 .ganzhi-analysis {
   margin-top: 2px;
 }
 
+.overview-relations {
+  --rel-he: #16845a;
+  --rel-ke: #b94a48;
+  --rel-sheng: #2f6fb7;
+  --rel-hai: #a86622;
+  --rel-xing: #7e5aa8;
+}
+
 .relations-section {
-  padding: 0.4rem 1rem;
+  padding: 0.9rem 1rem 1rem;
   border-bottom: 1px solid var(--line-subtle);
 }
 
 .relations-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.65rem;
+  gap: 0.45rem;
+  padding-bottom: 0.68rem;
+  border-bottom: 1px solid var(--line-subtle);
+  font-size: var(--fs-xs);
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 1.5px;
-  margin-bottom: 0.35rem;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.65rem;
 }
 
 .relations-title-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent-glow);
+  background: var(--rel-he);
+  box-shadow: none;
 }
 
 .relations-title-dot.zhi-dot {
-  background: #6495ed;
-  box-shadow: 0 0 6px rgba(100, 149, 237, 0.4);
+  background: var(--rel-sheng);
+  box-shadow: none;
 }
 
 .relations-count {
-  font-size: 0.55rem;
-  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 0.48rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-0) 82%, transparent);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
   color: var(--text-soft);
   margin-left: auto;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
 }
 
 .ganzhi-compact {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.38rem;
 }
 
 .gz-item {
-  display: flex;
+  --rel-color: var(--line-focus);
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
-  border-left: 2px solid transparent;
-  transition: background 0.2s;
+  gap: 0.55rem;
+  min-height: 40px;
+  padding: 0.48rem 0.62rem;
+  border-radius: 7px;
+  border-left: 3px solid color-mix(in oklab, var(--rel-color) 62%, transparent);
+  background: color-mix(in oklab, var(--surface-0) 58%, transparent);
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .gz-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in oklab, var(--rel-color) 7%, var(--surface-0));
 }
 
-.gz-item.rel-he { border-left-color: rgba(74, 222, 128, 0.5); }
-.gz-item.rel-ke { border-left-color: rgba(248, 113, 113, 0.5); }
-.gz-item.rel-sheng { border-left-color: rgba(96, 165, 250, 0.5); }
-.gz-item.rel-chong { border-left-color: rgba(248, 113, 113, 0.5); }
-.gz-item.rel-hai { border-left-color: rgba(251, 146, 60, 0.5); }
-.gz-item.rel-xing { border-left-color: rgba(192, 132, 252, 0.5); }
-.gz-item.rel-hui { border-left-color: rgba(96, 165, 250, 0.5); }
+.gz-item.rel-he { --rel-color: var(--rel-he); }
+.gz-item.rel-ke { --rel-color: var(--rel-ke); }
+.gz-item.rel-sheng { --rel-color: var(--rel-sheng); }
+.gz-item.rel-chong { --rel-color: var(--rel-ke); }
+.gz-item.rel-hai { --rel-color: var(--rel-hai); }
+.gz-item.rel-xing { --rel-color: var(--rel-xing); }
+.gz-item.rel-hui { --rel-color: var(--rel-sheng); }
 
 .gz-chars {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 0.15rem;
+  min-width: 6.25rem;
   flex-shrink: 0;
 }
 
 .gz-c {
   font-family: var(--font-serif), serif;
-  font-size: 0.95rem;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--text);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .gz-sym {
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: var(--fs-2xs);
   font-weight: 700;
-  padding: 0 2px;
+  line-height: 1;
 }
 
-.sym-rel-he { color: #16a34a; }
-.sym-rel-ke { color: #dc2626; }
-.sym-rel-sheng { color: #2563eb; }
-.sym-rel-chong { color: #dc2626; }
-.sym-rel-hai { color: #ea580c; }
-.sym-rel-xing { color: #9333ea; }
-.sym-rel-hui { color: #2563eb; }
+.sym-rel-he { --rel-color: var(--rel-he); }
+.sym-rel-ke { --rel-color: var(--rel-ke); }
+.sym-rel-sheng { --rel-color: var(--rel-sheng); }
+.sym-rel-chong { --rel-color: var(--rel-ke); }
+.sym-rel-hai { --rel-color: var(--rel-hai); }
+.sym-rel-xing { --rel-color: var(--rel-xing); }
+.sym-rel-hui { --rel-color: var(--rel-sheng); }
 
 .gz-tag {
-  font-size: 0.5rem;
-  font-weight: 600;
-  padding: 0.05rem 0.3rem;
-  border-radius: 2px;
-  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  padding: 0.08rem 0.42rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
-.tag-rel-he { color: #16a34a; background: rgba(22, 163, 74, 0.1); }
-.tag-rel-ke { color: #dc2626; background: rgba(220, 38, 38, 0.1); }
-.tag-rel-sheng { color: #2563eb; background: rgba(37, 99, 235, 0.1); }
-.tag-rel-chong { color: #dc2626; background: rgba(220, 38, 38, 0.1); }
-.tag-rel-hai { color: #ea580c; background: rgba(234, 88, 12, 0.1); }
-.tag-rel-xing { color: #9333ea; background: rgba(147, 51, 234, 0.1); }
-.tag-rel-hui { color: #2563eb; background: rgba(37, 99, 235, 0.1); }
+.tag-rel-he { --rel-color: var(--rel-he); }
+.tag-rel-ke { --rel-color: var(--rel-ke); }
+.tag-rel-sheng { --rel-color: var(--rel-sheng); }
+.tag-rel-chong { --rel-color: var(--rel-ke); }
+.tag-rel-hai { --rel-color: var(--rel-hai); }
+.tag-rel-xing { --rel-color: var(--rel-xing); }
+.tag-rel-hui { --rel-color: var(--rel-sheng); }
+
+.gz-sym,
+.gz-tag {
+  color: var(--rel-color);
+  background: color-mix(in oklab, var(--rel-color) 11%, transparent);
+  border-color: color-mix(in oklab, var(--rel-color) 18%, transparent);
+}
 
 .gz-text {
   color: var(--text-muted);
-  font-size: 0.68rem;
-  line-height: 1.3;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .no-relations {
-  padding: 0.4rem 1rem;
+  min-height: 132px;
+  padding: 1rem;
   text-align: center;
-  font-size: 0.65rem;
+  font-size: var(--fs-xs);
   color: var(--text-soft);
   border-bottom: 1px solid var(--line-subtle);
   display: flex;
@@ -1768,7 +1821,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .no-rel-icon {
-  font-size: 0.5rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
@@ -1797,7 +1850,7 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid var(--line-subtle);
   border-radius: 4px;
   color: var(--text-muted);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   line-height: 1.2;
   background: var(--surface-0);
 }
@@ -1818,7 +1871,7 @@ const tenGodChartOptions = computed(() => {
 .evidence-bar-label,
 .evidence-bar-value {
   color: var(--text-muted);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
 }
 
 .evidence-bar-value {
@@ -1878,14 +1931,14 @@ const tenGodChartOptions = computed(() => {
 .fortune-layer-name {
   display: inline-block;
   margin-right: 0.4rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text);
 }
 
 .shen-sha-detail-meta,
 .fortune-layer-god {
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
@@ -1894,8 +1947,116 @@ const tenGodChartOptions = computed(() => {
   display: block;
   margin-top: 0.18rem;
   color: var(--text-muted);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   line-height: 1.45;
+}
+
+.shensha-overview-card,
+.shensha-group-card,
+.shensha-summary-card {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface-2) 38%, transparent);
+}
+
+.shensha-overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.shensha-overview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.shensha-overview-head .block-desc {
+  max-width: 54rem;
+}
+
+.shensha-overview-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 0.48rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 999px;
+  background: var(--surface-0);
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shensha-category-pills {
+  gap: 0.28rem;
+  margin-bottom: 0;
+}
+
+.shensha-pill {
+  min-height: 22px;
+  padding: 0.12rem 0.42rem;
+  border-radius: 4px;
+}
+
+.shensha-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.42rem 0.55rem;
+}
+
+.shensha-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  padding: 0.48rem 0.55rem;
+  border-radius: 8px;
+  background: var(--surface-0);
+}
+
+.shen-sha-detail-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.45rem;
+  min-width: 0;
+}
+
+.shen-sha-detail-priority {
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+}
+
+.shensha-group-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shensha-group-head {
+  margin-bottom: 0;
+}
+
+.shen-sha-group-label {
+  min-width: 0;
+}
+
+.shensha-row-card {
+  padding: 0.48rem 0.55rem;
+  border-radius: 8px;
+  border-left-width: 3px;
+  background: var(--surface-0);
+}
+
+.shensha-summary-card {
+  border-top: 1px solid var(--line-subtle);
+  margin-top: 0;
+  padding-top: 0.85rem;
 }
 
 .fortune-layer-top {
@@ -1951,7 +2112,7 @@ const tenGodChartOptions = computed(() => {
 .rule-meta-label,
 .rule-table-source,
 .rule-table-count {
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
 }
 
@@ -1959,7 +2120,7 @@ const tenGodChartOptions = computed(() => {
   min-width: 0;
   text-align: right;
   color: var(--text);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
@@ -1979,7 +2140,7 @@ const tenGodChartOptions = computed(() => {
   border-radius: 4px;
   background: var(--surface-0);
   color: var(--text-muted);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
 }
 
@@ -1997,14 +2158,14 @@ const tenGodChartOptions = computed(() => {
 
 .rule-table-name {
   color: var(--text);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 
 .rule-table-version {
   flex-shrink: 0;
   color: var(--accent);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
 }
 
@@ -2015,7 +2176,7 @@ const tenGodChartOptions = computed(() => {
 .rule-table-desc {
   margin: 0.4rem 0 0;
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   line-height: 1.55;
 }
 
@@ -2044,7 +2205,7 @@ const tenGodChartOptions = computed(() => {
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--text-dim);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   letter-spacing: 1px;
   cursor: pointer;
@@ -2085,13 +2246,13 @@ const tenGodChartOptions = computed(() => {
 
 .overview-section .block-title {
   margin-bottom: 0.35rem;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
 }
 
 .overview-section .block-desc {
   max-width: 46rem;
   margin: 0;
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   line-height: 1.7;
 }
 
@@ -2102,14 +2263,17 @@ const tenGodChartOptions = computed(() => {
 .overview-relations-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .relation-card {
   min-width: 0;
-  border: 1px solid var(--line-subtle);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--surface-2) 42%, transparent);
+  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--surface-0) 78%, transparent), color-mix(in oklab, var(--surface-2) 42%, transparent)),
+    var(--surface-0);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--text) 4%, transparent), var(--shadow-xs);
   overflow: hidden;
 }
 
@@ -2119,7 +2283,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .block-title {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 1px;
@@ -2128,7 +2292,7 @@ const tenGodChartOptions = computed(() => {
 
 .block-desc {
   display: block;
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--text-soft);
   line-height: 1.5;
   margin-top: -0.3rem;
@@ -2157,13 +2321,13 @@ const tenGodChartOptions = computed(() => {
 }
 
 .god-pillar {
-  font-size: 0.67rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   margin-bottom: 0.35rem;
 }
 
 .god-name {
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.2;
   color: var(--crimson);
@@ -2198,7 +2362,7 @@ const tenGodChartOptions = computed(() => {
 
 .nayin-pillar {
   opacity: 0.6;
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
 }
 
 .nayin-name {
@@ -2222,13 +2386,13 @@ const tenGodChartOptions = computed(() => {
 }
 
 .nayin-detail-name {
-  font-size: 1.1rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--accent);
 }
 
 .nayin-detail-elem {
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   padding: 0.15rem 0.5rem;
   border-radius: 3px;
   color: var(--bg);
@@ -2242,7 +2406,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .nayin-detail-label {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2250,7 +2414,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .nayin-detail-value {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text);
 }
@@ -2268,7 +2432,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .nayin-judgment-tag {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   padding: 0.15rem 0.5rem;
   background: var(--line-strong);
   border: 1px solid var(--line-focus);
@@ -2295,7 +2459,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .dayun-age {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   color: var(--text-dim);
   margin-bottom: 0.3rem;
   white-space: nowrap;
@@ -2345,7 +2509,7 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-gan {
   font-family: var(--font-serif), serif;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--accent);
   line-height: 1.2;
@@ -2353,7 +2517,7 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-zhi {
   font-family: var(--font-serif), serif;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text-muted);
   line-height: 1.2;
@@ -2393,13 +2557,13 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-summary-label {
   color: var(--text-soft);
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
 }
 
 .dayun-summary-item strong {
   min-width: 0;
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: var(--fs-sm);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -2422,7 +2586,7 @@ const tenGodChartOptions = computed(() => {
   border-radius: 4px;
   background: var(--surface-0);
   color: var(--text-muted);
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   line-height: 1.25;
 }
 
@@ -2442,7 +2606,7 @@ const tenGodChartOptions = computed(() => {
   padding: 0.18rem 0.65rem;
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
@@ -2476,7 +2640,7 @@ const tenGodChartOptions = computed(() => {
   background: var(--accent-dim);
   color: var(--accent);
   font-family: var(--font-serif), serif;
-  font-size: 1.65rem;
+  font-size: var(--fs-3xl);
   font-weight: 800;
   line-height: 1.05;
 }
@@ -2496,7 +2660,7 @@ const tenGodChartOptions = computed(() => {
 .dayun-stage-impact {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   line-height: 1.65;
 }
 
@@ -2552,7 +2716,7 @@ const tenGodChartOptions = computed(() => {
   flex-wrap: wrap;
   gap: 0.35rem;
   color: var(--text-soft);
-  font-size: 0.63rem;
+  font-size: var(--fs-2xs);
   margin-bottom: 0.7rem;
 }
 
@@ -2588,11 +2752,11 @@ const tenGodChartOptions = computed(() => {
 }
 
 .dayun-stage-gan {
-  font-size: 1.28rem;
+  font-size: var(--fs-2xl);
 }
 
 .dayun-stage-zhi {
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
 }
 
 .dayun-stage-info {
@@ -2601,7 +2765,7 @@ const tenGodChartOptions = computed(() => {
 
 .dayun-stage-title {
   color: var(--text);
-  font-size: 0.86rem;
+  font-size: var(--fs-sm);
   font-weight: 800;
   margin-bottom: 0.45rem;
 }
@@ -2621,7 +2785,7 @@ const tenGodChartOptions = computed(() => {
   border-radius: 4px;
   color: var(--text-muted);
   background: color-mix(in oklab, var(--surface-2) 62%, transparent);
-  font-size: 0.62rem;
+  font-size: var(--fs-2xs);
   line-height: 1.2;
 }
 
@@ -2681,7 +2845,7 @@ const tenGodChartOptions = computed(() => {
   grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 0.4rem 0.75rem;
   background: rgba(255, 255, 255, 0.03);
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--line-subtle);
@@ -2691,7 +2855,7 @@ const tenGodChartOptions = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 0.4rem 0.75rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   border-bottom: 1px solid var(--line-subtle);
 }
 
@@ -2725,7 +2889,7 @@ const tenGodChartOptions = computed(() => {
 .bs-verdict {
   display: inline-flex;
   align-self: flex-start;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--accent);
 }
@@ -2740,7 +2904,7 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid var(--line-focus);
   background: var(--accent-dim);
   color: var(--accent);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
 }
 
@@ -2753,7 +2917,7 @@ const tenGodChartOptions = computed(() => {
 
 .bs-like-label,
 .bs-dislike-label {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
 }
@@ -2771,7 +2935,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .bs-like {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   padding: 0.15rem 0.5rem;
   background: rgba(22, 163, 74, 0.06);
   color: #16a34a;
@@ -2780,7 +2944,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .bs-dislike {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   padding: 0.15rem 0.5rem;
   background: rgba(220, 38, 38, 0.06);
   color: #dc2626;
@@ -2812,7 +2976,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-name {
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.05em;
@@ -2822,7 +2986,7 @@ const tenGodChartOptions = computed(() => {
   display: inline-block;
   padding: 0.12rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.5px;
 }
@@ -2840,7 +3004,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-desc {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.65;
   margin: 0;
@@ -2861,7 +3025,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-elem-label {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
@@ -2880,7 +3044,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .pattern-elem-tag {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   padding: 0.12rem 0.45rem;
   border-radius: 3px;
 }
@@ -2910,14 +3074,14 @@ const tenGodChartOptions = computed(() => {
 }
 
 .ming-gong-ganzhi {
-  font-size: 1.15rem;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.15em;
 }
 
 .ming-gong-nayin {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
@@ -2931,7 +3095,7 @@ const tenGodChartOptions = computed(() => {
   display: inline-block;
   padding: 0.12rem 0.45rem;
   border-radius: 3px;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   white-space: nowrap;
   background: color-mix(in oklab, var(--text) 15%, transparent);
@@ -2951,13 +3115,13 @@ const tenGodChartOptions = computed(() => {
 }
 
 .shensha-desc {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.55;
 }
 
 .ming-gong-zhi {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.6;
   border-left: 2px solid var(--line-focus);
@@ -2965,7 +3129,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-source {
-  font-size: 0.65rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   font-weight: 400;
   margin-left: 0.4rem;
@@ -2989,18 +3153,18 @@ const tenGodChartOptions = computed(() => {
 }
 
 .tiaohou-stem {
-  font-size: 1.3rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--accent);
 }
 
 .tiaohou-arrow {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 .tiaohou-month {
-  font-size: 1.3rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text);
 }
@@ -3012,16 +3176,16 @@ const tenGodChartOptions = computed(() => {
 
 .tiaohou-label {
   color: var(--text-soft);
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
 }
 
 .tiaohou-primary {
-  font-size: 1.35rem;
+  font-size: var(--fs-2xl);
   font-weight: 800;
 }
 
 .tiaohou-summary {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text);
   line-height: 1.65;
   margin-bottom: 0.8rem;
@@ -3037,7 +3201,7 @@ const tenGodChartOptions = computed(() => {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
 }
 
 .tiaohou-xi {
@@ -3060,7 +3224,7 @@ const tenGodChartOptions = computed(() => {
 .ri-zhu-text,
 .jin-bu-huan-text,
 .season-text {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   line-height: 1.7;
   white-space: pre-wrap;
@@ -3069,13 +3233,13 @@ const tenGodChartOptions = computed(() => {
 
 
 .sheng-xiao-tag {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 1px;
 }
 
 .empties-tag {
-  font-size: 0.55rem;
+  font-size: var(--fs-2xs);
   color: rgba(251, 113, 133, 0.5);
 }
 
@@ -3101,7 +3265,7 @@ const tenGodChartOptions = computed(() => {
 
 .shen-sha-name {
   font-family: var(--font-serif), serif;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.06em;
@@ -3118,13 +3282,13 @@ const tenGodChartOptions = computed(() => {
   background: var(--line-strong);
   border: 1px solid var(--line-focus);
   color: var(--text);
-  font-size: 0.68rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 
 .shen-sha-desc {
   color: var(--text-muted);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   line-height: 1.45;
 }
 
@@ -3134,7 +3298,7 @@ const tenGodChartOptions = computed(() => {
   align-items: center;
   gap: 0.35rem;
   font-family: var(--font-serif), serif;
-  font-size: 0.86rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text);
   margin-bottom: 0.55rem;
@@ -3150,7 +3314,7 @@ const tenGodChartOptions = computed(() => {
 
 .shen-sha-group-role {
   font-family: var(--font-sans), sans-serif;
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-weight: 400;
   color: var(--text-soft);
   letter-spacing: 0.03em;
@@ -3164,7 +3328,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .shen-sha-summary-title {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 0.45rem;
@@ -3180,7 +3344,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .shen-sha-summary-list li {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
   padding-left: 0.65rem;
@@ -3214,7 +3378,7 @@ const tenGodChartOptions = computed(() => {
 }
 .ten-god-tabs .el-tabs__item {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--fs-xs);
 }
 .ten-god-tabs .el-tabs__item.is-active {
   color: var(--accent);
@@ -3227,12 +3391,12 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid var(--line-strong);
   border-radius: 10px;
   padding: 1rem 1.25rem;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
   color: var(--text);
 }
 .tg-text {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.8;
   color: var(--text);
 }
@@ -3255,21 +3419,21 @@ const tenGodChartOptions = computed(() => {
 }
 .tg-god-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   color: var(--accent);
 }
 .tg-god-pct {
-  font-size: 13px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .tg-god-meaning {
-  font-size: 13px;
+  font-size: var(--fs-xs);
   line-height: 1.6;
   color: var(--text);
   margin-bottom: 4px;
 }
 .tg-god-advice {
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   line-height: 1.6;
   color: var(--text);
 }
@@ -3283,20 +3447,20 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid var(--line-subtle);
 }
 .wf-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-.wf-label { font-size: 0.65rem; color: var(--text-muted); }
-.wf-elem { font-size: 0.85rem; font-weight: 700; }
-.wf-type { font-size: 0.7rem; color: var(--text-muted); padding: 0.1rem 0.4rem; background: var(--accent-dim); border-radius: 4px; }
-.wf-status { font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 4px; }
+.wf-label { font-size: var(--fs-2xs); color: var(--text-muted); }
+.wf-elem { font-size: var(--fs-sm); font-weight: 700; }
+.wf-type { font-size: var(--fs-xs); color: var(--text-muted); padding: 0.1rem 0.4rem; background: var(--accent-dim); border-radius: 4px; }
+.wf-status { font-size: var(--fs-2xs); font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 4px; }
 .wf-smooth { color: #16a34a; background: rgba(22,163,74,0.1); }
 .wf-blocked { color: #dc2626; background: rgba(220,38,38,0.1); }
 .wf-paths { display: flex; flex-direction: column; gap: 0.25rem; }
-.wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: var(--text-muted); }
+.wf-path { display: flex; align-items: center; gap: 0.4rem; font-size: var(--fs-xs); color: var(--text-muted); }
 .wf-path-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.wf-blocked-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
-.wf-blocked-label { color: #dc2626; font-size: 0.65rem; }
+.wf-blocked-row { display: flex; align-items: center; gap: 0.4rem; font-size: var(--fs-xs); }
+.wf-blocked-label { color: #dc2626; font-size: var(--fs-2xs); }
 .wf-blocked-elem { font-weight: 600; }
-.wf-verdict { font-size: 0.72rem; color: var(--text-muted); font-style: italic; }
-.wf-advice { font-size: 0.72rem; color: var(--accent); opacity: 0.8; }
+.wf-verdict { font-size: var(--fs-xs); color: var(--text-muted); font-style: italic; }
+.wf-advice { font-size: var(--fs-xs); color: var(--accent); opacity: 0.8; }
 
 /* TongGuan 通关用神 */
 .tong-guan-card {
@@ -3306,8 +3470,8 @@ const tenGodChartOptions = computed(() => {
   border-radius: 8px;
   border: 1px solid var(--line-subtle);
 }
-.tg-elem { font-size: 1.4rem; font-weight: 900; font-family: var(--font-serif); }
-.tg-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.tg-elem { font-size: var(--fs-2xl); font-weight: 900; font-family: var(--font-serif); }
+.tg-desc { font-size: var(--fs-xs); color: var(--text-muted); line-height: 1.5; }
 
 /* MissingElements 缺失五行 */
 .missing-elem-card {
@@ -3318,11 +3482,11 @@ const tenGodChartOptions = computed(() => {
   border: 1px solid var(--line-subtle);
 }
 .me-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-.me-label { font-size: 0.65rem; color: var(--text-muted); min-width: 28px; }
-.me-tag { font-size: 0.78rem; font-weight: 700; padding: 0.1rem 0.4rem; border: 1px solid; border-radius: 4px; }
+.me-label { font-size: var(--fs-2xs); color: var(--text-muted); min-width: 28px; }
+.me-tag { font-size: var(--fs-xs); font-weight: 700; padding: 0.1rem 0.4rem; border: 1px solid; border-radius: 4px; }
 .me-missing { background: rgba(220,38,38,0.06); }
 .me-remedy { background: rgba(22,163,74,0.06); }
-.me-severity { font-size: 0.62rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.25rem; }
+.me-severity { font-size: var(--fs-2xs); padding: 0.1rem 0.4rem; border-radius: 4px; margin-left: 0.25rem; }
 .me-轻微 { color: var(--accent); background: var(--line-strong); }
 .me-中等 { color: #dc2626; background: rgba(220,38,38,0.1); }
 .me-严重 { color: #dc2626; background: rgba(220,38,38,0.2); }
@@ -3360,7 +3524,7 @@ const tenGodChartOptions = computed(() => {
 }
 
 .df-age {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--text-dim);
   white-space: nowrap;
@@ -3368,7 +3532,7 @@ const tenGodChartOptions = computed(() => {
 
 .df-pillar {
   font-family: var(--font-serif), serif;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 1px;
@@ -3385,7 +3549,7 @@ const tenGodChartOptions = computed(() => {
 .df-change-badge {
   display: inline-block;
   width: fit-content;
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   padding: 0.1rem 0.5rem;
   border-radius: 3px;
@@ -3403,27 +3567,19 @@ const tenGodChartOptions = computed(() => {
 .df-不变 { border-left: 3px solid var(--line-focus); }
 
 .df-impact {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
 }
 
-/* ===== Dark mode overrides — restore neon colors on dark backgrounds ===== */
-:global(.dark) .sym-rel-he { color: #4ade80; }
-:global(.dark) .sym-rel-ke { color: #f87171; }
-:global(.dark) .sym-rel-sheng { color: #60a5fa; }
-:global(.dark) .sym-rel-chong { color: #f87171; }
-:global(.dark) .sym-rel-hai { color: #fb923c; }
-:global(.dark) .sym-rel-xing { color: #c084fc; }
-:global(.dark) .sym-rel-hui { color: #60a5fa; }
-
-:global(.dark) .tag-rel-he { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-:global(.dark) .tag-rel-ke { color: #f87171; background: rgba(248, 113, 113, 0.1); }
-:global(.dark) .tag-rel-sheng { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
-:global(.dark) .tag-rel-chong { color: #f87171; background: rgba(248, 113, 113, 0.1); }
-:global(.dark) .tag-rel-hai { color: #fb923c; background: rgba(251, 146, 60, 0.1); }
-:global(.dark) .tag-rel-xing { color: #c084fc; background: rgba(192, 132, 252, 0.1); }
-:global(.dark) .tag-rel-hui { color: #60a5fa; background: rgba(96, 165, 250, 0.1); }
+/* ===== Dark mode overrides — keep relation colors readable without neon glare ===== */
+:global(.dark) .overview-relations {
+  --rel-he: #6fcf97;
+  --rel-ke: #e58a8a;
+  --rel-sheng: #8fb9ee;
+  --rel-hai: #d8a56c;
+  --rel-xing: #b9a0dd;
+}
 
 :global(.dark) .bs-like-label { background: rgba(74, 222, 128, 0.1); color: #4ade80; border-color: rgba(74, 222, 128, 0.2); }
 :global(.dark) .bs-dislike-label { background: rgba(251, 113, 133, 0.1); color: #fb7185; border-color: rgba(251, 113, 133, 0.2); }
@@ -3517,6 +3673,10 @@ const tenGodChartOptions = computed(() => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .shensha-grid {
+    grid-template-columns: 1fr;
+  }
+
   .rule-table-list {
     grid-template-columns: 1fr;
   }
@@ -3547,6 +3707,18 @@ const tenGodChartOptions = computed(() => {
 
   .overview-section-head {
     margin-bottom: 0.7rem;
+  }
+
+  .shensha-overview-head {
+    flex-direction: column;
+  }
+
+  .shensha-overview-count {
+    align-self: flex-start;
+  }
+
+  .shensha-grid {
+    grid-template-columns: 1fr;
   }
 
   .ten-gods-grid {
@@ -3594,6 +3766,25 @@ const tenGodChartOptions = computed(() => {
   .fortune-detail-tab .fortune-layer-list {
     grid-template-columns: 1fr;
     gap: 0.65rem;
+  }
+
+  .relations-section {
+    padding: 0.82rem;
+  }
+
+  .gz-item {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    gap: 0.42rem 0.55rem;
+    padding: 0.58rem 0.62rem;
+  }
+
+  .gz-chars {
+    min-width: 0;
+  }
+
+  .gz-text {
+    grid-column: 1 / -1;
   }
 
   .dayun-current-head,

@@ -193,7 +193,7 @@ async function handleSubmit() {
 }
 
 .ornament-symbol {
-  font-size: 1.75rem;
+  font-size: var(--fs-4xl);
   color: var(--accent);
   text-shadow: 0 0 20px var(--accent-glow);
   animation: symbol-glow 3s ease-in-out infinite;
@@ -217,7 +217,7 @@ async function handleSubmit() {
 .form-title {
   text-align: center;
   font-family: var(--font-serif), serif;
-  font-size: 1.3rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text);
   margin: 0 0 24px;
@@ -239,14 +239,14 @@ async function handleSubmit() {
   gap: 6px;
   padding: 10px;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .toggle-icon {
-  font-size: 1rem;
+  font-size: var(--fs-body);
 }
 
 .toggle-btn.btn-tech {
@@ -271,7 +271,7 @@ async function handleSubmit() {
 }
 
 .field-label {
-  font-size: 11px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 1px;
   color: var(--text-muted);
@@ -281,7 +281,7 @@ async function handleSubmit() {
 /* Error */
 .error-msg {
   color: var(--crimson);
-  font-size: 13px;
+  font-size: var(--fs-xs);
   text-align: center;
   margin: 0 0 14px;
 }
@@ -290,7 +290,7 @@ async function handleSubmit() {
 .btn-submit {
   width: 100%;
   padding: 13px;
-  font-size: 0.95rem;
+  font-size: var(--fs-sm);
   letter-spacing: 2px;
 }
 

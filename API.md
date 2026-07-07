@@ -39,6 +39,8 @@ Content-Type: application/json
 | POST | `/api/fortune/monthly` | 是 | `vue/src/api/fortune.ts` | `handler.MonthlyFortuneHandler.HandleMonthly` |
 | POST | `/api/fortune/ai` | 是 | 暂无页面调用 | `handler.AIStubHandler.AnalyzeFortune` |
 | GET | `/api/fortune/history` | 是 | `vue/src/api/chart.ts` | `handler.HistoryHandler.FortuneHistoryList` |
+| GET | `/api/buyi/today` | 是 | `vue/src/api/buyi.ts` | `handler.BuyiHandler.Today` |
+| POST | `/api/buyi/today` | 是 | `vue/src/api/buyi.ts` | `handler.BuyiHandler.DrawToday` |
 | POST | `/api/ziwei/chart` | 是 | `vue/src/api/ziwei.ts` | `handler.ZiWeiChartHandler.Calculate` |
 | POST | `/api/ziwei/period` | 是 | `vue/src/api/ziwei.ts` | `handler.ZiWeiPeriodHandler.Period` |
 | POST | `/api/ziwei/overlay` | 是 | `vue/src/api/ziwei.ts` | `handler.ZiWeiPeriodHandler.Overlay` |
@@ -213,6 +215,51 @@ POST /api/fortune/monthly
 
 ```http
 GET /api/fortune/history?chart_id=87&page=1&page_size=10
+```
+
+## 卜易
+
+卜易为登录用户维度的每日一卦，不绑定命盘。每日边界按服务端 `Asia/Shanghai` 日期计算。
+
+### 今日卜易状态
+
+```http
+GET /api/buyi/today
+```
+
+未卜响应：
+
+```json
+{"date":"2026-07-05","has_record":false,"already_drawn":false,"record":null}
+```
+
+### 今日起卦
+
+```http
+POST /api/buyi/today
+```
+
+无请求体。若今日已卜，会返回同一条记录，并设置 `already_drawn=true`。
+
+```json
+{
+  "date": "2026-07-05",
+  "has_record": true,
+  "already_drawn": false,
+  "record": {
+    "id": 1,
+    "hexagram_number": 11,
+    "hexagram_name": "地天泰",
+    "score": 86,
+    "level": "大吉",
+    "summary": "今日得地天泰，上下交通，泰平盛世。",
+    "human_way": "上下交通，泰平盛世。阴阳交泰，在家里是丈夫体贴、妻子贤惠，在公司是老板和员工一条心。",
+    "image_reading": "三人同行、喜报、日月同辉（大吉之象）。",
+    "advice": "今日气势较顺，可主动把握关键机会；仍以守正、谦和为底，不因顺境而躁进。",
+    "source": "倪海厦天纪六十四卦详解",
+    "created_at": "2026-07-05T09:00:00+08:00"
+  }
+}
 ```
 
 ## 紫微斗数

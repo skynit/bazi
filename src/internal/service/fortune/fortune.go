@@ -767,11 +767,11 @@ func (e *FortuneEngine) elementTrend(date time.Time, score int) ElementTrendPoin
 
 func fixedElementImages() []model.ElementImage {
 	return []model.ElementImage{
-		{Element: "金", ImageURL: "/images/elements/metal.svg", Description: "金"},
-		{Element: "木", ImageURL: "/images/elements/wood.svg", Description: "木"},
-		{Element: "水", ImageURL: "/images/elements/water.svg", Description: "水"},
-		{Element: "火", ImageURL: "/images/elements/fire.svg", Description: "火"},
-		{Element: "土", ImageURL: "/images/elements/earth.svg", Description: "土"},
+		{Element: "金", ImageURL: "/images/elements/metal.png", Description: "金"},
+		{Element: "木", ImageURL: "/images/elements/wood.png", Description: "木"},
+		{Element: "水", ImageURL: "/images/elements/water.png", Description: "水"},
+		{Element: "火", ImageURL: "/images/elements/fire.png", Description: "火"},
+		{Element: "土", ImageURL: "/images/elements/earth.png", Description: "土"},
 	}
 }
 

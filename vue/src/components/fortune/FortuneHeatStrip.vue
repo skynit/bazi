@@ -94,7 +94,7 @@ const cells = computed(() =>
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.04em;
 }
 

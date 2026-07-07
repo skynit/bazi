@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
 import type { FortuneGuide } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
+import { activeGuide, todayString } from '../lib/fortuneGuide'
 
 interface HiddenStemGod {
   stem: string
@@ -154,11 +155,6 @@ const error = ref('')
 const mounted = ref(false)
 const chartId = ref<string | number>('')
 
-function todayStr() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 async function fetchFortune() {
   let cid: string | number | null = route.query.chart_id as string | null
   if (!cid) {
@@ -167,7 +163,7 @@ async function fetchFortune() {
   }
   chartId.value = cid
   try {
-    fortune.value = await fetchDaily(Number(chartId.value), todayStr())
+    fortune.value = await fetchDaily(Number(chartId.value), todayString())
   } catch (e: any) { error.value = e.response?.data?.error || '加载运势失败' }
   finally { loading.value = false }
 }
@@ -194,31 +190,6 @@ function scoreWord(s: number) {
   return '低迷'
 }
 
-function legacyGuide(fortuneData: FortuneData): FortuneGuide | undefined {
-  const old = fortuneData.analysis?.lucky_guide
-  if (!old) return undefined
-  return {
-    precision_level: 'legacy',
-    confidence: 50,
-    primary_element: old.favorable_elems?.[0] ?? '',
-    secondary_element: old.favorable_elems?.[1] ?? '',
-    avoid_element: old.unfavorable_elems?.[0] ?? '',
-    lucky_colors: old.colors ? [{ label: '幸运色', value: old.colors, reason: '按旧版喜用五行规则生成。' }] : [],
-    lucky_numbers: old.numbers ? [{ label: '幸运数', value: old.numbers, reason: '按旧版喜用五行规则生成。' }] : [],
-    face_direction: { label: '朝向', value: '', reason: '' },
-    wealth_direction: { label: '财位', value: fortuneData.wealth_direction ?? '', reason: '按流日天干财位生成。' },
-    avoid_direction: { label: '避开', value: '', reason: '' },
-    recommended_actions: old.actions ? [{ label: '动作', value: old.actions, reason: '按旧版开运动作生成。' }] : [],
-    cautions: [],
-    best_hours: (fortuneData.auspicious_hours ?? []).slice(0, 3).map(h => ({ label: '吉时', value: h, reason: '按流日地支取吉时。' })),
-    analysis: '',
-    strategy: old.outfit ? `穿搭建议：${old.outfit}` : '',
-  }
-}
-
-function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
-  return fortuneData.guide ?? legacyGuide(fortuneData)
-}
 </script>
 
 <template>
@@ -336,6 +307,9 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
       </div>
 
       <div class="fortune-nav">
+        <router-link :to="`/fortune/blessing?chart_id=${chartId}`" class="fortune-nav-link">
+          运势加持 →
+        </router-link>
         <router-link :to="`/fortune/weekly?chart_id=${chartId}`" class="fortune-nav-link">
           本周运势 →
         </router-link>
@@ -378,7 +352,7 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
 }
 @keyframes l-spin { to { transform: rotate(360deg); } }
 @keyframes l-pulse { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(1.6);opacity:0.8} }
-.loading-text { color: var(--text-soft); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; }
+.loading-text { color: var(--text-soft); font-size: var(--fs-2xs); letter-spacing: 5px; text-transform: uppercase; }
 
 /* ── Error ── */
 .error-state {
@@ -387,13 +361,13 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
   align-items: center; justify-content: center;
   min-height: 100vh; gap: 1.5rem;
 }
-.error-sigil { font-size: 4rem; color: var(--crimson); opacity: 0.5; }
-.error-text { color: var(--text-muted); font-size: 0.95rem; }
+.error-sigil { font-size: var(--fs-hero-strong); color: var(--crimson); opacity: 0.5; }
+.error-text { color: var(--text-muted); font-size: var(--fs-sm); }
 .retry-btn {
   padding: 0.7rem 2rem;
   background: var(--crimson);
   color: var(--destructive-foreground); border: none; border-radius: 8px;
-  font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  font-size: var(--fs-sm); font-weight: 700; cursor: pointer;
   box-shadow: 0 4px 20px color-mix(in oklab, var(--crimson) 30%, transparent);
   transition: all 0.3s;
 }
@@ -406,14 +380,14 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
   align-items: center; justify-content: center;
   min-height: 100vh; gap: 1.5rem;
 }
-.empty-sigil { font-size: 4rem; color: var(--text-soft); }
-.empty-title { color: var(--text-muted); font-size: 1.1rem; }
+.empty-sigil { font-size: var(--fs-hero-strong); color: var(--text-soft); }
+.empty-title { color: var(--text-muted); font-size: var(--fs-lg); }
 .go-chart-btn {
   padding: 0.8rem 2.5rem;
   background: var(--accent);
   color: var(--bg); font-weight: 800; border: none;
   border-radius: 50px; cursor: pointer; text-decoration: none;
-  font-size: 0.9rem; letter-spacing: 1px;
+  font-size: var(--fs-sm); letter-spacing: 1px;
   box-shadow: 0 4px 30px color-mix(in oklab, var(--accent) 40%, transparent);
   transition: all 0.3s;
 }
@@ -496,7 +470,7 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
 @keyframes glow-inner { 0%,100%{opacity:0.04} 50%{opacity:0.1} }
 .sphere-value {
   font-family: var(--font-serif);
-  font-size: 4rem; font-weight: 900;
+  font-size: var(--fs-hero-strong); font-weight: 900;
   color: var(--sc, #cbd5e1);
   line-height: 1; position: relative; z-index: 2;
   text-shadow: 0 0 60px var(--sg, var(--accent-glow)), 0 0 20px var(--sc, var(--accent));
@@ -504,7 +478,7 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
   letter-spacing: -2px;
 }
 .sphere-label {
-  font-size: 0.65rem; font-weight: 700;
+  font-size: var(--fs-2xs); font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 4px; text-transform: uppercase;
   position: relative; z-index: 2; margin-top: 2px;
@@ -514,7 +488,7 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
 .hero-text { flex: 1; }
 .hero-date-row { margin-bottom: 0.75rem; }
 .date-label {
-  font-size: 0.78rem; color: var(--text-muted);
+  font-size: var(--fs-xs); color: var(--text-muted);
   letter-spacing: 3px; text-transform: uppercase;
 }
 .hero-pillar-display {
@@ -524,22 +498,22 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
   border-bottom: 1px solid var(--line-subtle);
 }
 .pillar-prefix {
-  font-size: 0.78rem; color: var(--text-soft); letter-spacing: 2px;
+  font-size: var(--fs-xs); color: var(--text-soft); letter-spacing: 2px;
 }
 .pillar-value {
   font-family: var(--font-serif);
-  font-size: 2.5rem; font-weight: 900;
+  font-size: var(--fs-stat-lg); font-weight: 900;
   color: var(--accent); letter-spacing: 4px;
   text-shadow: 0 0 40px var(--accent-glow);
 }
 .hero-summary {
-  font-size: 0.88rem; color: var(--text-muted);
+  font-size: var(--fs-sm); color: var(--text-muted);
   line-height: 1.8; margin: 0 0 0.75rem;
   border-left: 2px solid var(--line-strong);
   padding-left: 0.75rem;
 }
 .hero-tip {
-  font-size: 0.8rem; color: var(--accent); font-weight: 600;
+  font-size: var(--fs-sm); color: var(--accent); font-weight: 600;
   margin: 0; opacity: 0.85;
 }
 
@@ -552,8 +526,8 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
   .hero-inner { flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
   .hero-panel { padding: 1.75rem 1.5rem; }
   .score-sphere { width: 140px; height: 140px; }
-  .sphere-value { font-size: 3rem; }
-  .pillar-value { font-size: 2rem; }
+  .sphere-value { font-size: var(--fs-hero); }
+  .pillar-value { font-size: var(--fs-stat); }
   .fortune-main { padding: 1.5rem 1rem 4rem; }
 }
 
@@ -567,7 +541,7 @@ function activeGuide(fortuneData: FortuneData): FortuneGuide | undefined {
 .fortune-nav-link {
   color: var(--accent);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   transition: all 0.2s;
 }

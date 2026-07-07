@@ -26,7 +26,7 @@ defineProps<Props>()
   gap: 6px;
   padding: 4px 10px 4px 8px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   border: 1px solid var(--line-subtle);
   background: var(--glass-bg);
