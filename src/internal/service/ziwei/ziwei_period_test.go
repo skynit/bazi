@@ -238,6 +238,57 @@ func TestDayun_Direction(t *testing.T) {
 	})
 }
 
+func TestDayun_DirectionUsesYearStemAndGender(t *testing.T) {
+	tests := []struct {
+		name     string
+		yearStem int
+		gender   string
+		want     bool
+	}{
+		{name: "阳男顺行", yearStem: StemIndex["甲"], gender: "男", want: true},
+		{name: "阴女顺行", yearStem: StemIndex["乙"], gender: "女", want: true},
+		{name: "阴男逆行", yearStem: StemIndex["乙"], gender: "男", want: false},
+		{name: "阳女逆行", yearStem: StemIndex["甲"], gender: "女", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isForwardByYearStem(tt.yearStem, tt.gender); got != tt.want {
+				t.Errorf("isForwardByYearStem(%d, %s) = %v, want %v", tt.yearStem, tt.gender, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDayun_GenderChangesPalaceDirection(t *testing.T) {
+	svc := NewZiWeiService()
+
+	maleChart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("male CalculateChart failed: %v", err)
+	}
+	femaleChart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "女")
+	if err != nil {
+		t.Fatalf("female CalculateChart failed: %v", err)
+	}
+
+	maleDayun := svc.CalculateDayun(maleChart)
+	femaleDayun := svc.CalculateDayun(femaleChart)
+	if len(maleDayun) < 2 || len(femaleDayun) < 2 {
+		t.Fatal("dayun must have at least 2 stages")
+	}
+
+	if maleDayun[0].Palace != "命宫" || femaleDayun[0].Palace != "命宫" {
+		t.Fatalf("first dayun should start from 命宫, got male=%s female=%s", maleDayun[0].Palace, femaleDayun[0].Palace)
+	}
+	if maleDayun[1].Palace != "兄弟" {
+		t.Errorf("癸年男命第二大限 = %s, want 兄弟", maleDayun[1].Palace)
+	}
+	if femaleDayun[1].Palace != "父母" {
+		t.Errorf("癸年女命第二大限 = %s, want 父母", femaleDayun[1].Palace)
+	}
+}
+
 // TestDayun_StarPresence verifies that dayun stages contain the stars
 // from their corresponding palaces.
 func TestDayun_StarPresence(t *testing.T) {

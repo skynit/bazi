@@ -576,8 +576,7 @@ func calcDayunFromChart(chart *ZiWeiChart) Dayun {
 		gender = chart.birthData.Gender
 	}
 
-	isMale := gender == "男" || gender == "MALE" || gender == "M"
-	forward := (BranchIsYang(chart.YearBranch) && isMale) || (!BranchIsYang(chart.YearBranch) && !isMale)
+	forward := isForwardByYearStem(chart.YearStem, gender)
 
 	// 大限起运年龄: 五行局值
 	juValue := chart.JuValue

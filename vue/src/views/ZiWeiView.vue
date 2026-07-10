@@ -3,7 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchChart, type ChartDetail } from '../api/chart'
 import { getApiErrorMessage } from '../api/client'
-import { fetchZiWeiChart, fetchZiWeiOverlay, fetchZiWeiPeriod, type ZiWeiOverlayAnalysis, type ZiWeiPeriodAnalysis } from '../api/ziwei'
+import {
+  fetchZiWeiChart,
+  fetchZiWeiOverlay,
+  fetchZiWeiPeriod,
+  type ZiWeiDayunStageAnalysis,
+  type ZiWeiOverlayAnalysis,
+  type ZiWeiPeriodAnalysis,
+} from '../api/ziwei'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
 import ZiWeiPeriodAnalysisPanel from '../components/ZiWeiPeriodAnalysisPanel.vue'
@@ -141,6 +148,7 @@ const dayunAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
 const liunianAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
 const liuyueAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
 const liuriAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
+const dayunStageList = computed<ZiWeiDayunStageAnalysis[]>(() => dayunAnalysis.value?.dayun_stages || [])
 
 const liunianOverlay = ref<LiunianChartData>()
 const availableYears = ref<number[]>([])
@@ -191,8 +199,11 @@ async function loadZiWeiChart() {
     const currentYear = new Date().getFullYear()
     availableYears.value = Array.from({length: 11}, (_, i) => currentYear - 5 + i)
 
-    // Load initial liunian overlay for the middle year (current year)
-    await loadOverlay(availableYears.value[5])
+    // Load initial liunian overlay and dayun labels for the base chart.
+    await Promise.all([
+      loadOverlay(availableYears.value[5]),
+      ensureDayunAnalysis(Number(chartId), true),
+    ])
   } catch (err: any) {
     if (err.response?.status === 404) {
       error.value = '该命盘不存在或已被删除，请重新创建。'
@@ -222,6 +233,20 @@ async function loadOverlay(year: number) {
   }
 }
 
+async function ensureDayunAnalysis(chartId: number, silent = false) {
+  if (dayunAnalysis.value) return
+  try {
+    const data = await fetchZiWeiPeriod({
+      chart_id: chartId,
+      period_type: 'dayun',
+    })
+    dayunAnalysis.value = data.analysis || null
+  } catch (err) {
+    if (!silent) throw err
+    console.warn('Failed to load dayun labels:', err)
+  }
+}
+
 // Tab switching with data loading
 async function switchTab(tab: string) {
   activeTab.value = tab
@@ -232,13 +257,7 @@ async function switchTab(tab: string) {
     const chartId = route.params.chartId
     switch (tab) {
       case 'dayun':
-        if (!dayunAnalysis.value) {
-          const data = await fetchZiWeiPeriod({
-            chart_id: Number(chartId),
-            period_type: 'dayun',
-          })
-          dayunAnalysis.value = data.analysis || null
-        }
+        await ensureDayunAnalysis(Number(chartId))
         break
       case 'liunian':
         {
@@ -510,6 +529,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
              earthly_branch_of_body_palace: chartData.earthly_branch_of_body_palace,
            }"
           :liunian-chart="liunianOverlay"
+          :dayun-stages="dayunStageList"
           :available-years="availableYears"
           :overlay-analysis="liunianOverlay.overlay_analysis"
           @year-change="onYearChange"

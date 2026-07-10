@@ -604,8 +604,7 @@ func dayunDirectionLabel(chart *ZiWeiChart) string {
 	if chart == nil || chart.GetBirthData() == nil {
 		return "未知"
 	}
-	isMale := chart.GetBirthData().Gender == "男"
-	forward := (BranchIsYang(chart.YearBranch) && isMale) || (!BranchIsYang(chart.YearBranch) && !isMale)
+	forward := isForwardByYearStem(chart.YearStem, chart.GetBirthData().Gender)
 	if forward {
 		return "顺行"
 	}

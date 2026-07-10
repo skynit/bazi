@@ -70,8 +70,8 @@ func CalculateZiWeiChart(birth *BirthData) (*ZiWeiChart, error) {
 	adjectiveStars := placeAdjectiveStars(birth)
 
 	// 8. Compute twelve shen systems
-	changSheng12 := placeChangSheng12(juValue, birth.YearBranch, birth.Gender)
-	boShi12 := placeBoShi12(birth.YearStem, birth.YearBranch, birth.Gender)
+	changSheng12 := placeChangSheng12(juValue, birth.YearStem, birth.Gender)
+	boShi12 := placeBoShi12(birth.YearStem, birth.Gender)
 	suiQian12, jiangQian12 := placeYearly12(birth.YearBranch)
 
 	// 9. Assemble chart
@@ -387,11 +387,11 @@ func placeAdjectiveStars(birth *BirthData) [12][]string {
 
 // ──────────── 8. Twelve Shen ────────────
 
-func placeChangSheng12(juValue, yearBranch int, gender string) [12]string {
+func placeChangSheng12(juValue, yearStem int, gender string) [12]string {
 	var result [12]string
 	startBranch := ChangshengStartBranch[juValue]
 
-	forward := isForwardByYearBranch(yearBranch, gender)
+	forward := isForwardByYearStem(yearStem, gender)
 
 	for i, name := range ChangSheng12 {
 		var idx int
@@ -405,12 +405,12 @@ func placeChangSheng12(juValue, yearBranch int, gender string) [12]string {
 	return result
 }
 
-func placeBoShi12(yearStem, yearBranch int, gender string) [12]string {
+func placeBoShi12(yearStem int, gender string) [12]string {
 	var result [12]string
 	// 博士12神 from 禄存 position, same direction as 长生
 	lucunIdx := LucunBranchIdx[yearStem]
 
-	forward := isForwardByYearBranch(yearBranch, gender)
+	forward := isForwardByYearStem(yearStem, gender)
 
 	for i, name := range BoShi12 {
 		var idx int
@@ -424,10 +424,12 @@ func placeBoShi12(yearStem, yearBranch int, gender string) [12]string {
 	return result
 }
 
-func isForwardByYearBranch(yearBranch int, gender string) bool {
+func isForwardByYearStem(yearStem int, gender string) bool {
+	// 大限、长生、博士方向取生年天干阴阳：阳男阴女顺，阴男阳女逆。
+	// 合法干支的天干地支阴阳一致，但用年干表达规则更直接。
 	isMale := gender == "男" || gender == "MALE" || gender == "M"
-	yearBranchIsYang := BranchIsYang(yearBranch)
-	return (yearBranchIsYang && isMale) || (!yearBranchIsYang && !isMale)
+	yearStemIsYang := StemIsYang(yearStem)
+	return (yearStemIsYang && isMale) || (!yearStemIsYang && !isMale)
 }
 
 func placeYearly12(yearBranch int) (suiQian [12]string, jiangQian [12]string) {

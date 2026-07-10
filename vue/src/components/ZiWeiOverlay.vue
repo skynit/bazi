@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type {
+  ZiWeiDayunStageAnalysis,
   ZiWeiOverlayAnalysis,
   ZiWeiOverlayFocusPalace,
   ZiWeiOverlayTrigger,
@@ -43,6 +44,7 @@ interface Props {
     overlay_analysis?: ZiWeiOverlayAnalysis
   }
   overlayAnalysis?: ZiWeiOverlayAnalysis
+  dayunStages?: ZiWeiDayunStageAnalysis[]
   availableYears: number[]
 }
 
@@ -185,6 +187,14 @@ const triggersByBranch = computed<Record<string, ZiWeiOverlayTrigger[]>>(() => {
 const fourHuaTargets = computed(() => list(analysis.value?.four_hua))
 const annualStarTargets = computed(() => list(analysis.value?.annual_stars))
 const focusPalaces = computed(() => list(analysis.value?.focus_palaces))
+const dayunLabelByBranch = computed<Record<string, string>>(() => {
+  const labels: Record<string, string> = {}
+  list(props.dayunStages).forEach((stage) => {
+    if (!stage.branch) return
+    labels[stage.branch] = `${stage.start_age} - ${stage.end_age}`
+  })
+  return labels
+})
 
 const overlaySideTabs = computed(() => [
   { key: 'four_hua' as const, label: '四化飞星', count: fourHuaTargets.value.length },
@@ -234,6 +244,10 @@ const svgLines = computed<{ from: { x: number; y: number }; to: { x: number; y: 
 
 function basePalaceAt(branch: string): PalaceData | undefined {
   return baseLookup.value[branch]
+}
+
+function dayunLabelAt(branch: string): string {
+  return dayunLabelByBranch.value[branch] || ''
 }
 
 function richStars(palace: PalaceData | undefined): StarInfo[] {
@@ -443,6 +457,10 @@ function overlaySummary(): string {
               </template>
               <span v-else class="zw-no-trigger">本年未重点触发</span>
             </div>
+
+            <span v-if="mode === 'base' && dayunLabelAt(branch)" class="zw-dayun-range">
+              {{ dayunLabelAt(branch) }}
+            </span>
           </button>
 
           <div class="zw-center" :class="{ 'zw-center-overlay': mode === 'overlay' }">
@@ -1005,6 +1023,22 @@ function overlaySummary(): string {
   border-radius: 2px;
 }
 
+.zw-dayun-range {
+  position: absolute;
+  right: 0.38rem;
+  bottom: 0.32rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.15rem;
+  color: var(--accent);
+  font-size: var(--fs-2xs);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .zw-trigger-strip {
   display: flex;
   flex-wrap: wrap;
@@ -1543,6 +1577,11 @@ function overlaySummary(): string {
   .zw-sihua-tag {
     font-size: var(--fs-2xs);
     padding-inline: 0.25rem;
+  }
+
+  .zw-dayun-range {
+    right: 0.24rem;
+    bottom: 0.24rem;
   }
 
   .zw-center {

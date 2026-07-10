@@ -276,7 +276,7 @@ func TestChart_MajorStarsMatchIztroFixture(t *testing.T) {
 	}
 }
 
-func TestStarBrightnessMapMatchesIztro(t *testing.T) {
+func TestStarBrightnessMap(t *testing.T) {
 	wantMain := map[string][12]string{
 		"紫微": {"平", "庙", "旺", "旺", "得", "旺", "庙", "庙", "旺", "旺", "得", "旺"},
 		"天机": {"庙", "陷", "得", "旺", "利", "平", "庙", "陷", "得", "旺", "利", "平"},
@@ -313,10 +313,45 @@ func TestStarBrightnessMapMatchesIztro(t *testing.T) {
 		}
 	}
 
-	for _, star := range []string{"左辅", "右弼", "天魁", "天钺", "禄存", "天马", "地空", "地劫"} {
-		if got := getStarBrightness(star, BranchIndex["酉"]); got != "" {
-			t.Errorf("%s has unsupported brightness %q, want empty", star, got)
+	wantExtendedAux := map[string][12]string{
+		"左辅": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
+		"右弼": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
+		"天魁": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
+		"天钺": {"旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺"},
+		"禄存": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
+		"天马": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
+		"地空": {"平", "陷", "陷", "平", "陷", "庙", "庙", "平", "庙", "庙", "陷", "陷"},
+		"地劫": {"陷", "陷", "平", "平", "陷", "平", "庙", "平", "庙", "平", "平", "旺"},
+	}
+	for star, want := range wantExtendedAux {
+		if got := AuxStarBrightnessMap[star]; got != want {
+			t.Errorf("extended AuxStarBrightnessMap[%s] = %v, want %v", star, got, want)
 		}
+	}
+
+	if got := getStarBrightness("左辅", BranchIndex["酉"]); got != "平" {
+		t.Errorf("左辅酉宫 brightness = %q, want 平", got)
+	}
+	if got := getStarBrightness("右弼", BranchIndex["酉"]); got != "平" {
+		t.Errorf("右弼酉宫 brightness = %q, want 平", got)
+	}
+	if got := getStarBrightness("天魁", BranchIndex["酉"]); got != "庙" {
+		t.Errorf("天魁酉宫 brightness = %q, want 庙", got)
+	}
+	if got := getStarBrightness("天钺", BranchIndex["酉"]); got != "旺" {
+		t.Errorf("天钺酉宫 brightness = %q, want 旺", got)
+	}
+	if got := getStarBrightness("禄存", BranchIndex["酉"]); got != "庙" {
+		t.Errorf("禄存酉宫 brightness = %q, want 庙", got)
+	}
+	if got := getStarBrightness("天马", BranchIndex["酉"]); got != "平" {
+		t.Errorf("天马酉宫 brightness = %q, want 平", got)
+	}
+	if got := getStarBrightness("地空", BranchIndex["巳"]); got != "庙" {
+		t.Errorf("地空巳宫 brightness = %q, want 庙", got)
+	}
+	if got := getStarBrightness("地劫", BranchIndex["亥"]); got != "旺" {
+		t.Errorf("地劫亥宫 brightness = %q, want 旺", got)
 	}
 }
 

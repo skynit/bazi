@@ -2677,7 +2677,7 @@ func ComputeAdjectiveStars(chart *ZiWeiChart) map[int][]string {
 }
 
 // ComputeTwelveShen computes all 4 twelve-shen systems for each palace.
-// Uses yearBranch and fiveElementClass from chart fields.
+// Uses yearStem and fiveElementClass from chart fields.
 // Direction rule: 阳男/阴女 = forward (+i), 阴男/阳女 = backward (-i)
 // Five element class derived from yearStem: 甲/乙→木, 丙/丁→火, 戊/己→土, 庚/辛→金, 壬/癸→水.
 func ComputeTwelveShen(chart *ZiWeiChart) [12]struct {
@@ -2694,13 +2694,8 @@ func ComputeTwelveShen(chart *ZiWeiChart) [12]struct {
 
 	yearBranchIdx := chart.YearBranch % 12
 	isMale := chart.birthData != nil && (chart.birthData.Gender == "男" || chart.birthData.Gender == "MALE")
-	yearBranchYang := yearBranchIdx % 2
-	genderYang := 1
-	if isMale {
-		genderYang = 0
-	}
 	direction := 1
-	if yearBranchYang != genderYang {
+	if !((StemIsYang(yearStem) && isMale) || (!StemIsYang(yearStem) && !isMale)) {
 		direction = -1 // 阴男/阳女 = backward
 	}
 

@@ -74,7 +74,7 @@ const brightnessMetaDark: Record<string, { bg: string; text: string; label: stri
 
 function starMeta(brightness: string) {
   const meta = isDark.value ? brightnessMetaDark : brightnessMetaLight
-  return meta[brightness] || meta['陷']
+  return meta[brightness] || { bg: 'var(--glass-bg)', text: 'var(--text-dim)', label: '' }
 }
 
 // Build branch → palace lookup
@@ -144,7 +144,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                     :title="star.brightness"
                   >
                     {{ star.name
-                    }}<span class="brightness-dot">{{ starMeta(star.brightness).label }}</span>
+                    }}<span v-if="star.brightness" class="brightness-dot">{{ starMeta(star.brightness).label }}</span>
                   </span>
                 </div>
                 <div v-if="auxStars(palaceAt(branch)!).length" class="aux-section">
@@ -186,7 +186,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                       color: starMeta(star.brightness).text,
                     }"
                     >{{ star.name
-                    }}<span class="brightness-dot">{{
+                    }}<span v-if="star.brightness" class="brightness-dot">{{
                       starMeta(star.brightness).label
                     }}</span></span
                   >
@@ -251,7 +251,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                       color: starMeta(star.brightness).text,
                     }"
                     >{{ star.name
-                    }}<span class="brightness-dot">{{
+                    }}<span v-if="star.brightness" class="brightness-dot">{{
                       starMeta(star.brightness).label
                     }}</span></span
                   >
@@ -295,7 +295,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                       color: starMeta(star.brightness).text,
                     }"
                     >{{ star.name
-                    }}<span class="brightness-dot">{{
+                    }}<span v-if="star.brightness" class="brightness-dot">{{
                       starMeta(star.brightness).label
                     }}</span></span
                   >
@@ -357,7 +357,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                       color: starMeta(star.brightness).text,
                     }"
                     >{{ star.name
-                    }}<span class="brightness-dot">{{
+                    }}<span v-if="star.brightness" class="brightness-dot">{{
                       starMeta(star.brightness).label
                     }}</span></span
                   >
@@ -406,7 +406,7 @@ function palaceAt(branch: string): PalaceData | undefined {
                       color: starMeta(star.brightness).text,
                     }"
                     >{{ star.name
-                    }}<span class="brightness-dot">{{
+                    }}<span v-if="star.brightness" class="brightness-dot">{{
                       starMeta(star.brightness).label
                     }}</span></span
                   >
