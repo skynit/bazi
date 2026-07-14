@@ -1,99 +1,286 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import type { FortuneGuide } from '../api/fortune'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import FortuneEvidencePanel from './FortuneEvidencePanel.vue'
+import InterpretationLevelSwitch from './InterpretationLevelSwitch.vue'
+import type {
+  FortuneGuide,
+  FortuneScoreBreakdown,
+  InterpretationLevel,
+  ScoreEvidence,
+} from '../api/fortune'
 
-interface ElementImage { element: string; image_url: string; description: string }
-interface ShengKeAnalysis { day_stem_relation?: string; day_branch_relation?: string; summary?: string }
-interface HiddenStemGod { stem: string; type: string; element: string; ten_god: string; favorable: boolean }
-interface StemRelation { type: string; target: string; detail: string; is_favorable: boolean; note?: string }
-interface BranchRelation { type: string; target: string; detail: string; is_favorable: boolean }
-interface ShenShaActivation { name: string; type: string; description: string; activation: string }
-interface DaYunInfluence { current_pillar: string; start_age: number; end_age: number; ten_god: string; favorable: boolean; relation: string; score: number; description: string }
-interface LiuNianInfluence { year_pillar: string; ten_god: string; favorable: boolean; relation: string; tai_sui_relation: string; score: number; description: string }
-interface AdvanceRetreat { phase: string; phase_desc: string; element: string; score: number; description: string }
-interface YongShenImpact { tiao_hou_element: string; tiao_hou_hit: boolean; tong_guan_element: string; tong_guan_hit: boolean; fu_yi_elements: string[]; fu_yi_hit: boolean; score: number; description: string }
-interface FortuneOverall { score?: number; base_score?: number; detail_score?: number; stars?: string; level?: string; summary?: string; key_tip?: string }
-interface FortuneCategory { name: string; score?: number; weight?: number; stars?: string; level?: string; trend?: string; keywords?: string[]; analysis?: string; advice?: string }
+interface ElementImage {
+  element: string
+  image_url: string
+  description: string
+}
+interface ShengKeAnalysis {
+  day_stem_relation?: string
+  day_branch_relation?: string
+  summary?: string
+}
+interface HiddenStemGod {
+  stem: string
+  type: string
+  element: string
+  ten_god: string
+  favorable: boolean
+}
+interface StemRelation {
+  type: string
+  target: string
+  detail: string
+  is_favorable: boolean
+  note?: string
+}
+interface BranchRelation {
+  type: string
+  target: string
+  detail: string
+  is_favorable: boolean
+}
+interface ShenShaActivation {
+  name: string
+  type: string
+  description: string
+  activation: string
+}
+interface DaYunInfluence {
+  current_pillar: string
+  start_age: number
+  end_age: number
+  ten_god: string
+  favorable: boolean
+  relation: string
+  score: number
+  description: string
+}
+interface LiuNianInfluence {
+  year_pillar: string
+  ten_god: string
+  favorable: boolean
+  relation: string
+  tai_sui_relation: string
+  score: number
+  description: string
+}
+interface AdvanceRetreat {
+  phase: string
+  phase_desc: string
+  element: string
+  score: number
+  description: string
+}
+interface YongShenImpact {
+  tiao_hou_element: string
+  tiao_hou_hit: boolean
+  tong_guan_element: string
+  tong_guan_hit: boolean
+  fu_yi_elements: string[]
+  fu_yi_hit: boolean
+  score: number
+  description: string
+}
+interface FortuneOverall {
+  score?: number
+  base_score?: number
+  detail_score?: number
+  stars?: string
+  level?: string
+  summary?: string
+  key_tip?: string
+}
+interface FortuneCategory {
+  name: string
+  score?: number
+  weight?: number
+  stars?: string
+  level?: string
+  trend?: string
+  keywords?: string[]
+  analysis?: string
+  advice?: string
+}
 
 interface Props {
-  solarDate: string; dayGanZhi: string; weekDay?: string; lunarDate?: string
-  shengXiao?: string; yiJi?: string; chongSha?: string; elementImages?: ElementImage[]
-  luckyColor?: string; luckyNumber?: number; wealthDir?: string
+  solarDate: string
+  dayGanZhi: string
+  weekDay?: string
+  lunarDate?: string
+  shengXiao?: string
+  yiJi?: string
+  chongSha?: string
+  elementImages?: ElementImage[]
+  luckyColor?: string
+  luckyNumber?: number
+  wealthDir?: string
   fortuneGuide?: FortuneGuide
-  fortuneScore?: number; fortuneOverall?: FortuneOverall; fortuneCategories?: FortuneCategory[]
-  auspiciousHours?: string[]; todayElements?: Record<string, number>
+  fortuneScore?: number
+  fortuneOverall?: FortuneOverall
+  fortuneCategories?: FortuneCategory[]
+  scoreBreakdown?: FortuneScoreBreakdown
+  evidenceCompleteness?: number
+  supportingEvidence?: ScoreEvidence[]
+  counterEvidence?: ScoreEvidence[]
+  engineVersion?: string
+  ruleVersion?: string
+  auspiciousHours?: string[]
+  todayElements?: Record<string, number>
   tiaoHou?: string
   // 黄历字段
-  jiShen?: string; xiongShen?: string; taiShen?: string
-  pengZu?: string; gua?: string; jieQi?: string
+  jiShen?: string
+  xiongShen?: string
+  taiShen?: string
+  pengZu?: string
+  gua?: string
+  jieQi?: string
   // 分析字段
-  shengKeAnalysis?: ShengKeAnalysis; flowImpact?: string; seasonElementAdvice?: string
+  shengKeAnalysis?: ShengKeAnalysis
+  flowImpact?: string
+  seasonElementAdvice?: string
   // 日课推算
-  todayTenGod?: string; tenGodFavorable?: boolean; tenGodDesc?: string
-  twelveStage?: string; stageFavorable?: boolean; stageDesc?: string; stageFlexible?: string
+  todayTenGod?: string
+  tenGodFavorable?: boolean
+  tenGodDesc?: string
+  twelveStage?: string
+  stageFavorable?: boolean
+  stageDesc?: string
+  stageFlexible?: string
   hiddenStems?: HiddenStemGod[]
-  stemRelations?: StemRelation[]; branchRelations?: BranchRelation[]
+  stemRelations?: StemRelation[]
+  branchRelations?: BranchRelation[]
   activatedShenSha?: ShenShaActivation[]
-  dayunInfluence?: DaYunInfluence; liunianInfluence?: LiuNianInfluence
-  advanceRetreat?: AdvanceRetreat; yongshenImpact?: YongShenImpact
-  overallVerdict?: string; favorScore?: number
-  patternName?: string; patternType?: string
-  patternFavorable?: string[]; patternUnfavorable?: string[]
+  dayunInfluence?: DaYunInfluence
+  liunianInfluence?: LiuNianInfluence
+  advanceRetreat?: AdvanceRetreat
+  yongshenImpact?: YongShenImpact
+  overallVerdict?: string
+  favorScore?: number
+  patternName?: string
+  patternType?: string
+  patternFavorable?: string[]
+  patternUnfavorable?: string[]
 }
 const props = withDefaults(defineProps<Props>(), {
-  weekDay: '', lunarDate: '', shengXiao: '', yiJi: '',
-  chongSha: '', elementImages: () => [],
-  luckyColor: '', luckyNumber: 0, wealthDir: '', auspiciousHours: () => [], todayElements: () => ({}),
+  weekDay: '',
+  lunarDate: '',
+  shengXiao: '',
+  yiJi: '',
+  chongSha: '',
+  elementImages: () => [],
+  luckyColor: '',
+  luckyNumber: 0,
+  wealthDir: '',
+  auspiciousHours: () => [],
+  todayElements: () => ({}),
   fortuneGuide: undefined,
-  fortuneScore: 0, fortuneOverall: undefined, fortuneCategories: () => [],
+  fortuneScore: 0,
+  fortuneOverall: undefined,
+  fortuneCategories: () => [],
+  scoreBreakdown: undefined,
+  evidenceCompleteness: 0,
+  supportingEvidence: () => [],
+  counterEvidence: () => [],
+  engineVersion: '',
+  ruleVersion: '',
   tiaoHou: '',
-  jiShen: '', xiongShen: '', taiShen: '',
-  pengZu: '', gua: '', jieQi: '',
-  shengKeAnalysis: undefined, flowImpact: '', seasonElementAdvice: '',
+  jiShen: '',
+  xiongShen: '',
+  taiShen: '',
+  pengZu: '',
+  gua: '',
+  jieQi: '',
+  shengKeAnalysis: undefined,
+  flowImpact: '',
+  seasonElementAdvice: '',
   // 日课推算
-  todayTenGod: '', tenGodFavorable: false, tenGodDesc: '',
-  twelveStage: '', stageFavorable: false, stageDesc: '', stageFlexible: '',
+  todayTenGod: '',
+  tenGodFavorable: false,
+  tenGodDesc: '',
+  twelveStage: '',
+  stageFavorable: false,
+  stageDesc: '',
+  stageFlexible: '',
   hiddenStems: () => [],
-  stemRelations: () => [], branchRelations: () => [],
+  stemRelations: () => [],
+  branchRelations: () => [],
   activatedShenSha: () => [],
-  dayunInfluence: undefined, liunianInfluence: undefined,
-  advanceRetreat: undefined, yongshenImpact: undefined,
-  overallVerdict: '', favorScore: 0,
-  patternName: '', patternType: '',
-  patternFavorable: () => [], patternUnfavorable: () => [],
+  dayunInfluence: undefined,
+  liunianInfluence: undefined,
+  advanceRetreat: undefined,
+  yongshenImpact: undefined,
+  overallVerdict: '',
+  favorScore: 0,
+  patternName: '',
+  patternType: '',
+  patternFavorable: () => [],
+  patternUnfavorable: () => [],
 })
 const showAiModal = ref(false)
 const activeTab = ref('overview')
+const savedLevel = localStorage.getItem('fortune-interpretation-level')
+const interpretationLevel = ref<InterpretationLevel>(
+  savedLevel === 'advanced' || savedLevel === 'professional' ? savedLevel : 'basic',
+)
 const isDark = ref(document.documentElement.classList.contains('dark'))
 let themeObserver: MutationObserver | null = null
 onMounted(() => {
   themeObserver = new MutationObserver(() => {
     isDark.value = document.documentElement.classList.contains('dark')
   })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-wuxing'] })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-wuxing'],
+  })
 })
-onUnmounted(() => { themeObserver?.disconnect() })
-const dfTabs = [
-  { key: 'overview', label: '今日概览' },
-  { key: 'almanac', label: '黄历' },
-  { key: 'analysis', label: '运势分析' },
-  { key: 'rikuyo', label: '日课推算' },
-  { key: 'elements', label: '五行吉时' },
+onUnmounted(() => {
+  themeObserver?.disconnect()
+})
+const allDfTabs = [
+  { key: 'overview', label: '今日概览', minimum: 'basic' },
+  { key: 'almanac', label: '黄历', minimum: 'basic' },
+  { key: 'analysis', label: '运势分析', minimum: 'advanced' },
+  { key: 'elements', label: '五行吉时', minimum: 'advanced' },
+  { key: 'rikuyo', label: '日课推算', minimum: 'professional' },
 ]
+const levelRank: Record<InterpretationLevel, number> = { basic: 0, advanced: 1, professional: 2 }
+const dfTabs = computed(() =>
+  allDfTabs.filter(
+    (tab) => levelRank[interpretationLevel.value] >= levelRank[tab.minimum as InterpretationLevel],
+  ),
+)
+watch(interpretationLevel, (level) => {
+  localStorage.setItem('fortune-interpretation-level', level)
+  if (!dfTabs.value.some((tab) => tab.key === activeTab.value)) activeTab.value = 'overview'
+})
 const elementEntries = computed(() => {
-  if (isDark.value) return [['金', '#cbd5e1'], ['木', '#34d399'], ['水', '#22d3ee'], ['火', '#fb7185'], ['土', '#fde68a']] as [string, string][]
-  return [['金', '#94a3b8'], ['木', '#16a34a'], ['水', '#0891b2'], ['火', '#dc2626'], ['土', '#a16207']] as [string, string][]
+  if (isDark.value)
+    return [
+      ['金', '#cbd5e1'],
+      ['木', '#34d399'],
+      ['水', '#22d3ee'],
+      ['火', '#fb7185'],
+      ['土', '#fde68a'],
+    ] as [string, string][]
+  return [
+    ['金', '#94a3b8'],
+    ['木', '#16a34a'],
+    ['水', '#0891b2'],
+    ['火', '#dc2626'],
+    ['土', '#a16207'],
+  ] as [string, string][]
 })
 function elPct(el: string) {
-  const n = props.todayElements || {}, t = Object.values(n).reduce((s, v) => s + v, 0)
+  const n = props.todayElements || {},
+    t = Object.values(n).reduce((s, v) => s + v, 0)
   return t ? Math.round(((n[el] || 0) / t) * 100) : 0
 }
 
-function guideConfidenceLabel(confidence?: number) {
-  if (!confidence) return ''
-  if (confidence >= 80) return '高置信'
-  if (confidence >= 65) return '中高置信'
-  return '参考'
+function guideEvidenceCompletenessLabel(value?: number) {
+  if (!value) return ''
+  if (value >= 80) return '依据较完整'
+  if (value >= 65) return '依据基本完整'
+  return '依据有限'
 }
 
 function guidePrecisionLabel(level?: string) {
@@ -103,7 +290,7 @@ function guidePrecisionLabel(level?: string) {
 }
 
 function scoreWord(score: number) {
-  if (score >= 85) return '大吉'
+  if (score >= 85) return '顺势明显'
   if (score >= 70) return '良好'
   if (score >= 55) return '平稳'
   if (score >= 40) return '欠佳'
@@ -132,11 +319,12 @@ function trendLabel(trend?: string) {
 
 <template>
   <div class="daily-fortune">
-
     <!-- Date + Pillar -->
     <div class="df-header glass-card">
       <div class="df-date-col">
-        <p class="df-solar">{{ solarDate }}<span v-if="weekDay" class="df-weekday">{{ weekDay }}</span></p>
+        <p class="df-solar">
+          {{ solarDate }}<span v-if="weekDay" class="df-weekday">{{ weekDay }}</span>
+        </p>
         <p v-if="lunarDate" class="df-lunar">{{ lunarDate }}</p>
       </div>
       <div class="df-pillar-col">
@@ -146,10 +334,19 @@ function trendLabel(trend?: string) {
       </div>
     </div>
 
+    <InterpretationLevelSwitch v-model="interpretationLevel" class="df-level-switch" />
+
     <!-- Tab navigation -->
     <div class="df-tabs">
-      <button v-for="tab in dfTabs" :key="tab.key" class="df-tab-btn" :class="{ active: activeTab === tab.key }"
-        @click="activeTab = tab.key">{{ tab.label }}</button>
+      <button
+        v-for="tab in dfTabs"
+        :key="tab.key"
+        class="df-tab-btn"
+        :class="{ active: activeTab === tab.key }"
+        @click="activeTab = tab.key"
+      >
+        {{ tab.label }}
+      </button>
     </div>
 
     <!-- ═══ Tab: 今日概览 ═══ -->
@@ -157,13 +354,21 @@ function trendLabel(trend?: string) {
       <div v-if="fortuneGuide" class="df-guide glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z" stroke="currentColor"
-              stroke-width="1" opacity="0.5" />
+            <path
+              d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.5"
+            />
           </svg>
           <span class="df-sec-title">今日概览</span>
-          <span class="guide-precision">{{ guidePrecisionLabel(fortuneGuide.precision_level) }}</span>
-          <span v-if="fortuneGuide.confidence" class="guide-confidence">{{ guideConfidenceLabel(fortuneGuide.confidence)
-            }} · {{ fortuneGuide.confidence }}%</span>
+          <span class="guide-precision">{{
+            guidePrecisionLabel(fortuneGuide.precision_level)
+          }}</span>
+          <span v-if="fortuneGuide.evidence_completeness" class="guide-confidence"
+            >{{ guideEvidenceCompletenessLabel(fortuneGuide.evidence_completeness) }} ·
+            规则证据完整度 {{ fortuneGuide.evidence_completeness }}%</span
+          >
         </div>
 
         <div class="guide-hero">
@@ -180,14 +385,19 @@ function trendLabel(trend?: string) {
             <div class="guide-item" v-if="fortuneGuide.lucky_colors?.[0]?.value">
               <span class="guide-label">幸运色</span>
               <span class="guide-value">
-                <span class="color-swatch" :style="{ background: fortuneGuide.lucky_colors?.[0]?.value }"></span>
+                <span
+                  class="color-swatch"
+                  :style="{ background: fortuneGuide.lucky_colors?.[0]?.value }"
+                ></span>
                 {{ fortuneGuide.lucky_colors?.[0]?.value }}
               </span>
               <small class="guide-reason">{{ fortuneGuide.lucky_colors?.[0]?.reason }}</small>
             </div>
             <div class="guide-item" v-if="fortuneGuide.lucky_numbers?.[0]?.value">
               <span class="guide-label">幸运数字</span>
-              <span class="guide-value guide-value-xl">{{ fortuneGuide.lucky_numbers?.[0]?.value }}</span>
+              <span class="guide-value guide-value-xl">{{
+                fortuneGuide.lucky_numbers?.[0]?.value
+              }}</span>
               <small class="guide-reason">{{ fortuneGuide.lucky_numbers?.[0]?.reason }}</small>
             </div>
             <div class="guide-item" v-if="fortuneGuide.wealth_direction?.value">
@@ -212,15 +422,21 @@ function trendLabel(trend?: string) {
               </div>
               <span class="guide-list-count">{{ fortuneGuide.recommended_actions.length }} 项</span>
             </div>
-            <article v-for="item in fortuneGuide.recommended_actions.slice(0, 3)"
-              :key="`action-${item.label}-${item.value}`" class="guide-mini">
+            <article
+              v-for="item in fortuneGuide.recommended_actions.slice(0, 3)"
+              :key="`action-${item.label}-${item.value}`"
+              class="guide-mini"
+            >
               <div class="guide-mini-top">
                 <span class="guide-mini-label">{{ item.category || item.label }}</span>
                 <strong>{{ item.value }}</strong>
                 <span v-if="item.intensity" class="guide-intensity">{{ item.intensity }}</span>
               </div>
               <small class="guide-mini-reason">{{ item.reason }}</small>
-              <details v-if="item.timing || item.source || item.impact || item.method" class="guide-more">
+              <details
+                v-if="item.timing || item.source || item.impact || item.method"
+                class="guide-more"
+              >
                 <summary>依据</summary>
                 <div class="guide-detail-row">
                   <span v-if="item.timing">{{ item.timing }}</span>
@@ -233,8 +449,11 @@ function trendLabel(trend?: string) {
             <details v-if="fortuneGuide.recommended_actions.length > 3" class="guide-extra">
               <summary>展开其余 {{ fortuneGuide.recommended_actions.length - 3 }} 项</summary>
               <div class="guide-extra-list">
-                <article v-for="item in fortuneGuide.recommended_actions.slice(3)"
-                  :key="`action-extra-${item.label}-${item.value}`" class="guide-mini guide-mini-secondary">
+                <article
+                  v-for="item in fortuneGuide.recommended_actions.slice(3)"
+                  :key="`action-extra-${item.label}-${item.value}`"
+                  class="guide-mini guide-mini-secondary"
+                >
                   <div class="guide-mini-top">
                     <span class="guide-mini-label">{{ item.category || item.label }}</span>
                     <strong>{{ item.value }}</strong>
@@ -253,15 +472,21 @@ function trendLabel(trend?: string) {
               </div>
               <span class="guide-list-count warn">{{ fortuneGuide.cautions.length }} 项</span>
             </div>
-            <article v-for="item in fortuneGuide.cautions.slice(0, 3)" :key="`caution-${item.label}-${item.value}`"
-              class="guide-mini warn">
+            <article
+              v-for="item in fortuneGuide.cautions.slice(0, 3)"
+              :key="`caution-${item.label}-${item.value}`"
+              class="guide-mini warn"
+            >
               <div class="guide-mini-top">
                 <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
                 <strong>{{ item.value }}</strong>
                 <span v-if="item.intensity" class="guide-intensity warn">{{ item.intensity }}</span>
               </div>
               <small class="guide-mini-reason">{{ item.reason }}</small>
-              <details v-if="item.timing || item.source || item.impact || item.method" class="guide-more warn">
+              <details
+                v-if="item.timing || item.source || item.impact || item.method"
+                class="guide-more warn"
+              >
                 <summary>依据</summary>
                 <div class="guide-detail-row warn">
                   <span v-if="item.timing">{{ item.timing }}</span>
@@ -274,12 +499,17 @@ function trendLabel(trend?: string) {
             <details v-if="fortuneGuide.cautions.length > 3" class="guide-extra warn">
               <summary>展开其余 {{ fortuneGuide.cautions.length - 3 }} 项</summary>
               <div class="guide-extra-list">
-                <article v-for="item in fortuneGuide.cautions.slice(3)"
-                  :key="`caution-extra-${item.label}-${item.value}`" class="guide-mini warn guide-mini-secondary">
+                <article
+                  v-for="item in fortuneGuide.cautions.slice(3)"
+                  :key="`caution-extra-${item.label}-${item.value}`"
+                  class="guide-mini warn guide-mini-secondary"
+                >
                   <div class="guide-mini-top">
                     <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
                     <strong>{{ item.value }}</strong>
-                    <span v-if="item.intensity" class="guide-intensity warn">{{ item.intensity }}</span>
+                    <span v-if="item.intensity" class="guide-intensity warn">{{
+                      item.intensity
+                    }}</span>
                   </div>
                   <small class="guide-mini-reason">{{ item.reason }}</small>
                 </article>
@@ -290,8 +520,11 @@ function trendLabel(trend?: string) {
 
         <div class="guide-footer">
           <div v-if="fortuneGuide.best_hours?.length" class="guide-hours">
-            <span v-for="item in fortuneGuide.best_hours.slice(0, 4)" :key="`hour-${item.label}-${item.value}`">{{
-              item.value }}</span>
+            <span
+              v-for="item in fortuneGuide.best_hours.slice(0, 4)"
+              :key="`hour-${item.label}-${item.value}`"
+              >{{ item.value }}</span
+            >
           </div>
           <details v-if="fortuneGuide.analysis" class="guide-note">
             <summary>取用逻辑</summary>
@@ -303,26 +536,79 @@ function trendLabel(trend?: string) {
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1" opacity="0.35" />
-            <path d="M7 4v3.4l2 1.2" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45" />
+            <path
+              d="M7 4v3.4l2 1.2"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              opacity="0.45"
+            />
           </svg>
           <span class="df-sec-title">今日概览</span>
         </div>
         <p>开运指南暂未生成，请稍后刷新今日运势。</p>
       </div>
-    </div><!-- /overview tab -->
+
+      <FortuneEvidencePanel
+        :level="interpretationLevel"
+        :completeness="evidenceCompleteness"
+        :supporting="supportingEvidence"
+        :counter="counterEvidence"
+        :breakdown="scoreBreakdown"
+        :engine-version="engineVersion"
+        :rule-version="ruleVersion"
+      />
+    </div>
+    <!-- /overview tab -->
 
     <!-- ═══ Tab: 黄历 ═══ -->
     <div v-show="activeTab === 'almanac'" class="df-tab-content">
       <!-- 黄历信息 -->
-      <div v-if="jiShen || xiongShen || taiShen || pengZu || gua || jieQi" class="df-almanac glass-card">
+      <div
+        v-if="jiShen || xiongShen || taiShen || pengZu || gua || jieQi"
+        class="df-almanac glass-card"
+      >
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="2" y="3" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1" opacity="0.4" />
-            <line x1="2" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
-            <line x1="5" y1="1" x2="5" y2="4" stroke="currentColor" stroke-width="1" stroke-linecap="round"
-              opacity="0.4" />
-            <line x1="9" y1="1" x2="9" y2="4" stroke="currentColor" stroke-width="1" stroke-linecap="round"
-              opacity="0.4" />
+            <rect
+              x="2"
+              y="3"
+              width="10"
+              height="9"
+              rx="1.5"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.4"
+            />
+            <line
+              x1="2"
+              y1="6"
+              x2="12"
+              y2="6"
+              stroke="currentColor"
+              stroke-width="0.8"
+              opacity="0.3"
+            />
+            <line
+              x1="5"
+              y1="1"
+              x2="5"
+              y2="4"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              opacity="0.4"
+            />
+            <line
+              x1="9"
+              y1="1"
+              x2="9"
+              y2="4"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              opacity="0.4"
+            />
           </svg>
           <span class="df-sec-title">黄历</span>
         </div>
@@ -353,16 +639,26 @@ function trendLabel(trend?: string) {
           </div>
         </div>
       </div>
-    </div><!-- /almanac tab -->
+    </div>
+    <!-- /almanac tab -->
 
     <!-- ═══ Tab: 运势分析 ═══ -->
     <div v-show="activeTab === 'analysis'" class="df-tab-content">
       <!-- 生克分析 -->
-      <div v-if="shengKeAnalysis?.summary || flowImpact || seasonElementAdvice" class="df-analysis glass-card">
+      <div
+        v-if="shengKeAnalysis?.summary || flowImpact || seasonElementAdvice"
+        class="df-analysis glass-card"
+      >
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
-            <path d="M5 7h4M7 5v4" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5" />
+            <path
+              d="M5 7h4M7 5v4"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              opacity="0.5"
+            />
           </svg>
           <span class="df-sec-title">运势分析</span>
         </div>
@@ -389,7 +685,8 @@ function trendLabel(trend?: string) {
           </div>
         </div>
       </div>
-    </div><!-- /analysis tab -->
+    </div>
+    <!-- /analysis tab -->
 
     <!-- ═══ Tab: 日课推算 ═══ -->
     <div v-show="activeTab === 'rikuyo'" class="df-tab-content">
@@ -399,12 +696,20 @@ function trendLabel(trend?: string) {
       <div v-if="overallVerdict" class="df-rikuyo-verdict glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z" stroke="currentColor"
-              stroke-width="1" opacity="0.5" />
+            <path
+              d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.5"
+            />
           </svg>
           <span class="df-sec-title">日课推算</span>
-          <span v-if="favorScore" class="rikuyo-score-badge"
-            :style="{ '--score-t': Math.max(0, Math.min(1, favorScore / 100)) }">{{ favorScore }}分</span>
+          <span
+            v-if="favorScore"
+            class="rikuyo-score-badge"
+            :style="{ '--score-t': Math.max(0, Math.min(1, favorScore / 100)) }"
+            >{{ favorScore }}分</span
+          >
         </div>
         <p class="rikuyo-verdict-text">{{ overallVerdict }}</p>
       </div>
@@ -420,9 +725,12 @@ function trendLabel(trend?: string) {
           <span class="pattern-badge">{{ patternName }}</span>
         </div>
         <div class="pattern-elements">
-          <span v-if="patternFavorable?.length" class="pattern-tag pattern-like">喜{{ patternFavorable.join('') }}</span>
-          <span v-if="patternUnfavorable?.length" class="pattern-tag pattern-dislike">忌{{ patternUnfavorable.join('')
-            }}</span>
+          <span v-if="patternFavorable?.length" class="pattern-tag pattern-like"
+            >喜{{ patternFavorable.join('') }}</span
+          >
+          <span v-if="patternUnfavorable?.length" class="pattern-tag pattern-dislike"
+            >忌{{ patternUnfavorable.join('') }}</span
+          >
         </div>
       </div>
 
@@ -432,15 +740,21 @@ function trendLabel(trend?: string) {
           <!-- 十神 -->
           <div v-if="todayTenGod" class="rikuyo-core-item">
             <span class="rikuyo-core-label">今日十神</span>
-            <span class="rikuyo-core-value" :class="{ 'val-fav': tenGodFavorable, 'val-dis': !tenGodFavorable }">{{
-              todayTenGod }}</span>
+            <span
+              class="rikuyo-core-value"
+              :class="{ 'val-fav': tenGodFavorable, 'val-dis': !tenGodFavorable }"
+              >{{ todayTenGod }}</span
+            >
             <span v-if="tenGodDesc" class="rikuyo-core-desc">{{ tenGodDesc }}</span>
           </div>
           <!-- 十二长生 -->
           <div v-if="twelveStage" class="rikuyo-core-item">
             <span class="rikuyo-core-label">十二长生</span>
-            <span class="rikuyo-core-value" :class="{ 'val-fav': stageFavorable, 'val-dis': !stageFavorable }">{{
-              twelveStage }}</span>
+            <span
+              class="rikuyo-core-value"
+              :class="{ 'val-fav': stageFavorable, 'val-dis': !stageFavorable }"
+              >{{ twelveStage }}</span
+            >
             <span v-if="stageDesc" class="rikuyo-core-desc">{{ stageDesc }}</span>
             <span v-if="stageFlexible" class="rikuyo-flexible">{{ stageFlexible }}</span>
           </div>
@@ -451,13 +765,34 @@ function trendLabel(trend?: string) {
       <div v-if="advanceRetreat" class="df-rikuyo-advance glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2 12L7 2L12 12" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4" />
-            <line x1="4" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
+            <path
+              d="M2 12L7 2L12 12"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              opacity="0.4"
+            />
+            <line
+              x1="4"
+              y1="8"
+              x2="10"
+              y2="8"
+              stroke="currentColor"
+              stroke-width="0.8"
+              opacity="0.3"
+            />
           </svg>
           <span class="df-sec-title">进退气</span>
-          <span class="rikuyo-phase-tag"
-            :class="{ 'phase-adv': advanceRetreat.phase === '进气', 'phase-peak': advanceRetreat.phase === '当令', 'phase-ret': advanceRetreat.phase === '退气', 'phase-dead': advanceRetreat.phase === '无气' || advanceRetreat.phase === '死' }">{{
-              advanceRetreat.phase }}</span>
+          <span
+            class="rikuyo-phase-tag"
+            :class="{
+              'phase-adv': advanceRetreat.phase === '进气',
+              'phase-peak': advanceRetreat.phase === '当令',
+              'phase-ret': advanceRetreat.phase === '退气',
+              'phase-dead': advanceRetreat.phase === '无气' || advanceRetreat.phase === '死',
+            }"
+            >{{ advanceRetreat.phase }}</span
+          >
         </div>
         <p class="rikuyo-advance-text">{{ advanceRetreat.description }}</p>
       </div>
@@ -466,14 +801,36 @@ function trendLabel(trend?: string) {
       <div v-if="hiddenStems?.length" class="df-rikuyo-hidden glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
-            <rect x="4.5" y="4.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="0.6" opacity="0.2" />
+            <rect
+              x="2"
+              y="2"
+              width="10"
+              height="10"
+              rx="2"
+              stroke="currentColor"
+              stroke-width="0.8"
+              opacity="0.3"
+            />
+            <rect
+              x="4.5"
+              y="4.5"
+              width="5"
+              height="5"
+              rx="1"
+              stroke="currentColor"
+              stroke-width="0.6"
+              opacity="0.2"
+            />
           </svg>
           <span class="df-sec-title">地支藏干</span>
         </div>
         <div class="hidden-stems-grid">
-          <div v-for="hs in hiddenStems" :key="hs.stem + hs.type" class="hidden-stem-card"
-            :class="{ 'hs-fav': hs.favorable, 'hs-dis': !hs.favorable }">
+          <div
+            v-for="hs in hiddenStems"
+            :key="hs.stem + hs.type"
+            class="hidden-stem-card"
+            :class="{ 'hs-fav': hs.favorable, 'hs-dis': !hs.favorable }"
+          >
             <span class="hs-stem">{{ hs.stem }}</span>
             <span class="hs-type">{{ hs.type }}</span>
             <span class="hs-god">{{ hs.ten_god }}</span>
@@ -483,24 +840,43 @@ function trendLabel(trend?: string) {
       </div>
 
       <!-- 干支关系 -->
-      <div v-if="stemRelations?.length || branchRelations?.length" class="df-rikuyo-relations glass-card">
+      <div
+        v-if="stemRelations?.length || branchRelations?.length"
+        class="df-rikuyo-relations glass-card"
+      >
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="4" cy="7" r="2.5" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
             <circle cx="10" cy="7" r="2.5" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
-            <line x1="6.5" y1="7" x2="7.5" y2="7" stroke="currentColor" stroke-width="1" opacity="0.4" />
+            <line
+              x1="6.5"
+              y1="7"
+              x2="7.5"
+              y2="7"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.4"
+            />
           </svg>
           <span class="df-sec-title">干支关系</span>
         </div>
         <div class="relations-list">
-          <div v-for="(sr, i) in stemRelations" :key="'sr' + i" class="relation-item"
-            :class="{ 'rel-fav': sr.is_favorable, 'rel-dis': !sr.is_favorable }">
+          <div
+            v-for="(sr, i) in stemRelations"
+            :key="'sr' + i"
+            class="relation-item"
+            :class="{ 'rel-fav': sr.is_favorable, 'rel-dis': !sr.is_favorable }"
+          >
             <span class="rel-type-tag">{{ sr.type }}</span>
             <span class="rel-detail">{{ sr.detail }}</span>
             <span v-if="sr.note" class="rel-note">{{ sr.note }}</span>
           </div>
-          <div v-for="(br, i) in branchRelations" :key="'br' + i" class="relation-item"
-            :class="{ 'rel-fav': br.is_favorable, 'rel-dis': !br.is_favorable }">
+          <div
+            v-for="(br, i) in branchRelations"
+            :key="'br' + i"
+            class="relation-item"
+            :class="{ 'rel-fav': br.is_favorable, 'rel-dis': !br.is_favorable }"
+          >
             <span class="rel-type-tag">{{ br.type }}</span>
             <span class="rel-detail">{{ br.detail }}</span>
           </div>
@@ -511,14 +887,22 @@ function trendLabel(trend?: string) {
       <div v-if="activatedShenSha?.length" class="df-rikuyo-shensha glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 1l1.5 3 3.5.5-2.5 2.5.6 3.5L7 9l-3.1 1.5.6-3.5L2 4.5l3.5-.5L7 1z" stroke="currentColor"
-              stroke-width="0.8" opacity="0.4" />
+            <path
+              d="M7 1l1.5 3 3.5.5-2.5 2.5.6 3.5L7 9l-3.1 1.5.6-3.5L2 4.5l3.5-.5L7 1z"
+              stroke="currentColor"
+              stroke-width="0.8"
+              opacity="0.4"
+            />
           </svg>
           <span class="df-sec-title">神煞引动</span>
         </div>
         <div class="shensha-list">
-          <div v-for="ss in activatedShenSha" :key="ss.name" class="shensha-item"
-            :class="{ 'ss-ji': ss.type === '吉神', 'ss-xiong': ss.type !== '吉神' }">
+          <div
+            v-for="ss in activatedShenSha"
+            :key="ss.name"
+            class="shensha-item"
+            :class="{ 'ss-ji': ss.type === '吉神', 'ss-xiong': ss.type !== '吉神' }"
+          >
             <span class="ss-name">{{ ss.name }}</span>
             <span class="ss-type-tag">{{ ss.type }}</span>
             <p class="ss-desc">{{ ss.description }}</p>
@@ -540,19 +924,30 @@ function trendLabel(trend?: string) {
           <div v-if="dayunInfluence" class="yun-item">
             <span class="yun-label">当前大运</span>
             <span class="yun-pillar">{{ dayunInfluence.current_pillar }}</span>
-            <span class="yun-god"
-              :class="{ 'val-fav': dayunInfluence.favorable, 'val-dis': !dayunInfluence.favorable }">{{
-                dayunInfluence.ten_god }}</span>
-            <span class="yun-age">{{ dayunInfluence.start_age }}-{{ dayunInfluence.end_age }}岁</span>
+            <span
+              class="yun-god"
+              :class="{ 'val-fav': dayunInfluence.favorable, 'val-dis': !dayunInfluence.favorable }"
+              >{{ dayunInfluence.ten_god }}</span
+            >
+            <span class="yun-age"
+              >{{ dayunInfluence.start_age }}-{{ dayunInfluence.end_age }}岁</span
+            >
             <p class="yun-desc">{{ dayunInfluence.description }}</p>
           </div>
           <div v-if="liunianInfluence" class="yun-item">
             <span class="yun-label">流年</span>
             <span class="yun-pillar">{{ liunianInfluence.year_pillar }}</span>
-            <span class="yun-god"
-              :class="{ 'val-fav': liunianInfluence.favorable, 'val-dis': !liunianInfluence.favorable }">{{
-                liunianInfluence.ten_god }}</span>
-            <p v-if="liunianInfluence.tai_sui_relation" class="yun-taisui">{{ liunianInfluence.tai_sui_relation }}</p>
+            <span
+              class="yun-god"
+              :class="{
+                'val-fav': liunianInfluence.favorable,
+                'val-dis': !liunianInfluence.favorable,
+              }"
+              >{{ liunianInfluence.ten_god }}</span
+            >
+            <p v-if="liunianInfluence.tai_sui_relation" class="yun-taisui">
+              {{ liunianInfluence.tai_sui_relation }}
+            </p>
             <p class="yun-desc">{{ liunianInfluence.description }}</p>
           </div>
         </div>
@@ -569,28 +964,40 @@ function trendLabel(trend?: string) {
           <span class="df-sec-title">用神影响</span>
         </div>
         <div class="yongshen-items">
-          <div v-if="yongshenImpact.tiao_hou_element" class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.tiao_hou_hit }">
+          <div
+            v-if="yongshenImpact.tiao_hou_element"
+            class="yongshen-item"
+            :class="{ 'ys-hit': yongshenImpact.tiao_hou_hit }"
+          >
             <span class="ys-label">调候用神</span>
             <span class="ys-elem">{{ yongshenImpact.tiao_hou_element }}</span>
             <span class="ys-status">{{ yongshenImpact.tiao_hou_hit ? '得力' : '未触' }}</span>
           </div>
-          <div v-if="yongshenImpact.tong_guan_element" class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.tong_guan_hit }">
+          <div
+            v-if="yongshenImpact.tong_guan_element"
+            class="yongshen-item"
+            :class="{ 'ys-hit': yongshenImpact.tong_guan_hit }"
+          >
             <span class="ys-label">通关用神</span>
             <span class="ys-elem">{{ yongshenImpact.tong_guan_element }}</span>
             <span class="ys-status">{{ yongshenImpact.tong_guan_hit ? '得力' : '未触' }}</span>
           </div>
-          <div v-if="yongshenImpact.fu_yi_elements?.length" class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.fu_yi_hit }">
+          <div
+            v-if="yongshenImpact.fu_yi_elements?.length"
+            class="yongshen-item"
+            :class="{ 'ys-hit': yongshenImpact.fu_yi_hit }"
+          >
             <span class="ys-label">扶抑喜用</span>
             <span class="ys-elem">{{ yongshenImpact.fu_yi_elements.join(' ') }}</span>
             <span class="ys-status">{{ yongshenImpact.fu_yi_hit ? '得力' : '未触' }}</span>
           </div>
         </div>
-        <p v-if="yongshenImpact.description" class="yongshen-desc">{{ yongshenImpact.description }}</p>
+        <p v-if="yongshenImpact.description" class="yongshen-desc">
+          {{ yongshenImpact.description }}
+        </p>
       </div>
-    </div><!-- /rikuyo tab -->
+    </div>
+    <!-- /rikuyo tab -->
 
     <!-- ═══ Tab: 五行吉时 ═══ -->
     <div v-show="activeTab === 'elements'" class="df-tab-content">
@@ -600,8 +1007,24 @@ function trendLabel(trend?: string) {
           <div class="df-sec-header">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" opacity="0.4" />
-              <line x1="7" y1="3" x2="7" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              <line x1="7" y1="7" x2="10" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <line
+                x1="7"
+                y1="3"
+                x2="7"
+                y2="7"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <line
+                x1="7"
+                y1="7"
+                x2="10"
+                y2="9"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
             </svg>
             <span class="df-sec-title">吉时</span>
           </div>
@@ -623,8 +1046,14 @@ function trendLabel(trend?: string) {
             <div v-for="[el, clr] in elementEntries" :key="el" class="df-el-row">
               <span class="df-el-name">{{ el }}</span>
               <div class="df-el-track">
-                <div class="df-el-fill"
-                  :style="{ width: elPct(el) + '%', background: clr, boxShadow: `0 0 8px ${clr}66` }"></div>
+                <div
+                  class="df-el-fill"
+                  :style="{
+                    width: elPct(el) + '%',
+                    background: clr,
+                    boxShadow: `0 0 8px ${clr}66`,
+                  }"
+                ></div>
               </div>
               <span class="df-el-num">{{ todayElements[el] ?? 0 }}</span>
             </div>
@@ -633,18 +1062,24 @@ function trendLabel(trend?: string) {
       </div>
 
       <!-- AI button -->
-      <button class="df-ai-btn" @click="showAiModal = true">
+      <button class="df-ai-btn" disabled title="该功能仍在规划中">
         <span class="df-ai-btn-icon">◈</span>
-        AI 深度解析
+        深度解析 · 规划中
       </button>
-    </div><!-- /elements tab -->
+    </div>
+    <!-- /elements tab -->
 
-    <section v-if="fortuneCategories.length" class="dimension-panel" aria-label="分项运势">
+    <section
+      v-if="fortuneCategories.length && interpretationLevel !== 'basic'"
+      class="dimension-panel"
+      aria-label="分项运势"
+    >
       <div class="dimension-head">
         <div>
           <span class="dimension-eyebrow">九维刻度</span>
           <h2 class="dimension-title">先看强弱，再展开细节</h2>
         </div>
+        <div class="score-disclaimer">传统规则倾向分，表示规则匹配强弱，不是事件发生概率。</div>
         <div class="score-breakdown" v-if="fortuneOverall">
           <span>细项 {{ fortuneOverall.detail_score ?? fortuneScore }}</span>
           <span>基础 {{ fortuneOverall.base_score ?? fortuneScore }}</span>
@@ -658,7 +1093,7 @@ function trendLabel(trend?: string) {
           :key="c.name"
           class="dimension-card"
           :class="`trend-${c.trend || 'flat'}`"
-          :style="{ animationDelay: (ci * 42) + 'ms' }"
+          :style="{ animationDelay: ci * 42 + 'ms' }"
         >
           <summary class="dimension-summary">
             <span class="dimension-rank">{{ String(ci + 1).padStart(2, '0') }}</span>
@@ -706,18 +1141,61 @@ function trendLabel(trend?: string) {
             <div class="df-modal-body">
               <div class="df-ai-coming">
                 <svg width="90" height="90" viewBox="0 0 90 90" fill="none" class="df-ai-svg">
-                  <circle cx="45" cy="45" r="42" stroke="currentColor" stroke-width="0.6" stroke-dasharray="2 4"
-                    opacity="0.2" />
-                  <circle cx="45" cy="45" r="28" stroke="currentColor" stroke-width="0.6" stroke-dasharray="1 5"
-                    opacity="0.15" />
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r="42"
+                    stroke="currentColor"
+                    stroke-width="0.6"
+                    stroke-dasharray="2 4"
+                    opacity="0.2"
+                  />
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r="28"
+                    stroke="currentColor"
+                    stroke-width="0.6"
+                    stroke-dasharray="1 5"
+                    opacity="0.15"
+                  />
                   <circle cx="45" cy="45" r="8" fill="currentColor" opacity="0.2" />
-                  <circle cx="45" cy="45" r="13" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
-                  <circle cx="22" cy="24" r="2.5" fill="currentColor" opacity="0.45" class="df-star-pulse"
-                    style="animation-delay:0s" />
-                  <circle cx="68" cy="22" r="2" fill="currentColor" opacity="0.35" class="df-star-pulse"
-                    style="animation-delay:0.6s" />
-                  <circle cx="70" cy="66" r="2.5" fill="currentColor" opacity="0.4" class="df-star-pulse"
-                    style="animation-delay:1.2s" />
+                  <circle
+                    cx="45"
+                    cy="45"
+                    r="13"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.5"
+                    opacity="0.3"
+                  />
+                  <circle
+                    cx="22"
+                    cy="24"
+                    r="2.5"
+                    fill="currentColor"
+                    opacity="0.45"
+                    class="df-star-pulse"
+                    style="animation-delay: 0s"
+                  />
+                  <circle
+                    cx="68"
+                    cy="22"
+                    r="2"
+                    fill="currentColor"
+                    opacity="0.35"
+                    class="df-star-pulse"
+                    style="animation-delay: 0.6s"
+                  />
+                  <circle
+                    cx="70"
+                    cy="66"
+                    r="2.5"
+                    fill="currentColor"
+                    opacity="0.4"
+                    class="df-star-pulse"
+                    style="animation-delay: 1.2s"
+                  />
                 </svg>
                 <p class="df-ai-title">AI分析功能即将上线</p>
                 <p class="df-ai-sub">智能运势深度解读</p>
@@ -745,6 +1223,10 @@ function trendLabel(trend?: string) {
   overflow-x: auto;
   scrollbar-width: none;
   margin-bottom: 0.75rem;
+}
+
+.df-level-switch {
+  margin: 0 0 0.7rem;
 }
 
 .df-tabs::-webkit-scrollbar {
@@ -801,7 +1283,11 @@ function trendLabel(trend?: string) {
   right: -20px;
   width: 100px;
   height: 100px;
-  background: radial-gradient(circle, color-mix(in oklab, var(--crimson) 7%, transparent), transparent 70%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--crimson) 7%, transparent),
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -846,7 +1332,11 @@ function trendLabel(trend?: string) {
   right: -15px;
   width: 80px;
   height: 80px;
-  background: radial-gradient(circle, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--accent) 8%, transparent),
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -918,8 +1408,7 @@ function trendLabel(trend?: string) {
   border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
   border-radius: 10px;
   background:
-    linear-gradient(135deg, rgba(var(--jade-accent-rgb), 0.07), transparent 58%),
-    var(--glass-bg);
+    linear-gradient(135deg, rgba(var(--jade-accent-rgb), 0.07), transparent 58%), var(--glass-bg);
 }
 
 .guide-axis {
@@ -1095,7 +1584,11 @@ function trendLabel(trend?: string) {
 
 .guide-mini.warn {
   border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
-  background: color-mix(in oklab, var(--surface-1) 78%, color-mix(in oklab, var(--crimson) 7%, transparent));
+  background: color-mix(
+    in oklab,
+    var(--surface-1) 78%,
+    color-mix(in oklab, var(--crimson) 7%, transparent)
+  );
 }
 
 .guide-mini-secondary {
@@ -1239,7 +1732,7 @@ function trendLabel(trend?: string) {
 .guide-method {
   margin: 0;
   padding-left: 0.45rem;
-  border-left: 2px solid rgba(var(--jade-accent-rgb), 0.20);
+  border-left: 2px solid rgba(var(--jade-accent-rgb), 0.2);
   color: var(--text-muted);
   font-size: var(--fs-2xs);
   line-height: 1.45;
@@ -1533,9 +2026,15 @@ function trendLabel(trend?: string) {
   border: 1px solid var(--line-strong);
   border-radius: 12px;
   background:
-    linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 90%, transparent), color-mix(in oklab, var(--surface-0) 82%, transparent)),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--surface-1) 90%, transparent),
+      color-mix(in oklab, var(--surface-0) 82%, transparent)
+    ),
     linear-gradient(90deg, rgba(var(--jade-accent-rgb), 0.08), transparent 38%);
-  box-shadow: var(--shadow-lg), inset 0 1px 0 var(--line-subtle);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 var(--line-subtle);
   position: relative;
   overflow: hidden;
 }
@@ -1617,7 +2116,10 @@ function trendLabel(trend?: string) {
   box-shadow: inset 0 1px 0 var(--line-subtle);
   animation: dimension-in 0.55s ease both;
   overflow: hidden;
-  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  transition:
+    background 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s;
 }
 
 @keyframes dimension-in {
@@ -1636,7 +2138,9 @@ function trendLabel(trend?: string) {
 .dimension-card[open] {
   background: color-mix(in oklab, var(--surface-1) 72%, var(--accent-dim));
   border-color: var(--line-focus);
-  box-shadow: 0 10px 26px rgba(var(--jade-accent-rgb), 0.1), inset 0 1px 0 var(--line-subtle);
+  box-shadow:
+    0 10px 26px rgba(var(--jade-accent-rgb), 0.1),
+    inset 0 1px 0 var(--line-subtle);
 }
 
 .dimension-summary {
@@ -1823,14 +2327,13 @@ function trendLabel(trend?: string) {
 }
 
 @keyframes orb-glow {
-
   0%,
   100% {
-    text-shadow: 0 0 20px var(--accent-glow)
+    text-shadow: 0 0 20px var(--accent-glow);
   }
 
   50% {
-    text-shadow: 0 0 40px var(--accent-glow)
+    text-shadow: 0 0 40px var(--accent-glow);
   }
 }
 
@@ -1877,11 +2380,11 @@ function trendLabel(trend?: string) {
 
 @keyframes svg-rot {
   from {
-    transform: rotate(0deg)
+    transform: rotate(0deg);
   }
 
   to {
-    transform: rotate(360deg)
+    transform: rotate(360deg);
   }
 }
 
@@ -1890,14 +2393,13 @@ function trendLabel(trend?: string) {
 }
 
 @keyframes st-pulse {
-
   0%,
   100% {
-    opacity: 0.2
+    opacity: 0.2;
   }
 
   50% {
-    opacity: 0.7
+    opacity: 0.7;
   }
 }
 
@@ -2224,7 +2726,7 @@ function trendLabel(trend?: string) {
 }
 
 .rel-fav .rel-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.10);
+  background: rgba(var(--jade-accent-rgb), 0.1);
   color: rgba(var(--jade-accent-rgb), 1);
 }
 
@@ -2285,7 +2787,7 @@ function trendLabel(trend?: string) {
 }
 
 .ss-ji .ss-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.10);
+  background: rgba(var(--jade-accent-rgb), 0.1);
   color: rgba(var(--jade-accent-rgb), 1);
 }
 
@@ -2469,7 +2971,7 @@ function trendLabel(trend?: string) {
 
 :global(.dark) .val-fav {
   color: rgba(var(--jade-accent-rgb), 1);
-  text-shadow: 0 0 15px rgba(var(--jade-accent-rgb), 0.30);
+  text-shadow: 0 0 15px rgba(var(--jade-accent-rgb), 0.3);
 }
 
 :global(.dark) .val-dis {
@@ -2519,7 +3021,7 @@ function trendLabel(trend?: string) {
 }
 
 :global(.dark) .rel-fav .rel-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.10);
+  background: rgba(var(--jade-accent-rgb), 0.1);
   color: rgba(var(--jade-accent-rgb), 1);
 }
 
@@ -2537,7 +3039,7 @@ function trendLabel(trend?: string) {
 }
 
 :global(.dark) .ss-ji .ss-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.10);
+  background: rgba(var(--jade-accent-rgb), 0.1);
   color: rgba(var(--jade-accent-rgb), 1);
 }
 

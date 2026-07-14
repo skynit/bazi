@@ -26,4 +26,6 @@ type FortuneFeedback struct {
 	EventCategory   string `gorm:"type:varchar(64);not null;default:'';index" json:"event_category"`
 	ConsentResearch bool   `gorm:"not null;default:false" json:"consent_research"`
 	ConsentTraining bool   `gorm:"not null;default:false" json:"consent_training"`
+	EngineVersion   string `gorm:"type:varchar(64);not null;default:'';index" json:"engine_version"`
+	RuleVersion     string `gorm:"type:varchar(64);not null;default:'';index" json:"rule_version"`
 }

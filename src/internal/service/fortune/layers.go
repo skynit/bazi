@@ -257,6 +257,12 @@ func relationScore(rel string) int {
 		return -8
 	case "combine":
 		return 6
+	case "banHe":
+		return 4
+	case "gongHe":
+		return 3
+	case "banHui":
+		return 3
 	case "sanHe":
 		return 8
 	case "sanHui":

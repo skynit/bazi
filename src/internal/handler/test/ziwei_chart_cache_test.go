@@ -110,6 +110,28 @@ func TestZiWeiChart_CachedResult(t *testing.T) {
 	if len(updated.ZiWeiResult) == 0 {
 		t.Error("ziwei_result should not be empty after caching")
 	}
+	var staleCached ziwei.ZiWeiChart
+	if err := json.Unmarshal(updated.ZiWeiResult, &staleCached); err != nil {
+		t.Fatalf("unmarshal stored chart: %v", err)
+	}
+	foundLucun := false
+	for i := range staleCached.Palaces {
+		for j := range staleCached.Palaces[i].Stars {
+			star := &staleCached.Palaces[i].Stars[j]
+			if star.Name == "禄存" {
+				star.Brightness = "陷"
+				foundLucun = true
+			}
+		}
+	}
+	if !foundLucun {
+		t.Fatal("stored chart does not contain 禄存")
+	}
+	staleData, err := json.Marshal(&staleCached)
+	if err != nil {
+		t.Fatalf("marshal stale chart: %v", err)
+	}
+	updated.ZiWeiResult = staleData
 
 	// Second call: should return cached result
 	body2 := jsonBody(t, reqBody)
@@ -125,7 +147,8 @@ func TestZiWeiChart_CachedResult(t *testing.T) {
 
 	var resp struct {
 		Palaces []struct {
-			Name string `json:"name"`
+			Name  string             `json:"name"`
+			Stars []ziwei.StarOutput `json:"stars"`
 		} `json:"palaces"`
 	}
 	if err := json.Unmarshal(w2.Body.Bytes(), &resp); err != nil {
@@ -133,6 +156,20 @@ func TestZiWeiChart_CachedResult(t *testing.T) {
 	}
 	if len(resp.Palaces) != 12 {
 		t.Errorf("cached: expected 12 palaces, got %d", len(resp.Palaces))
+	}
+	foundLucun = false
+	for _, palace := range resp.Palaces {
+		for _, star := range palace.Stars {
+			if star.Name == "禄存" {
+				foundLucun = true
+				if star.Brightness != "庙" {
+					t.Errorf("cached 禄存 brightness = %q, want 庙", star.Brightness)
+				}
+			}
+		}
+	}
+	if !foundLucun {
+		t.Error("cached response does not contain 禄存")
 	}
 }
 

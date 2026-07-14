@@ -1,22 +1,31 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config holds all application configuration values.
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPass     string
-	DBName     string
-	SQLitePath string
-	UseSQLite  bool
-	JWTSecret  string
-	ServerPort string
+	DBHost          string
+	DBPort          string
+	DBUser          string
+	DBPass          string
+	DBName          string
+	SQLitePath      string
+	UseSQLite       bool
+	JWTSecret       string
+	ServerPort      string
+	CORSOrigin      string
+	ElementAssetDir string
+
+	AdminUsername string
+	AdminEmail    string
+	AdminPassword string
 
 	RAGEnabled        bool
 	RAGProvider       string
@@ -54,15 +63,21 @@ func Load() *Config {
 	ragMinScore := getEnvFloat("RAG_MIN_SCORE", getEnvFloat("RAGFLOW_MIN_SCORE", 0.35))
 	ragTopK := getEnvInt("RAG_TOP_K", getEnvInt("RAGFLOW_TOP_K", 8))
 	return &Config{
-		DBHost:     dbHost,
-		DBPort:     getEnv("DB_PORT", "3306"),
-		DBUser:     getEnv("DB_USER", "root"),
-		DBPass:     getEnv("DB_PASS", ""),
-		DBName:     getEnv("DB_NAME", "bazi"),
-		SQLitePath: sqlitePath,
-		UseSQLite:  useSQLite,
-		JWTSecret:  requireJWTSecret(),
-		ServerPort: getEnv("SERVER_PORT", "8088"),
+		DBHost:          dbHost,
+		DBPort:          getEnv("DB_PORT", "3306"),
+		DBUser:          getEnv("DB_USER", "root"),
+		DBPass:          getEnv("DB_PASS", ""),
+		DBName:          getEnv("DB_NAME", "bazi"),
+		SQLitePath:      sqlitePath,
+		UseSQLite:       useSQLite,
+		JWTSecret:       requireJWTSecret(),
+		ServerPort:      getEnv("SERVER_PORT", "8088"),
+		CORSOrigin:      strings.TrimSpace(getEnv("CORS_ORIGIN", "")),
+		ElementAssetDir: getEnv("ELEMENT_ASSET_DIR", "./data/element-assets"),
+
+		AdminUsername: strings.TrimSpace(getEnv("ADMIN_USERNAME", "")),
+		AdminEmail:    strings.TrimSpace(getEnv("ADMIN_EMAIL", "")),
+		AdminPassword: getEnv("ADMIN_PASSWORD", ""),
 
 		RAGEnabled:        ragEnabled,
 		RAGProvider:       ragProvider,
@@ -127,13 +142,15 @@ func getEnvFloat(key string, fallback float64) float64 {
 }
 
 func requireJWTSecret() string {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		log.Println("[WARN] JWT_SECRET is not set. Using auto-generated key. Set JWT_SECRET env var for production.")
-		secret = "auto-generated-" + os.Getenv("HOSTNAME")
-		if secret == "auto-generated-" {
-			secret = "auto-generated-bazi-dev"
-		}
+	if secret := strings.TrimSpace(os.Getenv("JWT_SECRET")); secret != "" {
+		return secret
 	}
-	return secret
+	random := make([]byte, 32)
+	if _, err := rand.Read(random); err != nil {
+		// A missing JWT secret must never fall back to a predictable value.
+		// crypto/rand failure is exceptional, so fail fast.
+		log.Fatalf("failed to generate ephemeral JWT secret: %v", err)
+	}
+	log.Println("[WARN] JWT_SECRET is not set. Using an ephemeral random key; existing sessions will be invalid after restart.")
+	return base64.RawURLEncoding.EncodeToString(random)
 }

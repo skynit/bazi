@@ -88,8 +88,12 @@ func TestLoadJWTSecretDefault(t *testing.T) {
 	os.Unsetenv("JWT_SECRET")
 	defer os.Unsetenv("JWT_SECRET")
 
-	cfg := Load()
-	if cfg.JWTSecret == "" {
+	first := Load()
+	second := Load()
+	if first.JWTSecret == "" || second.JWTSecret == "" {
 		t.Error("expected non-empty JWTSecret when JWT_SECRET env is unset")
+	}
+	if first.JWTSecret == second.JWTSecret {
+		t.Error("expected a fresh random JWT secret for each process configuration load")
 	}
 }

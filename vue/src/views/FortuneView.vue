@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
-import type { FortuneGuide } from '../api/fortune'
+import type { FortuneGuide, FortuneScoreBreakdown, ScoreEvidence } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
 import { activeGuide, todayString } from '../lib/fortuneGuide'
 
@@ -92,9 +92,15 @@ interface FortuneCategory {
 }
 
 interface FortuneData {
+  engine_version?: string
+  rule_version?: string
   solar_date: string
   day_gan_zhi: string
   score?: number
+  score_breakdown?: FortuneScoreBreakdown
+  evidence_completeness?: number
+  supporting_evidence?: ScoreEvidence[]
+  counter_evidence?: ScoreEvidence[]
   analysis?: {
     overall?: FortuneOverall
     categories?: FortuneCategory[]
@@ -267,6 +273,12 @@ function scoreWord(s: number) {
           :fortune-score="fortune.score"
           :fortune-overall="fortune.analysis?.overall"
           :fortune-categories="fortune.analysis?.categories"
+          :score-breakdown="fortune.score_breakdown"
+          :evidence-completeness="fortune.evidence_completeness"
+          :supporting-evidence="fortune.supporting_evidence"
+          :counter-evidence="fortune.counter_evidence"
+          :engine-version="fortune.engine_version"
+          :rule-version="fortune.rule_version"
           :chong-sha="fortune.clash_zodiac"
           :auspicious-hours="fortune.auspicious_hours"
           :yi-ji="`宜: ${fortune.yi?.join('、')} 忌: ${fortune.ji?.join('、')}`"

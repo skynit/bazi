@@ -28,16 +28,26 @@ export function legacyGuide(fortuneData: FortuneGuideSource): FortuneGuide | und
 
   return {
     precision_level: 'legacy',
-    confidence: 50,
+    evidence_completeness: 50,
     primary_element: old.favorable_elems?.[0] ?? '',
     secondary_element: old.favorable_elems?.[1] ?? '',
     avoid_element: old.unfavorable_elems?.[0] ?? '',
-    lucky_colors: old.colors ? [{ label: '幸运色', value: old.colors, reason: '按旧版喜用五行规则生成。' }] : [],
-    lucky_numbers: old.numbers ? [{ label: '幸运数', value: old.numbers, reason: '按旧版喜用五行规则生成。' }] : [],
+    lucky_colors: old.colors
+      ? [{ label: '幸运色', value: old.colors, reason: '按旧版喜用五行规则生成。' }]
+      : [],
+    lucky_numbers: old.numbers
+      ? [{ label: '幸运数', value: old.numbers, reason: '按旧版喜用五行规则生成。' }]
+      : [],
     face_direction: { label: '朝向', value: '', reason: '' },
-    wealth_direction: { label: '财位', value: fortuneData.wealth_direction ?? '', reason: '按流日天干财位生成。' },
+    wealth_direction: {
+      label: '财位',
+      value: fortuneData.wealth_direction ?? '',
+      reason: '按流日天干财位生成。',
+    },
     avoid_direction: { label: '避开', value: '', reason: '' },
-    recommended_actions: old.actions ? [{ label: '动作', value: old.actions, reason: '按旧版开运动作生成。' }] : [],
+    recommended_actions: old.actions
+      ? [{ label: '动作', value: old.actions, reason: '按旧版开运动作生成。' }]
+      : [],
     cautions: [],
     best_hours: (fortuneData.auspicious_hours ?? []).slice(0, 3).map((hour) => ({
       label: '吉时',

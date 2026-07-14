@@ -16,10 +16,10 @@
       "name": "Launch Frontend (Vue)",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "program": "${workspaceFolder}/vue/node_modules/vite/bin/vite.js",
       "cwd": "${workspaceFolder}/vue",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
     }
   ],
   "compounds": [

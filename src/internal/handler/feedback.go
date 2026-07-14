@@ -8,11 +8,15 @@ import (
 	"unicode/utf8"
 
 	"bazi/internal/model"
+	"bazi/internal/service/bazi"
 
 	"github.com/gin-gonic/gin"
 )
 
-const maxFeedbackCommentRunes = 1000
+const (
+	maxFeedbackCommentRunes = 1000
+	maxFeedbackVersionRunes = 64
+)
 
 type FeedbackChartStore interface {
 	FindByIDForUser(id uint, userID uint) (*model.BirthChart, error)
@@ -63,6 +67,16 @@ func (h *FeedbackHandler) Create(c *gin.Context) {
 		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
+	engineVersion, ok := feedbackVersion(req.EngineVersion, chart.EngineVersion, bazi.EngineVersion)
+	if !ok {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "engine_version is too long")
+		return
+	}
+	ruleVersion, ok := feedbackVersion(req.RuleVersion, chart.RuleVersion, bazi.RuleVersion)
+	if !ok {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "rule_version is too long")
+		return
+	}
 
 	tagsJSON, err := json.Marshal(cleanFeedbackTags(req.Tags))
 	if err != nil {
@@ -85,6 +99,8 @@ func (h *FeedbackHandler) Create(c *gin.Context) {
 		EventCategory:   strings.TrimSpace(req.EventCategory),
 		ConsentResearch: req.ConsentResearch,
 		ConsentTraining: req.ConsentTraining,
+		EngineVersion:   engineVersion,
+		RuleVersion:     ruleVersion,
 	}
 	if err := h.Feedback.Create(feedback); err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to save feedback")
@@ -139,6 +155,20 @@ func authUserID(c *gin.Context) (uint, bool) {
 	}
 	uid, ok := userID.(uint)
 	return uid, ok
+}
+
+func feedbackVersion(requested, stored, fallback string) (string, bool) {
+	requested = strings.TrimSpace(requested)
+	if utf8.RuneCountInString(requested) > maxFeedbackVersionRunes {
+		return "", false
+	}
+	if requested != "" {
+		return requested, true
+	}
+	if stored = strings.TrimSpace(stored); stored != "" {
+		return stored, true
+	}
+	return fallback, true
 }
 
 func validFeedbackRating(rating string) bool {

@@ -1,6 +1,29 @@
 import client from './client'
 import type { FortuneLayerSet, RuleMeta, ShenShaActivation } from './chart'
 
+export type InterpretationLevel = 'basic' | 'advanced' | 'professional'
+
+export interface ScoreEvidence {
+  code: string
+  stage: string
+  category: string
+  label: string
+  impact: number
+  description: string
+  source: string
+}
+
+export interface FortuneScoreBreakdown {
+  pipeline_version: string
+  base_score: number
+  relation_score: number
+  detail_score: number
+  final_score: number
+  evidence_completeness: number
+  supporting_evidence: ScoreEvidence[]
+  counter_evidence: ScoreEvidence[]
+}
+
 export interface FortuneGuideItem {
   label: string
   value: string
@@ -15,9 +38,44 @@ export interface FortuneGuideItem {
   impact?: string
 }
 
+export interface ElementAsset {
+  id: number
+  key: string
+  name: string
+  element: string
+  secondary_element?: string
+  url: string
+  thumbnail_url?: string
+  scene: string
+  orientation: 'landscape' | 'portrait' | 'square' | 'panorama' | string
+  tone: string
+  style: string
+  season: string
+  time_period: string
+  object_label?: string
+  description?: string
+  alt_text: string
+  dominant_color?: string
+  accent_color?: string
+  focal_x: number
+  focal_y: number
+  width: number
+  height: number
+  weight: number
+  sort_order: number
+  status: string
+}
+
+export interface BlessingAssetSet {
+  hero?: ElementAsset
+  ritual: ElementAsset[]
+  actions: ElementAsset[]
+  gallery: ElementAsset[]
+}
+
 export interface FortuneGuide {
   precision_level: string
-  confidence: number
+  evidence_completeness: number
   primary_element: string
   secondary_element: string
   avoid_element: string
@@ -35,6 +93,7 @@ export interface FortuneGuide {
 
 /** Backend FortuneResponse — server JSON keys (snake_case). */
 export interface FortuneDay {
+  engine_version: string
   rule_version?: string
   school?: string
   rule_meta?: RuleMeta
@@ -53,6 +112,10 @@ export interface FortuneDay {
   gua?: string
   jie_qi?: string
   score: number
+  score_breakdown: FortuneScoreBreakdown
+  evidence_completeness: number
+  supporting_evidence: ScoreEvidence[]
+  counter_evidence: ScoreEvidence[]
   lucky_color: string
   lucky_number: number
   wealth_direction: string
@@ -79,6 +142,7 @@ export interface FortuneDay {
   activated_shen_sha?: ShenShaActivation[]
   fortune_layers?: FortuneLayerSet
   element_images?: Array<{ element: string; image_url: string; description: string }>
+  blessing_assets?: BlessingAssetSet
 }
 
 export interface FortuneSummary {
@@ -124,7 +188,11 @@ export interface ElementTrendPoint {
 
 export function parseTrend(json: string): ElementTrendPoint[] {
   if (!json) return []
-  try { return JSON.parse(json) as ElementTrendPoint[] } catch { return [] }
+  try {
+    return JSON.parse(json) as ElementTrendPoint[]
+  } catch {
+    return []
+  }
 }
 
 export async function fetchDaily(chartId: number, queryDate?: string) {

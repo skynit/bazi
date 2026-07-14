@@ -9,11 +9,11 @@ export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   server: {
     port: Number(process.env.VITE_DEV_PORT) || 5174,
-    proxy: { '/api': API_TARGET },
+    proxy: { '/api': API_TARGET, '/uploads': API_TARGET },
   },
 })

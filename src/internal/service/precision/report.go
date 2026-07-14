@@ -93,7 +93,13 @@ func evaluateBazi(path string) ModuleReport {
 		}
 		var result *bazipkg.BaziResult
 		var calcErr error
-		if hasExpectedPillars(tc.Expected) {
+		hasBirthDate := tc.Year > 0 && tc.Month > 0 && tc.Day > 0
+		pillarOnly := !hasBirthDate && hasExpectedPillars(tc.Expected)
+		if hasBirthDate {
+			// Date-based fixtures must exercise the calendar engine. Expected
+			// pillars are outputs to verify, never inputs to the calculation.
+			result, calcErr = svc.Calculate(tc.Year, tc.Month, tc.Day, tc.Hour, tc.Minute, nonEmpty(tc.Gender, "MALE"))
+		} else if pillarOnly {
 			result, calcErr = svc.CalculateFromPillars(
 				stringValue(tc.Expected["year_pillar"]),
 				stringValue(tc.Expected["month_pillar"]),
@@ -101,8 +107,7 @@ func evaluateBazi(path string) ModuleReport {
 				stringValue(tc.Expected["hour_pillar"]),
 				nonEmpty(tc.Gender, "MALE"),
 			)
-		} else if tc.Year > 0 && tc.Month > 0 && tc.Day > 0 {
-			result, calcErr = svc.Calculate(tc.Year, tc.Month, tc.Day, tc.Hour, tc.Minute, nonEmpty(tc.Gender, "MALE"))
+			module.Warnings = append(module.Warnings, fmt.Sprintf("[%s] pillar-only fixture validates derived rules only; it does not validate calendar pillar accuracy", tc.ID))
 		} else {
 			module.Skipped++
 			continue
@@ -117,13 +122,21 @@ func evaluateBazi(path string) ModuleReport {
 			want  string
 			got   string
 		}{
-			{"year_pillar", stringValue(tc.Expected["year_pillar"]), pillar(result.YearPillar.Gan, result.YearPillar.Zhi)},
-			{"month_pillar", stringValue(tc.Expected["month_pillar"]), pillar(result.MonthPillar.Gan, result.MonthPillar.Zhi)},
-			{"day_pillar", stringValue(tc.Expected["day_pillar"]), pillar(result.DayPillar.Gan, result.DayPillar.Zhi)},
-			{"hour_pillar", stringValue(tc.Expected["hour_pillar"]), pillar(result.HourPillar.Gan, result.HourPillar.Zhi)},
-			{"day_master", stringValue(tc.Expected["day_master"]), result.DayPillar.Gan},
 			{"body_strength", stringValue(tc.Expected["body_strength"]), result.BodyStrength.Verdict},
 			{"pattern", stringValue(tc.Expected["pattern"]), result.PatternAnalysis.PatternName},
+		}
+		if !pillarOnly {
+			checks = append([]struct {
+				field string
+				want  string
+				got   string
+			}{
+				{"year_pillar", stringValue(tc.Expected["year_pillar"]), pillar(result.YearPillar.Gan, result.YearPillar.Zhi)},
+				{"month_pillar", stringValue(tc.Expected["month_pillar"]), pillar(result.MonthPillar.Gan, result.MonthPillar.Zhi)},
+				{"day_pillar", stringValue(tc.Expected["day_pillar"]), pillar(result.DayPillar.Gan, result.DayPillar.Zhi)},
+				{"hour_pillar", stringValue(tc.Expected["hour_pillar"]), pillar(result.HourPillar.Gan, result.HourPillar.Zhi)},
+				{"day_master", stringValue(tc.Expected["day_master"]), result.DayPillar.Gan},
+			}, checks...)
 		}
 		applyChecks(&module, tc.ID, checks)
 	}

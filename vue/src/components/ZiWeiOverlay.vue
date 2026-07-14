@@ -46,6 +46,8 @@ interface Props {
   overlayAnalysis?: ZiWeiOverlayAnalysis
   dayunStages?: ZiWeiDayunStageAnalysis[]
   availableYears: number[]
+  birthYearBranch: string
+  gender: string
 }
 
 const props = defineProps<Props>()
@@ -138,6 +140,7 @@ const branchIndexMap: Record<string, number> = {
   '午': 6, '未': 7, '申': 8, '酉': 9, '戌': 10, '亥': 11,
 }
 const indexBranchMap = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const xiaoxianAgeCount = 8
 
 const branchOrder = ['巳', '午', '未', '申', '辰', '酉', '卯', '戌', '寅', '丑', '子', '亥']
 const branchGridPosition: Record<string, { row: number; col: number }> = {
@@ -248,6 +251,40 @@ function basePalaceAt(branch: string): PalaceData | undefined {
 
 function dayunLabelAt(branch: string): string {
   return dayunLabelByBranch.value[branch] || ''
+}
+
+function xiaoxianStartBranchIndex(yearBranch: string): number | undefined {
+  if (['寅', '午', '戌'].includes(yearBranch)) return branchIndexMap['辰']
+  if (['申', '子', '辰'].includes(yearBranch)) return branchIndexMap['戌']
+  if (['巳', '酉', '丑'].includes(yearBranch)) return branchIndexMap['未']
+  if (['亥', '卯', '未'].includes(yearBranch)) return branchIndexMap['丑']
+  return undefined
+}
+
+function xiaoxianDirection(): 1 | -1 | 0 {
+  const gender = props.gender.trim().toUpperCase()
+  if (gender === '男' || gender === 'MALE' || gender === 'M') return 1
+  if (gender === '女' || gender === 'FEMALE' || gender === 'F') return -1
+  return 0
+}
+
+// 小限一岁由生年支三合墓库的对冲位起，男顺女逆，每十二年回到同一宫。
+function palaceAgesAt(branch: string): number[] {
+  const startBranchIndex = xiaoxianStartBranchIndex(props.birthYearBranch)
+  const targetBranchIndex = branchIndexMap[branch]
+  const direction = xiaoxianDirection()
+  if (startBranchIndex === undefined || targetBranchIndex === undefined || direction === 0) return []
+
+  const offset = direction === 1
+    ? fixIdx(targetBranchIndex - startBranchIndex)
+    : fixIdx(startBranchIndex - targetBranchIndex)
+  const firstAge = offset + 1
+  return Array.from({ length: xiaoxianAgeCount }, (_, index) => firstAge + index * 12)
+}
+
+function palaceAgesTitleAt(branch: string): string {
+  const palaceName = basePalaceAt(branch)?.name || `${branch}宫`
+  return `${palaceName}小限经过年龄：${palaceAgesAt(branch).join('、')}岁`
 }
 
 function richStars(palace: PalaceData | undefined): StarInfo[] {
@@ -404,6 +441,7 @@ function overlaySummary(): string {
               overlayImpactClass(branch),
             ]"
             :style="branchStyle(branch)"
+            :data-branch="branch"
             type="button"
             @mouseenter="focusedBranch = branch"
             @mouseleave="focusedBranch = undefined"
@@ -460,6 +498,15 @@ function overlaySummary(): string {
 
             <span v-if="mode === 'base' && dayunLabelAt(branch)" class="zw-dayun-range">
               {{ dayunLabelAt(branch) }}
+            </span>
+            <span
+              v-if="mode === 'base' && palaceAgesAt(branch).length"
+              class="zw-palace-ages"
+              :title="palaceAgesTitleAt(branch)"
+            >
+              <span class="zw-palace-age-list">
+                <b v-for="age in palaceAgesAt(branch)" :key="age">{{ age }}</b>
+              </span>
             </span>
           </button>
 
@@ -898,7 +945,7 @@ function overlaySummary(): string {
   align-items: center;
   gap: 3px;
   min-height: 110px;
-  padding: 0.6rem 0.4rem;
+  padding: 0.82rem 0.4rem;
   color: var(--text);
   text-align: center;
   cursor: pointer;
@@ -1037,6 +1084,39 @@ function overlaySummary(): string {
   line-height: 1;
   pointer-events: none;
   white-space: nowrap;
+}
+
+.zw-palace-ages {
+  position: absolute;
+  z-index: 1;
+  top: 0.34rem;
+  left: 0.3rem;
+  display: grid;
+  max-width: 2.9rem;
+  justify-items: start;
+  color: var(--text-dim);
+  font-size: 0.58rem;
+  line-height: 1.05;
+  text-align: left;
+  pointer-events: none;
+}
+
+.zw-palace-age-list {
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items: flex-start;
+  justify-content: start;
+  column-gap: 0.26rem;
+  row-gap: 0.08rem;
+}
+
+.zw-palace-age-list b {
+  color: var(--accent);
+  font-size: inherit;
+  font-weight: 850;
+  line-height: 1;
 }
 
 .zw-trigger-strip {
@@ -1564,7 +1644,7 @@ function overlaySummary(): string {
 
   .zw-cell {
     min-height: 104px;
-    padding: 0.42rem;
+    padding: 0.62rem 0.42rem;
   }
 
   .zw-palace-name {
@@ -1582,6 +1662,18 @@ function overlaySummary(): string {
   .zw-dayun-range {
     right: 0.24rem;
     bottom: 0.24rem;
+  }
+
+  .zw-palace-ages {
+    top: 0.28rem;
+    left: 0.2rem;
+    max-width: 2.55rem;
+    font-size: 0.52rem;
+  }
+
+  .zw-palace-age-list {
+    column-gap: 0.2rem;
+    row-gap: 0.06rem;
   }
 
   .zw-center {

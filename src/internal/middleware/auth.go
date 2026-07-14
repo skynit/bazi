@@ -29,6 +29,7 @@ func GenerateToken(userID uint, username string) (string, error) {
 		UserID:   userID,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "bazi",
 			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(now),
 		},
@@ -55,9 +56,14 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenStr := parts[1]
 		customClaims := &claims{}
-		token, err := jwt.ParseWithClaims(tokenStr, customClaims, func(t *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
+		token, err := jwt.ParseWithClaims(
+			tokenStr,
+			customClaims,
+			func(t *jwt.Token) (interface{}, error) { return jwtKey, nil },
+			jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+			jwt.WithIssuer("bazi"),
+			jwt.WithExpirationRequired(),
+		)
 		if err != nil || !token.Valid {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			return

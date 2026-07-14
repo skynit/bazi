@@ -19,6 +19,32 @@ type ShengKeAnalysis struct {
 	Summary           string `json:"summary"`
 }
 
+// ScoreEvidence records one deterministic rule contribution in the fortune
+// scoring pipeline. Impact is the signed point adjustment inside its stage;
+// it is explanatory evidence rather than an event probability.
+type ScoreEvidence struct {
+	Code        string `json:"code"`
+	Stage       string `json:"stage"`
+	Category    string `json:"category"`
+	Label       string `json:"label"`
+	Impact      int    `json:"impact"`
+	Description string `json:"description"`
+	Source      string `json:"source"`
+}
+
+// FortuneScoreBreakdown is the single scoring contract shared by daily,
+// weekly, and monthly fortune results.
+type FortuneScoreBreakdown struct {
+	PipelineVersion      string          `json:"pipeline_version"`
+	BaseScore            int             `json:"base_score"`
+	RelationScore        int             `json:"relation_score"`
+	DetailScore          int             `json:"detail_score"`
+	FinalScore           int             `json:"final_score"`
+	EvidenceCompleteness int             `json:"evidence_completeness"`
+	SupportingEvidence   []ScoreEvidence `json:"supporting_evidence"`
+	CounterEvidence      []ScoreEvidence `json:"counter_evidence"`
+}
+
 // RuleMeta describes the deterministic rule tables used for a calculation.
 type RuleMeta struct {
 	RuleVersion  string                 `json:"rule_version"`

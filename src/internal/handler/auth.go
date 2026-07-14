@@ -2,6 +2,10 @@ package handler
 
 import (
 	"net/http"
+	"net/mail"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
@@ -31,20 +35,38 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if req.Username == "" || req.Password == "" || req.Email == "" {
+	username := strings.TrimSpace(req.Username)
+	email := strings.TrimSpace(req.Email)
+	if username == "" || req.Password == "" || email == "" {
 		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "username, email, and password are required")
+		return
+	}
+	if !validUsername(username) {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "username must be 3-32 characters and contain only letters, numbers, _, -, or .")
+		return
+	}
+	if !validEmail(email) {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "invalid email address")
+		return
+	}
+	if utf8.RuneCountInString(req.Password) < 8 {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "password must be at least 8 characters")
+		return
+	}
+	if h == nil || h.Store == nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
 
 	// Check for duplicate username.
-	if existing, _ := h.Store.FindByUsername(req.Username); existing != nil {
+	if existing, _ := h.Store.FindByUsername(username); existing != nil {
 		respondError(c, http.StatusConflict, ErrCodeConflict, "username already exists")
 		return
 	}
 
 	user := &model.User{
-		Username: req.Username,
-		Email:    req.Email,
+		Username: username,
+		Email:    email,
 	}
 	if err := user.SetPassword(req.Password); err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to hash password")
@@ -80,7 +102,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.Store.FindByUsername(req.Username)
+	if h == nil || h.Store == nil {
+		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
+		return
+	}
+	user, err := h.Store.FindByUsername(strings.TrimSpace(req.Username))
 	if err != nil || user == nil {
 		respondError(c, http.StatusUnauthorized, ErrCodeUnauthorized, "invalid username or password")
 		return
@@ -128,4 +154,23 @@ func (h *AuthHandler) Me(c *gin.Context) {
 			Email:    user.Email,
 		},
 	})
+}
+
+func validUsername(username string) bool {
+	count := utf8.RuneCountInString(username)
+	if count < 3 || count > 32 {
+		return false
+	}
+	for _, r := range username {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' || r == '.' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func validEmail(value string) bool {
+	address, err := mail.ParseAddress(value)
+	return err == nil && address.Address == value && strings.Contains(value, "@")
 }

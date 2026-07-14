@@ -104,6 +104,28 @@ func TestCalculateDailyValid(t *testing.T) {
 	if resp.DayGanZhi == "" {
 		t.Fatal("expected non-empty day_gan_zhi in response")
 	}
+	if resp.EngineVersion == "" || resp.RuleVersion == "" {
+		t.Fatalf("expected engine and rule versions, got engine=%q rule=%q", resp.EngineVersion, resp.RuleVersion)
+	}
+	if resp.ScoreBreakdown.PipelineVersion == "" || resp.Score != resp.ScoreBreakdown.FinalScore {
+		t.Fatalf("score contract mismatch: score=%d breakdown=%+v", resp.Score, resp.ScoreBreakdown)
+	}
+	if resp.EvidenceCompleteness != resp.ScoreBreakdown.EvidenceCompleteness {
+		t.Fatalf("evidence completeness mismatch: response=%d breakdown=%d", resp.EvidenceCompleteness, resp.ScoreBreakdown.EvidenceCompleteness)
+	}
+
+	var contract map[string]json.RawMessage
+	if err := json.Unmarshal(w.Body.Bytes(), &contract); err != nil {
+		t.Fatalf("failed to parse raw contract: %v", err)
+	}
+	for _, field := range []string{"score_breakdown", "evidence_completeness", "supporting_evidence", "counter_evidence", "engine_version", "rule_version"} {
+		if _, ok := contract[field]; !ok {
+			t.Fatalf("fortune contract missing field %q: %s", field, w.Body.String())
+		}
+	}
+	if strings.Contains(w.Body.String(), `"confidence"`) {
+		t.Fatalf("fortune contract must use evidence completeness instead of confidence: %s", w.Body.String())
+	}
 }
 
 func TestCalculateDailyNoJWT(t *testing.T) {

@@ -19,11 +19,11 @@ func TestChartLunarCalendar(t *testing.T) {
 	token, _ := middleware.GenerateToken(1, "testuser")
 
 	body := chartJSONBody(t, model.ChartRequest{
-		BirthYear:    1990,
-		BirthMonth:   5,
-		BirthDay:     15,
+		BirthYear:    2024,
+		BirthMonth:   1,
+		BirthDay:     1,
 		BirthHour:    8,
-		BirthMin:     0,
+		BirthMin:     30,
 		CalendarType: "LUNAR",
 		Gender:       "MALE",
 		Name:         "LunarTest",
@@ -33,18 +33,67 @@ func TestChartLunarCalendar(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
-
 	router.ServeHTTP(w, req)
 
-	// LUNAR calendar requires Chinese character input, formatChartInput produces
-	// solar format so this should return 400 — validating the error path works
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("expected 400 for LUNAR with solar-formatted input, got %d: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for a valid lunar date, got %d: %s", w.Code, w.Body.String())
 	}
-	var resp map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &resp)
-	if errMsg, ok := resp["error"]; !ok || errMsg == "" {
-		t.Error("expected error message in response")
+	var resp struct {
+		CalendarType string `json:"calendar_type"`
+		Validation   struct {
+			Converted string `json:"converted_solar_date_time"`
+		} `json:"birth_validation"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal response: %v", err)
+	}
+	if resp.CalendarType != "LUNAR" {
+		t.Fatalf("calendar_type = %q, want LUNAR", resp.CalendarType)
+	}
+	if resp.Validation.Converted != "2024-02-10 08:30" {
+		t.Fatalf("converted solar time = %q, want 2024-02-10 08:30", resp.Validation.Converted)
+	}
+}
+
+func TestChartPreviewDoesNotPersist(t *testing.T) {
+	store := &mockChartSaver{}
+	router := setupChartRouterWithStore(store)
+	token, _ := middleware.GenerateToken(1, "testuser")
+	body := chartJSONBody(t, model.ChartRequest{
+		BirthYear: 1990, BirthMonth: 5, BirthDay: 15, BirthHour: 8, BirthMin: 12,
+		CalendarType: "", Gender: "MALE",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/chart/preview", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if store.chart != nil {
+		t.Fatal("preview must not persist a chart")
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp["id"].(float64) != 0 {
+		t.Fatalf("preview id = %v, want 0", resp["id"])
+	}
+	if resp["calendar_type"] != "SOLAR" {
+		t.Fatalf("default calendar_type = %v, want SOLAR", resp["calendar_type"])
+	}
+	if resp["name"] != "1990-05-15 命盘" {
+		t.Fatalf("default name = %v", resp["name"])
+	}
+	if _, ok := resp["birth_validation"]; !ok {
+		t.Fatal("preview response missing birth_validation")
+	}
+	for _, key := range []string{"year_pillar", "month_pillar", "day_pillar", "hour_pillar"} {
+		if _, ok := resp[key]; !ok {
+			t.Fatalf("preview response missing %s", key)
+		}
 	}
 }
 

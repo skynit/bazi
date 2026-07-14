@@ -312,3 +312,27 @@ func TestMeAuthenticated(t *testing.T) {
 		t.Fatalf("expected email eve@example.com, got %s", resp.User.Email)
 	}
 }
+
+func TestRegisterValidatesIdentityFields(t *testing.T) {
+	tests := []struct {
+		name string
+		req  model.RegisterRequest
+	}{
+		{"short username", model.RegisterRequest{Username: "ab", Email: "ab@example.com", Password: "secret123"}},
+		{"invalid username", model.RegisterRequest{Username: "bad name", Email: "bad@example.com", Password: "secret123"}},
+		{"invalid email", model.RegisterRequest{Username: "validname", Email: "not-an-email", Password: "secret123"}},
+		{"short password", model.RegisterRequest{Username: "validname", Email: "valid@example.com", Password: "short"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			router := setupTestRouter(NewMockUserStore())
+			req := httptest.NewRequest(http.MethodPost, "/api/auth/register", jsonBody(t, tc.req))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			}
+		})
+	}
+}

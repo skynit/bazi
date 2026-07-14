@@ -118,6 +118,30 @@ export interface ShenShaActivation {
   activation: string
 }
 
+export interface BirthValidation {
+  normalization_version: string
+  input_calendar: 'SOLAR' | 'LUNAR'
+  original_date_time: string
+  converted_solar_date_time: string
+  calculation_date_time: string
+  lunar_date: string
+  current_solar_term: string
+  current_solar_term_started_at: string
+  birth_place?: string
+  timezone: string
+  utc_date_time: string
+  longitude?: number
+  true_solar_time_applied: boolean
+  true_solar_adjustment_minutes: number
+  time_uncertain: boolean
+  notices: string[]
+}
+
+export interface ChartPillar {
+  gan: string
+  zhi: string
+}
+
 export interface ChartSummary {
   id: number
   name: string
@@ -128,15 +152,24 @@ export interface ChartSummary {
   birth_hour: number
   birth_min: number
   calendar_type: string
+  lunar_leap_month?: boolean
+  birth_place?: string
+  timezone?: string
+  longitude?: number
+  use_true_solar_time?: boolean
+  time_uncertain?: boolean
+  engine_version?: string
+  stored_rule_version?: string
   created_at?: string
   updated_at?: string
 }
 
 export interface ChartDetail extends ChartSummary {
+  birth_validation?: BirthValidation
   rule_version?: string
   school?: string
   rule_meta?: RuleMeta
-  year_pillar?: unknown
+  year_pillar?: ChartPillar
   month_pillar?: unknown
   day_pillar?: unknown
   hour_pillar?: unknown
@@ -189,10 +222,24 @@ export interface ChartCreateRequest {
   birth_month: number
   birth_day: number
   birth_hour: number
-  birth_min?: number
-  calendar_type: 'SOLAR' | 'LUNAR' | 'BAZI'
-  gender: string
+  birth_min: number
+  calendar_type: 'SOLAR' | 'LUNAR'
+  lunar_leap_month?: boolean
+  gender: 'MALE' | 'FEMALE'
   name?: string
+  birth_place?: string
+  timezone?: string
+  longitude?: number
+  use_true_solar_time?: boolean
+  time_uncertain?: boolean
+}
+
+export interface ChartPreviewResponse extends ChartDetail {
+  birth_validation: BirthValidation
+  year_pillar: ChartPillar
+  month_pillar: ChartPillar
+  day_pillar: ChartPillar
+  hour_pillar: ChartPillar
 }
 
 export interface ChartListResponse {
@@ -202,8 +249,13 @@ export interface ChartListResponse {
   page_size: number
 }
 
+export async function previewChart(payload: ChartCreateRequest) {
+  const { data } = await client.post<ChartPreviewResponse>('/chart/preview', payload)
+  return data
+}
+
 export async function createChart(payload: ChartCreateRequest) {
-  const { data } = await client.post('/chart', payload)
+  const { data } = await client.post<ChartPreviewResponse>('/chart', payload)
   return data
 }
 

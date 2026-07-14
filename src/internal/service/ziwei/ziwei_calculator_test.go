@@ -355,6 +355,30 @@ func TestStarBrightnessMap(t *testing.T) {
 	}
 }
 
+func TestAttachBirthData_NormalizesLucunBrightness(t *testing.T) {
+	chart := &ZiWeiChart{
+		EarthlyBranchOfSoulPalace: "子",
+		EarthlyBranchOfBodyPalace: "子",
+	}
+	chart.Palaces[0] = PalaceInfo{
+		Stars: []StarOutput{{Name: "禄存", Type: "lucun", Brightness: "陷"}},
+		Brightness: map[string]string{
+			"禄存": "陷",
+		},
+	}
+
+	svc := NewZiWeiService()
+	if err := svc.AttachBirthData(chart, 1984, 2, 15, 8, 0, "男"); err != nil {
+		t.Fatalf("AttachBirthData failed: %v", err)
+	}
+	if got := chart.Palaces[0].Stars[0].Brightness; got != "庙" {
+		t.Errorf("cached 禄存 star brightness = %q, want 庙", got)
+	}
+	if got := chart.Palaces[0].Brightness["禄存"]; got != "庙" {
+		t.Errorf("cached 禄存 brightness map = %q, want 庙", got)
+	}
+}
+
 func TestChartBrightness_GuiWeiMingPalace(t *testing.T) {
 	svc := NewZiWeiService()
 	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")

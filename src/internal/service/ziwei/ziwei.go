@@ -157,6 +157,7 @@ func (s *ZiWeiService) CalculateChart(year, month, day, hour, minute int, gender
 	}
 
 	ApplyPlugins(chart)
+	normalizeFixedStarBrightness(chart)
 	return chart, nil
 }
 
@@ -345,6 +346,27 @@ func restoreRuntimeStarFields(chart *ZiWeiChart) {
 			} else {
 				p.AuxStars = append(p.AuxStars, star.Name)
 			}
+		}
+	}
+	normalizeFixedStarBrightness(chart)
+}
+
+func normalizeFixedStarBrightness(chart *ZiWeiChart) {
+	if chart == nil {
+		return
+	}
+	for i := range chart.Palaces {
+		p := &chart.Palaces[i]
+		for j := range p.Stars {
+			star := &p.Stars[j]
+			if star.Name != "禄存" {
+				continue
+			}
+			star.Brightness = "庙"
+			if p.Brightness == nil {
+				p.Brightness = map[string]string{}
+			}
+			p.Brightness[star.Name] = star.Brightness
 		}
 	}
 }

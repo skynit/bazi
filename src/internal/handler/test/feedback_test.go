@@ -71,7 +71,7 @@ func feedbackBody(t *testing.T, v interface{}) *strings.Reader {
 }
 
 func feedbackChart(userID uint) *model.BirthChart {
-	chart := &model.BirthChart{UserID: userID}
+	chart := &model.BirthChart{UserID: userID, EngineVersion: "engine-stored", RuleVersion: "rule-stored"}
 	chart.ID = 1
 	return chart
 }
@@ -150,6 +150,28 @@ func TestFeedbackCreateOK(t *testing.T) {
 	}
 	if store.items[0].Tags != `["格局"]` {
 		t.Fatalf("expected deduplicated tags, got %s", store.items[0].Tags)
+	}
+	if store.items[0].EngineVersion != "engine-stored" || store.items[0].RuleVersion != "rule-stored" {
+		t.Fatalf("feedback versions = %q/%q", store.items[0].EngineVersion, store.items[0].RuleVersion)
+	}
+}
+
+func TestFeedbackCreateAcceptsExplicitVersions(t *testing.T) {
+	store := &mockFeedbackStore{}
+	router := setupFeedbackRouter(feedbackChart(1), store)
+	token, _ := middleware.GenerateToken(1, "testuser")
+	req := httptest.NewRequest(http.MethodPost, "/api/feedback", feedbackBody(t, model.FeedbackRequest{
+		ChartID: 1, Rating: model.FeedbackRatingAccurate, EngineVersion: "engine-output", RuleVersion: "rule-output",
+	}))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if store.items[0].EngineVersion != "engine-output" || store.items[0].RuleVersion != "rule-output" {
+		t.Fatalf("explicit versions were not saved: %+v", store.items[0])
 	}
 }
 

@@ -31,6 +31,7 @@ Content-Type: application/json
 | POST | `/api/auth/register` | 否 | `vue/src/api/auth.ts` | `handler.AuthHandler.Register` |
 | POST | `/api/auth/login` | 否 | `vue/src/api/auth.ts` | `handler.AuthHandler.Login` |
 | GET | `/api/auth/me` | 是 | `vue/src/api/auth.ts` | `handler.AuthHandler.Me` |
+| POST | `/api/chart/preview` | 是 | `vue/src/api/chart.ts` | `handler.ChartHandler.Preview` |
 | POST | `/api/chart` | 是 | `vue/src/api/chart.ts` | `handler.ChartHandler.Chart` |
 | GET | `/api/charts` | 是 | `vue/src/api/chart.ts` | `handler.HistoryHandler.ListCharts` |
 | GET | `/api/charts/:id` | 是 | `vue/src/api/chart.ts` | `handler.HistoryHandler.GetChart` |
@@ -57,8 +58,10 @@ POST /api/auth/register
 ```
 
 ```json
-{"username":"test","email":"t@example.com","password":"test123"}
+{"username":"test","email":"t@example.com","password":"test12345"}
 ```
+
+用户名须为 3–32 个 Unicode 字母、数字或 `_-.`，密码至少 8 个字符，邮箱须为有效地址。
 
 响应：
 
@@ -73,7 +76,7 @@ POST /api/auth/login
 ```
 
 ```json
-{"username":"test","password":"test123"}
+{"username":"test","password":"test12345"}
 ```
 
 响应：
@@ -96,39 +99,95 @@ GET /api/auth/me
 
 ## 八字命盘
 
-### 创建命盘
+### 预览并校验命盘
+
+```http
+POST /api/chart/preview
+```
+
+预览接口负责标准化出生输入并完成八字排盘，但**不会保存命盘**。前端应先展示 `birth_validation` 与八字四柱，让用户确认后再使用相同请求调用 `POST /api/chart`。校验内容只包含历法与八字信息，不包含紫微基础盘。
+
+```json
+{
+  "birth_year": 2024,
+  "birth_month": 1,
+  "birth_day": 1,
+  "birth_hour": 8,
+  "birth_min": 30,
+  "calendar_type": "LUNAR",
+  "lunar_leap_month": false,
+  "gender": "MALE",
+  "name": "",
+  "birth_place": "上海",
+  "timezone": "Asia/Shanghai",
+  "longitude": 121.4737,
+  "use_true_solar_time": true,
+  "time_uncertain": false
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `birth_year` | int | 是 | 输入历法下的出生年 |
+| `birth_month` | int | 是 | 输入历法下的出生月 |
+| `birth_day` | int | 是 | 输入历法下的出生日 |
+| `birth_hour` | int | 是 | 0–23 小时 |
+| `birth_min` | int | 否 | 0–59 分钟，默认 0 |
+| `calendar_type` | string | 否 | `SOLAR` / `LUNAR`，空值按 `SOLAR` |
+| `lunar_leap_month` | bool | 否 | 农历输入是否为闰月；公历输入应为 false |
+| `gender` | string | 是 | `MALE` / `FEMALE` |
+| `name` | string | 否 | 空值自动生成 `YYYY-MM-DD 命盘` |
+| `birth_place` | string | 否 | 展示与审计用出生地 |
+| `timezone` | string | 否 | IANA 时区，默认 `Asia/Shanghai` |
+| `longitude` | number | 条件必填 | 经度，启用真太阳时时必填，范围 -180–180 |
+| `use_true_solar_time` | bool | 否 | 是否按经度与均时差修正计算时间 |
+| `time_uncertain` | bool | 否 | 标记出生时间存在不确定性，并在校验提示中说明 |
+
+预览响应的 `id` 为 `0`，并返回完整排盘结果及以下校验信息：
+
+```json
+{
+  "id": 0,
+  "name": "2024-01-01 命盘",
+  "calendar_type": "LUNAR",
+  "engine_version": "bazi-engine-2026-07-10",
+  "rule_version": "...",
+  "birth_validation": {
+    "normalization_version": "birth-normalization-2026-07-10",
+    "input_calendar": "LUNAR",
+    "original_date_time": "2024-01-01 08:30:00",
+    "converted_solar_date_time": "2024-02-10 08:30:00",
+    "calculation_date_time": "...",
+    "lunar_date": "...",
+    "current_solar_term": "...",
+    "current_solar_term_started_at": "...",
+    "birth_place": "上海",
+    "timezone": "Asia/Shanghai",
+    "utc_date_time": "...",
+    "longitude": 121.4737,
+    "true_solar_time_applied": true,
+    "true_solar_adjustment_minutes": -9,
+    "time_uncertain": false,
+    "notices": []
+  },
+  "year_pillar": {"gan":"甲","zhi":"辰"},
+  "month_pillar": {"gan":"丙","zhi":"寅"},
+  "day_pillar": {"gan":"...","zhi":"..."},
+  "hour_pillar": {"gan":"...","zhi":"..."}
+}
+```
+
+### 确认并创建命盘
 
 ```http
 POST /api/chart
 ```
 
-```json
-{
-  "birth_year": 2003,
-  "birth_month": 4,
-  "birth_day": 15,
-  "birth_hour": 14,
-  "birth_min": 0,
-  "calendar_type": "SOLAR",
-  "gender": "MALE",
-  "name": ""
-}
-```
+请求体与预览接口相同。后端会再次标准化和计算，保存标准化出生输入、完整八字结果快照、`engine_version` 与规则版本，然后返回真实命盘 `id`。创建接口不依赖客户端提交预览结果，以避免预览数据被篡改。
 
-约定：
-
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `birth_year` | int | 是 | 公历或农历出生年 |
-| `birth_month` | int | 是 | 出生月 |
-| `birth_day` | int | 是 | 出生日 |
-| `birth_hour` | int | 是 | 0-23 小时 |
-| `birth_min` | int | 否 | 默认 0 |
-| `calendar_type` | string | 是 | `SOLAR` / `LUNAR` / `BAZI` |
-| `gender` | string | 是 | `MALE` / `FEMALE` |
-| `name` | string | 否 | 空字符串允许 |
-
-响应包含新建 `id`、四柱、五行、身强、十神、纳音、大运等。创建响应中的大运字段为 `da_yun`；历史命盘详情的持久化字段为 `da_yun_start`，前端需要兼容两者。
+响应除 `id`、`birth_validation`、`engine_version`、`rule_version`、`school`、`rule_meta` 外，还包含四柱、五行、身强、十神、纳音、大运等完整八字字段。创建响应的大运字段为 `da_yun`。
 
 ### 命盘列表
 
@@ -143,14 +202,22 @@ GET /api/charts?page=1&page_size=10
   "charts": [
     {
       "id": 87,
-      "name": "",
+      "name": "2003-04-15 命盘",
       "gender": "MALE",
       "birth_year": 2003,
       "birth_month": 4,
       "birth_day": 15,
       "birth_hour": 14,
-      "birth_min": 0,
+      "birth_min": 30,
       "calendar_type": "SOLAR",
+      "lunar_leap_month": false,
+      "birth_place": "上海",
+      "timezone": "Asia/Shanghai",
+      "longitude": 121.4737,
+      "use_true_solar_time": true,
+      "time_uncertain": false,
+      "engine_version": "bazi-engine-2026-07-10",
+      "stored_rule_version": "...",
       "created_at": "2026-06-16T02:09:23+08:00",
       "updated_at": "2026-06-16T02:09:23+08:00"
     }
@@ -169,7 +236,9 @@ GET /api/charts?page=1&page_size=10
 GET /api/charts/:id
 ```
 
-响应为 `ChartDetailResponse` DTO，不直接返回 `BirthChart` 存储模型；包含基础出生信息、四柱、十神、神煞、干支关系、格局、调候、命宫、运势详批所需字段、`da_yun_start`、兼容别名 `da_yun`、`ziwei_result`、`ziwei_computed`。历史详情会按出生信息重新计算确定性展示字段，保证与新建排盘响应一致；不会返回 `user_id`、`DeletedAt`、关联 `User` 等持久化内部字段。
+响应为 `ChartDetailResponse` DTO，不直接返回 `BirthChart` 存储模型。除列表字段外，详情包含 `birth_validation`、八字完整展示字段、当前输出使用的 `rule_version`、持久化版本 `stored_rule_version`、`da_yun_start` 及其别名 `da_yun`、`ziwei_result`、`ziwei_computed`。
+
+历史详情优先读取创建时保存的完整八字快照，确保同一命盘可追溯；若快照缺失，再按保存的标准化出生输入重算，最后才回退原始出生字段。详情不会返回 `user_id`、`DeletedAt`、关联 `User` 等持久化内部字段。
 
 ## 运势
 
@@ -183,7 +252,42 @@ POST /api/fortune
 {"chart_id":87,"query_date":"2026-06-16"}
 ```
 
-`query_date` 必填，格式为 `YYYY-MM-DD`。响应包含 `score`、`lucky_color`、`wealth_direction`、`guide`、`yi/ji`、日课推算字段、格局字段等。
+`query_date` 必填，格式为 `YYYY-MM-DD`。今日、周、月接口中的每日结果统一使用同一评分流水线：中性起分 → 天干地支关系分 → 九维细项加权分 → 30% 关系分与 70% 细项分合成最终分。
+
+关键评分与解释字段：
+
+```json
+{
+  "engine_version": "fortune-engine-2026-07-10",
+  "rule_version": "bazi-rules-2026-06-16",
+  "score": 68,
+  "evidence_completeness": 90,
+  "supporting_evidence": [
+    {
+      "code": "relation.stem.shengWo",
+      "stage": "relation",
+      "category": "天干生克",
+      "label": "流日生扶日主",
+      "impact": 18,
+      "description": "...",
+      "source": "《三命通会》十神生克规则"
+    }
+  ],
+  "counter_evidence": [],
+  "score_breakdown": {
+    "pipeline_version": "fortune-score-pipeline-2026-07-10",
+    "base_score": 50,
+    "relation_score": 60,
+    "detail_score": 72,
+    "final_score": 68,
+    "evidence_completeness": 90,
+    "supporting_evidence": [],
+    "counter_evidence": []
+  }
+}
+```
+
+`evidence_completeness` 与 `guide.evidence_completeness` 均表示规则所需资料的覆盖程度（0–100），不是事件发生概率。接口不再使用 `confidence` 表达运势可信度。前端按普通、进阶、专业三层展示：普通层给结论和行动，进阶层展示正反证据，专业层展示评分拆解、证据代码/来源以及引擎和规则版本。
 
 ### 周运势
 
@@ -426,7 +530,9 @@ POST /api/feedback
   "event_year": 2026,
   "event_category": "career",
   "consent_research": false,
-  "consent_training": false
+  "consent_training": false,
+  "engine_version": "bazi-engine-2026-07-10",
+  "rule_version": "..."
 }
 ```
 
@@ -439,6 +545,8 @@ POST /api/feedback
 | `comment` | 最多 1000 个 Unicode 字符 |
 | `tags` | 去重、去空、单个最多 32 字符、最多 10 个 |
 | `consent_training` | 默认 false，需用户显式授权 |
+| `engine_version` | 可选，最多 64 个 Unicode 字符；空值使用命盘保存版本，旧命盘回退当前版本 |
+| `rule_version` | 可选，最多 64 个 Unicode 字符；空值使用命盘保存版本，旧命盘回退当前版本 |
 
 响应：
 

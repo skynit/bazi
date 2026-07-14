@@ -15,6 +15,14 @@ interface SavedChart {
   birth_month: number
   birth_day: number
   birth_hour: number
+  birth_min: number
+  calendar_type?: string
+  lunar_leap_month?: boolean
+  birth_place?: string
+  timezone?: string
+  longitude?: number
+  use_true_solar_time?: boolean
+  time_uncertain?: boolean
 }
 
 const route = useRoute()
@@ -63,14 +71,25 @@ function cacheLastBirthFromChart(chart: any) {
   if (!chart?.id || !chart?.birth_year || !chart?.birth_month || !chart?.birth_day) return
   const birthHour = Number(chart.birth_hour)
   const genderRaw = String(chart.gender || '').toLowerCase()
-  localStorage.setItem('bazi_last_birth', JSON.stringify({
-    year: Number(chart.birth_year),
-    month: Number(chart.birth_month),
-    day: Number(chart.birth_day),
-    shichen: Number.isFinite(birthHour) ? Math.floor(birthHour / 2) : 4,
-    gender: genderRaw === 'female' || genderRaw === '女' ? 'female' : 'male',
-    chartId: chart.id,
-  }))
+  localStorage.setItem(
+    'bazi_last_birth',
+    JSON.stringify({
+      year: Number(chart.birth_year),
+      month: Number(chart.birth_month),
+      day: Number(chart.birth_day),
+      hour: Number.isFinite(birthHour) ? birthHour : 8,
+      minute: Number(chart.birth_min) || 0,
+      calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
+      lunarLeapMonth: Boolean(chart.lunar_leap_month),
+      gender: genderRaw === 'female' || genderRaw === '女' ? 'FEMALE' : 'MALE',
+      birthPlace: chart.birth_place || '',
+      timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      longitude: chart.longitude,
+      useTrueSolarTime: Boolean(chart.use_true_solar_time),
+      timeUncertain: Boolean(chart.time_uncertain),
+      chartId: chart.id,
+    }),
+  )
 }
 
 async function fetchSavedCharts() {
@@ -81,8 +100,8 @@ async function fetchSavedCharts() {
     savedCharts.value = data.charts
     showPicker.value = data.charts.length > 0
   } catch (err: any) {
-    // Graceful fallback: show the new-chart form instead of blocking
-    chartsError.value = ''
+    chartsError.value =
+      err.response?.data?.message || err.response?.data?.error || err.message || '已有命盘加载失败'
     savedCharts.value = []
     showPicker.value = false
   } finally {
@@ -93,14 +112,26 @@ async function fetchSavedCharts() {
 async function selectChart(chart: SavedChart) {
   error.value = ''
   try {
-    localStorage.setItem('bazi_last_birth', JSON.stringify({
-      year: chart.birth_year,
-      month: chart.birth_month,
-      day: chart.birth_day,
-      shichen: Math.floor(chart.birth_hour / 2),
-      gender: chart.gender.toLowerCase(),
-      chartId: chart.id,
-    }))
+    localStorage.setItem(
+      'bazi_last_birth',
+      JSON.stringify({
+        year: chart.birth_year,
+        month: chart.birth_month,
+        day: chart.birth_day,
+        hour: chart.birth_hour,
+        minute: chart.birth_min || 0,
+        calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
+        lunarLeapMonth: Boolean(chart.lunar_leap_month),
+        gender:
+          chart.gender.toLowerCase() === 'female' || chart.gender === '女' ? 'FEMALE' : 'MALE',
+        birthPlace: chart.birth_place || '',
+        timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        longitude: chart.longitude,
+        useTrueSolarTime: Boolean(chart.use_true_solar_time),
+        timeUncertain: Boolean(chart.time_uncertain),
+        chartId: chart.id,
+      }),
+    )
     router.push(`/chart/${chart.id}`)
   } catch (err: any) {
     error.value = err.message || '打开命盘失败，请稍后重试'
@@ -115,7 +146,8 @@ function formatBirth(c: SavedChart): string {
   const m = String(c.birth_month).padStart(2, '0')
   const d = String(c.birth_day).padStart(2, '0')
   const h = String(c.birth_hour).padStart(2, '0')
-  return `${c.birth_year}-${m}-${d} ${h}:00`
+  const min = String(c.birth_min || 0).padStart(2, '0')
+  return `${c.birth_year}-${m}-${d} ${h}:${min}`
 }
 
 async function loadChart() {
@@ -272,13 +304,7 @@ function onComputationComplete(): void {
                   {{ formatBirth(chart) }}
                 </span>
               </div>
-              <svg
-                class="picker-arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-              >
+              <svg class="picker-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path
                   d="M5 3l4 4-4 4"
                   stroke="currentColor"
@@ -322,7 +348,11 @@ function onComputationComplete(): void {
         <!-- Action buttons -->
         <div class="action-row">
           <div class="action-glow"></div>
-          <Button @click="goFortune" class="rounded-full h-10 px-6 text-sm font-medium bg-foreground text-background hover:bg-foreground/90">查看运势</Button>
+          <Button
+            @click="goFortune"
+            class="rounded-full h-10 px-6 text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
+            >查看运势</Button
+          >
           <button class="btn-secondary" @click="goZiWei">
             <span class="btn-icon-secondary">☯</span>
             紫微斗数
@@ -365,7 +395,9 @@ function onComputationComplete(): void {
           </svg>
         </div>
         <p class="empty-title">未找到命盘</p>
-        <Button @click="router.push('/chart/new')" variant="outline" class="rounded-full">创建新的命盘</Button>
+        <Button @click="router.push('/chart/new')" variant="outline" class="rounded-full"
+          >创建新的命盘</Button
+        >
       </div>
     </main>
   </div>
@@ -813,7 +845,9 @@ function onComputationComplete(): void {
 .picker-arrow {
   color: var(--text-soft);
   flex-shrink: 0;
-  transition: color 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    transform 0.2s;
 }
 
 .picker-row:hover .picker-arrow {

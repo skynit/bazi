@@ -13,6 +13,8 @@ export interface FeedbackRequest {
   event_category?: string
   consent_research?: boolean
   consent_training?: boolean
+  engine_version?: string
+  rule_version?: string
 }
 
 export interface FeedbackResponse {

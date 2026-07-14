@@ -1,4 +1,9 @@
 import type { FortuneGuide } from '../api/fortune'
+import earthBackdrop from '../assets/background/土.png'
+import fireBackdrop from '../assets/background/火.png'
+import metalBackdrop from '../assets/background/金.png'
+import waterBackdrop from '../assets/background/水.png'
+import woodBackdrop from '../assets/background/木.png'
 import earthImage from '../assets/blessing/earth.png'
 import fireImage from '../assets/blessing/fire.png'
 import metalImage from '../assets/blessing/metal.png'
@@ -10,6 +15,7 @@ export type BlessingElement = '木' | '火' | '土' | '金' | '水'
 export interface BlessingProfile {
   element: BlessingElement
   image: string
+  backdrop: string
   accent: string
   accentDark: string
   accentRgb: string
@@ -27,6 +33,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
   木: {
     element: '木',
     image: woodImage,
+    backdrop: woodBackdrop,
     accent: '#22c59e',
     accentDark: '#0f8f6e',
     accentRgb: '34, 197, 158',
@@ -40,6 +47,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
   火: {
     element: '火',
     image: fireImage,
+    backdrop: fireBackdrop,
     accent: '#fb7185',
     accentDark: '#be123c',
     accentRgb: '251, 113, 133',
@@ -53,6 +61,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
   土: {
     element: '土',
     image: earthImage,
+    backdrop: earthBackdrop,
     accent: '#f2bd4d',
     accentDark: '#b7791f',
     accentRgb: '242, 189, 77',
@@ -66,6 +75,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
   金: {
     element: '金',
     image: metalImage,
+    backdrop: metalBackdrop,
     accent: '#cbd5e1',
     accentDark: '#64748b',
     accentRgb: '203, 213, 225',
@@ -79,6 +89,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
   水: {
     element: '水',
     image: waterImage,
+    backdrop: waterBackdrop,
     accent: '#22d3ee',
     accentDark: '#2563eb',
     accentRgb: '34, 211, 238',

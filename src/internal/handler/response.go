@@ -57,24 +57,37 @@ func codeFromStatus(status int) string {
 
 func chartSummaryResponse(chart model.BirthChart) model.ChartSummaryResponse {
 	return model.ChartSummaryResponse{
-		ID:           chart.ID,
-		Name:         chart.Name,
-		Gender:       chart.Gender,
-		BirthYear:    chart.BirthYear,
-		BirthMonth:   chart.BirthMonth,
-		BirthDay:     chart.BirthDay,
-		BirthHour:    chart.BirthHour,
-		BirthMin:     chart.BirthMin,
-		CalendarType: chart.CalendarType,
-		CreatedAt:    formatAPITime(chart.CreatedAt),
-		UpdatedAt:    formatAPITime(chart.UpdatedAt),
+		ID:                chart.ID,
+		Name:              chart.Name,
+		Gender:            chart.Gender,
+		BirthYear:         chart.BirthYear,
+		BirthMonth:        chart.BirthMonth,
+		BirthDay:          chart.BirthDay,
+		BirthHour:         chart.BirthHour,
+		BirthMin:          chart.BirthMin,
+		CalendarType:      chart.CalendarType,
+		LunarLeapMonth:    chart.LunarLeapMonth,
+		BirthPlace:        chart.BirthPlace,
+		Timezone:          chart.Timezone,
+		Longitude:         cloneFloat64(chart.Longitude),
+		UseTrueSolarTime:  chart.UseTrueSolarTime,
+		TimeUncertain:     chart.TimeUncertain,
+		EngineVersion:     chart.EngineVersion,
+		StoredRuleVersion: chart.RuleVersion,
+		CreatedAt:         formatAPITime(chart.CreatedAt),
+		UpdatedAt:         formatAPITime(chart.UpdatedAt),
 	}
 }
 
 func chartDetailResponse(chart model.BirthChart) model.ChartDetailResponse {
+	ruleVersion := chart.RuleVersion
+	if ruleVersion == "" {
+		ruleVersion = bazi.RuleVersion
+	}
 	return model.ChartDetailResponse{
 		ChartSummaryResponse: chartSummaryResponse(chart),
-		RuleVersion:          bazi.RuleVersion,
+		BirthValidation:      birthValidationFromDB(chart.NormalizedBirth),
+		RuleVersion:          ruleVersion,
 		School:               bazi.RuleSchool,
 		RuleMeta:             bazi.DefaultRuleMeta(),
 		YearPillar:           jsonFromDB(chart.YearPillar),
@@ -91,6 +104,19 @@ func chartDetailResponse(chart model.BirthChart) model.ChartDetailResponse {
 		ZiWeiResult:          jsonFromDB(chart.ZiWeiResult),
 		ZiWeiComputed:        chart.ZiWeiComputed,
 	}
+}
+
+func birthValidationFromDB(raw datatypes.JSON) json.RawMessage {
+	if len(raw) == 0 || !json.Valid(raw) {
+		return json.RawMessage("null")
+	}
+	var normalized struct {
+		Validation json.RawMessage `json:"validation"`
+	}
+	if err := json.Unmarshal(raw, &normalized); err != nil || len(normalized.Validation) == 0 || !json.Valid(normalized.Validation) {
+		return json.RawMessage("null")
+	}
+	return normalized.Validation
 }
 
 func chartDetailResponseWithBazi(chart model.BirthChart, result *bazi.BaziResult) model.ChartDetailResponse {

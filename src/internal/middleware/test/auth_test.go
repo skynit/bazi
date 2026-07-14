@@ -90,3 +90,53 @@ func TestMissingToken(t *testing.T) {
 		t.Fatalf("expected status 401, got %d", w.Code)
 	}
 }
+
+func TestAuthMiddlewareRejectsNonHS256Token(t *testing.T) {
+	now := time.Now()
+	c := ExportClaims{
+		UserID:   1,
+		Username: "wrong-algorithm",
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "bazi",
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
+		},
+	}
+	tokenStr, err := jwt.NewWithClaims(jwt.SigningMethodHS384, c).SignedString(ExportGetJWTKey())
+	if err != nil {
+		t.Fatalf("failed to create HS384 token: %v", err)
+	}
+	if status := requestProtectedRoute(tokenStr); status != http.StatusUnauthorized {
+		t.Fatalf("expected HS384 token to be rejected, got %d", status)
+	}
+}
+
+func TestAuthMiddlewareRequiresIssuer(t *testing.T) {
+	now := time.Now()
+	c := ExportClaims{
+		UserID:   1,
+		Username: "missing-issuer",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
+		},
+	}
+	tokenStr, err := jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(ExportGetJWTKey())
+	if err != nil {
+		t.Fatalf("failed to create token without issuer: %v", err)
+	}
+	if status := requestProtectedRoute(tokenStr); status != http.StatusUnauthorized {
+		t.Fatalf("expected token without issuer to be rejected, got %d", status)
+	}
+}
+
+func requestProtectedRoute(token string) int {
+	router := gin.New()
+	router.Use(AuthMiddleware())
+	router.GET("/protected", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w.Code
+}

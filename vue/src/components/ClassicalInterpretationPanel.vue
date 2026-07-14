@@ -1,11 +1,23 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { BookOpenTextIcon, ChevronDownIcon, RefreshCwIcon, SparklesIcon, TriangleAlertIcon } from '@lucide/vue'
-import { fetchBaziInterpretation, type BaziInterpretationResponse, type InterpretationFocus } from '../api/interpretation'
+import {
+  BookOpenTextIcon,
+  ChevronDownIcon,
+  RefreshCwIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
+} from '@lucide/vue'
+import {
+  fetchBaziInterpretation,
+  type BaziInterpretationResponse,
+  type InterpretationFocus,
+} from '../api/interpretation'
 import { submitFeedback, type FeedbackRating } from '../api/feedback'
 
 const props = defineProps<{
   chartId?: number
+  engineVersion?: string
+  ruleVersion?: string
 }>()
 
 const focusOptions: Array<{ key: InterpretationFocus; label: string }> = [
@@ -20,13 +32,15 @@ const loading = ref(false)
 const error = ref('')
 const response = ref<BaziInterpretationResponse | null>(null)
 const expandedCitations = ref<number[]>([])
-const feedbackState = ref<Record<string, { rating?: FeedbackRating; loading?: boolean; error?: string }>>({})
+const feedbackState = ref<
+  Record<string, { rating?: FeedbackRating; loading?: boolean; error?: string }>
+>({})
 
 const available = computed(() => !!props.chartId)
 
 function toggleCitation(id: number) {
   if (expandedCitations.value.includes(id)) {
-    expandedCitations.value = expandedCitations.value.filter(v => v !== id)
+    expandedCitations.value = expandedCitations.value.filter((v) => v !== id)
   } else {
     expandedCitations.value = [...expandedCitations.value, id]
   }
@@ -78,6 +92,8 @@ async function sendSectionFeedback(sectionTitle: string, rating: FeedbackRating)
       tags: [focus.value, sectionTitle],
       consent_research: false,
       consent_training: false,
+      engine_version: props.engineVersion,
+      rule_version: props.ruleVersion,
     })
     feedbackState.value = {
       ...feedbackState.value,
@@ -180,7 +196,9 @@ const statusText = computed(() => {
               v-for="option in feedbackOptions"
               :key="option.rating"
               class="ai-feedback-btn"
-              :class="{ active: feedbackState[sectionKey(section.title)]?.rating === option.rating }"
+              :class="{
+                active: feedbackState[sectionKey(section.title)]?.rating === option.rating,
+              }"
               :disabled="feedbackState[sectionKey(section.title)]?.loading"
               @click="sendSectionFeedback(section.title, option.rating)"
             >
@@ -189,10 +207,16 @@ const statusText = computed(() => {
             <span v-if="feedbackState[sectionKey(section.title)]?.loading" class="ai-feedback-note">
               提交中
             </span>
-            <span v-else-if="feedbackState[sectionKey(section.title)]?.rating" class="ai-feedback-note">
+            <span
+              v-else-if="feedbackState[sectionKey(section.title)]?.rating"
+              class="ai-feedback-note"
+            >
               已记录
             </span>
-            <span v-else-if="feedbackState[sectionKey(section.title)]?.error" class="ai-feedback-error">
+            <span
+              v-else-if="feedbackState[sectionKey(section.title)]?.error"
+              class="ai-feedback-error"
+            >
               {{ feedbackState[sectionKey(section.title)]?.error }}
             </span>
           </div>
@@ -200,7 +224,12 @@ const statusText = computed(() => {
       </div>
 
       <div v-if="response.citations.length" class="ai-citations">
-        <button class="ai-citations-toggle" @click="expandedCitations = expandedCitations.length ? [] : response.citations.map(c => c.id)">
+        <button
+          class="ai-citations-toggle"
+          @click="
+            expandedCitations = expandedCitations.length ? [] : response.citations.map((c) => c.id)
+          "
+        >
           <ChevronDownIcon class="ai-btn-icon" :class="{ open: expandedCitations.length }" />
           引用依据
         </button>
@@ -517,6 +546,8 @@ const statusText = computed(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

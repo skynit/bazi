@@ -20,6 +20,7 @@ const route = useRoute()
 interface BirthInfo {
   name: string
   gender: string
+  yearBranch: string
   solarDate: string
   lunarDate: string
   baziChartId: number
@@ -168,6 +169,7 @@ function mapBirthInfo(chart: ChartDetail): BirthInfo {
   return {
     name: chart.name || '未命名',
     gender: chart.gender,
+    yearBranch: chart.year_pillar?.zhi || '',
     solarDate: `${chart.birth_year}-${month}-${day} ${hour}:${minute}`,
     lunarDate: chart.calendar_type === 'LUNAR' ? '农历生日' : '',
     baziChartId: chart.id,
@@ -531,6 +533,8 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
           :liunian-chart="liunianOverlay"
           :dayun-stages="dayunStageList"
           :available-years="availableYears"
+          :birth-year-branch="birthInfo?.yearBranch || ''"
+          :gender="birthInfo?.gender || ''"
           :overlay-analysis="liunianOverlay.overlay_analysis"
           @year-change="onYearChange"
         />

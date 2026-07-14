@@ -94,6 +94,14 @@ func TestWeeklyFortune(t *testing.T) {
 	if len(resp.DailyFortunes) != 7 {
 		t.Errorf("expected 7 daily fortunes, got %d", len(resp.DailyFortunes))
 	}
+	for i, day := range resp.DailyFortunes {
+		if day.ScoreBreakdown.PipelineVersion == "" || day.Score != day.ScoreBreakdown.FinalScore {
+			t.Fatalf("day %d does not use unified score pipeline: score=%d breakdown=%+v", i, day.Score, day.ScoreBreakdown)
+		}
+		if day.SupportingEvidence == nil || day.CounterEvidence == nil {
+			t.Fatalf("day %d evidence arrays must be present: %+v", i, day)
+		}
+	}
 }
 
 func TestWeeklyFortuneNoJWT(t *testing.T) {

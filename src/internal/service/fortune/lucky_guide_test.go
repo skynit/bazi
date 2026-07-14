@@ -31,6 +31,7 @@ func TestBuildFortuneGuideUsesEffectiveFavor(t *testing.T) {
 		[]model.YiJiItem{{Activity: "汇报", Reason: "官杀当值，宜按流程担责"}},
 		[]model.YiJiItem{{Activity: "动土", Reason: "冲煞较重，不宜动土"}},
 		&RikuyoResult{OverallVerdict: "日课偏吉，宜稳中推进。", FavorScore: 72},
+		85,
 	)
 
 	if guide == nil {
@@ -39,8 +40,8 @@ func TestBuildFortuneGuideUsesEffectiveFavor(t *testing.T) {
 	if guide.PrimaryElement != "木" || guide.SecondaryElement != "金" || guide.AvoidElement != "火" {
 		t.Fatalf("unexpected elements: %+v", guide)
 	}
-	if guide.Confidence < 70 {
-		t.Fatalf("expected guide confidence >= 70, got %d", guide.Confidence)
+	if guide.EvidenceCompleteness < 70 {
+		t.Fatalf("expected guide evidence completeness >= 70, got %d", guide.EvidenceCompleteness)
 	}
 	if !strings.Contains(guide.Analysis, "流日甲子") || !strings.Contains(guide.Analysis, "六冲") {
 		t.Fatalf("analysis should mention flow day and clash: %s", guide.Analysis)
@@ -59,6 +60,44 @@ func TestBuildFortuneGuideUsesEffectiveFavor(t *testing.T) {
 	}
 }
 
+func TestBuildFortuneGuidePrimaryChangesWithFlowDay(t *testing.T) {
+	chart := &bazipkg.BaziResult{
+		DayPillar: model.Pillar{Gan: "戊", Zhi: "午"},
+		BodyStrength: bazipkg.BodyStrengthResult{
+			Like:    []string{"水", "木"},
+			Dislike: []string{"金", "火"},
+			Verdict: "身旺",
+		},
+	}
+
+	woodDay := BuildFortuneGuide(chart, model.Pillar{Gan: "甲", Zhi: "寅"}, 70, "neutral", "neutral", "", nil, "", nil, nil, nil, nil, 80)
+	waterDay := BuildFortuneGuide(chart, model.Pillar{Gan: "壬", Zhi: "子"}, 70, "neutral", "neutral", "", nil, "", nil, nil, nil, nil, 80)
+	metalDay := BuildFortuneGuide(chart, model.Pillar{Gan: "庚", Zhi: "申"}, 70, "neutral", "neutral", "", nil, "", nil, nil, nil, nil, 80)
+
+	if woodDay.PrimaryElement != "木" || woodDay.SecondaryElement != "水" {
+		t.Fatalf("wood flow day should use wood as primary and water as support: %+v", woodDay)
+	}
+	if waterDay.PrimaryElement != "水" || waterDay.SecondaryElement != "木" {
+		t.Fatalf("water flow day should use water as primary and wood as support: %+v", waterDay)
+	}
+	if woodDay.PrimaryElement == waterDay.PrimaryElement {
+		t.Fatalf("primary element should change with the flow day: wood=%s water=%s", woodDay.PrimaryElement, waterDay.PrimaryElement)
+	}
+	if len(waterDay.LuckyColors) == 0 || waterDay.LuckyColors[0].Element != waterDay.PrimaryElement {
+		t.Fatalf("first lucky color should follow the dynamic primary element: %+v", waterDay.LuckyColors)
+	}
+	if metalDay.PrimaryElement != "水" || metalDay.AvoidElement != "金" {
+		t.Fatalf("disliked metal flow day should be drained by favorable water and remain the avoid element: %+v", metalDay)
+	}
+}
+
+func TestSelectDailyBlessingElementsControlsDislikedFlow(t *testing.T) {
+	primary, secondary, avoid := selectDailyBlessingElements("土", []string{"木", "水"}, []string{"土", "火"}, "金")
+	if primary != "木" || secondary != "水" || avoid != "土" {
+		t.Fatalf("expected wood to control disliked earth flow, got primary=%s secondary=%s avoid=%s", primary, secondary, avoid)
+	}
+}
+
 func TestBuildFortuneGuideFallbackStillExplains(t *testing.T) {
 	chart := &bazipkg.BaziResult{
 		DayPillar: model.Pillar{Gan: "辛", Zhi: "酉"},
@@ -69,7 +108,7 @@ func TestBuildFortuneGuideFallbackStillExplains(t *testing.T) {
 		},
 	}
 
-	guide := BuildFortuneGuide(chart, model.Pillar{Gan: "癸", Zhi: "卯"}, 45, "woSheng", "neutral", "", nil, "", nil, nil, nil, nil)
+	guide := BuildFortuneGuide(chart, model.Pillar{Gan: "癸", Zhi: "卯"}, 45, "woSheng", "neutral", "", nil, "", nil, nil, nil, nil, 55)
 	if guide == nil {
 		t.Fatal("guide should not be nil")
 	}

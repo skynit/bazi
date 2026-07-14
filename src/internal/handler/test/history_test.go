@@ -10,8 +10,10 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
+	"bazi/internal/service/bazi"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 type mockChartListStore struct {
@@ -207,6 +209,68 @@ func TestGetChartByID(t *testing.T) {
 	}
 	if desc, ok := raw["flow_pattern_desc"].(string); !ok || desc == "" {
 		t.Error("chart detail DTO should include non-empty flow_pattern_desc for fortune tab")
+	}
+}
+
+func TestGetChartPrefersStoredBaziSnapshot(t *testing.T) {
+	snapshot := bazi.BaziResult{
+		RuleVersion: "snapshot-rule",
+		School:      "snapshot-school",
+		YearPillar:  model.Pillar{Gan: "甲", Zhi: "子"},
+		MonthPillar: model.Pillar{Gan: "乙", Zhi: "丑"},
+		DayPillar:   model.Pillar{Gan: "丙", Zhi: "寅"},
+		HourPillar:  model.Pillar{Gan: "丁", Zhi: "卯"},
+	}
+	snapshotJSON, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatalf("failed to marshal snapshot: %v", err)
+	}
+
+	charts := newMockChartListStore()
+	charts.AddChart(&model.BirthChart{
+		UserID:       1,
+		Name:         "Snapshot Chart",
+		Gender:       "MALE",
+		BirthYear:    2000,
+		BirthMonth:   99,
+		BirthDay:     99,
+		BirthHour:    99,
+		BaziSnapshot: datatypes.JSON(snapshotJSON),
+	})
+	router := setupHistoryRouter(charts, &mockFortuneHistoryStore{})
+
+	token, err := middleware.GenerateToken(1, "testuser")
+	if err != nil {
+		t.Fatalf("failed to generate token: %v", err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/charts/1", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected snapshot to avoid recalculating invalid birth fields, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var response struct {
+		RuleVersion string       `json:"rule_version"`
+		School      string       `json:"school"`
+		YearPillar  model.Pillar `json:"year_pillar"`
+		MonthPillar model.Pillar `json:"month_pillar"`
+		DayPillar   model.Pillar `json:"day_pillar"`
+		HourPillar  model.Pillar `json:"hour_pillar"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+	if response.RuleVersion != snapshot.RuleVersion || response.School != snapshot.School {
+		t.Fatalf("expected snapshot metadata, got rule=%q school=%q", response.RuleVersion, response.School)
+	}
+	if response.YearPillar != snapshot.YearPillar ||
+		response.MonthPillar != snapshot.MonthPillar ||
+		response.DayPillar != snapshot.DayPillar ||
+		response.HourPillar != snapshot.HourPillar {
+		t.Fatalf("expected stored snapshot pillars, got %+v %+v %+v %+v", response.YearPillar, response.MonthPillar, response.DayPillar, response.HourPillar)
 	}
 }
 

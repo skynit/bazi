@@ -13,9 +13,14 @@ import (
 )
 
 // FortuneHandler handles fortune-telling endpoints.
+type BlessingAssetBuilder interface {
+	BuildBlessingSet(chartID uint, date, primary, secondary, avoid string, actionElements []string) (model.BlessingAssetSet, error)
+}
+
 type FortuneHandler struct {
 	Engine     *fortunePkg.FortuneEngine
 	ChartStore ChartStore
+	Assets     BlessingAssetBuilder
 }
 
 // CalculateDaily handles POST /api/fortune.
@@ -78,37 +83,42 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		luckyNum = fortune.LuckyNumbers[0]
 	}
 	resp := model.FortuneResponse{
-		RuleVersion:         baziResult.RuleVersion,
-		School:              baziResult.School,
-		RuleMeta:            baziResult.RuleMeta,
-		SolarDate:           fortune.Date,
-		LunarDate:           fortune.LunarDate,
-		DayGanZhi:           fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
-		WeekDay:             fortune.WeekDay,
-		ShengXiao:           fortune.ShengXiao,
-		JiShen:              fortune.JiShen,
-		XiongShen:           fortune.XiongShen,
-		TaiShen:             fortune.TaiShen,
-		WuXing:              fortune.WuXing,
-		PengZu:              fortune.PengZu,
-		Gua:                 fortune.Gua,
-		JieQi:               fortune.JieQi,
-		ElementImages:       fortune.ElementImages,
-		Score:               fortune.Score,
-		LuckyColor:          fortune.LuckyColor,
-		LuckyNumber:         luckyNum,
-		WealthDir:           fortune.WealthDir,
-		Guide:               fortune.Guide,
-		ClashZodiac:         fortune.ClashZodiac,
-		AuspiciousHours:     fortune.AuspiciousHours,
-		YiItems:             yiItems,
-		JiItems:             jiItems,
-		TodayElements:       fortune.TodayElements,
-		TiaoHou:             data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
-		SeasonElementAdvice: fortune.SeasonElementAdvice,
-		FlowImpact:          fortune.FlowImpact,
-		ShengKeAnalysis:     model.ShengKeAnalysis(fortune.ShengKe),
-		FortuneLayers:       fortune.Layers,
+		EngineVersion:        fortunePkg.FortuneEngineVersion,
+		RuleVersion:          baziResult.RuleVersion,
+		School:               baziResult.School,
+		RuleMeta:             baziResult.RuleMeta,
+		SolarDate:            fortune.Date,
+		LunarDate:            fortune.LunarDate,
+		DayGanZhi:            fortune.DayPillar.Gan + fortune.DayPillar.Zhi,
+		WeekDay:              fortune.WeekDay,
+		ShengXiao:            fortune.ShengXiao,
+		JiShen:               fortune.JiShen,
+		XiongShen:            fortune.XiongShen,
+		TaiShen:              fortune.TaiShen,
+		WuXing:               fortune.WuXing,
+		PengZu:               fortune.PengZu,
+		Gua:                  fortune.Gua,
+		JieQi:                fortune.JieQi,
+		ElementImages:        fortune.ElementImages,
+		Score:                fortune.Score,
+		ScoreBreakdown:       fortune.ScoreBreakdown,
+		EvidenceCompleteness: fortune.ScoreBreakdown.EvidenceCompleteness,
+		SupportingEvidence:   fortune.ScoreBreakdown.SupportingEvidence,
+		CounterEvidence:      fortune.ScoreBreakdown.CounterEvidence,
+		LuckyColor:           fortune.LuckyColor,
+		LuckyNumber:          luckyNum,
+		WealthDir:            fortune.WealthDir,
+		Guide:                fortune.Guide,
+		ClashZodiac:          fortune.ClashZodiac,
+		AuspiciousHours:      fortune.AuspiciousHours,
+		YiItems:              yiItems,
+		JiItems:              jiItems,
+		TodayElements:        fortune.TodayElements,
+		TiaoHou:              data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
+		SeasonElementAdvice:  fortune.SeasonElementAdvice,
+		FlowImpact:           fortune.FlowImpact,
+		ShengKeAnalysis:      model.ShengKeAnalysis(fortune.ShengKe),
+		FortuneLayers:        fortune.Layers,
 	}
 	// 日课推算结果
 	if rikuyo := fortune.Rikuyo; rikuyo != nil {
@@ -135,10 +145,25 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		resp.PatternFavorable = rikuyo.PatternFavorable
 		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
 	}
-	// Generate detailed analysis
-	analysis := fortunePkg.AnalyzeDailyFortuneWithBaseScore(baziResult, fortune.DayPillar.Gan, fortune.DayPillar.Zhi, fortune.Score)
-	resp.Analysis = analysis
-	resp.Score = analysis.Overall.Score
+	resp.Analysis = fortune.Analysis
+
+	if h.Assets != nil && fortune.Guide != nil {
+		actionElements := make([]string, 0, len(fortune.Guide.RecommendedActions))
+		for _, action := range fortune.Guide.RecommendedActions {
+			actionElements = append(actionElements, action.Element)
+		}
+		assets, assetErr := h.Assets.BuildBlessingSet(
+			chart.ID,
+			fortune.Date,
+			fortune.Guide.PrimaryElement,
+			fortune.Guide.SecondaryElement,
+			fortune.Guide.AvoidElement,
+			actionElements,
+		)
+		if assetErr == nil {
+			resp.BlessingAssets = &assets
+		}
+	}
 
 	respondJSON(c, http.StatusOK, resp)
 }

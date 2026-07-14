@@ -42,6 +42,11 @@ tasks/
 cmd/
 !cmd/main.go
 !cmd/database.go
+# Keep Go command sources trackable even though generic build folders named cmd are ignored.
+!src/cmd/
+src/cmd/*
+!src/cmd/main.go
+!src/cmd/database.go
 !src/cmd/bazi-rag-index/
 !src/cmd/bazi-rag-index/main.go
 __debug_*

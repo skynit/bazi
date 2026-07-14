@@ -34,6 +34,7 @@ func setupChartRouter() *gin.Engine {
 		Parser: &bazi.InputParser{},
 		Bazi:   &bazi.BaziService{},
 	}
+	r.POST("/api/chart/preview", middleware.AuthMiddleware(), h.Preview)
 	r.POST("/api/chart", middleware.AuthMiddleware(), h.Chart)
 	return r
 }
@@ -48,6 +49,7 @@ func setupChartRouterWithStore(store ChartSaver) *gin.Engine {
 		Bazi:   &bazi.BaziService{},
 		Store:  store,
 	}
+	r.POST("/api/chart/preview", middleware.AuthMiddleware(), h.Preview)
 	r.POST("/api/chart", middleware.AuthMiddleware(), h.Chart)
 	return r
 }

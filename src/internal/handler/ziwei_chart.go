@@ -134,6 +134,10 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			// Serve cached result
 			var cached ziwei.ZiWeiChart
 			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
+				if err := svc.AttachBirthData(&cached, birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender); err != nil {
+					respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("restore cached chart failed: %v", err))
+					return
+				}
 				respondJSON(c, http.StatusOK, mapChartToResponse(&cached))
 				return
 			}

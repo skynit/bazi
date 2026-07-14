@@ -7,6 +7,7 @@ import (
 	"bazi/internal/model"
 	"bazi/internal/service/bazi"
 	"bazi/internal/service/buyi"
+	"bazi/internal/service/elementasset"
 	"bazi/internal/service/fortune"
 	"bazi/internal/service/interpretation"
 	"bazi/internal/service/localrag"
@@ -16,25 +17,53 @@ import (
 	"bazi/internal/store"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func seedAdminIfEmpty(us *store.DBUserStore) {
-	existing, _ := us.FindByUsername("admin")
+func seedAdminIfConfigured(us *store.DBUserStore, cfg *config.Config) {
+	if us == nil || cfg == nil {
+		return
+	}
+	if cfg.AdminUsername == "" && cfg.AdminEmail == "" && cfg.AdminPassword == "" {
+		return
+	}
+	if cfg.AdminUsername == "" || cfg.AdminEmail == "" || len([]rune(cfg.AdminPassword)) < 12 {
+		log.Println("[WARN] Admin initialization skipped: ADMIN_USERNAME, ADMIN_EMAIL and a 12+ character ADMIN_PASSWORD are required")
+		return
+	}
+	existing, _ := us.FindByUsername(cfg.AdminUsername)
 	if existing != nil {
 		return
 	}
-	admin := &model.User{Username: "admin", Email: "admin@bazi.com"}
-	if err := admin.SetPassword("admin"); err != nil {
-		log.Printf("Failed to hash admin password: %v", err)
+	admin := &model.User{Username: cfg.AdminUsername, Email: cfg.AdminEmail}
+	if err := admin.SetPassword(cfg.AdminPassword); err != nil {
+		log.Printf("Failed to hash configured admin password: %v", err)
 		return
 	}
 	if err := us.Create(admin); err != nil {
-		log.Printf("Failed to seed admin user: %v", err)
+		log.Printf("Failed to seed configured admin user: %v", err)
 		return
 	}
-	log.Println("Seeded default admin user (username=admin, password=admin)")
+	log.Printf("Seeded configured admin user %q", cfg.AdminUsername)
+}
+
+func corsMiddleware(allowOrigin string) gin.HandlerFunc {
+	allowOrigin = strings.TrimSpace(allowOrigin)
+	return func(c *gin.Context) {
+		if allowOrigin != "" {
+			c.Header("Access-Control-Allow-Origin", allowOrigin)
+			c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			c.Header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+			c.Header("Vary", "Origin")
+			if c.Request.Method == "OPTIONS" {
+				c.AbortWithStatus(204)
+				return
+			}
+		}
+		c.Next()
+	}
 }
 
 func main() {
@@ -50,8 +79,13 @@ func main() {
 	feedbackStore := store.NewDBFeedbackStore(db)
 	buyiStore := store.NewDBBuyiStore(db)
 	us := store.NewDBUserStore(db)
+	elementAssetStore := store.NewDBElementAssetStore(db)
+	elementAssetSvc := elementasset.New(elementAssetStore)
+	if err := elementAssetStore.UpsertDefaults(elementasset.DefaultAssets()); err != nil {
+		log.Printf("[WARN] Failed to seed default element assets: %v", err)
+	}
 
-	seedAdminIfEmpty(us)
+	seedAdminIfConfigured(us, cfg)
 
 	baziSvc := &bazi.BaziService{}
 	buyiSvc := buyi.NewService()
@@ -68,22 +102,13 @@ func main() {
 	}
 
 	r := gin.Default()
-	allowOrigin := os.Getenv("CORS_ORIGIN")
-	if allowOrigin == "" {
-		allowOrigin = "*"
-	}
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", allowOrigin)
-		c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
+	r.Use(corsMiddleware(cfg.CORSOrigin))
 
 	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+	if err := os.MkdirAll(cfg.ElementAssetDir, 0o755); err != nil {
+		log.Fatalf("Failed to prepare element asset directory: %v", err)
+	}
+	r.Static("/uploads/element-assets", cfg.ElementAssetDir)
 
 	auth := &handler.AuthHandler{Store: us}
 	r.POST("/api/auth/register", auth.Register)
@@ -93,9 +118,11 @@ func main() {
 	api.Use(middleware.AuthMiddleware())
 	{
 		ch := &handler.ChartHandler{Parser: parser, Bazi: baziSvc, Store: cs}
+		api.POST("/chart/preview", ch.Preview)
 		api.POST("/chart", ch.Chart)
-		fh := &handler.FortuneHandler{Engine: engine, ChartStore: cs}
+		fh := &handler.FortuneHandler{Engine: engine, ChartStore: cs, Assets: elementAssetSvc}
 		api.POST("/fortune", fh.CalculateDaily)
+		handler.RegisterElementAssetRoutes(api, elementAssetSvc, elementAssetStore, us, cfg.AdminUsername, cfg.ElementAssetDir)
 		wh := &handler.WeeklyFortuneHandler{Engine: engine, Charts: cs}
 		api.POST("/fortune/weekly", middleware.ETag(), wh.Weekly)
 		mh := &handler.MonthlyFortuneHandler{Engine: engine, ChartStore: cs}

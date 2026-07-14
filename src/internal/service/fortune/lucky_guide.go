@@ -72,19 +72,24 @@ func BuildFortuneGuide(
 	yi []model.YiJiItem,
 	ji []model.YiJiItem,
 	rikuyo *RikuyoResult,
+	evidenceCompleteness int,
 ) *model.FortuneGuide {
 	if chart == nil {
 		return nil
 	}
 
 	like, dislike, special := getEffectiveFavor(chart)
-	primary := firstElement(like, data.GanElement[dayPillar.Gan], data.GanElement[chart.DayPillar.Gan])
-	secondary := secondElement(like, primary, data.GanElement[chart.DayPillar.Gan])
-	avoidElem := firstElement(dislike, elementOvercomes[primary])
 	todayElem := data.GanElement[dayPillar.Gan]
-	dayMaster := chart.DayPillar.Gan + data.GanElement[chart.DayPillar.Gan]
+	dayMasterElem := data.GanElement[chart.DayPillar.Gan]
+	primary, secondary, avoidElem := selectDailyBlessingElements(todayElem, like, dislike, dayMasterElem)
+	dayMaster := chart.DayPillar.Gan + dayMasterElem
 
-	confidence := guideConfidence(score, special, rikuyo, len(like), branchRel)
+	if evidenceCompleteness < 0 {
+		evidenceCompleteness = 0
+	}
+	if evidenceCompleteness > 100 {
+		evidenceCompleteness = 100
+	}
 	precision := "standard"
 	if special || (rikuyo != nil && (rikuyo.YongShenImpact.Score != 0 || rikuyo.FavorScore != 0)) {
 		precision = "pattern-aware"
@@ -100,7 +105,7 @@ func BuildFortuneGuide(
 		Label:   "朝向",
 		Value:   valueOrDefault(guideElementDirections[primary], "顺手方位"),
 		Element: primary,
-		Reason:  fmt.Sprintf("按今日有效喜用取%s，工作、沟通、学习时优先借%s气。", primary, primary),
+		Reason:  fmt.Sprintf("结合流日五行与命盘喜忌取%s，工作、沟通、学习时优先借%s气。", primary, primary),
 	}
 	wealthItem := model.FortuneGuideItem{
 		Label:   "财位",
@@ -119,21 +124,21 @@ func BuildFortuneGuide(
 	strategy := guideStrategy(score, stemRel, branchRel, primary)
 
 	return &model.FortuneGuide{
-		PrecisionLevel:     precision,
-		Confidence:         confidence,
-		PrimaryElement:     primary,
-		SecondaryElement:   secondary,
-		AvoidElement:       avoidElem,
-		LuckyColors:        colors,
-		LuckyNumbers:       numbers,
-		FaceDirection:      faceDir,
-		WealthDirection:    wealthItem,
-		AvoidDirection:     avoidDir,
-		RecommendedActions: actions,
-		Cautions:           cautions,
-		BestHours:          bestHours,
-		Analysis:           analysis,
-		Strategy:           strategy,
+		PrecisionLevel:       precision,
+		EvidenceCompleteness: evidenceCompleteness,
+		PrimaryElement:       primary,
+		SecondaryElement:     secondary,
+		AvoidElement:         avoidElem,
+		LuckyColors:          colors,
+		LuckyNumbers:         numbers,
+		FaceDirection:        faceDir,
+		WealthDirection:      wealthItem,
+		AvoidDirection:       avoidDir,
+		RecommendedActions:   actions,
+		Cautions:             cautions,
+		BestHours:            bestHours,
+		Analysis:             analysis,
+		Strategy:             strategy,
 	}
 }
 
@@ -157,17 +162,95 @@ func firstElement(groups ...interface{}) string {
 	return "土"
 }
 
-func secondElement(like []string, primary, fallback string) string {
-	for _, item := range like {
-		item = strings.TrimSpace(item)
-		if item != "" && item != primary && guideElementDirections[item] != "" {
-			return item
+func selectDailyBlessingElements(todayElem string, like, dislike []string, dayMasterElem string) (string, string, string) {
+	todayElem = strings.TrimSpace(todayElem)
+	dayMasterElem = strings.TrimSpace(dayMasterElem)
+
+	primary := ""
+	if isGuideElement(todayElem) && !containsElement(dislike, todayElem) {
+		// 流日五行不是忌神时直接作为今日主气，保证主气随日期流转。
+		primary = todayElem
+	} else if isGuideElement(todayElem) {
+		// 流日落入忌神时，从喜用中优先选择能够泄化或制衡流日之气的元素。
+		primary = protectiveElement(todayElem, like, dislike)
+	}
+	if primary == "" {
+		primary = firstElement(like, dayMasterElem, "土")
+	}
+
+	secondary := firstDistinctElement(primary, dislike, like)
+	if secondary == "" {
+		generator := generatingElement(primary)
+		if isGuideElement(generator) && generator != primary && !containsElement(dislike, generator) {
+			secondary = generator
 		}
 	}
-	if fallback != "" && fallback != primary && guideElementDirections[fallback] != "" {
-		return fallback
+	if secondary == "" && isGuideElement(dayMasterElem) && dayMasterElem != primary && !containsElement(dislike, dayMasterElem) {
+		secondary = dayMasterElem
 	}
-	return primary
+	if secondary == "" {
+		secondary = primary
+	}
+
+	avoidCandidates := dislike
+	if containsElement(dislike, todayElem) {
+		avoidCandidates = append([]string{todayElem}, dislike...)
+	}
+	avoidElem := firstElement(avoidCandidates, elementOvercomes[primary])
+	return primary, secondary, avoidElem
+}
+
+func protectiveElement(todayElem string, like, dislike []string) string {
+	// 流日生喜用：以泄化方式承接当日之气，例如金日取水。
+	for _, candidate := range like {
+		candidate = strings.TrimSpace(candidate)
+		if isGuideElement(candidate) && !containsElement(dislike, candidate) && elementGenerates[todayElem] == candidate {
+			return candidate
+		}
+
+	}
+	// 喜用克流日：以制衡方式降低忌神影响，例如土日取木。
+	for _, candidate := range like {
+		candidate = strings.TrimSpace(candidate)
+		if isGuideElement(candidate) && !containsElement(dislike, candidate) && elementOvercomes[candidate] == todayElem {
+			return candidate
+		}
+	}
+	return firstDistinctElement("", dislike, like)
+}
+
+func firstDistinctElement(primary string, dislike []string, groups ...[]string) string {
+	for _, group := range groups {
+		for _, item := range group {
+			item = strings.TrimSpace(item)
+			if isGuideElement(item) && item != primary && !containsElement(dislike, item) {
+				return item
+			}
+		}
+	}
+	return ""
+}
+
+func generatingElement(target string) string {
+	for source, generated := range elementGenerates {
+		if generated == target {
+			return source
+		}
+	}
+	return ""
+}
+
+func containsElement(elements []string, target string) bool {
+	for _, element := range elements {
+		if strings.TrimSpace(element) == target {
+			return true
+		}
+	}
+	return false
+}
+
+func isGuideElement(element string) bool {
+	return guideElementDirections[strings.TrimSpace(element)] != ""
 }
 
 func buildColorItems(primary, secondary, fallback string, special bool) []model.FortuneGuideItem {
@@ -179,11 +262,11 @@ func buildColorItems(primary, secondary, fallback string, special bool) []model.
 		}
 		out = append(out, model.FortuneGuideItem{Label: label, Value: strings.Join(colors, "、"), Element: elem, Reason: reason})
 	}
-	source := "扶抑喜用"
+	source := "流日五行与命盘喜忌"
 	if special {
-		source = "格局喜用"
+		source = "流日五行与格局喜忌"
 	}
-	add("主色", primary, fmt.Sprintf("主色取%s，来自%s，今天优先用在上衣、桌面或随身物。", primary, source))
+	add("主色", primary, fmt.Sprintf("主色取%s，由%s共同确定，今天优先用在上衣、桌面或随身物。", primary, source))
 	if secondary != "" && secondary != primary {
 		add("辅色", secondary, fmt.Sprintf("辅色取%s，用来补足主色，适合小面积点缀。", secondary))
 	}
@@ -533,7 +616,7 @@ func guideAnalysis(dayMaster string, dayPillar model.Pillar, todayElem, primary,
 		source = "格局喜忌"
 	}
 	parts := []string{
-		fmt.Sprintf("此日以%s为日主参考，流日%s%s，天干属%s。开运主轴取%s，是按%s而来；辅以%s，避%s。", dayMaster, dayPillar.Gan, dayPillar.Zhi, todayElem, primary, source, secondary, avoidElem),
+		fmt.Sprintf("此日以%s为日主参考，流日%s%s，天干属%s。开运主轴取%s，是由流日五行结合%s而来；辅以%s，避%s。", dayMaster, dayPillar.Gan, dayPillar.Zhi, todayElem, primary, source, secondary, avoidElem),
 	}
 	if stemRel != "" {
 		parts = append(parts, fmt.Sprintf("天干关系为%s，适合的行动要顺着这层十神气势来取。", stemRelLabel(stemRel, "", "")))
@@ -563,38 +646,6 @@ func guideStrategy(score int, stemRel, branchRel, primary string) string {
 	default:
 		return fmt.Sprintf("今日以避险为先：%s只作轻量补气，重大决定延后，先处理收尾和复盘。", primary)
 	}
-}
-
-func guideConfidence(score int, special bool, rikuyo *RikuyoResult, likeCount int, branchRel string) int {
-	conf := 52
-	if likeCount > 0 {
-		conf += 10
-	}
-	if special {
-		conf += 8
-	}
-	if rikuyo != nil {
-		conf += 10
-		if rikuyo.YongShenImpact.Score > 0 {
-			conf += 5
-		}
-		if rikuyo.FavorScore >= 70 {
-			conf += 5
-		}
-	}
-	if branchRel != "neutral" && branchRel != "" {
-		conf += 5
-	}
-	if score >= 75 || score <= 40 {
-		conf += 5
-	}
-	if conf > 95 {
-		return 95
-	}
-	if conf < 30 {
-		return 30
-	}
-	return conf
 }
 
 func stemRelationGuideReason(stemRel, act string) string {

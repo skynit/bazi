@@ -32,6 +32,10 @@ services:
       DB_NAME: ${DB_NAME:-bazi}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       SERVER_PORT: ${SERVER_PORT:-8080}
+      ELEMENT_ASSET_DIR: /app/data/element-assets
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+    volumes:
+      - element_assets:/app/data/element-assets
     depends_on:
       db:
         condition: service_healthy
@@ -56,6 +60,7 @@ services:
 
 volumes:
   mysql_data:
+  element_assets:
 
 networks:
   bazi-network:
