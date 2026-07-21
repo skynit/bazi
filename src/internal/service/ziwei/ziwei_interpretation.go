@@ -2,103 +2,158 @@ package ziwei
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+
+	"bazi/internal/service/bazi"
+)
+
+const (
+	periodHourStemRuleID     = "ziwei.period.hour-stem.five-rat-v1"
+	periodHourBoundaryPolicy = "traditional_two_hour_branch_slots_no_civil_date_assignment"
 )
 
 // ──────────────────── Period Interpretation Service ────────────────────
 
-// PeriodInterpreter analyzes 流年/流月/流日 data and produces
-// human-readable interpretations with ShiShen, relations, scores, and advice.
+// PeriodInterpreter projects 流年/流月/流日 data into deterministic GanZhi,
+// ShiShen and branch-relation evidence. It does not assign favorable or
+// unfavorable scores.
 type PeriodInterpreter struct {
-	birthData *BirthData
+	birthData       *BirthData
+	baseContentHash string
 }
 
-// NewPeriodInterpreter creates a PeriodInterpreter with the given birth data.
-func NewPeriodInterpreter(bd *BirthData) *PeriodInterpreter {
-	return &PeriodInterpreter{birthData: bd}
+// NewPeriodInterpreterFromChart restores period interpretation context from
+// the authenticated public natal-chart contract. It returns nil for derived,
+// incomplete, or tampered chart payloads.
+func NewPeriodInterpreterFromChart(chart *ZiWeiChart) *PeriodInterpreter {
+	if !chartMatchesDeclaredProfile(chart) {
+		return nil
+	}
+	birth, ok := birthDataFromPublishedChart(chart)
+	if !ok {
+		return nil
+	}
+	return &PeriodInterpreter{birthData: birth, baseContentHash: chart.ContentHash}
 }
 
 // ──────────────────── Result types ────────────────────
 
 type LiunianResult struct {
-	Year           int    `json:"year"`
-	GanZhi         string `json:"gan_zhi"`
-	GanZhiDesc     string `json:"gan_zhi_desc"`
-	ShiShen        string `json:"shi_shen"`
-	RelationToMing string `json:"relation_to_ming"`
-	OverallTone    string `json:"overall_tone"`
-	KeyTips        string `json:"key_tips"`
-	Score          int    `json:"score"`
+	Year                int                    `json:"year"`
+	GanZhi              string                 `json:"gan_zhi"`
+	GanZhiDesc          string                 `json:"gan_zhi_desc"`
+	ShiShen             string                 `json:"shi_shen"`
+	RelationToMing      string                 `json:"relation_to_ming"`
+	RelationEvidence    []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary   string                 `json:"structural_summary"`
+	ReviewNote          string                 `json:"review_note"`
+	EvidenceBasis       string                 `json:"evidence_basis"`
+	ValidationStatus    string                 `json:"validation_status"`
+	IsOutcomeConclusion bool                   `json:"is_outcome_conclusion"`
 }
 
 type LiuyueResult struct {
-	Year           int    `json:"year"`
-	Month          int    `json:"month"`
-	GanZhi         string `json:"gan_zhi"`
-	GanZhiDesc     string `json:"gan_zhi_desc"`
-	ShiShen        string `json:"shi_shen"`
-	RelationToMing string `json:"relation_to_ming"`
-	Effect         string `json:"effect"`
-	Health         string `json:"health"`
-	Score          int    `json:"score"`
+	Year                int                    `json:"year"`
+	Month               int                    `json:"month"`
+	GanZhi              string                 `json:"gan_zhi"`
+	GanZhiDesc          string                 `json:"gan_zhi_desc"`
+	ShiShen             string                 `json:"shi_shen"`
+	RelationToMing      string                 `json:"relation_to_ming"`
+	RelationEvidence    []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary   string                 `json:"structural_summary"`
+	EvidenceBasis       string                 `json:"evidence_basis"`
+	ValidationStatus    string                 `json:"validation_status"`
+	IsOutcomeConclusion bool                   `json:"is_outcome_conclusion"`
 }
 
 type LiuriResult struct {
-	Year           int         `json:"year"`
-	Month          int         `json:"month"`
-	Day            int         `json:"day"`
-	GanZhi         string      `json:"gan_zhi"`
-	GanZhiDesc     string      `json:"gan_zhi_desc"`
-	ShiShen        string      `json:"shi_shen"`
-	RelationToMing string      `json:"relation_to_ming"`
-	QiZiEffect     string      `json:"qi_zi_effect"`
-	EmotionalState string      `json:"emotional_state"`
-	Health         string      `json:"health"`
-	Score          int         `json:"score"`
-	HourlyAnalysis []HourBlock `json:"hourly_analysis"`
-	Summary        string      `json:"summary"`
+	Year                int                    `json:"year"`
+	Month               int                    `json:"month"`
+	Day                 int                    `json:"day"`
+	GanZhi              string                 `json:"gan_zhi"`
+	GanZhiDesc          string                 `json:"gan_zhi_desc"`
+	ShiShen             string                 `json:"shi_shen"`
+	RelationToMing      string                 `json:"relation_to_ming"`
+	RelationEvidence    []PeriodBranchRelation `json:"relation_evidence"`
+	HourlyAnalysis      []HourBlock            `json:"hourly_analysis"`
+	StructuralSummary   string                 `json:"structural_summary"`
+	EvidenceBasis       string                 `json:"evidence_basis"`
+	ValidationStatus    string                 `json:"validation_status"`
+	IsOutcomeConclusion bool                   `json:"is_outcome_conclusion"`
 }
 
 type HourBlock struct {
-	Hour       int    `json:"hour"`
-	StemBranch string `json:"stem_branch"`
-	Effect     string `json:"effect"`
-	Score      int    `json:"score"`
+	Stem                     string                 `json:"stem"`
+	Branch                   string                 `json:"branch"`
+	StemBranch               string                 `json:"stem_branch"`
+	IntervalStartHour        int                    `json:"interval_start_hour"`
+	IntervalEndHourExclusive int                    `json:"interval_end_hour_exclusive"`
+	IntervalLabel            string                 `json:"interval_label"`
+	CrossesMidnight          bool                   `json:"crosses_midnight"`
+	DayStemBasis             string                 `json:"day_stem_basis"`
+	BoundaryPolicy           string                 `json:"boundary_policy"`
+	RuleID                   string                 `json:"rule_id"`
+	ShiShen                  string                 `json:"shi_shen"`
+	RelationToMing           string                 `json:"relation_to_ming"`
+	RelationEvidence         []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary        string                 `json:"structural_summary"`
+	EvidenceBasis            string                 `json:"evidence_basis"`
+	ValidationStatus         string                 `json:"validation_status"`
+	IsOutcomeConclusion      bool                   `json:"is_outcome_conclusion"`
+}
+
+type PeriodBranchRelation struct {
+	PeriodBranch         string `json:"period_branch"`
+	NatalPillar          string `json:"natal_pillar"`
+	NatalBranch          string `json:"natal_branch"`
+	Relation             string `json:"relation"`
+	Subtype              string `json:"subtype,omitempty"`
+	RuleID               string `json:"rule_id"`
+	StructuralStatus     string `json:"structural_status"`
+	TransformationStatus string `json:"transformation_status"`
+	TargetElement        string `json:"target_element,omitempty"`
+	EvidenceBasis        string `json:"evidence_basis"`
+	InterpretationStatus string `json:"interpretation_status"`
+	IsOutcomeConclusion  bool   `json:"is_outcome_conclusion"`
 }
 
 // PeriodSummary holds the summary of all three layers.
 type PeriodSummary struct {
-	Liunian LiunianSummaryItem `json:"liunian"`
-	Liuyue  LiuyueSummaryItem  `json:"liuyue"`
-	Liuri   LiuriSummaryItem   `json:"liuri"`
-	Advice  PeriodAdvice       `json:"advice"`
+	Liunian             LiunianSummaryItem `json:"liunian"`
+	Liuyue              LiuyueSummaryItem  `json:"liuyue"`
+	Liuri               LiuriSummaryItem   `json:"liuri"`
+	ReviewNotes         PeriodReviewNotes  `json:"review_notes"`
+	EvidenceBasis       string             `json:"evidence_basis"`
+	ValidationStatus    string             `json:"validation_status"`
+	IsOutcomeConclusion bool               `json:"is_outcome_conclusion"`
 }
 
 type LiunianSummaryItem struct {
-	GanZhi      string `json:"gan_zhi"`
-	ShiShen     string `json:"shi_shen"`
-	Relation    string `json:"relation"`
-	Score       int    `json:"score"`
-	Description string `json:"description"`
+	GanZhi            string                 `json:"gan_zhi"`
+	ShiShen           string                 `json:"shi_shen"`
+	Relation          string                 `json:"relation"`
+	RelationEvidence  []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary string                 `json:"structural_summary"`
 }
 
 type LiuyueSummaryItem struct {
-	GanZhi      string `json:"gan_zhi"`
-	ShiShen     string `json:"shi_shen"`
-	Relation    string `json:"relation"`
-	Score       int    `json:"score"`
-	Description string `json:"description"`
+	GanZhi            string                 `json:"gan_zhi"`
+	ShiShen           string                 `json:"shi_shen"`
+	Relation          string                 `json:"relation"`
+	RelationEvidence  []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary string                 `json:"structural_summary"`
 }
 
 type LiuriSummaryItem struct {
-	GanZhi      string `json:"gan_zhi"`
-	ShiShen     string `json:"shi_shen"`
-	Relation    string `json:"relation"`
-	Score       int    `json:"score"`
-	Description string `json:"description"`
+	GanZhi            string                 `json:"gan_zhi"`
+	ShiShen           string                 `json:"shi_shen"`
+	Relation          string                 `json:"relation"`
+	RelationEvidence  []PeriodBranchRelation `json:"relation_evidence"`
+	StructuralSummary string                 `json:"structural_summary"`
 }
 
-type PeriodAdvice struct {
+type PeriodReviewNotes struct {
 	Liunian []string `json:"liunian"`
 	Liuyue  []string `json:"liuyue"`
 	Liuri   []string `json:"liuri"`
@@ -140,25 +195,18 @@ func wuXingStem(stem int) string {
 // wuXingBranch returns the five-element name for a branch.
 func wuXingBranch(branch int) string {
 	switch branch {
-	case 0, 1:
+	case 0, 11:
 		return "水"
 	case 2, 3:
 		return "木"
-	case 4, 5:
-		return "土"
-	case 6, 7:
+	case 5, 6:
 		return "火"
+	case 1, 4, 7, 10:
+		return "土"
 	case 8, 9:
 		return "金"
-	case 10, 11:
-		return "土"
 	}
 	return ""
-}
-
-// isYangStem returns true if the stem is yang (甲丙戊庚壬).
-func isYangStem(stem int) bool {
-	return stem%2 == 0
 }
 
 // stemWuXingIdx returns the 5-element index for stem (0=木, 1=火, 2=土, 3=金, 4=水).
@@ -178,381 +226,445 @@ func stemWuXingIdx(stem int) int {
 	return 0
 }
 
-// getShiShen returns the ShiShen (十神) name for a given stem vs the day stem.
-func getShiShen(stem, dayStem int) string {
-	stemIdx := stem
-	dayIdx := dayStem
-
-	stemEle := stemWuXingIdx(stem)
-	dayEle := stemWuXingIdx(dayStem)
-
-	if stemEle == dayEle {
-		if stemIdx == dayIdx {
-			return "比肩"
-		}
-		return "劫财"
+// getShiShen classifies a visible period stem against the natal day stem.
+// Index validation stays here because the shared BaZi classifier accepts names.
+func getShiShen(stem, dayStem int) (string, bool) {
+	if stem < 0 || stem >= len(StemNames) || dayStem < 0 || dayStem >= len(StemNames) {
+		return "", false
 	}
-
-	isSeal := ((stemEle+1)%5 == dayEle)
-	isFood := ((dayEle+1)%5 == stemEle)
-	isOfficer := ((stemEle+2)%5 == dayEle)
-	isWealth := ((dayEle+2)%5 == stemEle)
-
-	switch {
-	case isSeal:
-		if isYangStem(stem) == isYangStem(dayStem) {
-			return "偏印"
-		}
-		return "正印"
-	case isFood:
-		if isYangStem(stem) == isYangStem(dayStem) {
-			return "食神"
-		}
-		return "伤官"
-	case isOfficer:
-		if isYangStem(stem) == isYangStem(dayStem) {
-			return "七杀"
-		}
-		return "正官"
-	case isWealth:
-		if isYangStem(stem) == isYangStem(dayStem) {
-			return "偏财"
-		}
-		return "正财"
-	}
-	return "无关系"
+	name := bazi.ClassifyTenGod(StemNames[stem], StemNames[dayStem], false)
+	return name, name != ""
 }
 
-// relationPair returns the relationship description between two branches.
-func relationPair(b1, b2 int) string {
+type periodPairRelationRule struct {
+	relation             string
+	subtype              string
+	ruleID               string
+	structuralStatus     string
+	transformationStatus string
+	targetElement        string
+	priority             int
+}
+
+func relationTypes(b1, b2 int) []string {
+	rules := periodPairRelationRules(b1, b2)
+	relations := make([]string, 0, len(rules))
+	for _, rule := range rules {
+		relations = append(relations, periodRelationLabel(rule))
+	}
+	return relations
+}
+
+func periodPairRelationRules(b1, b2 int) []periodPairRelationRule {
+	if b1 < 0 || b1 >= len(BranchNames) || b2 < 0 || b2 >= len(BranchNames) {
+		return []periodPairRelationRule{}
+	}
+	pair := canonicalPeriodBranchPair(b1, b2)
+	rules := make([]periodPairRelationRule, 0, 4)
 	if b1 == b2 {
-		switch b1 {
-		case 4, 7, 9, 11:
-			return "自刑"
+		rules = append(rules, periodPairRelationRule{
+			relation: "伏吟", ruleID: "ziwei.period.branch.fuyin." + branchName(b1) + "-v1",
+			structuralStatus: "observed", transformationStatus: "not_applicable", priority: 50,
+		})
+		if isSelfPunishmentBranch(b1) {
+			rules = append(rules, periodPairRelationRule{
+				relation: "相刑", subtype: "自刑", ruleID: "ziwei.period.branch.punish." + pair + "-v1",
+				structuralStatus: "observed", transformationStatus: "not_applicable", priority: 90,
+			})
 		}
-		return "伏吟"
+		return sortPeriodPairRelationRules(rules)
 	}
 
-	pair := b1*100 + b2
-	switch {
-	case pair == 0*100+6 || pair == 6*100+0 ||
-		pair == 1*100+7 || pair == 7*100+1 ||
-		pair == 2*100+8 || pair == 8*100+2 ||
-		pair == 3*100+9 || pair == 9*100+3 ||
-		pair == 4*100+10 || pair == 10*100+4 ||
-		pair == 5*100+11 || pair == 11*100+5:
-		return "六冲"
-	case pair == 0*100+1 || pair == 1*100+0 ||
-		pair == 2*100+11 || pair == 11*100+2 ||
-		pair == 3*100+10 || pair == 10*100+3 ||
-		pair == 4*100+9 || pair == 9*100+4 ||
-		pair == 5*100+8 || pair == 8*100+5 ||
-		pair == 6*100+7 || pair == 7*100+6:
-		return "六合"
-	case pair == 2*100+5 || pair == 5*100+2 ||
-		pair == 5*100+8 || pair == 8*100+5 ||
-		pair == 2*100+8 || pair == 8*100+2 ||
-		pair == 1*100+10 || pair == 10*100+1 ||
-		pair == 10*100+7 || pair == 7*100+10 ||
-		pair == 1*100+7 || pair == 7*100+1 ||
-		pair == 0*100+3 || pair == 3*100+0:
-		return "三刑"
+	if isPeriodBranchPair(b1, b2, [][2]int{{0, 6}, {1, 7}, {2, 8}, {3, 9}, {4, 10}, {5, 11}}) {
+		rules = append(rules, periodPairRelationRule{
+			relation: "六冲", ruleID: "ziwei.period.branch.clash." + pair + "-v1",
+			structuralStatus: "observed", transformationStatus: "not_applicable", priority: 100,
+		})
 	}
-	return ""
+	if isPeriodBranchPair(b1, b2, [][2]int{{0, 1}, {2, 11}, {3, 10}, {4, 9}, {5, 8}, {6, 7}}) {
+		rules = append(rules, periodPairRelationRule{
+			relation: "六合", ruleID: "ziwei.period.branch.liuhe." + pair + "-v1",
+			structuralStatus: "complete", transformationStatus: "unadjudicated",
+			targetElement: periodLiuHeTargetElement(pair), priority: 60,
+		})
+	}
+	if isPeriodBranchPair(b1, b2, [][2]int{{0, 7}, {1, 6}, {2, 5}, {3, 4}, {8, 11}, {9, 10}}) {
+		rules = append(rules, periodPairRelationRule{
+			relation: "六害", ruleID: "ziwei.period.branch.harm." + pair + "-v1",
+			structuralStatus: "observed", transformationStatus: "not_applicable", priority: 80,
+		})
+	}
+	if subtype := periodPairPunishmentSubtype(b1, b2); subtype != "" {
+		rules = append(rules, periodPairRelationRule{
+			relation: "相刑", subtype: subtype, ruleID: "ziwei.period.branch.punish." + pair + "-v1",
+			structuralStatus: "observed", transformationStatus: "not_applicable", priority: 90,
+		})
+	}
+	if isPeriodBranchPair(b1, b2, [][2]int{{0, 9}, {1, 4}, {2, 11}, {3, 6}, {5, 8}, {7, 10}}) {
+		rules = append(rules, periodPairRelationRule{
+			relation: "六破", ruleID: "ziwei.period.branch.break." + pair + "-v1",
+			structuralStatus: "observed", transformationStatus: "not_applicable", priority: 70,
+		})
+	}
+	return sortPeriodPairRelationRules(rules)
+}
+
+func sortPeriodPairRelationRules(rules []periodPairRelationRule) []periodPairRelationRule {
+	sort.SliceStable(rules, func(i, j int) bool {
+		if rules[i].priority != rules[j].priority {
+			return rules[i].priority > rules[j].priority
+		}
+		return rules[i].ruleID < rules[j].ruleID
+	})
+	return rules
+}
+
+func periodRelationLabel(rule periodPairRelationRule) string {
+	if rule.subtype == "" {
+		return rule.relation
+	}
+	return fmt.Sprintf("%s（%s）", rule.relation, rule.subtype)
+}
+
+func canonicalPeriodBranchPair(b1, b2 int) string {
+	if b1 <= b2 {
+		return branchName(b1) + branchName(b2)
+	}
+	return branchName(b2) + branchName(b1)
+}
+
+func isPeriodBranchPair(b1, b2 int, pairs [][2]int) bool {
+	for _, pair := range pairs {
+		if (b1 == pair[0] && b2 == pair[1]) || (b1 == pair[1] && b2 == pair[0]) {
+			return true
+		}
+	}
+	return false
+}
+
+func isSelfPunishmentBranch(branch int) bool {
+	switch branch {
+	case 4, 6, 9, 11:
+		return true
+	default:
+		return false
+	}
+}
+
+func periodPairPunishmentSubtype(b1, b2 int) string {
+	switch {
+	case isPeriodBranchPair(b1, b2, [][2]int{{0, 3}}):
+		return "无礼之刑"
+	case pairInPeriodBranchGroup(b1, b2, []int{2, 5, 8}):
+		return "无恩之刑"
+	case pairInPeriodBranchGroup(b1, b2, []int{1, 10, 7}):
+		return "恃势之刑"
+	default:
+		return ""
+	}
+}
+
+func pairInPeriodBranchGroup(b1, b2 int, group []int) bool {
+	if b1 == b2 {
+		return false
+	}
+	found1, found2 := false, false
+	for _, branch := range group {
+		found1 = found1 || branch == b1
+		found2 = found2 || branch == b2
+	}
+	return found1 && found2
+}
+
+func periodLiuHeTargetElement(pair string) string {
+	return map[string]string{
+		"子丑": "土", "寅亥": "木", "卯戌": "火",
+		"辰酉": "金", "巳申": "水", "午未": "土",
+	}[pair]
 }
 
 // describeRelation creates a Chinese description of how period branch relates to birth branches.
 func (s *PeriodInterpreter) describeRelation(periodBranch int) string {
-	var parts []string
-
-	keyBranches := []int{
-		s.birthData.YearBranch,
-		s.birthData.MonthPillarBranch,
-		s.birthData.DayBranch,
-		s.birthData.HourBranch,
+	evidence := s.relationEvidence(periodBranch)
+	if evidence == nil {
+		return "命局参数无效"
 	}
-
-	for _, bc := range keyBranches {
-		rel := relationPair(periodBranch, bc)
-		if rel != "" {
-			parts = append(parts, rel)
-		}
-	}
-
-	if len(parts) == 0 {
+	if len(evidence) == 0 {
 		return "与命局无特殊刑冲合关系"
 	}
 
 	seen := map[string]bool{}
 	unique := []string{}
-	for _, p := range parts {
-		if !seen[p] {
-			seen[p] = true
-			unique = append(unique, p)
+	for _, item := range evidence {
+		if !seen[item.Relation] {
+			seen[item.Relation] = true
+			unique = append(unique, item.Relation)
 		}
 	}
 	return strings.Join(unique, "、")
 }
 
-// evaluateScore returns a 0-100 score based on the stem/branch and birth info.
-func (s *PeriodInterpreter) evaluateScore(stem int, periodBranch int) int {
-	score := 60
-
-	dayStem := s.birthData.DayStem
-	shiShen := getShiShen(stem, dayStem)
-
-	switch shiShen {
-	case "正印", "偏印", "比肩", "比劫", "食神", "伤官":
-		score += 15
-	case "七杀":
-		score -= 15
-	case "偏财":
-		score -= 5
+func (s *PeriodInterpreter) relationEvidence(periodBranch int) []PeriodBranchRelation {
+	if s == nil || s.birthData == nil {
+		return nil
+	}
+	keyBranches := []struct {
+		pillar string
+		branch int
+	}{
+		{pillar: "year", branch: s.birthData.YearBranch},
+		{pillar: "month", branch: s.birthData.MonthPillarBranch},
+		{pillar: "day", branch: s.birthData.DayBranch},
+		{pillar: "hour", branch: s.birthData.HourBranch},
 	}
 
-	rel := relationPair(periodBranch, s.birthData.DayBranch)
-	switch rel {
-	case "六冲", "自刑", "伏吟", "三刑":
-		score -= 10
-	case "六合":
-		score += 10
+	out := make([]PeriodBranchRelation, 0, len(keyBranches))
+	for _, natal := range keyBranches {
+		for _, rule := range periodPairRelationRules(periodBranch, natal.branch) {
+			out = append(out, PeriodBranchRelation{
+				PeriodBranch:         branchName(periodBranch),
+				NatalPillar:          natal.pillar,
+				NatalBranch:          branchName(natal.branch),
+				Relation:             rule.relation,
+				Subtype:              rule.subtype,
+				RuleID:               rule.ruleID,
+				StructuralStatus:     rule.structuralStatus,
+				TransformationStatus: rule.transformationStatus,
+				TargetElement:        rule.targetElement,
+				EvidenceBasis:        "deterministic_rule_projection",
+				InterpretationStatus: "not_adjudicated",
+				IsOutcomeConclusion:  false,
+			})
+		}
 	}
-
-	if score > 100 {
-		score = 100
-	}
-	if score < 0 {
-		score = 0
-	}
-	return score
-}
-
-// healthAdvice returns health advice based on branch wuxing.
-func healthAdvice(branch int) string {
-	switch branch {
-	case 2, 3: // 寅卯 木
-		return "注意肝胆、筋骨、手足"
-	case 4, 5: // 辰巳 土
-		return "注意脾胃、皮肤、代谢"
-	case 6, 7: // 午未 火
-		return "注意心脑血管、眼睛、咽喉"
-	case 8, 9: // 申酉 金
-		return "注意肺呼吸道、肠道、筋骨"
-	case 0, 1, 10, 11: // 亥子水 + 戌丑
-		return "注意肾膀胱、泌尿系统、水液代谢"
-	}
-	return "注意整体健康"
+	return out
 }
 
 // ──────────────────── Analysis methods ────────────────────
 
 // AnalyzeLiunian produces a full interpretation for the given 流年.
 func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *LiunianResult {
-	if chart == nil {
+	if !s.acceptsDerivedChart(chart) {
+		return nil
+	}
+	liunianStem, liunianBranch, ok := chartDerivationForQuery(chart, "liunian", year, 0, 0)
+	if !ok {
 		return nil
 	}
 
-	liunianStem := (year - 4) % 10
-	liunianBranch := (year - 4) % 12
-
 	ganZhi := stemName(liunianStem) + branchName(liunianBranch)
-	shiShen := getShiShen(liunianStem, s.birthData.DayStem)
+	shiShen, ok := getShiShen(liunianStem, s.birthData.DayStem)
+	if !ok {
+		return nil
+	}
 	rel := s.describeRelation(liunianBranch)
-	score := s.evaluateScore(liunianStem, liunianBranch)
-
-	var tone string
-	if score >= 70 {
-		tone = fmt.Sprintf("流年%s对命局有情，运势较佳", rel)
-	} else if score >= 45 {
-		tone = fmt.Sprintf("流年%s对命局影响中性，运势平稳", rel)
-	} else {
-		tone = fmt.Sprintf("流年%s克命局，运势偏弱", rel)
-	}
-
-	var tips string
-	if strings.Contains(rel, "伏吟") || strings.Contains(rel, "自刑") || strings.Contains(rel, "六冲") {
-		tips = fmt.Sprintf("今年%s，运势反复，注意健康、情绪、财务三大方面。", rel)
-	} else if score >= 70 {
-		tips = "今年运势较佳，宜把握机会，推进事业学业。"
-	} else if score >= 45 {
-		tips = "今年运势平稳，稳扎稳打，不宜冒进。"
-	} else {
-		tips = "今年运势偏弱，宜守不宜攻，注重健康管理。"
-	}
+	relations := s.relationEvidence(liunianBranch)
+	structuralSummary := fmt.Sprintf("流年%s透出%s，地支与命局关系记录为%s；仅陈述规则结构。", ganZhi, shiShen, rel)
+	tips := "本结果仅用于核对干支、十神与刑冲合结构；职业、学业和财务决定应依据现实证据。"
 
 	return &LiunianResult{
-		Year:           year,
-		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liunianStem), shiShen, branchName(liunianBranch), wuXingBranch(liunianBranch)),
-		ShiShen:        shiShen,
-		RelationToMing: rel,
-		OverallTone:    tone,
-		KeyTips:        tips,
-		Score:          score,
+		Year:                year,
+		GanZhi:              ganZhi,
+		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liunianStem), shiShen, branchName(liunianBranch), wuXingBranch(liunianBranch)),
+		ShiShen:             shiShen,
+		RelationToMing:      rel,
+		RelationEvidence:    relations,
+		StructuralSummary:   structuralSummary,
+		ReviewNote:          tips,
+		EvidenceBasis:       "deterministic_rule_projection",
+		ValidationStatus:    "not_adjudicated",
+		IsOutcomeConclusion: false,
 	}
 }
 
 // AnalyzeLiuyue produces a full interpretation for the given 流月.
-func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month int) *LiuyueResult {
-	if chart == nil {
+func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month, day int) *LiuyueResult {
+	if !s.acceptsDerivedChart(chart) {
 		return nil
 	}
-
-	liuyueBranch := (2 + month - 1) % 12
+	liuyueStem, liuyueBranch, ok := chartDerivationForQuery(chart, "liuyue", year, month, day)
+	if !ok {
+		return nil
+	}
 	dayStem := s.birthData.DayStem
-	liuyueStem := (dayStem*2 + month - 1) % 10
 
 	ganZhi := stemName(liuyueStem) + branchName(liuyueBranch)
-	shiShen := getShiShen(liuyueStem, dayStem)
-	rel := s.describeRelation(liuyueBranch)
-	score := s.evaluateScore(liuyueStem, liuyueBranch)
-
-	var effect string
-	if score >= 65 {
-		effect = fmt.Sprintf("本月运势较佳，%s透干，有进展", shiShen)
-	} else if score >= 40 {
-		effect = fmt.Sprintf("本月运势平稳，%s透干，需注意调节", shiShen)
-	} else {
-		effect = fmt.Sprintf("本月忌神发力，%s透干，防破财争执", shiShen)
+	shiShen, ok := getShiShen(liuyueStem, dayStem)
+	if !ok {
+		return nil
 	}
+	rel := s.describeRelation(liuyueBranch)
+	relations := s.relationEvidence(liuyueBranch)
+	structuralSummary := fmt.Sprintf("流月%s透出%s，地支与命局关系记录为%s；不推导现实事件结果。", ganZhi, shiShen, rel)
 
 	return &LiuyueResult{
-		Year:           year,
-		Month:          month,
-		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuyueStem), shiShen, branchName(liuyueBranch), wuXingBranch(liuyueBranch)),
-		ShiShen:        shiShen,
-		RelationToMing: rel,
-		Effect:         effect,
-		Health:         healthAdvice(liuyueBranch),
-		Score:          score,
+		Year:                year,
+		Month:               month,
+		GanZhi:              ganZhi,
+		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuyueStem), shiShen, branchName(liuyueBranch), wuXingBranch(liuyueBranch)),
+		ShiShen:             shiShen,
+		RelationToMing:      rel,
+		RelationEvidence:    relations,
+		StructuralSummary:   structuralSummary,
+		EvidenceBasis:       "deterministic_rule_projection",
+		ValidationStatus:    "not_adjudicated",
+		IsOutcomeConclusion: false,
 	}
 }
 
 // AnalyzeLiuri produces a full interpretation for the given 流日.
 func (s *PeriodInterpreter) AnalyzeLiuri(chart *ZiWeiChart, year, month, day int) *LiuriResult {
-	if chart == nil {
+	if !s.acceptsDerivedChart(chart) {
 		return nil
 	}
-
-	liuriBranch := (2 + day - 1) % 12
+	liuriStem, liuriBranch, ok := chartDerivationForQuery(chart, "liuri", year, month, day)
+	if !ok {
+		return nil
+	}
 	dayStem := s.birthData.DayStem
-	liuriStem := (dayStem*2 + day - 1) % 10
 
 	ganZhi := stemName(liuriStem) + branchName(liuriBranch)
-	shiShen := getShiShen(liuriStem, dayStem)
+	shiShen, ok := getShiShen(liuriStem, dayStem)
+	if !ok {
+		return nil
+	}
 	rel := s.describeRelation(liuriBranch)
-	score := s.evaluateScore(liuriStem, liuriBranch)
+	relations := s.relationEvidence(liuriBranch)
 
 	hourly := make([]HourBlock, 12)
 
 	for i := 0; i < 12; i++ {
-		hourStemIdx := (liuriStem*2 + i) % 10
 		hourBranch := i
-		hourGanZhi := stemName(hourStemIdx) + branchName(hourBranch)
-		hourScore := s.evaluateScore(hourStemIdx, hourBranch)
-		hourShiShen := getShiShen(hourStemIdx, dayStem)
-
-		var effect string
-		if hourScore >= 65 {
-			effect = fmt.Sprintf("%s时，%s透出%s，吉利", branchName(hourBranch), shiShen, hourShiShen)
-		} else if hourScore >= 45 {
-			effect = fmt.Sprintf("%s时，%s透出%s，平稳", branchName(hourBranch), shiShen, hourShiShen)
-		} else {
-			effect = fmt.Sprintf("%s时，%s透出%s，需谨慎", branchName(hourBranch), shiShen, hourShiShen)
+		hourStemIdx, ok := fiveRatHourStem(liuriStem, hourBranch)
+		if !ok {
+			return nil
 		}
+		startHour, endHour, intervalLabel, crossesMidnight, ok := traditionalHourInterval(hourBranch)
+		if !ok {
+			return nil
+		}
+		hourGanZhi := stemName(hourStemIdx) + branchName(hourBranch)
+		hourShiShen, ok := getShiShen(hourStemIdx, dayStem)
+		if !ok {
+			return nil
+		}
+		hourRelation := s.describeRelation(hourBranch)
+		hourRelations := s.relationEvidence(hourBranch)
 
 		hourly[i] = HourBlock{
-			Hour:       i*2 + 1,
-			StemBranch: hourGanZhi,
-			Effect:     effect,
-			Score:      hourScore,
+			Stem:                     stemName(hourStemIdx),
+			Branch:                   branchName(hourBranch),
+			StemBranch:               hourGanZhi,
+			IntervalStartHour:        startHour,
+			IntervalEndHourExclusive: endHour,
+			IntervalLabel:            intervalLabel,
+			CrossesMidnight:          crossesMidnight,
+			DayStemBasis:             "period_derivation_day_stem",
+			BoundaryPolicy:           periodHourBoundaryPolicy,
+			RuleID:                   periodHourStemRuleID,
+			ShiShen:                  hourShiShen,
+			RelationToMing:           hourRelation,
+			RelationEvidence:         hourRelations,
+			StructuralSummary:        fmt.Sprintf("%s时（%s）为%s，透出%s；地支与命局关系记录为%s。", branchName(hourBranch), intervalLabel, hourGanZhi, hourShiShen, hourRelation),
+			EvidenceBasis:            "deterministic_rule_projection",
+			ValidationStatus:         "not_adjudicated",
+			IsOutcomeConclusion:      false,
 		}
 	}
 
-	var emotion string
-	if strings.Contains(rel, "自刑") || strings.Contains(rel, "伏吟") {
-		emotion = "内心烦躁、易怒、钻牛角尖，注意情绪管理"
-	} else if score >= 65 {
-		emotion = "心情舒畅，思路清晰，适合处理重要事务"
-	} else if score >= 45 {
-		emotion = "情绪平稳，但小有波动，注意调节"
-	} else {
-		emotion = "情绪低落或焦躁，宜静心，勿做重大决策"
-	}
-
-	summary := fmt.Sprintf("%s日评分%d分，%s透干。%s", ganZhi, score, shiShen, emotion)
+	summary := fmt.Sprintf("流日%s透出%s，地支与命局关系记录为%s；十二时辰按传统两小时地支区间展示，子时跨午夜但不在此合同内裁决民用日期归属。", ganZhi, shiShen, rel)
 
 	return &LiuriResult{
-		Year:           year,
-		Month:          month,
-		Day:            day,
-		GanZhi:         ganZhi,
-		GanZhiDesc:     fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuriStem), shiShen, branchName(liuriBranch), wuXingBranch(liuriBranch)),
-		ShiShen:        shiShen,
-		RelationToMing: rel,
-		QiZiEffect:     fmt.Sprintf("%s透出%s，对事业财运有影响", shiShen, ganZhi),
-		EmotionalState: emotion,
-		Health:         healthAdvice(liuriBranch),
-		Score:          score,
-		HourlyAnalysis: hourly,
-		Summary:        summary,
+		Year:                year,
+		Month:               month,
+		Day:                 day,
+		GanZhi:              ganZhi,
+		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuriStem), shiShen, branchName(liuriBranch), wuXingBranch(liuriBranch)),
+		ShiShen:             shiShen,
+		RelationToMing:      rel,
+		RelationEvidence:    relations,
+		HourlyAnalysis:      hourly,
+		StructuralSummary:   summary,
+		EvidenceBasis:       "deterministic_rule_projection",
+		ValidationStatus:    "not_adjudicated",
+		IsOutcomeConclusion: false,
 	}
+}
+
+func fiveRatHourStem(dayStem, hourBranch int) (int, bool) {
+	if dayStem < 0 || dayStem >= len(StemNames) || hourBranch < 0 || hourBranch >= len(BranchNames) {
+		return 0, false
+	}
+	return ((dayStem%5)*2 + hourBranch) % len(StemNames), true
+}
+
+func traditionalHourInterval(hourBranch int) (startHour, endHourExclusive int, label string, crossesMidnight, ok bool) {
+	if hourBranch < 0 || hourBranch >= len(BranchNames) {
+		return 0, 0, "", false, false
+	}
+	startHour = hourBranch*2 - 1
+	if startHour < 0 {
+		startHour = 23
+	}
+	endHourExclusive = (hourBranch*2 + 1) % 24
+	endDisplayHour := (endHourExclusive + 23) % 24
+	label = fmt.Sprintf("%02d:00-%02d:59", startHour, endDisplayHour)
+	return startHour, endHourExclusive, label, hourBranch == 0, true
+}
+
+func (s *PeriodInterpreter) acceptsDerivedChart(chart *ZiWeiChart) bool {
+	if s == nil || s.birthData == nil || s.baseContentHash == "" || !ValidDerivedChartContract(chart) {
+		return false
+	}
+	return chart.BaseContentHash == s.baseContentHash
 }
 
 // SummarizeAll produces a summary combining all three period layers.
 func (s *PeriodInterpreter) SummarizeAll(liunian, liuyue, liuri *ZiWeiChart, year, month, day int) *PeriodSummary {
-	ln := s.AnalyzeLiunian(liunian, year)
-	ly := s.AnalyzeLiuyue(liuyue, year, month)
+	if s == nil || s.birthData == nil || liunian == nil || liunian.DerivationInput == nil {
+		return nil
+	}
+	lunarYearLabel, err := LunarYearLabelForSolarDate(year, month, day)
+	if err != nil || liunian.DerivationInput.Year != lunarYearLabel {
+		return nil
+	}
+	ln := s.AnalyzeLiunian(liunian, liunian.DerivationInput.Year)
+	ly := s.AnalyzeLiuyue(liuyue, year, month, day)
 	lr := s.AnalyzeLiuri(liuri, year, month, day)
+	if ln == nil || ly == nil || lr == nil {
+		return nil
+	}
 
-	var adv PeriodAdvice
-	if ln != nil {
-		if ln.Score < 50 {
-			adv.Liunian = []string{"禁止投资借贷创业", "夏季主动体检", "技术深耕但不跳槽"}
-		} else if ln.Score >= 70 {
-			adv.Liunian = []string{"把握机会拓展事业", "财运较佳可适当投资"}
-		} else {
-			adv.Liunian = []string{"稳扎稳打，专注主业", "注意健康管理"}
-		}
-	}
-	if ly != nil {
-		if ly.Score < 50 {
-			adv.Liuyue = []string{"守住钱包，避免大额消费", "每天2升温水", "减少无效社交"}
-		} else {
-			adv.Liuyue = []string{"财运平稳，注意把握机会", "注意脾胃健康"}
-		}
-	}
-	if lr != nil {
-		if lr.Score < 50 {
-			adv.Liuri = []string{"午时闭目养神，不处理重要事务", "下午申时把握机会"}
-		} else {
-			adv.Liuri = []string{"思路清晰，适合处理技术难点"}
-		}
-	}
+	var reviewNotes PeriodReviewNotes
+	reviewNotes.Liunian = []string{"仅核对流年干支、十神和刑冲合结构", "重要决定以现实证据和专业意见为准"}
+	reviewNotes.Liuyue = []string{"仅核对流月干支、十神和刑冲合结构", "周期结构不得作为财务或职业决策依据"}
+	reviewNotes.Liuri = []string{"仅核对流日与时辰规则结构", "时辰结构不代表吉凶或行动建议"}
 
 	return &PeriodSummary{
 		Liunian: LiunianSummaryItem{
-			GanZhi:      ln.GanZhi,
-			ShiShen:     ln.ShiShen,
-			Relation:    ln.RelationToMing,
-			Score:       ln.Score,
-			Description: ln.OverallTone,
+			GanZhi:            ln.GanZhi,
+			ShiShen:           ln.ShiShen,
+			Relation:          ln.RelationToMing,
+			RelationEvidence:  append([]PeriodBranchRelation{}, ln.RelationEvidence...),
+			StructuralSummary: ln.StructuralSummary,
 		},
 		Liuyue: LiuyueSummaryItem{
-			GanZhi:      ly.GanZhi,
-			ShiShen:     ly.ShiShen,
-			Relation:    ly.RelationToMing,
-			Score:       ly.Score,
-			Description: ly.Effect,
+			GanZhi:            ly.GanZhi,
+			ShiShen:           ly.ShiShen,
+			Relation:          ly.RelationToMing,
+			RelationEvidence:  append([]PeriodBranchRelation{}, ly.RelationEvidence...),
+			StructuralSummary: ly.StructuralSummary,
 		},
 		Liuri: LiuriSummaryItem{
-			GanZhi:      lr.GanZhi,
-			ShiShen:     lr.ShiShen,
-			Relation:    lr.RelationToMing,
-			Score:       lr.Score,
-			Description: lr.Summary,
+			GanZhi:            lr.GanZhi,
+			ShiShen:           lr.ShiShen,
+			Relation:          lr.RelationToMing,
+			RelationEvidence:  append([]PeriodBranchRelation{}, lr.RelationEvidence...),
+			StructuralSummary: lr.StructuralSummary,
 		},
-		Advice: adv,
+		ReviewNotes:         reviewNotes,
+		EvidenceBasis:       "deterministic_rule_projection",
+		ValidationStatus:    "not_adjudicated",
+		IsOutcomeConclusion: false,
 	}
 }

@@ -47,106 +47,39 @@ function formatMonthDay(date?: string): string {
   return date ? date.slice(5).replace('-', '/') : '—'
 }
 
-function scoreWord(score: number): string {
-  if (score >= 85) return '大吉'
-  if (score >= 72) return '顺行'
-  if (score >= 60) return '平稳'
-  if (score >= 48) return '蓄势'
-  return '谨慎'
-}
-
-function scoreMood(score: number): string {
-  if (score >= 72) return 'good'
-  if (score >= 58) return 'steady'
-  return 'caution'
-}
-
 function rhythmWord(): string {
   const phases = phaseSegments.value
-  if (phases.length < 2) return '节奏平缓'
+  if (phases.length < 2) return '旬段样本不足'
   const first = phases[0].average
   const last = phases[phases.length - 1].average
-  if (last - first >= 8) return '后劲渐起'
-  if (first - last >= 8) return '前强后收'
-  if (scoreSpread.value >= 35) return '起伏明显'
-  return '节奏平稳'
+  if (last - first >= 8) return '后段均值较高'
+  if (first - last >= 8) return '前段均值较高'
+  if (data.value && data.value.summary.index_standard_deviation >= 12) return '日值离散度较高'
+  return '旬段均值接近'
 }
 
 const monthBriefTitle = computed(() => {
   const summary = data.value?.summary
-  if (!summary) return '月内节奏待定'
-  const element = summary.dominant_element ? `${summary.dominant_element}气` : '主气'
-  return `${rhythmWord()}，${element}当令`
+  if (!summary) return '月内结构统计待定'
+  return `结构指数分布：${rhythmWord()}`
 })
 
 const monthBriefText = computed(() => {
   const summary = data.value?.summary
   if (!summary) return ''
   const phases = phaseSegments.value
-  const strongest = [...phases].sort((a, b) => b.average - a.average)[0]
-  const softest = [...phases].sort((a, b) => a.average - b.average)[0]
-  const good = scoreBands.value.good
-  const caution = scoreBands.value.caution
-  const tenGod = summary.dominant_ten_god ? `，十神以${summary.dominant_ten_god}露头` : ''
-  const action = good > caution
-    ? '可把沟通、推进与定案放在高分段完成'
-    : caution > good
-      ? '宜先稳住节奏，减少仓促承诺与高风险决策'
-      : '宜稳中求进，把重要事项拆小处理'
-  const phaseNote = strongest && softest && strongest.name !== softest.name
-    ? `${strongest.name}承接力较强，${softest.name}更适合复盘和留白`
-    : '三旬节奏差异不大，重在持续执行'
-  return `本月${summary.dominant_element || '五行'}气偏显${tenGod}，整体呈${rhythmWord()}。${phaseNote}；${action}。`
-})
-
-function phaseAdvice(avg: number, drift: number): string {
-  if (avg >= 76) return '适合主动推进、定计划、谈合作，把机会窗口用满。'
-  if (avg >= 64 && drift >= 4) return '走势渐开，先稳住节奏，再把重点事项放到后半段。'
-  if (avg >= 60) return '以稳定执行为主，适合整理资源、复盘账目与补足短板。'
-  if (avg >= 50) return '少做高风险决策，优先处理确定性强的小事。'
-  return '宜静不宜躁，重要承诺、投资和冲突场景都要留缓冲。'
-}
-
-function topCounts(values: Array<string | number | undefined>, limit = 3) {
-  const counts = new Map<string, number>()
-  values.forEach(value => {
-    if (value === undefined || value === null || value === '') return
-    const key = String(value)
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  })
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
-    .slice(0, limit)
-    .map(([label, count]) => ({ label, count }))
-}
-
-function colorSwatch(name: string): string {
-  const map: Record<string, string> = {
-    '红色': '#e84057', '红': '#e84057', '朱红': '#dc2626',
-    '橙色': '#f97316', '黄色': '#fcd34d', '金色': '#d4a017', '金': '#d4a017',
-    '绿色': '#22c55e', '青色': '#10b981', '翠': '#34d399',
-    '蓝色': '#3b82f6', '青蓝': '#0ea5e9',
-    '紫色': '#a855f7', '紫': '#a855f7',
-    '黑色': '#1f2937', '黑': '#1f2937',
-    '白色': '#f8fafc', '白': '#f8fafc',
-    '灰色': '#94a3b8',
-  }
-  return map[name] ?? '#94a3b8'
-}
-
-const scoreBands = computed(() => {
-  const days = monthDays.value
-  return {
-    good: days.filter(day => day.score >= 72).length,
-    steady: days.filter(day => day.score >= 58 && day.score < 72).length,
-    caution: days.filter(day => day.score < 58).length,
-  }
+  const phaseMeans = phases.map((phase) => `${phase.name} ${phase.average.toFixed(1)}`).join('、')
+  const element = summary.dominant_element
+    ? `五行频次以${summary.dominant_element}为最高`
+    : '五行频次无单一最高项'
+  const tenGod = summary.dominant_ten_god ? `，十神频次以${summary.dominant_ten_god}为最高` : ''
+  return `本月结构关系指数均值 ${summary.average_index.toFixed(1)}，标准差 ${summary.index_standard_deviation.toFixed(1)}；${phaseMeans}。${element}${tenGod}。以上仅为结构统计，现实结果未裁决。`
 })
 
 const scoreSpread = computed(() => {
   const summary = data.value?.summary
   if (!summary) return 0
-  return Math.max(0, summary.best_score - summary.worst_score)
+  return Math.max(0, summary.highest_index - summary.lowest_index)
 })
 
 const overviewStats = computed(() => {
@@ -154,28 +87,24 @@ const overviewStats = computed(() => {
   if (!summary) return []
   return [
     {
-      label: '月均分',
-      value: summary.average_score.toFixed(1),
-      detail: `${scoreWord(summary.average_score)} · ${scoreBands.value.good} 天顺行`,
-      mood: scoreMood(summary.average_score),
+      label: '月均指数',
+      value: summary.average_index.toFixed(1),
+      detail: '结构关系指数均值',
     },
     {
       label: '振幅',
       value: scoreSpread.value.toString(),
-      detail: `${formatMonthDay(summary.best_day)} 至 ${formatMonthDay(summary.worst_day)}`,
-      mood: scoreSpread.value > 30 ? 'caution' : 'steady',
+      detail: `最高 ${formatMonthDay(summary.highest_index_day)} · 最低 ${formatMonthDay(summary.lowest_index_day)}`,
     },
     {
-      label: '连吉',
-      value: `${summary.good_streak}d`,
-      detail: `低谷连段 ${summary.bad_streak}d`,
-      mood: summary.good_streak >= summary.bad_streak ? 'good' : 'caution',
+      label: '标准差',
+      value: summary.index_standard_deviation.toFixed(1),
+      detail: '月内日指数离散度',
     },
     {
       label: '主气',
       value: summary.dominant_element || '—',
       detail: summary.dominant_ten_god ? `十神 ${summary.dominant_ten_god}` : '五行占优',
-      mood: 'good',
     },
   ]
 })
@@ -184,11 +113,10 @@ interface PhaseSegment {
   name: string
   range: string
   average: number
-  mood: string
   driftLabel: string
-  best?: FortuneDay
-  low?: FortuneDay
-  advice: string
+  highest?: FortuneDay
+  lowest?: FortuneDay
+  description: string
 }
 
 const phaseSegments = computed<PhaseSegment[]>(() => {
@@ -198,8 +126,8 @@ const phaseSegments = computed<PhaseSegment[]>(() => {
     { name: '下旬', from: 21, to: 31 },
   ]
 
-  return buckets.flatMap(bucket => {
-    const chunk = monthDays.value.filter(day => {
+  return buckets.flatMap((bucket) => {
+    const chunk = monthDays.value.filter((day) => {
       const dateNum = Number(day.solar_date.slice(8, 10))
       return dateNum >= bucket.from && dateNum <= bucket.to
     })
@@ -208,61 +136,56 @@ const phaseSegments = computed<PhaseSegment[]>(() => {
     const avg = averageScore(chunk)
     const sorted = [...chunk].sort((a, b) => b.score - a.score)
     const drift = chunk[chunk.length - 1].score - chunk[0].score
-    const driftLabel = drift >= 4 ? '走升' : drift <= -4 ? '回落' : '平稳'
-    return [{
-      name: bucket.name,
-      range: `${formatMonthDay(chunk[0].solar_date)} - ${formatMonthDay(chunk[chunk.length - 1].solar_date)}`,
-      average: avg,
-      mood: scoreMood(avg),
-      driftLabel,
-      best: sorted[0],
-      low: sorted[sorted.length - 1],
-      advice: phaseAdvice(avg, drift),
-    }]
+    const driftLabel = drift >= 4 ? '末值较高' : drift <= -4 ? '末值较低' : '首末接近'
+    const highest = sorted[0]
+    const lowest = sorted[sorted.length - 1]
+    return [
+      {
+        name: bucket.name,
+        range: `${formatMonthDay(chunk[0].solar_date)} - ${formatMonthDay(chunk[chunk.length - 1].solar_date)}`,
+        average: avg,
+        driftLabel,
+        highest,
+        lowest,
+        description: `旬均值 ${avg.toFixed(1)}；最高 ${formatMonthDay(highest.solar_date)}，最低 ${formatMonthDay(lowest.solar_date)}。`,
+      },
+    ]
   })
 })
 
-interface KeyDayCard {
+interface ExtremeDayCard {
   date: string
   label: string
   score: number
   pillar: string
-  variant: 'best' | 'worst' | 'peak' | 'low'
+  variant: 'highest' | 'lowest'
   detail: string
 }
 
-const keyDayCards = computed<KeyDayCard[]>(() => {
+const extremeDayCards = computed<ExtremeDayCard[]>(() => {
   const summary = data.value?.summary
   if (!summary) return []
-  const byDate = new Map(monthDays.value.map(day => [day.solar_date, day]))
-  const used = new Set<string>()
-  const cards: KeyDayCard[] = []
+  const byDate = new Map(monthDays.value.map((day) => [day.solar_date, day]))
+  const cards: ExtremeDayCard[] = []
 
-  function push(date: string | undefined, label: string, variant: KeyDayCard['variant']) {
-    if (!date || used.has(date)) return
+  function push(date: string | undefined, label: string, variant: ExtremeDayCard['variant']) {
+    if (!date) return
     const day = byDate.get(date)
     if (!day) return
-    used.add(date)
-    const isLow = variant === 'worst' || variant === 'low'
-    const detail = isLow
-      ? (day.ji?.slice(0, 2).join('、') || '放慢节奏，重要事项留余地')
-      : (day.yi?.slice(0, 2).join('、') || '适合推进重点事项')
     cards.push({
       date,
       label,
       score: day.score,
       pillar: day.day_gan_zhi,
       variant,
-      detail,
+      detail: `干支 ${day.day_gan_zhi} · 结构指数 ${day.score}`,
     })
   }
 
-  push(summary.best_day, '月内吉峰', 'best')
-  push(summary.worst_day, '谨慎低谷', 'worst')
-  summary.peak_days.slice(0, 4).forEach(date => push(date, '高能日', 'peak'))
-  summary.low_days.slice(0, 4).forEach(date => push(date, '提醒日', 'low'))
+  push(summary.highest_index_day, '月内最高值', 'highest')
+  push(summary.lowest_index_day, '月内最低值', 'lowest')
 
-  return cards.slice(0, 8)
+  return cards
 })
 
 const elementFocus = computed(() => {
@@ -283,17 +206,6 @@ const elementFocus = computed(() => {
       width: `${Math.max(8, (Number(value) / max) * 100)}%`,
       color: colors[name] ?? 'var(--jade-accent)',
     }))
-})
-
-const guideGroups = computed(() => {
-  const days = monthDays.value
-  return [
-    { title: '主色', kind: 'color', items: topCounts(days.map(day => day.guide?.lucky_colors?.[0]?.value || day.lucky_color), 4) },
-    { title: '主数', kind: 'number', items: topCounts(days.map(day => day.guide?.lucky_numbers?.[0]?.value || day.lucky_number), 4) },
-    { title: '财位', kind: 'direction', items: topCounts(days.map(day => day.guide?.wealth_direction?.value || day.wealth_direction), 4) },
-    { title: '主五行', kind: 'element', items: topCounts(days.map(day => day.guide?.primary_element), 4) },
-    { title: '十神', kind: 'ten-god', items: topCounts(days.map(day => day.today_ten_god), 4) },
-  ]
 })
 
 const visibleDays = computed<FortuneDay[]>(() => {
@@ -319,7 +231,9 @@ async function load() {
     try {
       const s = localStorage.getItem('bazi_last_birth')
       if (s) cid = Number(JSON.parse(s).chartId) || null
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   if (!cid) {
     error.value = '请先创建命盘'
@@ -362,19 +276,18 @@ onMounted(load)
             <span class="eyebrow">BaZi · Monthly</span>
             <h1 class="title">{{ monthLabel }}</h1>
             <p class="range tabular-nums">{{ monthRange }}</p>
-            <p class="advice">{{ data.summary.key_advice }}</p>
             <div class="chips">
               <BestWorstChip
-                v-if="data.summary.best_day"
-                variant="best"
-                :date="data.summary.best_day"
-                :score="data.summary.best_score"
+                v-if="data.summary.highest_index_day"
+                variant="highest"
+                :date="data.summary.highest_index_day"
+                :score="data.summary.highest_index"
               />
               <BestWorstChip
-                v-if="data.summary.worst_day"
-                variant="worst"
-                :date="data.summary.worst_day"
-                :score="data.summary.worst_score"
+                v-if="data.summary.lowest_index_day"
+                variant="lowest"
+                :date="data.summary.lowest_index_day"
+                :score="data.summary.lowest_index"
               />
               <span v-if="data.summary.dominant_element" class="meta-chip">
                 <span class="dot"></span>
@@ -387,20 +300,15 @@ onMounted(load)
           </div>
           <div class="hero-right">
             <ScoreOrb
-              :score="data.monthly_score"
-              label="月度综合"
-              :caption="`波动 ±${data.summary.volatility.toFixed(1)}`"
+              :score="data.structural_relation_index"
+              label="月均结构指数"
+              :caption="`标准差 ${data.summary.index_standard_deviation.toFixed(1)}`"
             />
           </div>
         </section>
 
         <section class="overview-grid">
-          <article
-            v-for="stat in overviewStats"
-            :key="stat.label"
-            class="overview-card"
-            :class="`mood-${stat.mood}`"
-          >
+          <article v-for="stat in overviewStats" :key="stat.label" class="overview-card">
             <span class="overview-label">{{ stat.label }}</span>
             <strong class="overview-value tabular-nums">{{ stat.value }}</strong>
             <span class="overview-detail">{{ stat.detail }}</span>
@@ -411,21 +319,7 @@ onMounted(load)
           <div class="brief-copy">
             <span class="card-eyebrow">月度总述</span>
             <h2>{{ monthBriefTitle }}</h2>
-            <p>{{ monthBriefText || data.summary.key_advice }}</p>
-            <div class="score-bands" aria-label="分数分布">
-              <span class="band good">
-                <strong class="tabular-nums">{{ scoreBands.good }}</strong>
-                顺行
-              </span>
-              <span class="band steady">
-                <strong class="tabular-nums">{{ scoreBands.steady }}</strong>
-                平稳
-              </span>
-              <span class="band caution">
-                <strong class="tabular-nums">{{ scoreBands.caution }}</strong>
-                谨慎
-              </span>
-            </div>
+            <p>{{ monthBriefText }}</p>
           </div>
           <div class="element-bars" aria-label="五行占比">
             <div v-for="item in elementFocus" :key="item.name" class="element-row">
@@ -444,15 +338,10 @@ onMounted(load)
         <section class="rhythm-card">
           <header class="card-head">
             <span class="card-eyebrow">上中下旬</span>
-            <span class="card-meta">按月内评分自动切段</span>
+            <span class="card-meta">按日历旬段汇总结构指数</span>
           </header>
           <div class="phase-grid">
-            <article
-              v-for="phase in phaseSegments"
-              :key="phase.name"
-              class="phase-card"
-              :class="`mood-${phase.mood}`"
-            >
+            <article v-for="phase in phaseSegments" :key="phase.name" class="phase-card">
               <div class="phase-top">
                 <div>
                   <span class="phase-name">{{ phase.name }}</span>
@@ -464,38 +353,50 @@ onMounted(load)
                 <span :style="{ width: `${Math.max(6, Math.min(100, phase.average))}%` }"></span>
               </div>
               <div class="phase-days">
-                <span v-if="phase.best">高 {{ formatMonthDay(phase.best.solar_date) }} · {{ phase.best.score }}</span>
-                <span v-if="phase.low">低 {{ formatMonthDay(phase.low.solar_date) }} · {{ phase.low.score }}</span>
+                <span v-if="phase.highest"
+                  >最高 {{ formatMonthDay(phase.highest.solar_date) }} ·
+                  {{ phase.highest.score }}</span
+                >
+                <span v-if="phase.lowest"
+                  >最低 {{ formatMonthDay(phase.lowest.solar_date) }} ·
+                  {{ phase.lowest.score }}</span
+                >
                 <span>{{ phase.driftLabel }}</span>
               </div>
-              <p>{{ phase.advice }}</p>
+              <p>{{ phase.description }}</p>
             </article>
           </div>
         </section>
 
         <section class="glass-card trend-card">
           <header class="card-head">
-            <span class="card-eyebrow">月历强度</span>
+            <span class="card-eyebrow">月内结构指数</span>
             <span class="card-meta">
-              评分折线 · 峰 {{ data.summary.peak_days.length }} · 谷 {{ data.summary.low_days.length }}
+              均值 {{ data.summary.average_index.toFixed(1) }} · 标准差
+              {{ data.summary.index_standard_deviation.toFixed(1) }}
             </span>
           </header>
           <FortuneChart :daily-data="trendData" height="320px" :show-elements="false" />
-          <div class="trend-legend" aria-label="月历强度说明">
-            <span><i class="legend-dot best"></i>吉峰 {{ formatMonthDay(data.summary.best_day) }}</span>
-            <span><i class="legend-dot worst"></i>低谷 {{ formatMonthDay(data.summary.worst_day) }}</span>
-            <span class="tabular-nums">连吉 {{ data.summary.good_streak }}d</span>
+          <div class="trend-legend" aria-label="月内结构指数说明">
+            <span
+              ><i class="legend-dot highest"></i>最高
+              {{ formatMonthDay(data.summary.highest_index_day) }}</span
+            >
+            <span
+              ><i class="legend-dot lowest"></i>最低
+              {{ formatMonthDay(data.summary.lowest_index_day) }}</span
+            >
           </div>
         </section>
 
         <section class="key-days-card">
           <header class="card-head">
-            <span class="card-eyebrow">关键日期</span>
-            <span class="card-meta">吉峰、高能与低谷提醒</span>
+            <span class="card-eyebrow">指数极值日期</span>
+            <span class="card-meta">仅表示本月内相对最高与最低</span>
           </header>
           <div class="key-day-grid">
             <article
-              v-for="day in keyDayCards"
+              v-for="day in extremeDayCards"
               :key="day.date"
               class="key-day"
               :class="day.variant"
@@ -503,7 +404,7 @@ onMounted(load)
               <span class="key-date tabular-nums">{{ formatMonthDay(day.date) }}</span>
               <div class="key-main">
                 <strong>{{ day.label }}</strong>
-                <span>{{ day.pillar }} · {{ day.score }}分</span>
+                <span>{{ day.pillar }} · 结构指数 {{ day.score }}</span>
               </div>
               <p>{{ day.detail }}</p>
             </article>
@@ -520,37 +421,12 @@ onMounted(load)
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">五行走势</span>
-              <span class="card-meta tabular-nums">均 {{ data.summary.average_score.toFixed(1) }}</span>
+              <span class="card-eyebrow">结构指数与五行走势</span>
+              <span class="card-meta tabular-nums"
+                >均 {{ data.summary.average_index.toFixed(1) }}</span
+              >
             </header>
             <FortuneChart :daily-data="trendData" height="280px" />
-          </div>
-        </section>
-
-        <section class="guide-card">
-          <header class="card-head">
-            <span class="card-eyebrow">开运频次</span>
-            <span class="card-meta">按每日幸运项统计</span>
-          </header>
-          <div class="guide-grid">
-            <article v-for="group in guideGroups" :key="group.title" class="guide-group">
-              <h3>{{ group.title }}</h3>
-              <div class="guide-items">
-                <span
-                  v-for="item in group.items"
-                  :key="`${group.title}-${item.label}`"
-                  class="guide-chip"
-                >
-                  <span
-                    v-if="group.kind === 'color'"
-                    class="guide-swatch"
-                    :style="{ background: colorSwatch(item.label) }"
-                  ></span>
-                  <strong>{{ item.label }}</strong>
-                  <em class="tabular-nums">{{ item.count }}次</em>
-                </span>
-              </div>
-            </article>
           </div>
         </section>
 
@@ -569,17 +445,10 @@ onMounted(load)
               :date="d.solar_date"
               :day-pillar="d.day_gan_zhi"
               :score="d.score"
-              :lucky-color="d.lucky_color"
-              :lucky-number="d.lucky_number"
-              :wealth-dir="d.wealth_direction"
-              :guide-strategy="d.guide?.strategy"
-              :guide-element="d.guide?.primary_element"
-              :yi-items="d.yi"
-              :ji-items="d.ji"
-              :today-ten-god="d.today_ten_god"
+              :ten-god="d.ten_god?.name"
               :weekday="weekdayShort(d.solar_date)"
-              :is-best="data!.summary.best_day === d.solar_date"
-              :is-worst="data!.summary.worst_day === d.solar_date"
+              :is-highest="data!.summary.highest_index_day === d.solar_date"
+              :is-lowest="data!.summary.lowest_index_day === d.solar_date"
             />
           </div>
         </section>
@@ -614,73 +483,162 @@ onMounted(load)
 
 /* states */
 .state {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 70vh; gap: 16px; color: var(--text-muted); font-size: var(--fs-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  gap: 16px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
 }
-.state.error p { color: var(--crimson); }
-.btn-link { color: rgba(var(--jade-accent-rgb), 1); text-decoration: none; font-weight: 600; letter-spacing: 0.04em; }
+.state.error p {
+  color: var(--crimson);
+}
+.btn-link {
+  color: rgba(var(--jade-accent-rgb), 1);
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
 .orb-skeleton {
-  width: 100px; height: 100px; border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
   background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.45), transparent 70%);
   filter: blur(4px);
   animation: pulse 1.6s ease-in-out infinite;
 }
-@keyframes pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.95 } }
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
 
 /* hero (shared with weekly) */
 .hero {
-  display: grid; grid-template-columns: 1fr; gap: 24px; padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px;
   border-radius: 28px;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 86%, transparent), color-mix(in oklab, var(--surface-2) 78%, transparent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-1) 86%, transparent),
+    color-mix(in oklab, var(--surface-2) 78%, transparent)
+  );
   border: 1px solid var(--line-strong);
   backdrop-filter: blur(22px) saturate(140%);
   box-shadow: var(--shadow-lg);
 }
-:global(.dark) .hero { background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); }
-@media (min-width: 900px) { .hero { grid-template-columns: 1.4fr 1fr; align-items: center; } }
-.hero-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.hero-right { display: flex; align-items: center; justify-content: center; }
+:global(.dark) .hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+}
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+  }
+}
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .eyebrow {
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-xs); letter-spacing: 0.42em; color: var(--text-muted); text-transform: uppercase;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.42em;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 .title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: var(--fs-stat); font-weight: 800; letter-spacing: 0.18em;
-  margin: 0; color: var(--text);
+  font-size: var(--fs-stat);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin: 0;
+  color: var(--text);
 }
-.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: var(--fs-sm); }
-.advice {
-  font-family: var(--font-serif), serif; font-size: var(--fs-body); line-height: 1.75;
-  color: var(--text); margin: 4px 0 6px; letter-spacing: 0.02em;
+.range {
+  color: var(--text-muted);
+  margin: 0;
+  letter-spacing: 0.06em;
+  font-size: var(--fs-sm);
 }
-.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .meta-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 999px;
-  border: 1px solid var(--line-subtle); font-size: var(--fs-xs);
-  color: var(--text-muted); background: var(--glass-bg);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-subtle);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  background: var(--glass-bg);
 }
-.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--jade-accent); box-shadow: 0 0 6px var(--jade-accent); }
+.meta-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--jade-accent);
+  box-shadow: 0 0 6px var(--jade-accent);
+}
 
 /* glass card */
 .glass-card {
-  padding: 20px; border-radius: 22px;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 88%, transparent), color-mix(in oklab, var(--surface-2) 78%, transparent));
+  padding: 20px;
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-1) 88%, transparent),
+    color-mix(in oklab, var(--surface-2) 78%, transparent)
+  );
   border: 1px solid var(--line-strong);
   backdrop-filter: blur(22px) saturate(140%);
   box-shadow: var(--shadow-md);
 }
-:global(.dark) .glass-card { background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); }
-
-.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.card-head.plain { padding: 0 4px; }
-.card-eyebrow {
-  font-size: var(--fs-xs); letter-spacing: 0.32em; color: var(--text-muted);
-  font-family: var(--font-mono), monospace; text-transform: uppercase;
+:global(.dark) .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
 }
-.card-meta { font-size: var(--fs-xs); color: var(--text-soft); letter-spacing: 0.06em; }
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card-head.plain {
+  padding: 0 4px;
+}
+.card-eyebrow {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.32em;
+  color: var(--text-muted);
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+}
+.card-meta {
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  letter-spacing: 0.06em;
+}
 
 .overview-grid {
   display: grid;
@@ -695,19 +653,18 @@ onMounted(load)
   min-width: 0;
   padding: 18px 18px 16px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--glass-bg), color-mix(in oklab, var(--surface-2) 70%, transparent));
+  background: linear-gradient(
+    135deg,
+    var(--glass-bg),
+    color-mix(in oklab, var(--surface-2) 70%, transparent)
+  );
   border: 1px solid var(--line-subtle);
   box-shadow: var(--shadow-sm);
 }
-.overview-card.mood-good { border-color: rgba(var(--jade-accent-rgb), 0.36); }
-.overview-card.mood-steady { border-color: rgba(130, 145, 160, 0.24); }
-.overview-card.mood-caution { border-color: rgba(232, 64, 87, 0.24); }
 .overview-label,
 .overview-detail,
 .phase-range,
 .phase-days,
-.guide-group h3,
-.guide-chip,
 .key-main span,
 .element-value {
   overflow: hidden;
@@ -737,12 +694,21 @@ onMounted(load)
   padding: 22px;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 84%, transparent), color-mix(in oklab, var(--surface-2) 76%, transparent)),
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--surface-1) 84%, transparent),
+      color-mix(in oklab, var(--surface-2) 76%, transparent)
+    ),
     radial-gradient(circle at top right, rgba(var(--jade-accent-rgb), 0.08), transparent 32%);
   border: 1px solid var(--line-strong);
   box-shadow: var(--shadow-md);
 }
-.brief-copy { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.brief-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
 .brief-copy h2 {
   margin: 0;
   font-family: var(--font-serif), serif;
@@ -755,27 +721,6 @@ onMounted(load)
   color: var(--text);
   max-width: 66ch;
 }
-.score-bands {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.band {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-}
-.band strong { font-size: var(--fs-sm); color: var(--text); }
-.band.good { border-color: rgba(var(--jade-accent-rgb), 0.28); }
-.band.steady { border-color: rgba(130, 145, 160, 0.22); }
-.band.caution { border-color: rgba(232, 64, 87, 0.24); }
-
 .element-bars {
   display: flex;
   flex-direction: column;
@@ -807,48 +752,47 @@ onMounted(load)
 }
 
 .rhythm-card,
-.key-days-card,
-.guide-card {
+.key-days-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 20px;
   border-radius: 22px;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--surface-1) 88%, transparent), color-mix(in oklab, var(--surface-2) 78%, transparent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-1) 88%, transparent),
+    color-mix(in oklab, var(--surface-2) 78%, transparent)
+  );
   border: 1px solid var(--line-strong);
   backdrop-filter: blur(22px) saturate(140%);
   box-shadow: var(--shadow-md);
 }
 
 .phase-grid,
-.key-day-grid,
-.guide-grid {
+.key-day-grid {
   display: grid;
   gap: 12px;
 }
-.phase-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.key-day-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.guide-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.phase-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.key-day-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 
 .phase-card,
-.key-day,
-.guide-group {
+.key-day {
   min-width: 0;
   border-radius: 18px;
   padding: 16px;
   background: var(--glass-bg);
   border: 1px solid var(--line-subtle);
 }
-.phase-card.mood-good,
-.key-day.best,
-.key-day.peak,
-.guide-group {
-  border-color: rgba(var(--jade-accent-rgb), 0.20);
+.key-day.highest {
+  border-color: rgba(var(--jade-accent-rgb), 0.2);
 }
-.phase-card.mood-caution,
-.key-day.worst,
-.key-day.low {
-  border-color: rgba(232, 64, 87, 0.22);
+.key-day.lowest {
+  border-color: var(--line-strong);
 }
 .phase-top,
 .key-main {
@@ -858,15 +802,13 @@ onMounted(load)
   gap: 12px;
 }
 .phase-name,
-.key-main strong,
-.guide-group h3 {
+.key-main strong {
   font-size: var(--fs-sm);
   color: var(--text);
 }
 .phase-range,
 .key-main span,
-.phase-days,
-.guide-chip em {
+.phase-days {
   font-size: var(--fs-xs);
   color: var(--text-soft);
 }
@@ -886,7 +828,11 @@ onMounted(load)
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(var(--jade-accent-rgb), 0.55), rgba(var(--jade-accent-rgb), 1));
+  background: linear-gradient(
+    90deg,
+    rgba(var(--jade-accent-rgb), 0.55),
+    rgba(var(--jade-accent-rgb), 1)
+  );
 }
 .phase-days {
   display: flex;
@@ -919,51 +865,20 @@ onMounted(load)
   gap: 2px;
 }
 
-.guide-group { display: flex; flex-direction: column; gap: 10px; }
-.guide-group h3 {
-  margin: 0;
-  font-size: var(--fs-sm);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.guide-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.guide-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line-subtle);
-  background: rgba(var(--jade-accent-rgb), 0.06);
-  font-size: var(--fs-xs);
-}
-.guide-chip strong { min-width: 0; }
-.guide-chip em { font-style: normal; }
-.guide-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line-strong);
-  flex: 0 0 auto;
-}
-
 .overview-grid,
 .month-brief,
 .rhythm-card,
 .key-days-card,
-.guide-card,
 .grid-2,
 .day-section {
   min-width: 0;
 }
 
-.trend-card { display: flex; flex-direction: column; gap: 12px; }
+.trend-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .trend-legend {
   display: flex;
   flex-wrap: wrap;
@@ -985,21 +900,33 @@ onMounted(load)
   border-radius: 999px;
   flex: 0 0 auto;
 }
-.legend-dot.best {
+.legend-dot.highest {
   background: var(--jade-accent);
   box-shadow: 0 0 8px rgba(var(--jade-accent-rgb), 0.75);
 }
-.legend-dot.worst {
-  background: var(--crimson);
-  box-shadow: 0 0 8px rgba(232, 64, 87, 0.55);
+.legend-dot.lowest {
+  background: var(--text-soft);
 }
 
-.grid-2 { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+.grid-2 {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
-.day-section { display: flex; flex-direction: column; gap: 14px; }
+.day-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .day-grid {
-  display: grid; gap: 12px;
+  display: grid;
+  gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
@@ -1016,21 +943,36 @@ onMounted(load)
   font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
-.toggle:hover { border-color: rgba(var(--jade-accent-rgb), 0.55); color: rgba(var(--jade-accent-rgb), 1); }
+.toggle:hover {
+  border-color: rgba(var(--jade-accent-rgb), 0.55);
+  color: rgba(var(--jade-accent-rgb), 1);
+}
 
 .footer-nav {
-  display: flex; gap: 14px; justify-content: center; padding: 8px 0;
-  font-size: var(--fs-sm); color: var(--text-muted);
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  padding: 8px 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }
 .footer-nav a {
   color: rgba(var(--jade-accent-rgb), 1);
-  text-decoration: none; font-weight: 500; letter-spacing: 0.04em;
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
-.footer-nav a:hover { text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55); }
+.footer-nav a:hover {
+  text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55);
+}
 
-.tabular-nums { font-variant-numeric: tabular-nums; }
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
 
 @media (min-width: 900px) {
   .overview-grid {
@@ -1044,19 +986,19 @@ onMounted(load)
 
 @media (max-width: 1100px) {
   .phase-grid,
-  .key-day-grid,
-  .guide-grid {
+  .key-day-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .page { gap: 18px; }
+  .page {
+    gap: 18px;
+  }
   .hero,
   .glass-card,
   .rhythm-card,
   .key-days-card,
-  .guide-card,
   .month-brief {
     padding: 16px;
     border-radius: 20px;
@@ -1065,8 +1007,7 @@ onMounted(load)
     grid-template-columns: 1fr;
   }
   .phase-grid,
-  .key-day-grid,
-  .guide-grid {
+  .key-day-grid {
     grid-template-columns: 1fr;
   }
   .card-head {

@@ -102,7 +102,7 @@ func equalStringSlice(a, b []string) bool {
 // TestHiddenStemsPrecision 验证 12 地支藏干与 tyme4go 库实现完全一致
 //
 // 测试方法：对每个地支，构造四柱均为该地支的命盘（如四柱全为"甲子"），
-// 使用 CalculateFromPillars 计算，然后校验 result.HiddenStems 中
+// 使用 CalculateSyntheticPillars 计算，然后校验 result.HiddenStems 中
 // year/month/day/hour 四个位置均返回该地支的正确藏干。
 func TestHiddenStemsPrecision(t *testing.T) {
 	svc := &BaziService{}
@@ -115,9 +115,9 @@ func TestHiddenStemsPrecision(t *testing.T) {
 			pillar := gan + branch
 			expected := expectedHiddenStems[branch]
 
-			result, err := svc.CalculateFromPillars(pillar, pillar, pillar, pillar, "MALE")
+			result, err := svc.CalculateSyntheticPillars(pillar, pillar, pillar, pillar, "MALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars(%q, ...) 失败: %v", pillar, err)
+				t.Fatalf("CalculateSyntheticPillars(%q, ...) 失败: %v", pillar, err)
 			}
 
 			for _, pos := range []string{"year", "month", "day", "hour"} {
@@ -155,16 +155,17 @@ func TestHiddenStemsPrecision(t *testing.T) {
 // TestHiddenStemsIndependent 验证不同柱位的藏干独立计算互不干扰
 //
 // 四个柱位使用四个不同的地支，分别校验每个位置：
-//   年柱申 → 庚壬戊
-//   月柱巳 → 丙庚戊
-//   日柱子 → 癸
-//   时柱寅 → 甲丙戊
+//
+//	年柱申 → 庚壬戊
+//	月柱巳 → 丙庚戊
+//	日柱子 → 癸
+//	时柱寅 → 甲丙戊
 func TestHiddenStemsIndependent(t *testing.T) {
 	svc := &BaziService{}
 
-	result, err := svc.CalculateFromPillars("甲申", "乙巳", "甲子", "甲寅", "MALE")
+	result, err := svc.CalculateSyntheticPillars("甲申", "乙巳", "甲子", "甲寅", "MALE")
 	if err != nil {
-		t.Fatalf("CalculateFromPillars 失败: %v", err)
+		t.Fatalf("CalculateSyntheticPillars 失败: %v", err)
 	}
 
 	type check struct {
@@ -206,9 +207,9 @@ func TestHiddenStemsAllBranchesMixed(t *testing.T) {
 	}
 
 	groups := []struct {
-		name   string
-		pillars [4]string // year, month, day, hour
-		expect map[string]string // pillar position -> branch
+		name    string
+		pillars [4]string         // year, month, day, hour
+		expect  map[string]string // pillar position -> branch
 	}{
 		{
 			name:    "子丑寅卯",
@@ -231,10 +232,10 @@ func TestHiddenStemsAllBranchesMixed(t *testing.T) {
 
 	for _, g := range groups {
 		t.Run(g.name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				g.pillars[0], g.pillars[1], g.pillars[2], g.pillars[3], "FEMALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars 失败: %v", err)
+				t.Fatalf("CalculateSyntheticPillars 失败: %v", err)
 			}
 
 			for _, pos := range posNames {
@@ -269,9 +270,9 @@ func TestHiddenStemsOrderingConsistency(t *testing.T) {
 			gan := branchGan[branch]
 			pillar := gan + branch
 
-			result, err := svc.CalculateFromPillars(pillar, pillar, pillar, pillar, "MALE")
+			result, err := svc.CalculateSyntheticPillars(pillar, pillar, pillar, pillar, "MALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars 失败: %v", err)
+				t.Fatalf("CalculateSyntheticPillars 失败: %v", err)
 			}
 
 			for _, pos := range []string{"year", "month", "day", "hour"} {

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"net/http"
+	"strings"
 )
 
 type ZiWeiChartHandler struct {
@@ -61,7 +62,7 @@ func mapPalaceToResponse(p *ziwei.PalaceInfo, sf *ziwei.SanfangSizhengResult) Zi
 	return resp
 }
 
-func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
+func mapChartToResponse(chart *ziwei.ZiWeiChart, svc *ziwei.ZiWeiService) gin.H {
 	palaces := make([]ZiWeiPalaceResponse, 12)
 	for i := 0; i < 12; i++ {
 		sf := &ziwei.SanfangSizhengResult{
@@ -72,7 +73,18 @@ func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
 		palaces[i] = mapPalaceToResponse(&chart.Palaces[i], sf)
 	}
 
-	return gin.H{
+	response := gin.H{
+		"profile_id":                    chart.ProfileID,
+		"engine_version":                chart.EngineVersion,
+		"rule_version":                  chart.RuleVersion,
+		"rule_school":                   chart.RuleSchool,
+		"rule_sources":                  chart.RuleSources,
+		"runtime_rule_tables_schema":    chart.RuntimeRuleTablesSchema,
+		"runtime_rule_tables_hash":      chart.RuntimeRuleTablesHash,
+		"plugin_manifest":               chart.PluginManifest,
+		"plugin_manifest_hash":          chart.PluginManifestHash,
+		"calculation_input":             chart.CalculationInput,
+		"input_fingerprint":             chart.InputFingerprint,
 		"palaces":                       palaces,
 		"life_master":                   chart.LifeMaster,
 		"body_master":                   chart.BodyMaster,
@@ -84,8 +96,25 @@ func mapChartToResponse(chart *ziwei.ZiWeiChart) gin.H {
 		"liu_nian_stars":                chart.LiuNianStars,
 		"liu_yue_stars":                 chart.LiuYueStars,
 		"liu_ri_stars":                  chart.LiuRiStars,
-		"query_view":                    ziwei.BuildQueryView(chart),
+		"liu_nian_four_hua":             chart.LiuNianFourHua,
+		"liu_yue_four_hua":              chart.LiuYueFourHua,
+		"liu_ri_four_hua":               chart.LiuRiFourHua,
+		"liu_nian_palaces":              chart.LiuNianPalaces,
+		"liu_yue_palaces":               chart.LiuYuePalaces,
+		"liu_ri_palaces":                chart.LiuRiPalaces,
+		"query_view":                    svc.BuildQueryView(chart),
 	}
+	if chart.ContentHash != "" {
+		response["content_hash"] = chart.ContentHash
+	}
+	if chart.DerivedContentHash != "" {
+		response["derivation_type"] = chart.DerivationType
+		response["derivation_input"] = chart.DerivationInput
+		response["derivation_fingerprint"] = chart.DerivationFingerprint
+		response["base_content_hash"] = chart.BaseContentHash
+		response["derived_content_hash"] = chart.DerivedContentHash
+	}
+	return response
 }
 
 func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
@@ -96,7 +125,8 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 
 	var req struct {
 		model.ChartRequest
-		Algorithm string `json:"algorithm"` // "default" or "zhongzhou"
+		Algorithm string `json:"algorithm"`
+		Profile   string `json:"profile"`
 		ChartID   uint   `json:"chart_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -109,12 +139,14 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceDisabled, "service not available")
 		return
 	}
-
-	switch req.Algorithm {
-	case "zhongzhou":
-		svc.SetAlgorithm(ziwei.AlgorithmZhongZhou)
-	default:
-		svc.SetAlgorithm(ziwei.AlgorithmFullBook)
+	profile, err := ziwei.ResolveProfile(req.Profile)
+	if err != nil {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, err.Error())
+		return
+	}
+	if strings.TrimSpace(req.Algorithm) != "" {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "algorithm is not a calculation contract; use a registered profile")
+		return
 	}
 
 	// chart_id provided: check cache or compute and store
@@ -129,22 +161,30 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 			return
 		}
+		birth, err := resolveStoredZiWeiBirth(birthChart)
+		if err != nil {
+			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, err.Error())
+			return
+		}
 
 		if birthChart.ZiWeiComputed && len(birthChart.ZiWeiResult) > 0 {
 			// Serve cached result
 			var cached ziwei.ZiWeiChart
-			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil {
-				if err := svc.AttachBirthData(&cached, birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender); err != nil {
+			if err := json.Unmarshal(birthChart.ZiWeiResult, &cached); err == nil && svc.ChartMatchesInputProfile(
+				&cached, profile.ID,
+				birth.Year, birth.Month, birth.Day, birth.Hour, birth.Minute, birth.Gender,
+			) {
+				if err := svc.AttachBirthData(&cached, birth.Year, birth.Month, birth.Day, birth.Hour, birth.Minute, birth.Gender); err != nil {
 					respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("restore cached chart failed: %v", err))
 					return
 				}
-				respondJSON(c, http.StatusOK, mapChartToResponse(&cached))
+				respondJSON(c, http.StatusOK, mapChartToResponse(&cached, svc))
 				return
 			}
 			// If unmarshal fails, fall through to recompute
 		}
 
-		chart, err := svc.CalculateChart(birthChart.BirthYear, birthChart.BirthMonth, birthChart.BirthDay, birthChart.BirthHour, birthChart.BirthMin, birthChart.Gender)
+		chart, err := svc.CalculateChartWithProfile(profile.ID, birth.Year, birth.Month, birth.Day, birth.Hour, birth.Minute, birth.Gender)
 		if err != nil {
 			respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("chart calculation failed: %v", err))
 			return
@@ -160,18 +200,27 @@ func (h *ZiWeiChartHandler) Calculate(c *gin.Context) {
 			}
 		}
 
-		respondJSON(c, http.StatusOK, mapChartToResponse(chart))
+		respondJSON(c, http.StatusOK, mapChartToResponse(chart, svc))
 		return
 	}
 
-	// No chart_id: compute from raw birth data (original behavior)
-	chart, err := svc.CalculateChart(req.BirthYear, req.BirthMonth, req.BirthDay, req.BirthHour, req.BirthMin, req.Gender)
+	// No chart_id: normalize the complete request before calculating Zi Wei.
+	birth, requiresSelection, err := resolveZiWeiRequestBirth(req.ChartRequest)
+	if err != nil {
+		status := http.StatusBadRequest
+		if requiresSelection && strings.TrimSpace(req.CandidateID) == "" {
+			status = http.StatusConflict
+		}
+		respondError(c, status, codeFromStatus(status), err.Error())
+		return
+	}
+	chart, err := svc.CalculateChartWithProfile(profile.ID, birth.Year, birth.Month, birth.Day, birth.Hour, birth.Minute, birth.Gender)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, fmt.Sprintf("chart calculation failed: %v", err))
 		return
 	}
 
-	respondJSON(c, http.StatusOK, mapChartToResponse(chart))
+	respondJSON(c, http.StatusOK, mapChartToResponse(chart, svc))
 }
 
 // RegisterZiWeiRoutes registers the ZiWei chart calculation route.

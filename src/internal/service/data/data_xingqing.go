@@ -3,10 +3,10 @@ package data
 // XingQingEntry 描述十神与性情的对应关系。
 // 数据来源：《三命通会》第162章 "论性情相貌"。
 type XingQingEntry struct {
-	God       string // 十神名称
-	Positive  string // 正面性情
-	Negative  string // 负面性情
-	Advice    string // 修身建议
+	God      string // 十神名称
+	Positive string // 正面性情
+	Negative string // 负面性情
+	Advice   string // 修身建议
 }
 
 // XingQingByTenGod 十神性情对照表。
@@ -26,10 +26,10 @@ var XingQingByTenGod = map[string]XingQingEntry{
 // WuxingAppearance 五行相貌特征。
 // 数据来源：《三命通会》第162章。
 type WuxingAppearance struct {
-	Element    string // 五行
-	BodyType   string // 体态
-	FaceColor  string // 面色
-	Feature    string // 特征
+	Element   string // 五行
+	BodyType  string // 体态
+	FaceColor string // 面色
+	Feature   string // 特征
 }
 
 // WuxingAppearanceMap 五行相貌表。
@@ -39,24 +39,6 @@ var WuxingAppearanceMap = map[string]WuxingAppearance{
 	"土": {Element: "土", BodyType: "体型壮实、敦厚稳重", FaceColor: "面色黄", Feature: "唇厚鼻大、体格结实"},
 	"金": {Element: "金", BodyType: "皮肤白皙、面部方正", FaceColor: "面色白", Feature: "声音清亮、骨格清秀"},
 	"水": {Element: "水", BodyType: "体型丰满、圆润", FaceColor: "面色黑", Feature: "眼大瞳黑、柔韧有致"},
-}
-
-// WuxingHealth 五行与脏腑疾病对应关系。
-// 数据来源：《三命通会》第163章 "论疾病先知五脏六腑所属"。
-type WuxingHealth struct {
-	Element string   // 五行
-	Organs  []string // 对应脏腑
-	Excess  string   // 过旺之病
-	Deficit string   // 过弱之病
-}
-
-// WuxingHealthMap 五行疾病对照表。
-var WuxingHealthMap = map[string]WuxingHealth{
-	"木": {Element: "木", Organs: []string{"肝", "胆"}, Excess: "肝胆疾病、筋骨酸痛、偏头痛、易怒烦躁", Deficit: "肝血不足、视力减退、韧带松弛"},
-	"火": {Element: "火", Organs: []string{"心", "小肠"}, Excess: "心血管病、失眠多梦、口舌生疮、高血压", Deficit: "心悸气短、血液循环不良、畏寒"},
-	"土": {Element: "土", Organs: []string{"脾", "胃"}, Excess: "消化不良、腹胀肥胖、糖尿病倾向", Deficit: "脾胃虚弱、食欲不振、营养不良"},
-	"金": {Element: "金", Organs: []string{"肺", "大肠"}, Excess: "呼吸系统病、便秘、皮肤过敏、鼻塞", Deficit: "肺气不足、易感风寒、皮肤干燥"},
-	"水": {Element: "水", Organs: []string{"肾", "膀胱"}, Excess: "泌尿系统病、水肿、骨质疏松、耳鸣", Deficit: "肾气不足、腰膝酸软、精力不济"},
 }
 
 // GetXingQingByGod 根据十神名称获取性情描述。
@@ -69,10 +51,4 @@ func GetXingQingByGod(god string) (XingQingEntry, bool) {
 func GetWuxingAppearance(element string) (WuxingAppearance, bool) {
 	a, ok := WuxingAppearanceMap[element]
 	return a, ok
-}
-
-// GetWuxingHealth 根据五行获取疾病信息。
-func GetWuxingHealth(element string) (WuxingHealth, bool) {
-	h, ok := WuxingHealthMap[element]
-	return h, ok
 }

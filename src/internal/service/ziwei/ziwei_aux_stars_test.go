@@ -17,7 +17,7 @@ import (
 // TestLucunQingyangTuoluo_AllStems verifies 禄存/擎羊/陀罗 branch for all 10 year stems.
 // 禄存 from LucunBranchIdx: 甲→寅(2), 乙→卯(3), 丙→巳(5), 丁→午(6), 戊→巳(5),
 //
-//	己→午(6), 庚→申(8), 辛→酉(9), 壬→亥(10), 癸→子(0)
+//	己→午(6), 庚→申(8), 辛→酉(9), 壬→亥(11), 癸→子(0)
 //
 // 擎羊 = fixIndex(禄存+1), 陀罗 = fixIndex(禄存-1)
 func TestLucunQingyangTuoluo_AllStems(t *testing.T) {
@@ -36,7 +36,7 @@ func TestLucunQingyangTuoluo_AllStems(t *testing.T) {
 		{"己", "午", "未", "巳", 5},
 		{"庚", "申", "酉", "未", 6},
 		{"辛", "酉", "戌", "申", 7},
-		{"壬", "戌", "亥", "酉", 8},
+		{"壬", "亥", "子", "戌", 8},
 		{"癸", "子", "丑", "亥", 9},
 	}
 
@@ -306,7 +306,7 @@ func TestAuxStars_EndToEnd(t *testing.T) {
 
 			starLocations := make(map[string]string)
 			for _, p := range chart.Palaces {
-				for _, s := range p.AuxStars {
+				for _, s := range palaceAuxStars(p) {
 					starLocations[s] = p.Branch
 				}
 			}

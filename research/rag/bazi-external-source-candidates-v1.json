@@ -1,0 +1,166 @@
+{
+  "schema": "bazi_external_source_candidate_registry_v1",
+  "version": "2026-07-17.1",
+  "status": "candidate_only_no_runtime_ingestion",
+  "observed_at": "2026-07-17",
+  "work": "三命通會",
+  "purpose": "登记完整独立版次候选、远端身份、许可缺口和人工门禁；候选不自动进入 RAG 或声明证据。",
+  "global_policy": {
+    "download_does_not_imply_ingestion": true,
+    "remote_hash_does_not_replace_local_sha256": true,
+    "provider_metadata_is_not_bibliographic_adjudication": true,
+    "cross_source_text_match_required": true,
+    "two_independent_reviewers_required": true,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  },
+  "candidates": [
+    {
+      "candidate_id": "sanming-siku-wikisource-12vol-v1",
+      "provider": "zh.wikisource.org",
+      "source_type": "versioned_digital_transcription",
+      "edition": "欽定四庫全書本",
+      "status": "candidate_for_manual_textual_comparison",
+      "landing_url": "https://zh.wikisource.org/wiki/三命通會_(四庫全書本)",
+      "remote_manifest_scheme": "title_tab_pageid_tab_revid_tab_size_tab_timestamp_tab_sha1_lf_v1",
+      "remote_manifest_sha256": "80d14200816a4bc1fd3b26c73facb73f3abd16d5e61f241f279e38fb8ddc2fcd",
+      "license": {
+        "status": "terms_identified_attribution_required",
+        "underlying_work": "PD-old",
+        "digital_contributions": "CC BY-SA 4.0 and GFDL",
+        "rights_field": "",
+        "license_url": "https://zh.wikisource.org/wiki/Wikisource:版权信息",
+        "evidence_urls": [
+          "https://zh.wikisource.org/w/index.php?curid=260853&oldid=657391",
+          "https://zh.wikisource.org/wiki/Wikisource:版权信息"
+        ]
+      },
+      "gates": {
+        "complete_structure_observed": true,
+        "license_terms_resolved": true,
+        "local_artifact_frozen": false,
+        "independence_verified": false,
+        "bibliography_adjudicated": false,
+        "page_mapping_verified": false,
+        "claim_support_reviewed": false,
+        "runtime_ingestion_allowed": false,
+        "claim_eligible": false
+      },
+      "volumes": [
+        {"volume": 1, "title": "三命通會 (四庫全書本)/卷01", "stable_id": "260840", "stable_revision": 657365, "timestamp": "2016-10-15T11:19:00Z", "size_bytes": 114760, "remote_sha1": "404b3c2e09f08d5aa9d6f40028ca19c7bef22ce5", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260840&oldid=657365", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 2, "title": "三命通會 (四庫全書本)/卷02", "stable_id": "260841", "stable_revision": 761691, "timestamp": "2016-10-24T13:12:21Z", "size_bytes": 113476, "remote_sha1": "9be606afa8502de3895a1e84d104353454b1d1d3", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260841&oldid=761691", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 3, "title": "三命通會 (四庫全書本)/卷03", "stable_id": "260842", "stable_revision": 657369, "timestamp": "2016-10-15T11:19:00Z", "size_bytes": 110909, "remote_sha1": "c18420b92efc49e9060482dcee9e34fa8724c076", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260842&oldid=657369", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 4, "title": "三命通會 (四庫全書本)/卷04", "stable_id": "260843", "stable_revision": 657371, "timestamp": "2016-10-15T11:19:01Z", "size_bytes": 117616, "remote_sha1": "b985a59b99565a4912b72fb3935859fb0c05bfa2", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260843&oldid=657371", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 5, "title": "三命通會 (四庫全書本)/卷05", "stable_id": "260844", "stable_revision": 2082207, "timestamp": "2021-10-11T09:03:34Z", "size_bytes": 114286, "remote_sha1": "cb4fdcc2d0fa41e59666f24daf0cfc45b1dfe203", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260844&oldid=2082207", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 6, "title": "三命通會 (四庫全書本)/卷06", "stable_id": "260845", "stable_revision": 657375, "timestamp": "2016-10-15T11:19:03Z", "size_bytes": 121417, "remote_sha1": "0b9f57b9c6b62913757f13aa28fa51eab106ed6e", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260845&oldid=657375", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 7, "title": "三命通會 (四庫全書本)/卷07", "stable_id": "260846", "stable_revision": 2082208, "timestamp": "2021-10-11T09:03:36Z", "size_bytes": 104104, "remote_sha1": "733344b68070e11fc092a2376e15bdfb69fcd2d4", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260846&oldid=2082208", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 8, "title": "三命通會 (四庫全書本)/卷08", "stable_id": "260847", "stable_revision": 761697, "timestamp": "2016-10-24T13:13:42Z", "size_bytes": 167044, "remote_sha1": "2ce14d8fdc402d7364625f9ae7e9d2c3ace760a4", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260847&oldid=761697", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 9, "title": "三命通會 (四庫全書本)/卷09", "stable_id": "260848", "stable_revision": 761700, "timestamp": "2016-10-24T13:14:21Z", "size_bytes": 163611, "remote_sha1": "ab3be6b536e9791559c6c98ef8d75a5843a91999", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260848&oldid=761700", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 10, "title": "三命通會 (四庫全書本)/卷10", "stable_id": "260849", "stable_revision": 761703, "timestamp": "2016-10-24T13:15:01Z", "size_bytes": 106555, "remote_sha1": "43ac68d5e4a84bdfa98524557a8b3e9b3f1f8426", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260849&oldid=761703", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 11, "title": "三命通會 (四庫全書本)/卷11", "stable_id": "260850", "stable_revision": 761705, "timestamp": "2016-10-24T13:15:41Z", "size_bytes": 140664, "remote_sha1": "f6db7b5c4248fb600d36d9052ffc12ceb8357cbb", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260850&oldid=761705", "download_url": "", "local_sha256": "", "retrieved": false},
+        {"volume": 12, "title": "三命通會 (四庫全書本)/卷12", "stable_id": "260851", "stable_revision": 761707, "timestamp": "2016-10-24T13:16:31Z", "size_bytes": 92295, "remote_sha1": "d86b56e6d8f350097712b6ac9d456f8b73696380", "remote_md5": "", "source_url": "https://zh.wikisource.org/w/index.php?curid=260851&oldid=761707", "download_url": "", "local_sha256": "", "retrieved": false}
+      ]
+    },
+    {
+      "candidate_id": "sanming-siku-ia-060660-12scan-v1",
+      "provider": "archive.org",
+      "source_type": "twelve_volume_text_pdf_scan_set",
+      "edition": "欽定四庫全書本",
+      "status": "candidate_blocked_license_metadata_missing",
+      "landing_url": "https://archive.org/details/06066037.cn",
+      "remote_manifest_scheme": "identifier_tab_title_tab_filename_tab_size_tab_sha1_tab_md5_lf_v1",
+      "remote_manifest_sha256": "22d7abce9b76daed59a1a930b3c20b4194d7187866a555826e70fcc42025e300",
+      "license": {
+        "status": "provider_rights_and_licenseurl_missing",
+        "underlying_work": "public_domain_candidate_not_adjudicated",
+        "digital_contributions": "unresolved",
+        "rights_field": "",
+        "license_url": "",
+        "evidence_urls": ["https://archive.org/metadata/06066037.cn", "https://archive.org/metadata/06066048.cn"]
+      },
+      "gates": {
+        "complete_structure_observed": true,
+        "license_terms_resolved": false,
+        "local_artifact_frozen": false,
+        "independence_verified": false,
+        "bibliography_adjudicated": false,
+        "page_mapping_verified": false,
+        "claim_support_reviewed": false,
+        "runtime_ingestion_allowed": false,
+        "claim_eligible": false
+      },
+      "volumes": [
+        {"volume": 1, "title": "三命通會·卷一", "stable_id": "06066037.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:59:30Z", "size_bytes": 23658532, "remote_sha1": "5e63f50d48cd576274ee097f539e822ec60caef9", "remote_md5": "5e866057e183349580c296621c48cffa", "source_url": "https://archive.org/details/06066037.cn", "download_url": "https://archive.org/download/06066037.cn/06066037.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 2, "title": "三命通會·卷二", "stable_id": "06066038.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:54:11Z", "size_bytes": 11497215, "remote_sha1": "cab9c2743837a1ce942296a45c6cbf40c9964e09", "remote_md5": "b1c244e8845472bd958429f9c4e5e9d6", "source_url": "https://archive.org/details/06066038.cn", "download_url": "https://archive.org/download/06066038.cn/06066038.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 3, "title": "三命通會·卷三", "stable_id": "06066039.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:52:36Z", "size_bytes": 11319050, "remote_sha1": "1005daa06af40be756419ad656ecb45535fd7af6", "remote_md5": "3d61b02e5be98cb52a87d526ca5b5bed", "source_url": "https://archive.org/details/06066039.cn", "download_url": "https://archive.org/download/06066039.cn/06066039.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 4, "title": "三命通會·卷四", "stable_id": "06066040.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:56:28Z", "size_bytes": 9836431, "remote_sha1": "742c5a066a54eba52e1cd2afb72704c4d2f234fb", "remote_md5": "3a75e139209c08788d576e40e4f93e73", "source_url": "https://archive.org/details/06066040.cn", "download_url": "https://archive.org/download/06066040.cn/06066040.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 5, "title": "三命通會·卷五", "stable_id": "06066041.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:58:24Z", "size_bytes": 11339626, "remote_sha1": "7fb83e7b07230c377c2bf7e8cc49cb10c19905f2", "remote_md5": "4b2add811f025fa325ce7781bc9c4801", "source_url": "https://archive.org/details/06066041.cn", "download_url": "https://archive.org/download/06066041.cn/06066041.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 6, "title": "三命通會·卷六", "stable_id": "06066042.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:56:52Z", "size_bytes": 11948938, "remote_sha1": "1f7efb93e4c30f0ba6c45fe9cd2b853a2bd0707f", "remote_md5": "7186ff7c7b6afbb719ad319df131089b", "source_url": "https://archive.org/details/06066042.cn", "download_url": "https://archive.org/download/06066042.cn/06066042.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 7, "title": "三命通會·卷七", "stable_id": "06066043.cn", "stable_revision": 0, "timestamp": "2009-10-12T19:04:23Z", "size_bytes": 10268448, "remote_sha1": "e6c2bcb2306159053d4340500ca80cc19550eff4", "remote_md5": "d10ec6907a3524304535807d51723d04", "source_url": "https://archive.org/details/06066043.cn", "download_url": "https://archive.org/download/06066043.cn/06066043.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 8, "title": "三命通會·卷八", "stable_id": "06066044.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:59:41Z", "size_bytes": 11589778, "remote_sha1": "e85e5ea5eae84c811dde75bdf1f3a4f0e3071df3", "remote_md5": "65315a4874edb0de710cf9780c2a33da", "source_url": "https://archive.org/details/06066044.cn", "download_url": "https://archive.org/download/06066044.cn/06066044.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 9, "title": "三命通會·卷九", "stable_id": "06066045.cn", "stable_revision": 0, "timestamp": "2009-10-12T19:01:02Z", "size_bytes": 11019021, "remote_sha1": "81409e3c9288ee207747c20225cae9e3e85cc64e", "remote_md5": "cb3106a9f1f7c12708757b64828d3582", "source_url": "https://archive.org/details/06066045.cn", "download_url": "https://archive.org/download/06066045.cn/06066045.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 10, "title": "三命通會·卷十", "stable_id": "06066046.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:58:29Z", "size_bytes": 8385602, "remote_sha1": "a7aa5b2d6d7f5dfc68ef3c1bb5fac45c3772afaf", "remote_md5": "f22d51cc7201bd67baf341c0dff05330", "source_url": "https://archive.org/details/06066046.cn", "download_url": "https://archive.org/download/06066046.cn/06066046.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 11, "title": "三命通會·卷十一", "stable_id": "06066047.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:59:37Z", "size_bytes": 9714931, "remote_sha1": "c4cfac166124c8cf43c6040d4dd5121d69d7b2c7", "remote_md5": "1713534f79d708e08d20d49c4913a68d", "source_url": "https://archive.org/details/06066047.cn", "download_url": "https://archive.org/download/06066047.cn/06066047.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 12, "title": "三命通會·卷十二", "stable_id": "06066048.cn", "stable_revision": 0, "timestamp": "2009-10-12T18:58:30Z", "size_bytes": 7801336, "remote_sha1": "e345a5b5ee4c120366b3becbfdb393ff09dd4dd8", "remote_md5": "4e99de0f3a164d72795fd96017561cc1", "source_url": "https://archive.org/details/06066048.cn", "download_url": "https://archive.org/download/06066048.cn/06066048.cn.pdf", "local_sha256": "", "retrieved": false}
+      ]
+    },
+    {
+      "candidate_id": "sanming-siku-ia-060564-12scan-v1",
+      "provider": "archive.org",
+      "source_type": "twelve_volume_text_pdf_scan_set",
+      "edition": "欽定四庫全書本",
+      "status": "candidate_blocked_license_metadata_missing",
+      "landing_url": "https://archive.org/details/06056477.cn",
+      "remote_manifest_scheme": "identifier_tab_title_tab_filename_tab_size_tab_sha1_tab_md5_lf_v1",
+      "remote_manifest_sha256": "1198c6231e9888f4793efcedc927f310c8216d3e2aeb5b38fa6837ebcd6286a6",
+      "license": {
+        "status": "provider_rights_and_licenseurl_missing",
+        "underlying_work": "public_domain_candidate_not_adjudicated",
+        "digital_contributions": "unresolved",
+        "rights_field": "",
+        "license_url": "",
+        "evidence_urls": ["https://archive.org/metadata/06056477.cn", "https://archive.org/metadata/06056488.cn"]
+      },
+      "gates": {
+        "complete_structure_observed": true,
+        "license_terms_resolved": false,
+        "local_artifact_frozen": false,
+        "independence_verified": false,
+        "bibliography_adjudicated": false,
+        "page_mapping_verified": false,
+        "claim_support_reviewed": false,
+        "runtime_ingestion_allowed": false,
+        "claim_eligible": false
+      },
+      "volumes": [
+        {"volume": 1, "title": "三命通會·卷一", "stable_id": "06056477.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:23:19Z", "size_bytes": 11670997, "remote_sha1": "3fb5e1309730e242a69a36f17279d66d23cd2faf", "remote_md5": "ff333ab2ec800929050c7a122047bb92", "source_url": "https://archive.org/details/06056477.cn", "download_url": "https://archive.org/download/06056477.cn/06056477.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 2, "title": "三命通會·卷二", "stable_id": "06056478.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:29:42Z", "size_bytes": 11406310, "remote_sha1": "ae38c7d962519d194d5c51ae80bb03201ea024cb", "remote_md5": "8255825cb5384e4e71980c02fac4f2a6", "source_url": "https://archive.org/details/06056478.cn", "download_url": "https://archive.org/download/06056478.cn/06056478.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 3, "title": "三命通會·卷三", "stable_id": "06056479.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:20:00Z", "size_bytes": 11238168, "remote_sha1": "4c765d21d8a03a20bea67bcbced8c505388da41e", "remote_md5": "a910e6ad9c21d3edf2f8c91e107f9404", "source_url": "https://archive.org/details/06056479.cn", "download_url": "https://archive.org/download/06056479.cn/06056479.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 4, "title": "三命通會·卷四", "stable_id": "06056480.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:21:03Z", "size_bytes": 10071083, "remote_sha1": "a146a91a1fefe92b4254f344965500f359228162", "remote_md5": "99645adb5428b4f1ba68359dd9d00bbf", "source_url": "https://archive.org/details/06056480.cn", "download_url": "https://archive.org/download/06056480.cn/06056480.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 5, "title": "三命通會·卷五", "stable_id": "06056481.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:20:16Z", "size_bytes": 11474823, "remote_sha1": "0f17f67a8049d1fca670dfcaa8d56a970f734157", "remote_md5": "ef7b85b2b3783aa31f7e50b15026cf2c", "source_url": "https://archive.org/details/06056481.cn", "download_url": "https://archive.org/download/06056481.cn/06056481.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 6, "title": "三命通會·卷六", "stable_id": "06056482.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:24:15Z", "size_bytes": 11943728, "remote_sha1": "835e576cb087faf3c9a2988675f4ec854645c1a1", "remote_md5": "a4bd6d56b8b49668b6ba45651de2b275", "source_url": "https://archive.org/details/06056482.cn", "download_url": "https://archive.org/download/06056482.cn/06056482.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 7, "title": "三命通會·卷七", "stable_id": "06056483.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:25:10Z", "size_bytes": 10920208, "remote_sha1": "6a117c18a3ea3be509cfba775bd3351d19aaebd0", "remote_md5": "d3a0a7b0611008c545a5bcbb6d9b2356", "source_url": "https://archive.org/details/06056483.cn", "download_url": "https://archive.org/download/06056483.cn/06056483.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 8, "title": "三命通會·卷八", "stable_id": "06056484.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:23:38Z", "size_bytes": 11364207, "remote_sha1": "f0a7a5586f1accfa10eb33bb7a104289c064d1ad", "remote_md5": "a09f087a008ac7699be0f7d88257ff49", "source_url": "https://archive.org/details/06056484.cn", "download_url": "https://archive.org/download/06056484.cn/06056484.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 9, "title": "三命通會·卷九", "stable_id": "06056485.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:27:50Z", "size_bytes": 11832162, "remote_sha1": "77856dc1669344b4378625b639362a5ad902a1ca", "remote_md5": "95a7f3061896cc3acc7f73f0067468e9", "source_url": "https://archive.org/details/06056485.cn", "download_url": "https://archive.org/download/06056485.cn/06056485.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 10, "title": "三命通會·卷十", "stable_id": "06056486.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:28:10Z", "size_bytes": 8773787, "remote_sha1": "40b597d72add27fe6edb05358e01c1fcbe1cc460", "remote_md5": "835768ca38d8a4079eb798f54aa9cb24", "source_url": "https://archive.org/details/06056486.cn", "download_url": "https://archive.org/download/06056486.cn/06056486.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 11, "title": "三命通會·卷十一", "stable_id": "06056487.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:27:11Z", "size_bytes": 10229542, "remote_sha1": "5355ff125b2cf66f8f133eb4d824cca5dc078e66", "remote_md5": "fc58a9294e550f121ecd1091ecd5e04e", "source_url": "https://archive.org/details/06056487.cn", "download_url": "https://archive.org/download/06056487.cn/06056487.cn.pdf", "local_sha256": "", "retrieved": false},
+        {"volume": 12, "title": "三命通會·卷十二", "stable_id": "06056488.cn", "stable_revision": 0, "timestamp": "2009-10-12T07:23:34Z", "size_bytes": 8351966, "remote_sha1": "b9acc546b7c06571c802388e76dcab70e752191a", "remote_md5": "50ea0ecd9d690736fdf9318dea0e57a1", "source_url": "https://archive.org/details/06056488.cn", "download_url": "https://archive.org/download/06056488.cn/06056488.cn.pdf", "local_sha256": "", "retrieved": false}
+      ]
+    }
+  ],
+  "rejected_sources": [
+    {
+      "source_id": "zhwikisource-sanming-standard-incomplete",
+      "url": "https://zh.wikisource.org/w/index.php?curid=59146&oldid=1390993",
+      "remote_sha1": "cabbbd89dfddb586db59ca2a9a4f5c5a642d871e",
+      "reason": "主页面只列卷一至卷九并明确缺卷十至卷十二"
+    },
+    {
+      "source_id": "repository-local-sanming-pdf-incomplete",
+      "url": "library/三命通会.pdf",
+      "remote_sha1": "",
+      "reason": "390页 PDF 末页明确标注卷十、卷十一、卷十二缺失"
+    }
+  ]
+}

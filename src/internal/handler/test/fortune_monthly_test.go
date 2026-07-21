@@ -92,22 +92,54 @@ func TestMonthlyFortuneReturnsDailyFortunesForCorrectMonth(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to unmarshal response: %v", err)
 	}
+	responseBody := w.Body.String()
+	for _, required := range []string{
+		`"structural_relation_index"`, `"highest_index_day"`, `"lowest_index_day"`,
+		`"average_index"`, `"index_standard_deviation"`, `"season_element"`, `"ten_god"`,
+		`"seasonal_state"`, `"fortune_layers"`,
+	} {
+		if !strings.Contains(responseBody, required) {
+			t.Fatalf("monthly response missing %s: %s", required, responseBody)
+		}
+	}
+	for _, forbidden := range []string{
+		`"monthly_score"`, `"best_day"`, `"worst_day"`, `"peak_days"`,
+		`"low_days"`, `"good_streak"`, `"bad_streak"`, `"key_advice"`,
+		`"flow_impact"`, `"season_element_advice"`, `"today_ten_god"`,
+		`"ten_god_favorable"`, `"ten_god_desc"`,
+		`"dayun_influence"`, `"liunian_influence"`, `"advance_retreat"`,
+		`"yongshen_impact"`, `"pattern_favorable"`, `"pattern_unfavorable"`,
+		`"tiao_hou"`,
+	} {
+		if strings.Contains(responseBody, forbidden) {
+			t.Fatalf("monthly response leaked legacy outcome field %s", forbidden)
+		}
+	}
 
 	// June has 30 days
 	if len(resp.DailyFortunes) != 30 {
 		t.Errorf("DailyFortunes has %d items, want 30", len(resp.DailyFortunes))
 	}
 
-	if resp.MonthlyScore < 0 || resp.MonthlyScore > 100 {
-		t.Errorf("MonthlyScore = %d, want in [0, 100]", resp.MonthlyScore)
+	if resp.StructuralRelationIndex < 0 || resp.StructuralRelationIndex > 100 {
+		t.Errorf("StructuralRelationIndex = %d, want in [0, 100]", resp.StructuralRelationIndex)
 	}
 
 	for i, df := range resp.DailyFortunes {
+		if df.BaziEngineVersion == "" || df.BaziResolutionSource != "normalized_raw_birth" {
+			t.Fatalf("DailyFortunes[%d] missing bazi trace metadata: engine=%q source=%q", i, df.BaziEngineVersion, df.BaziResolutionSource)
+		}
 		if df.SolarDate == "" {
 			t.Errorf("DailyFortunes[%d].SolarDate is empty", i)
 		}
 		if df.DayGanZhi == "" {
 			t.Errorf("DailyFortunes[%d].DayGanZhi is empty", i)
+		}
+		if df.SeasonalState.Status != "observed" || df.SeasonalState.InterpretationStatus != "not_adjudicated" {
+			t.Fatalf("DailyFortunes[%d] seasonal-state evidence is invalid: %+v", i, df.SeasonalState)
+		}
+		if df.FortuneLayers.LiuNian.RuleID == "" || df.FortuneLayers.LiuNian.InterpretationStatus != "not_adjudicated" {
+			t.Fatalf("DailyFortunes[%d] fortune-layer evidence is invalid: %+v", i, df.FortuneLayers)
 		}
 	}
 }

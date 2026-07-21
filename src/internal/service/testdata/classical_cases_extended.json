@@ -1,4352 +1,3948 @@
 {
-  "version": "2.0",
-  "description": "八字经典命例测试库 - 扩展版（含滴天髓阐微+穷通宝鉴+三命通会）",
+  "version": "3.0",
+  "description": "Quarantined classical four-pillar inventory with isolated derived-rule candidates and stable source-order IDs.",
   "source": "知识库 /home/skynit/Uni/ming/mingli/01-经典原文/",
+  "metadata": {
+    "tier": "bronze",
+    "source_name": "legacy extracted classical pillar cases",
+    "license": "unknown",
+    "confidence": 0,
+    "review_status": "quarantined",
+    "reviewers": [],
+    "purpose": "pillar_derived_rule_candidates",
+    "quarantine_reason": "Cases are unreviewed text extractions without independently verified source locations, licenses, or derived-rule adjudication."
+  },
   "cases": [
     {
-      "id": "case_033",
+      "id": "extended_case_001",
+      "legacy_id": "case_033",
+      "source_index": 1,
       "name": "滴天髓命例 庚申庚辰戊辰戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚申",
         "month_pillar": "庚辰",
         "day_pillar": "戊辰",
         "hour_pillar": "戊午",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⼤运：⾟巳 壬午 癸未 甲申 乙酉 丙戌 丁亥 戊子 董中堂造，⽇⼲戊⼟，⽣于季春午时，似乎旺相，第春时虚⼟，⾮⽐六九⽉之实也。且两辰蓄⽔为湿，⾜以 泄⽕⽣⾦，⼲透两庚，⽀会申辰，⽇主过泄，⽤神必在午⽕。喜⽔⽊不见，⽇主印绶不伤，精神旺⾜，纯粹"
       }
     },
     {
-      "id": "case_034",
+      "id": "extended_case_002",
+      "legacy_id": "case_034",
+      "source_index": 2,
       "name": "滴天髓命例 丁亥庚戌甲辰壬申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁亥",
         "month_pillar": "庚戌",
         "day_pillar": "甲辰",
         "hour_pillar": "壬申",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 戊申 丁未 丙午 乙巳 甲辰 癸卯 壬寅 甲⽊休困已极，庚⾦禄旺克之，一点丁⽕，难以相对，加之两财⽣杀，似乎杀重⾝轻，不知九⽉甲⽊进⽓， 壬⽔贴⾝相⽣，不伤丁⽕。丁⽕虽弱，通根⾝库，戌乃燥⼟，⽕之本根，辰乃湿⼟，⽊之余⽓。天⼲一⽣一"
       }
     },
     {
-      "id": "case_035",
+      "id": "extended_case_003",
+      "legacy_id": "case_035",
+      "source_index": 3,
       "name": "滴天髓命例 乙亥庚辰甲戌壬申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "庚辰",
         "day_pillar": "甲戌",
         "hour_pillar": "壬申",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 戊寅 丁丑 丙子 乙亥 甲戌 癸酉 壬申 此与前⼤同⼩异。以俗论之，“甲以乙妹妻庚，凶为吉兆”，含合忘冲，较之前造更佳，何彼则翰苑，此则寒 袷？不知乙庚合⽽化⾦，反助其暴。彼则甲辰，辰乃湿⼟，能⽣⽊，此则甲戌，戌燥⼟不能⽣⽊；彼则申辰"
       }
     },
     {
-      "id": "case_036",
+      "id": "extended_case_004",
+      "legacy_id": "case_036",
+      "source_index": 4,
       "name": "滴天髓命例 甲子戊辰庚申壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲子",
         "month_pillar": "戊辰",
         "day_pillar": "庚申",
         "hour_pillar": "壬午",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己巳 庚午 ⾟未 壬申 癸酉 甲戌 乙亥 丙子 此造以俗论之，⼲透三奇之美，⽀逢拱贵之荣，且又会局不冲，官星得⽤，主名利双收。然庚申⽣于季春， ⽔本休囚，原可⽤官，嫌其⽀会⽔局，则坎增其势，⽽离失其威，官星必伤，不⾜为⽤。欲以强众敌寡⽽⽤"
       }
     },
     {
-      "id": "case_037",
+      "id": "extended_case_005",
+      "legacy_id": "case_037",
+      "source_index": 5,
       "name": "滴天髓命例 甲寅壬申癸巳癸亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "壬申",
         "day_pillar": "癸巳",
         "hour_pillar": "癸亥",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸酉 甲戌 己亥 丙子 丁丑 戊寅 己卯 庚辰 秋⽔通源，⾦当令，⽔重重，⽊囚逢冲，不⾜为⽤。⽕虽休⽽紧贴⽇⽀，况秋初余⽓未息，⽤神必在巳⽕。 巳亥逢冲，群劫纷争，所以连克三妻，⽆子。兼之运⾛北⽅⽔地，以致破耗异常；⾄戊寅己卯，运转东⽅，"
       }
     },
     {
-      "id": "case_038",
+      "id": "extended_case_006",
+      "legacy_id": "case_038",
+      "source_index": 6,
       "name": "滴天髓命例 癸巳癸亥甲寅壬申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸巳",
         "month_pillar": "癸亥",
         "day_pillar": "甲寅",
         "hour_pillar": "壬申",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬戌 ⾟酉 庚申 己未 戊午 丁巳 甲寅⽇元，⽣于孟冬，寒⽊必须⽤⽕。柱中四逢旺⽔伤⽤，⽆⼟砥定，似乎不美，妙在寅亥临合，巳⽕绝处 逢⽣，此即兴发之机。然初运西⽅⾦地，有伤体⽤，碌碌风霜，奔驰未遇；四旬外运转南⽅⽕⼟之地，助起"
       }
     },
     {
-      "id": "case_039",
+      "id": "extended_case_007",
+      "legacy_id": "case_039",
+      "source_index": 7,
       "name": "滴天髓命例 庚戌乙酉甲寅庚午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚戌",
         "month_pillar": "乙酉",
         "day_pillar": "甲寅",
         "hour_pillar": "庚午",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙戌 丁亥 戊子 己丑 庚寅 ⾟卯 此造⼲透两庚，正当秋令，⽀会⽕局，虽制杀有功，⽽克泄并见。且庚⾦锐⽓⽅盛，制之以威，不若化之以 德。化之以德者，有益于⽇主也；制之以威者，泄⽇主之⽓也。由此推之，不喜会⽕局也，反以⽕为病矣。"
       }
     },
     {
-      "id": "case_040",
+      "id": "extended_case_008",
+      "legacy_id": "case_040",
+      "source_index": 8,
       "name": "滴天髓命例 丁巳癸丑丁卯丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁巳",
         "month_pillar": "癸丑",
         "day_pillar": "丁卯",
         "hour_pillar": "丙午",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬子 ⾟亥 庚戌 己酉 戊申 丁未 丁⽕虽⽣季冬，⽐劫重重，癸⽔退⽓，⽆⼒制劫，不⾜为⽤。必以丑中⾟⾦为⽤，得丑⼟包藏，泄劫⽣财， 为辅⽤之喜神也。所嫌者，卯⽊⽣劫夺⾷为病，以致早年妻子刑伤。初运壬子⾟亥，暗冲巳午之⽕，荫庇有"
       }
     },
     {
-      "id": "case_041",
+      "id": "extended_case_009",
+      "legacy_id": "case_041",
+      "source_index": 9,
       "name": "滴天髓命例 庚寅壬午丁卯癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚寅",
         "month_pillar": "壬午",
         "day_pillar": "丁卯",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸未 甲申 乙酉 丙戌 丁亥 戊子 此财官虚露⽆根，枭⽐当权得势，以四柱观之，贫夭之命。前造⾝财并旺，反遭破败⽆寿，此则财官休囚， 劫业有寿，不知彼则⽆⽊，逢⽔冲则拔，此则有⽔，遇⽕劫有救。⾄甲申乙酉运，庚⾦禄旺，壬癸逢⽣，又"
       }
     },
     {
-      "id": "case_042",
+      "id": "extended_case_010",
+      "legacy_id": "case_042",
+      "source_index": 10,
       "name": "滴天髓命例 丙子己亥乙亥丙子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙子",
         "month_pillar": "己亥",
         "day_pillar": "乙亥",
         "hour_pillar": "丙子",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚子 ⾟丑 壬寅 癸卯 甲辰 乙巳 乙亥⽇元，⽣于亥⽉，喜其天⼲两透丙⽕，不失阳春之景。寒⽊向阳，清⽽纯粹，惜乎⽕⼟⽆根，⽔⽊太 重，读书未售；兼之中年一路⽔⽊，⽣扶太过，局中⽕⼟皆伤，以致财鲜聚⽽志未伸。然喜⽆⾦，业必清"
       }
     },
     {
-      "id": "case_043",
+      "id": "extended_case_011",
+      "legacy_id": "case_043",
+      "source_index": 11,
       "name": "滴天髓命例 戊午乙卯癸卯癸亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊午",
         "month_pillar": "乙卯",
         "day_pillar": "癸卯",
         "hour_pillar": "癸亥",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙辰 丁巳 戊午 己未 庚申 ⾟酉 此春⽔多⽊，过于泄⽓，五⾏⽆⾦，全赖亥时⽐劫帮⾝。嫌其亥卯拱局，又透戊⼟，克泄并见，交戊午运不 寿。若据书云，癸⽔两坐长⽣，时逢旺地，何以不寿？又云“⾷神有寿妻多子,⾷神⽣旺胜财官”，此名利两"
       }
     },
     {
-      "id": "case_044",
+      "id": "extended_case_012",
+      "legacy_id": "case_044",
+      "source_index": 12,
       "name": "滴天髓命例 己亥丁卯庚申庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己亥",
         "month_pillar": "丁卯",
         "day_pillar": "庚申",
         "hour_pillar": "庚辰",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙寅 乙丑 甲子 癸亥 壬戌 ⾟酉 庚⾦虽⽣春令，⽀坐禄旺，时逢印⽐，⾜以⽤官。地⽀载以卯⽊财星，又得亥⽔⽣扶有情，丁⽕之根愈固， 所谓“天地顺遂⽽精粹者昌”也。岁运逢壬癸亥子，⼲有己印卫官，⽀得卯财化伤，⽣平履险如夷，少年科"
       }
     },
     {
-      "id": "case_045",
+      "id": "extended_case_013",
+      "legacy_id": "case_045",
+      "source_index": 13,
       "name": "滴天髓命例 己酉丁卯庚辰甲申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己酉",
         "month_pillar": "丁卯",
         "day_pillar": "庚辰",
         "hour_pillar": "甲申",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙寅 乙丑 甲子 癸亥 壬戌 ⾟酉 此亦以丁⽕官星为⽤，地⽀亦载以卯⽊财星，与前造⼤同⼩异。只为卯酉逢冲，克败丁⽕之根，⽀中少⽔， 财星有克⽆⽣。虽时透甲⽊临于申⽀，谓地⽀不载，虽有若⽆。故⾝出旧家，诗书不继，破耗刑伤；一交戌"
       }
     },
     {
-      "id": "case_046",
+      "id": "extended_case_014",
+      "legacy_id": "case_046",
+      "source_index": 14,
       "name": "滴天髓命例 甲申甲戌甲寅甲戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲申",
         "month_pillar": "甲戌",
         "day_pillar": "甲寅",
         "hour_pillar": "甲戌",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 丙子 丁丑 戊寅 己卯 庚辰 年⽀申⾦，冲去⽇主寅⽊，加以戌⼟乘权重见，⽣⾦助杀，谓地⽀不顾天⼲。夫四甲一寅，似乎强旺，第秋 ⽊休囚，冲去禄神，其根已拔，不作旺论。故寅卯亥子运中，⾐⾷颇丰，一交庚辰，杀之元神透出。四子俱"
       }
     },
     {
-      "id": "case_047",
+      "id": "extended_case_015",
+      "legacy_id": "case_047",
+      "source_index": 15,
       "name": "滴天髓命例 戊子戊午戊戌戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊子",
         "month_pillar": "戊午",
         "day_pillar": "戊戌",
         "hour_pillar": "戊午",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己未 庚申 ⾟酉壬戌 癸亥 甲子 此满局⽕⼟，子衰午旺，冲则午发⽽愈烈，熬⼲滴⽔，是谓天⼲不覆。初交已未，孤苦万状；⾄庚申⾟酉 运，引通戊⼟之性，⼤得际遇，娶妻⽣子，⽴业成家；一交壬戌，⽔不通根，暗拱⽕局，遭祝融之变，一家"
       }
     },
     {
-      "id": "case_048",
+      "id": "extended_case_016",
+      "legacy_id": "case_048",
+      "source_index": 16,
       "name": "滴天髓命例 戊申戊午戊戌戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "戊午",
         "day_pillar": "戊戌",
         "hour_pillar": "戊午",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己未 庚申 ⾟酉 壬戌 癸亥 甲子 此与前造只换一申字，⽽天⼲之⽓下降，地⽀之⽔有源，午⽕虽烈，究不能伤申⾦，⽤⾦明矣，况有子⽔为 去病之喜神。交申运，戊辰年四⽉⼊学，九⽉登科，盖得太岁辰字，暗会⽔局之妙。惜将来壬戌运中，天⼲"
       }
     },
     {
-      "id": "case_049",
+      "id": "extended_case_017",
+      "legacy_id": "case_049",
+      "source_index": 17,
       "name": "滴天髓命例 癸巳丙辰丙午庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸巳",
         "month_pillar": "丙辰",
         "day_pillar": "丙午",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙卯 甲寅 癸丑 壬子 ⾟亥 庚戌 此东南之阳暖。天⼲⾦⽔，似乎⽆根，喜⽉⽀辰⼟，泄⽕蓄⽔⽽⽣⾦，庚⾦挂⾓逢⽣，则庚⾦可⽤。癸⽔即 庚⾦之喜神。初运乙卯甲寅，⾦绝⽕⽣⽽⽔泄，孤苦不堪；一交癸丑北⽅阴湿之地，⾦⽔通根，又得巳丑拱"
       }
     },
     {
-      "id": "case_050",
+      "id": "extended_case_018",
+      "legacy_id": "case_050",
+      "source_index": 18,
       "name": "滴天髓命例 戊寅乙丑丙寅庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊寅",
         "month_pillar": "乙丑",
         "day_pillar": "丙寅",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙寅 丁卯 戊辰 己巳 庚午 ⾟未 《》 丙寅⽇元，虽⽀遇三寅，最喜丑⼟乘权，财星归库。若运⾛西北⼟⾦，财业必胜前造，惜一路东南⽊⽕之"
       }
     },
     {
-      "id": "case_051",
+      "id": "extended_case_019",
+      "legacy_id": "case_051",
+      "source_index": 19,
       "name": "滴天髓命例 丙子己亥乙酉壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙子",
         "month_pillar": "己亥",
         "day_pillar": "乙酉",
         "hour_pillar": "壬午",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚子 ⾟丑 壬寅 癸卯 甲辰 己巳 此全酉、亥、子西北之阴寒。寒⽊更宜向阳，以丙⽕为⽤，壬⽔即其病也。然喜壬⽔远隔，与⽇主紧贴，⽇ 主本衰，未尝不喜其⽣，又有己⼟透⼲，亦能砥定中流。且喜天⼲⽔⽊⽕⼟，各⽴门户，相⽣有情；地⽀午"
       }
     },
     {
-      "id": "case_052",
+      "id": "extended_case_020",
+      "legacy_id": "case_052",
+      "source_index": 20,
       "name": "滴天髓命例 己亥丙子乙丑壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己亥",
         "month_pillar": "丙子",
         "day_pillar": "乙丑",
         "hour_pillar": "壬午",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 甲戌 癸酉 壬申 ⾟未 庚午 此与前只换一酉子。以俗论之，酉换丑更美，酉乃七杀克我，丑乃偏财我克，又能⽌⽔，何其妙也。不知丑 乃湿⼟，能泄⽕不能⽌⽔，酉虽七杀，午⽕紧克，不泄⽕之元神；彼则丙⽕在年，壬⽔遥远，又得己⼟一"
       }
     },
     {
-      "id": "case_053",
+      "id": "extended_case_021",
+      "legacy_id": "case_053",
+      "source_index": 21,
       "name": "滴天髓命例 甲寅戊辰丙寅丙申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "戊辰",
         "day_pillar": "丙寅",
         "hour_pillar": "丙申",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙巳 庚午 ⾟未 壬申 癸酉 甲戌 此坐下印缓，⽣于季春，印⽓有余，又年逢甲寅，则太过矣。⼟虽当令，⽽⽊更坚，喜其寅申逢冲，财星得 ⽤，第嫌⽐肩盖头，冲之⽆⼒。早年运⾛南⽅，起倒异常；⾄壬申癸酉二十年，申冲寅⽊，克去⽐肩，创业"
       }
     },
     {
-      "id": "case_054",
+      "id": "extended_case_022",
+      "legacy_id": "case_054",
+      "source_index": 22,
       "name": "滴天髓命例 壬申甲辰丙寅丙申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "甲辰",
         "day_pillar": "丙寅",
         "hour_pillar": "丙申",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙巳 丙午 丁未 戊申 己酉 庚戌 此坐下印绶亦在季春，印绶未尝⽆余⽓，年⼲壬杀⽣印有情，不⾜畏也，所嫌者，两申冲寅，甲⽊之根拔。 还喜壬⽔泄⾦⽣⽊，运⾛丙午劫去申财，⼊学补廪登科；丁未合去壬⽔，三⾛春闱不捷；戊申克去壬⽔，三"
       }
     },
     {
-      "id": "case_055",
+      "id": "extended_case_023",
+      "legacy_id": "case_055",
+      "source_index": 23,
       "name": "滴天髓命例 己丑丙子丁亥庚子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己丑",
         "month_pillar": "丙子",
         "day_pillar": "丁亥",
         "hour_pillar": "庚子",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 甲戌 癸酉 壬申 ⾟未 庚午 此造⽀类北⽅，地旺极矣；天⼲⽕虚，⽆⽊⽣扶，又有湿⼟晦⽕，天衰极矣。⼈皆论其杀重⾝轻。取⽕帮⾝ 敌杀。戊寅岁，⾦绝⽕⽣，又合去亥⽔，必有⼤凶，果卒季夏。此地⽀官星乘旺，又类官⽅，天⼲⽆印，己"
       }
     },
     {
-      "id": "case_056",
+      "id": "extended_case_024",
+      "legacy_id": "case_056",
+      "source_index": 24,
       "name": "滴天髓命例 壬午己酉甲申甲子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬午",
         "month_pillar": "己酉",
         "day_pillar": "甲申",
         "hour_pillar": "甲子",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 甲申⽇元，⽣于八⽉，官杀当权，喜其午⽕紧制酉⾦，子⽔化其申⾦，所谓去官留煞。煞印相⽣，⽊凋⾦ 旺，印星为⽤，甲第联登，由郎署出为观察，从臬宪⽽转封疆。"
       }
     },
     {
-      "id": "case_057",
+      "id": "extended_case_025",
+      "legacy_id": "case_057",
+      "source_index": 25,
       "name": "滴天髓命例 壬辰己酉甲申甲子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬辰",
         "month_pillar": "己酉",
         "day_pillar": "甲申",
         "hour_pillar": "甲子",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 此与前造只换一辰字，以俗论之，前则制官留杀，此则合官留杀，功名仕路，⽆所⾼下，殊不知有天渊之 隔。夫制者克⽽去之，合者有去有不去也。如以辰⼟为财，则化⾦⽽助杀；以酉⾦为官，仍化⾦⽽党杀。由"
       }
     },
     {
-      "id": "case_058",
+      "id": "extended_case_026",
+      "legacy_id": "case_058",
+      "source_index": 26,
       "name": "滴天髓命例 己巳癸酉丙寅庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己巳",
         "month_pillar": "癸酉",
         "day_pillar": "丙寅",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬申 ⾟未 庚午 己巳 戊辰 丁卯 此⽇主两坐长⽣，年⽀又逢禄旺，⾜以⽤官。癸⽔官星被己⼟贴⾝一伤，喜得官临财位，尤妙巳酉拱⾦，则 己⼟之⽓已泄，⽽官星之根固矣。所以一⽣不遭凶险，名利两全也。"
       }
     },
     {
-      "id": "case_059",
+      "id": "extended_case_027",
+      "legacy_id": "case_059",
+      "source_index": 27,
       "name": "滴天髓命例 癸亥癸亥丙辰甲午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "癸亥",
         "day_pillar": "丙辰",
         "hour_pillar": "甲午",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬戌 ⾟酉 庚申 己未 戊午 丁巳 此官杀乘旺，原可畏也，然喜午时⽣⾷制煞，时⼲透甲，⽣⽕泄⽔。旺杀半化为印，衰⽊两遇长⽣，赖此⽊ 《》"
       }
     },
     {
-      "id": "case_060",
+      "id": "extended_case_028",
+      "legacy_id": "case_060",
+      "source_index": 28,
       "name": "滴天髓命例 甲寅庚午乙卯丙子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "庚午",
         "day_pillar": "乙卯",
         "hour_pillar": "丙子",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟未 壬申 癸酉 甲戌 乙亥 丙子 专禄⽇主，时⽀子⽔⽣之，年⼲甲⽊，亦坐禄旺，⽤庚⾦则⽕旺⽆⼟，坐⼲⽕地，⽤丙⽕则子冲去其旺⽀， 即或⽤⽕，亦⽆安顿之运。所以一败如灰，⾄乙亥运，⽔⽊齐来，竟为乞丐。"
       }
     },
     {
-      "id": "case_061",
+      "id": "extended_case_029",
+      "legacy_id": "case_061",
+      "source_index": 29,
       "name": "滴天髓命例 乙丑己卯乙亥壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙丑",
         "month_pillar": "己卯",
         "day_pillar": "乙亥",
         "hour_pillar": "壬午",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊寅 丁丑 丙子 乙亥 甲戌 癸酉 此己⼟之财，通根在丑，得禄于午，似乎⾝财并旺，不知己⼟之财，⽐肩夺去，丑⼟之财，卯⽊克破，午⽕ ⾷神，亥⽔克之。壬⽔盖之，⽆从引化，所谓上下⽆情也。初逢戊寅丁丑，财逢⽣助，遗业颇丰；一交丙"
       }
     },
     {
-      "id": "case_062",
+      "id": "extended_case_030",
+      "legacy_id": "case_062",
+      "source_index": 30,
       "name": "滴天髓命例 壬申丙午庚午庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "丙午",
         "day_pillar": "庚午",
         "hour_pillar": "庚辰",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 己酉 庚戌 ⾟亥 壬子 此丙⽕之杀虽旺，壬⽔之根亦固，⽇主有⽐肩之助，辰⼟之⽣，谓⾝杀两停。⽤壬制杀，天⼲之同志者；地 ⽀之同志者，辰⼟也，一制一化，可谓有情。运喜⾦⽔之乡，仕途显赫，位⾄封疆。"
       }
     },
     {
-      "id": "case_063",
+      "id": "extended_case_031",
+      "legacy_id": "case_063",
+      "source_index": 31,
       "name": "滴天髓命例 壬午丙午庚申戊寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬午",
         "month_pillar": "丙午",
         "day_pillar": "庚申",
         "hour_pillar": "戊寅",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 己酉 庚戌 ⾟亥 壬子 此造与前合观，⼤同⼩异，况乎⽇坐禄旺，壬⽔亦紧制杀，何彼则名利双收，此则终⾝不发？盖彼则壬⽔逢 申之⽣地，制杀有权，此则壬⽔坐午之绝地，敌杀⽆⼒；彼则时⼲⽐劫帮⾝，又可⽣⽔，此则时上枭神克"
       }
     },
     {
-      "id": "case_064",
+      "id": "extended_case_032",
+      "legacy_id": "case_064",
+      "source_index": 32,
       "name": "滴天髓命例 壬寅甲辰丁亥己酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬寅",
         "month_pillar": "甲辰",
         "day_pillar": "丁亥",
         "hour_pillar": "己酉",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙巳 丙午 丁未 戊申 己酉 庚戌 ⾟亥 壬子 年⼲壬⽔为始，是⽀亥⽔为终。官⽣印，印⽣⾝，⾷神发⽤吐秀，财得⾷之覆，官逢财星之⽣。伤官虽当 令，印缓制之有情，年⽉不反背，⽇时不妒忌，始终得所。贵⾄二品，富有百万，子孙济美，寿⾄八旬。"
       }
     },
     {
-      "id": "case_065",
+      "id": "extended_case_033",
+      "legacy_id": "case_065",
+      "source_index": 33,
       "name": "滴天髓命例 戊戌庚申癸亥乙卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊戌",
         "month_pillar": "庚申",
         "day_pillar": "癸亥",
         "hour_pillar": "乙卯",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 壬戌 癸亥 甲子 乙丑 丙寅 丁卯 戊辰 此造⼟⽣⾦，⾦⽣⽔，⽔⽣⽊，⼲⽀同流，但有相⽣之谊，⽽⽆争妒之风、戊戌中财星归库，官司清印正分 明，⾷神吐秀逢⽣。乡榜出⾝，仕⾄黄堂，一妻二妾，子有十三，科第连绵，富有百万，寿过九旬。"
       }
     },
     {
-      "id": "case_066",
+      "id": "extended_case_034",
+      "legacy_id": "case_066",
+      "source_index": 34,
       "name": "滴天髓命例 甲午丁卯甲午丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲午",
         "month_pillar": "丁卯",
         "day_pillar": "甲午",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 此造⽊⽕各半，两⽓成象，取丁⽕伤官，秀⽓为⽤。四柱⾦⽔全⽆，纯粹可观。巳运丁⽕临官，南宫奏捷， 名⾼翰苑；庚运官杀混局，降知县。夫南⽅之⾦，尚有不⾜，将来西⽅之⽔，难⾔⽆咎。"
       }
     },
     {
-      "id": "case_067",
+      "id": "extended_case_035",
+      "legacy_id": "case_067",
+      "source_index": 35,
       "name": "滴天髓命例 丁卯乙巳丁卯乙巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁卯",
         "month_pillar": "乙巳",
         "day_pillar": "丁卯",
         "hour_pillar": "乙巳",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲辰 癸卯 壬寅 ⾟丑 庚子 己亥 此亦⽊⽕各半，两⽓成象，⾮前伤官之⽐。⽇主是⽕，长于夏令，⽊从⽕势，格成炎上，更不宜见⾦运。⽕ 逢⽣助。巡抚浙江；⾄⾟运⽔年，⽊⽕皆伤。故不能免祸。所谓“二⼈同⼼，可顺⽽不可逆也。”"
       }
     },
     {
-      "id": "case_068",
+      "id": "extended_case_036",
+      "legacy_id": "case_068",
+      "source_index": 36,
       "name": "滴天髓命例 丙午戊戌丙午戊戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙午",
         "month_pillar": "戊戌",
         "day_pillar": "丙午",
         "hour_pillar": "戊戌",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己亥 庚子 ⾟丑 壬寅 癸卯 甲辰 此⽕⼟各半，两⽓成象，取戌⼟⾷神，秀⽓为⽤。⾟丑运湿⼟晦⽕，秀⽓流⾏，登乡榜；壬运壬年，赴会 试，死于都中，盖⽔激丙⽕，则⽕灭也。如两戌换以两辰，不致燥烈，虽逢⽔运，亦不⾄⼤凶也。"
       }
     },
     {
-      "id": "case_069",
+      "id": "extended_case_037",
+      "legacy_id": "case_069",
+      "source_index": 37,
       "name": "滴天髓命例 戊戌癸亥戊戌癸亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊戌",
         "month_pillar": "癸亥",
         "day_pillar": "戊戌",
         "hour_pillar": "癸亥",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 乙丑 丙寅 丁卯 戊辰 己巳 此⽔⼟各半，两⽓成象，喜其通根燥⼟，财命有一。然⽓势稍寒，所以运⾄丙寅，寒逢阳，运登科甲，更妙 《》"
       }
     },
     {
-      "id": "case_070",
+      "id": "extended_case_038",
+      "legacy_id": "case_070",
+      "source_index": 38,
       "name": "滴天髓命例 癸亥己未癸亥己未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "己未",
         "day_pillar": "癸亥",
         "hour_pillar": "己未",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊午 丁巳 丙辰 乙卯 甲寅 癸丑 此⼟⽔相克，两⽓成象，纯杀⽆制，⽇主受伤。初⾛⽕⼟之乡，⽣助七杀，正是明⽉清风谁与共，⾼⼭流⽔ 少知⾳；一交乙卯，运转东⽅，制杀化权，得奇遇，飞升县令。由此观之，⽣局必须⾷为美，印局⽆秀⽓，"
       }
     },
     {
-      "id": "case_071",
+      "id": "extended_case_039",
+      "legacy_id": "case_071",
+      "source_index": 39,
       "name": "滴天髓命例 壬戌壬子甲子戊辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬戌",
         "month_pillar": "壬子",
         "day_pillar": "甲子",
         "hour_pillar": "戊辰",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 甲寅 乙卯 丙辰 丁巳 戊午 己未 此造⽔势猖狂，独戊⼟以培之，以作砥柆之功，不致浮泛也。然戊⼟亦赖有戌⼟⽽根固，若有辰⽽⽆戌，辰 乃湿⼟，见⽔则荡，戊⼟不能植根⽽虚矣。⽆根之⼟，岂能⽌百川之源？故此造所重者，戌之燥⼟也。但寒"
       }
     },
     {
-      "id": "case_072",
+      "id": "extended_case_040",
+      "legacy_id": "case_072",
+      "source_index": 40,
       "name": "滴天髓命例 癸未乙卯甲戌乙亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸未",
         "month_pillar": "乙卯",
         "day_pillar": "甲戌",
         "hour_pillar": "乙亥",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 癸丑 壬子 ⾟亥 庚戌 己酉 此造柱中，未⼟深藏，戌⼟⾃坐，谓财来就，未尝不美。只因四柱⽆⾦以成之，五⾏⽆⽕以⾏之，再加亥 时，癸⽔通根⽣劫，亥卯未全，助起劫刃猖狂。查其岁运，又⽆成地，以致祖业消磨，克妻⽆子。由此推"
       }
     },
     {
-      "id": "case_073",
+      "id": "extended_case_041",
+      "legacy_id": "case_073",
+      "source_index": 41,
       "name": "滴天髓命例 甲寅丁卯甲辰丙寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "丁卯",
         "day_pillar": "甲辰",
         "hour_pillar": "丙寅",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 ⽀全寅卯辰，东⽅一⽓，化神者，丙丁也。发泄菁华，少年科甲，早遂仕路之光；⾏财地，得过且过有⾷伤 化劫之功；⾏⾦运，又得丙丁回克之能；交壬破局伤秀，降职归⽥不禄。"
       }
     },
     {
-      "id": "case_074",
+      "id": "extended_case_042",
+      "legacy_id": "case_074",
+      "source_index": 42,
       "name": "滴天髓命例 己未丁丑戊子己未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己未",
         "month_pillar": "丁丑",
         "day_pillar": "戊子",
         "hour_pillar": "己未",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙子 乙亥 甲戌 癸酉 壬申 ⾟未 费中堂造，天⼲戊已逢丁，地⽀重午丑未。子丑化⼟，斯真格象，已成稼穑。所不⾜者，丑中⾟⾦⽆从引 出，且局中丁⽕三见，⾟⾦暗伤，未得⽣化之妙，所以嗣息艰难。若天⼲透一庚⾟，地⽀藏一申酉，必多子"
       }
     },
     {
-      "id": "case_075",
+      "id": "extended_case_043",
+      "legacy_id": "case_075",
+      "source_index": 43,
       "name": "滴天髓命例 丙寅甲午丙戌乙未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙寅",
         "month_pillar": "甲午",
         "day_pillar": "丙戌",
         "hour_pillar": "乙未",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙未 丙申 丁酉 戊戌 乙亥 庚子 ⽀全⽕局，⽊从⽕势，格成炎上。惜⽊旺克⼟，秀⽓有伤，书⾹难就，武甲出⾝，仕⾄副将。⾏申酉运，运 亦有戌未之化，所以⽆咎；亥运，幸得未会寅合，不过降职；交庚子，⼲⽆⾷伤，⽀逢冲激，死在军中。"
       }
     },
     {
-      "id": "case_076",
+      "id": "extended_case_044",
+      "legacy_id": "case_076",
+      "source_index": 44,
       "name": "滴天髓命例 戊申丙辰丁卯甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "丙辰",
         "day_pillar": "丁卯",
         "hour_pillar": "甲辰",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 戊午 己未 庚申 ⾟酉 壬戌 丁卯⽇元，⽣于季春。伤官⽣财，嫌其⽊盛⼟虚，书⾹难就。⼟得其伤官化劫，使丙⽕⽆争财之意，所以运 ⾄庚申⾟酉，承先⼈事业虽微，⽽⾃创规模颇⼤，财发十余万。"
       }
     },
     {
-      "id": "case_077",
+      "id": "extended_case_045",
+      "legacy_id": "case_077",
+      "source_index": 45,
       "name": "滴天髓命例 丁丑庚戌庚子甲申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁丑",
         "month_pillar": "庚戌",
         "day_pillar": "庚子",
         "hour_pillar": "甲申",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 戊申 丁未 丙午 乙巳 甲辰 此秋⾦坚锐，官星虚脱，不能相制，财星临绝，何暇⽣官！初运⼟⾦，晦⽕⽣⾦，形伤破耗，⽆所不见；丁 未丙午助起官星，家业⿍新；乙巳晚景优游，所谓伤之有功也。"
       }
     },
     {
-      "id": "case_078",
+      "id": "extended_case_046",
+      "legacy_id": "case_078",
+      "source_index": 46,
       "name": "滴天髓命例 戊申壬戌庚申乙酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "壬戌",
         "day_pillar": "庚申",
         "hour_pillar": "乙酉",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 甲子 乙丑 丙寅 丁卯 戊辰 此造乙从庚化，官星不见，⽀类西⽅，又坐禄旺，权在一⼈。从其强势，虽有壬，戊⼟紧克，不能引通泄其 杀⽓。初交癸亥，财喜如⼼，一交丙寅，触其旺神，一败如灰，⾐⾷难度，⾃缢⽽死。所谓泄之有益，伤之"
       }
     },
     {
-      "id": "case_079",
+      "id": "extended_case_047",
+      "legacy_id": "case_079",
+      "source_index": 47,
       "name": "滴天髓命例 壬子癸丑丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬子",
         "month_pillar": "癸丑",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 乙卯 丙辰 丁巳 戊午 己未 此造满局官星，⽇主孤弱，虽⾷伤未见，但丑辰皆湿⼟，能蓄⽔，不能⽌⽔。初交甲寅乙卯，化杀⽣⾝，早 游泮⽔，财炡有余：后交丙辰，不但不能帮⾝，反受官杀回克，刑妻克子，家业耗散；申年暗拱杀局⽽亡。"
       }
     },
     {
-      "id": "case_080",
+      "id": "extended_case_048",
+      "legacy_id": "case_080",
+      "source_index": 48,
       "name": "滴天髓命例 甲寅丁卯戊辰己未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "丁卯",
         "day_pillar": "戊辰",
         "hour_pillar": "己未",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 此⽊⽅全，搭一未字为混，然⽆未字，则⽇主虚脱，且天⼲甲⽊透出作杀⽽不作官，必要未字⽇主⽓贯，⾝ 杀两停，名利双辉。⿍甲出⾝，仕⾄极品，可知⽅混局之⽆害也。"
       }
     },
     {
-      "id": "case_081",
+      "id": "extended_case_049",
+      "legacy_id": "case_081",
+      "source_index": 49,
       "name": "滴天髓命例 丙辰庚寅乙卯丁亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "庚寅",
         "day_pillar": "乙卯",
         "hour_pillar": "丁亥",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟卯 壬辰 癸巳 甲午 乙未 丙申 丁酉 此⽀类东⽅，⽕明⽊秀，最喜丙⽕紧克庚⾦之浊，然春初⽊嫩，必得亥时⽣助。为⼈风流潇洒，学问渊深。 丁亥⽣⽊助⽕，采芹攀桂；巳运南宫报捷，名⾼翰苑；午运拱寅合卯，采梁栋于邓林，是难哲匠，搜琳琅于"
       }
     },
     {
-      "id": "case_082",
+      "id": "extended_case_050",
+      "legacy_id": "case_082",
+      "source_index": 50,
       "name": "滴天髓命例 甲寅乙亥乙卯癸未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "乙亥",
         "day_pillar": "乙卯",
         "hour_pillar": "癸未",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙子 丁丑 戊寅 己卯 庚辰 ⾟巳 壬午 癸未 此⽊局全，混一寅字，然四柱⽆⾦，其势从强，谓深得一⽅秀⽓。少年科第，惟庚辰⾟巳运，虽有癸⽔之 化，仍不免刑丧起倒，仕路蹭蹬。⾄六旬外，运⾛壬午癸未，由县令⽽迁司马，履黄堂⽽升观察，直如扬帆"
       }
     },
     {
-      "id": "case_083",
+      "id": "extended_case_051",
+      "legacy_id": "case_083",
+      "source_index": 51,
       "name": "滴天髓命例 甲寅丁卯乙未丁亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "丁卯",
         "day_pillar": "乙未",
         "hour_pillar": "丁亥",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 此亦⽊局全，混一寅字，取丁⽕⾷神秀⽓，⾮前造从强论也。⾄巳运，丁⽕临官，登科发甲；庚午⾟未，南 ⽅⾦败之地，不伤体⽤，仕途平坦；壬申，⽊⽕皆伤，破局，死于军中。前则从强，南北皆利；此则⽊⽕，"
       }
     },
     {
-      "id": "case_084",
+      "id": "extended_case_052",
+      "legacy_id": "case_084",
+      "source_index": 52,
       "name": "滴天髓命例 甲寅丁卯乙亥癸未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "丁卯",
         "day_pillar": "乙亥",
         "hour_pillar": "癸未",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 此⽅局齐来，得⽉⼲丁⽕独透，发泄菁英，何其妙也。惜乎时⼲癸⽔透露，通根亥⽀，紧伤丁⽕秀⽓，谓⼲ 头反复，所以一衿尚不能博，贫乏⽆子。设使癸⽔换一⽕⼟，名利皆遂矣。"
       }
     },
     {
-      "id": "case_085",
+      "id": "extended_case_053",
+      "legacy_id": "case_085",
+      "source_index": 53,
       "name": "滴天髓命例 丁卯甲辰甲寅乙亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁卯",
         "month_pillar": "甲辰",
         "day_pillar": "甲寅",
         "hour_pillar": "乙亥",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸卯 壬寅 ⾟丑 庚子 己亥 戊戌 此亦⽅局齐来，⼲头⽆⽔，丁⽕秀⽓流⾏，⾏运不甚反悖。中乡榜，仕⾄州牧，子多财旺，赋性仁慈，品⾏ 端⽅，寿越八旬，夫妇齐眉。所谓⽊主仁，仁者寿，格名曲直仁寿者，信斯⾔也。由此两造观之，⼲头反复"
       }
     },
     {
-      "id": "case_086",
+      "id": "extended_case_054",
+      "legacy_id": "case_086",
+      "source_index": 54,
       "name": "滴天髓命例 戊寅甲寅甲辰丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊寅",
         "month_pillar": "甲寅",
         "day_pillar": "甲辰",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙卯 丙辰 丁巳 戊午 己未 庚申 此成⽅，⼲透元神，四柱不杂⾦⽔，时⼲丁⽕吐秀，纯粹可观。初中⾏运⽕⼟，中乡榜，出宰名区；惜⽊多 ⽕炽，丁⽕不中以泄之，所以运⾄庚申，不能免祸。"
       }
     },
     {
-      "id": "case_087",
+      "id": "extended_case_055",
+      "legacy_id": "case_087",
+      "source_index": 55,
       "name": "滴天髓命例 癸卯丙辰甲辰丙寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "丙辰",
         "day_pillar": "甲辰",
         "hour_pillar": "丙寅",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙卯 甲寅 癸丑 壬子 ⾟亥 庚戌 此造财旺提纲，丙⾷⽣助，当以财星为⽤，丙⽕为喜，癸⽔为忌。⾝旺⽤财，遗业十余万。初年⽔⽊运，一 败如灰：⾄⾟亥运，⽕绝⽊⽣，⽔临旺，冻饿⽽死。以此观之，不论成⽅成局，必先察财官之势。若财旺提"
       }
     },
     {
-      "id": "case_088",
+      "id": "extended_case_056",
+      "legacy_id": "case_088",
+      "source_index": 56,
       "name": "滴天髓命例 庚寅己卯乙亥癸未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚寅",
         "month_pillar": "己卯",
         "day_pillar": "乙亥",
         "hour_pillar": "癸未",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚辰 ⾟巳 壬午 癸未 甲申 乙酉 此造正合本⽂成局，⼲透官星，左右皆空，四柱一⽆情致，⽤财则财会劫局，⽤官则官临绝地，⽤神⽆所着 落，为⼈少恒一之志，多迁变之⼼，以致家业破耗。读书未就，⽽学医；医又不就，又学堪舆；⾃以为仲景"
       }
     },
     {
-      "id": "case_089",
+      "id": "extended_case_057",
+      "legacy_id": "case_089",
+      "source_index": 57,
       "name": "滴天髓命例 庚辰癸未乙未癸未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "癸未",
         "day_pillar": "乙未",
         "hour_pillar": "癸未",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲申 乙酉 丙戌 丁亥 戊子 己丑 此造⽀中三未通根，尚有余⽓，⼲透两癸，正三伏⽣寒，贴⾝⽣扶，亦通根⾝库。官星独发⽽清，癸⽔润⼟ 养⾦，⽣化不悖，财旺⽣官，中和纯粹。科甲出⾝，仕⾄藩臬，官境安和。"
       }
     },
     {
-      "id": "case_090",
+      "id": "extended_case_058",
+      "legacy_id": "case_090",
+      "source_index": 58,
       "name": "滴天髓命例 己丑壬申丁未丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己丑",
         "month_pillar": "壬申",
         "day_pillar": "丁未",
         "hour_pillar": "丙午",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟未 庚午 己巳 戊辰 丁卯 丙寅 此造以⼤势观之，官得清地彼，何彼则富贵，此则困穷？不知此造⽆印，官紧克，午未虽是余⽓禄旺，丑中 蓄⽔，暗伤午未之⽕，壬⽔逢⽣，又克丙⽕；更嫌己⼟一透，不能制⽔，反能晦⽕；兼之中运逢⼟，又泄⽕"
       }
     },
     {
-      "id": "case_091",
+      "id": "extended_case_059",
+      "legacy_id": "case_091",
+      "source_index": 59,
       "name": "滴天髓命例 己巳庚午丙午甲午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己巳",
         "month_pillar": "庚午",
         "day_pillar": "丙午",
         "hour_pillar": "甲午",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己巳 戊辰 丁卯 丙寅 乙丑 甲子 癸亥 此造俗论，丙午⽇⽀全三午，四柱滴⽔全⽆，中年又⽆⽔运，必作飞天禄马，名利双辉，不知此造午中己 ⼟，巳中庚⾦，元神透出年⽉两⼲，真⽕⼟伤官⽣财格。初交己巳戊辰，晦⽕⽣⾦，遗业颇丰；丁卯丙寅，"
       }
     },
     {
-      "id": "case_092",
+      "id": "extended_case_060",
+      "legacy_id": "case_092",
+      "source_index": 60,
       "name": "滴天髓命例 丁丑癸卯乙卯己卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁丑",
         "month_pillar": "癸卯",
         "day_pillar": "乙卯",
         "hour_pillar": "己卯",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬寅 ⾟丑 庚子 己亥 戊戌 丁酉 乙卯⽇，⽣于卯⽉卯时，旺之极矣，最喜丁⽕独发，泄其精英。惜癸⽔克丁，乃伤秀⽓，时⼲己⼟临绝，不 能去其癸⽔，因之书⾹不继，初中运逢⽔⽊之地刑丧破耗，家业渐消：戊戌丁运，⼤遂经营之愿，发财巨"
       }
     },
     {
-      "id": "case_093",
+      "id": "extended_case_061",
+      "legacy_id": "case_093",
+      "source_index": 61,
       "name": "滴天髓命例 丁未癸丑甲辰甲戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "癸丑",
         "day_pillar": "甲辰",
         "hour_pillar": "甲戌",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬子 ⾟亥 庚戌 己酉 戊申 丁未 此造⽀全四库逢冲，俗作杂⽓财官也，不知丑未逢冲，不特官星受伤，⽽且冲去库根；⽇主坐下余⽓，亦是 根盘，更嫌戌冲，微根巳⽓，财多⾝弱；且旺⼟愈冲愈旺，则癸⽔必伤。初运壬子⾟⽔旺之地，荫疪有余；"
       }
     },
     {
-      "id": "case_094",
+      "id": "extended_case_062",
+      "legacy_id": "case_094",
+      "source_index": 62,
       "name": "滴天髓命例 丙寅甲午丙午癸巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙寅",
         "month_pillar": "甲午",
         "day_pillar": "丙午",
         "hour_pillar": "癸巳",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙未 丙申 丁酉 戊戌 己亥 庚子 此⽕长夏令，⽉⽀坐刃，年⽀逢⽣，时⽀得禄，年⽉两⽀，又透甲丙，烈⽕焚⽊，旺之极矣，一点癸⽔熬 ⼲，只得从其强势。运逢⽊⽕⼟，财喜频增；申酉运中，刑耗多端；⾄亥运，激⽕之烈，家业破尽⽽亡。所"
       }
     },
     {
-      "id": "case_095",
+      "id": "extended_case_063",
+      "legacy_id": "case_095",
+      "source_index": 63,
       "name": "滴天髓命例 戊寅庚申丙申丙申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊寅",
         "month_pillar": "庚申",
         "day_pillar": "丙申",
         "hour_pillar": "丙申",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 壬戌 癸亥 甲子 乙丑 丙寅 丁卯 丙⽕⽣于初秋，秋⾦乘令，二申冲去一寅，丙⽕之根已拔，⽐肩亦不能为⼒。年⽉两⼲，又透⼟⾦，只得从 其弱势，顺财之性，以⽐肩为病。故运⾄⽔旺之地，制去⽐肩，事业巍峨：丙寅帮⾝，刑丧破髦。所谓弱极"
       }
     },
     {
-      "id": "case_096",
+      "id": "extended_case_064",
+      "legacy_id": "case_096",
+      "source_index": 64,
       "name": "滴天髓命例 癸酉甲子丙寅戊戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "甲子",
         "day_pillar": "丙寅",
         "hour_pillar": "戊戌",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 此造以甲⽊为精，衰⽊得⽔滋，⽽逢寅禄为精⾜，以戊⼟为神，坐戌通根，寅戌拱之为神旺。官⽣印，印⽣ ⾝，坐下长⽣为⽓贯流通，⽣化五⾏俱⾜。左右上下情协不悖，官来能挡，劫来有官，⾷来有印，东西南北"
       }
     },
     {
-      "id": "case_097",
+      "id": "extended_case_065",
+      "legacy_id": "case_097",
+      "source_index": 65,
       "name": "滴天髓命例 癸未乙卯丙辰庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸未",
         "month_pillar": "乙卯",
         "day_pillar": "丙辰",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 癸丑 壬子 ⾟亥 庚戌 己酉 此造以⼤势观之，官印相⽣，偏财时遇，五⾏不缺，四柱纯粹，俨然贵格，不如财官两字休囚，又遥隔不能 相顾，⽀全寅、卯、辰。春⼟克尽，不能⽣⾦，⾦临绝地，不能⽣⽔，⽔之⽓尽泄于⽊，⽊之势愈旺⽽⽕"
       }
     },
     {
-      "id": "case_098",
+      "id": "extended_case_066",
+      "legacy_id": "case_098",
+      "source_index": 66,
       "name": "滴天髓命例 戊戌乙丑丙辰己丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊戌",
         "month_pillar": "乙丑",
         "day_pillar": "丙辰",
         "hour_pillar": "己丑",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 癸亥 壬戌 ⾟酉 庚申 己未 此四柱皆⼟，命主元神，泄尽⽉⼲，乙⽊凋枯，所谓精⽓枯索。运逢壬戌，本主受伤；年逢⾟未，紧克乙 ⽊，卒于九⽉患弱症⽽亡。"
       }
     },
     {
-      "id": "case_099",
+      "id": "extended_case_067",
+      "legacy_id": "case_099",
+      "source_index": 67,
       "name": "滴天髓命例 甲戌丙寅戊寅丙辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲戌",
         "month_pillar": "丙寅",
         "day_pillar": "戊寅",
         "hour_pillar": "丙辰",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁卯 戊辰 己巳庚午 ⾟未 壬申 戊寅⽇元，⽣于⽴春十五⽇后，正当甲⽊司令，地⽀两寅紧克辰戌之⼟，天⼲甲⽊，又制⽇⼲之戊，似乎煞 旺⾝弱。然喜⽆⾦，则⽇元之⽓不泄，更妙⽆⽔，则丙⽕之印不坏，尤羡贴⾝透丙，化杀⽣⾝。由甲傍⽽悬"
       }
     },
     {
-      "id": "case_100",
+      "id": "extended_case_068",
+      "legacy_id": "case_100",
+      "source_index": 68,
       "name": "滴天髓命例 甲戌丙寅戊辰庚申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲戌",
         "month_pillar": "丙寅",
         "day_pillar": "戊辰",
         "hour_pillar": "庚申",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁卯 戊辰 己巳 庚午 ⾟未 壬申 戊辰⽇元，⽣于⽴春后六⽇，正戊⼟司令，⽉透丙⽕，⽣化有情，⽇⽀坐辰，通根⾝旺，又得⾷神制杀。俗 论⽐之，胜于前造，不知嫩⽊寒⼟皆喜⽕，况杀既化，不宜再制。所嫌者，申时不但⽇主泄⽓，⽽且丙⽕临"
       }
     },
     {
-      "id": "case_101",
+      "id": "extended_case_069",
+      "legacy_id": "case_101",
+      "source_index": 69,
       "name": "滴天髓命例 甲辰丁卯甲子戊辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲辰",
         "month_pillar": "丁卯",
         "day_pillar": "甲子",
         "hour_pillar": "戊辰",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 己巳 庚午 ⾟未 壬申 癸酉 甲子⽇⽣卯⽉，地⽀两辰，是⽊之余⽓也，又辰卯东⽅，子辰拱⽔，⽊太旺者似⾦也，以丁⽕为⽤。⾄巳 运，丁⽕临旺，名列宫墙；庚⾟两运，南⽅截脚之⾦，虽有刑耗，⽽⽆⼤患；未运克去子⽔，⾷廪天储；午"
       }
     },
     {
-      "id": "case_102",
+      "id": "extended_case_070",
+      "legacy_id": "case_102",
+      "source_index": 70,
       "name": "滴天髓命例 癸卯乙卯甲寅乙亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "乙卯",
         "day_pillar": "甲寅",
         "hour_pillar": "乙亥",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 癸丑 壬子 ⾟亥 庚戌 己酉 此造四⽀皆⽊，又逢⽔⽣，六⽊两⽔，别⽆他⽓。⽊旺极者，似⽕也，出⾝祖业本丰。惟丑运刑伤，壬子⽔ 势乘旺，⾟亥⾦不通根，⽀逢⽔旺，此二十年经营，获利数万；一交庚戌，⼟⾦并旺，破财⽽亡。"
       }
     },
     {
-      "id": "case_103",
+      "id": "extended_case_071",
+      "legacy_id": "case_103",
+      "source_index": 71,
       "name": "滴天髓命例 己巳己巳乙酉丙戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己巳",
         "month_pillar": "己巳",
         "day_pillar": "乙酉",
         "hour_pillar": "丙戌",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 丁卯 丙寅 乙丑 甲子 癸亥 此造地⽀皆逢克泄，天⼲又透⽕⼟，全⽆⽔⽓。⽊衰极者，似⼟也。初交戊辰丁运，获丰厚之荫疪，美景良 多；卯运椿萱并谢；丙运⼤遂经营之愿，获利万⾦；寅运克妻破财，又遭回禄；乙丑⽀全⾦局，⽕⼟两泄，"
       }
     },
     {
-      "id": "case_104",
+      "id": "extended_case_072",
+      "legacy_id": "case_104",
+      "source_index": 72,
       "name": "滴天髓命例 乙丑壬午丙戌甲午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙丑",
         "month_pillar": "壬午",
         "day_pillar": "丙戌",
         "hour_pillar": "甲午",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟巳 庚辰 己卯 戊寅 丁丑 丙子 此丙戌⽇元，⽉时两刃，壬⽔⽆根，又逢⽊泄。⽕太旺者，似⽔也。初运庚辰⾟巳，⾦逢⽣地，孔怀⽆辅助 之⼈，亲党少知⼼之辈；己卯得际遇，戊寅全会⽕局，及丁丑二十年，发财四五万，⾄子运⽽亡。"
       }
     },
     {
-      "id": "case_105",
+      "id": "extended_case_073",
+      "legacy_id": "case_105",
+      "source_index": 73,
       "name": "滴天髓命例 戊寅丁巳丙寅甲午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊寅",
         "month_pillar": "丁巳",
         "day_pillar": "丙寅",
         "hour_pillar": "甲午",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊午 己未 庚申 ⾟酉 癸亥 壬戌 此造丙⽕⽣孟夏，地⽀两坐长⽣⽽逢禄旺。⽕旺极者，似⼟也。初运虽不逢⽊，喜其南⽅⽕地，遗绪丰盈， 读书过⽬成育；一交庚运，即弃诗书，受嬉好游，挥⾦如⼟；申运家破⾝亡。此造若逢⽊运，名利两全也。"
       }
     },
     {
-      "id": "case_106",
+      "id": "extended_case_074",
+      "legacy_id": "case_106",
+      "source_index": 74,
       "name": "滴天髓命例 戊辰戊午戊申己未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊辰",
         "month_pillar": "戊午",
         "day_pillar": "戊申",
         "hour_pillar": "己未",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己未 庚申 ⾟酉 壬戌 癸亥 甲子 此造重重厚⼟，⽣于夏令，⼟太旺者，似⽊也，其⽤在⾦。庚申运，早采芹⾹；⾟酉运⾟丑年，饮⿅鸣，宴 琼林，云程直上；壬戌运，刑丧挫折，丙午⽽亡。"
       }
     },
     {
-      "id": "case_107",
+      "id": "extended_case_075",
+      "legacy_id": "case_107",
+      "source_index": 75,
       "name": "滴天髓命例 戊戌丙辰己巳己巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊戌",
         "month_pillar": "丙辰",
         "day_pillar": "己巳",
         "hour_pillar": "己巳",
-        "day_master": "己",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 戊午 己未 庚申 ⾟酉 壬戌 此造四柱⽕⼟，全⽆克泄。⼟旺极者，似⾦也。初运南⽅，遗业丰盈，午运⼊泮，己未棘闱，拔⽽不举；一 交庚申，青蚨化蝶，家业渐消；⾟酉财若春后霜雪，事业萧条；壬运克丙不禄。"
       }
     },
     {
-      "id": "case_108",
+      "id": "extended_case_076",
+      "legacy_id": "case_108",
+      "source_index": 76,
       "name": "滴天髓命例 癸酉甲子戊子戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "甲子",
         "day_pillar": "戊子",
         "hour_pillar": "戊午",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 此四柱皆⽔，又得⾦⽣。⼟衰极者，似⽔也。初运癸亥，平宁之境；壬戌⽔⽆根，⼟得地，刑丧破耗，家业 消亡；⾟酉庚申二十年，⼤得际遇，⽩⼿发财十余万；己未运破去数万，寿亦在未⽽⽌。"
       }
     },
     {
-      "id": "case_109",
+      "id": "extended_case_077",
+      "legacy_id": "case_109",
+      "source_index": 77,
       "name": "滴天髓命例 壬申己酉庚子庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "己酉",
         "day_pillar": "庚子",
         "hour_pillar": "庚辰",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 此造秋⾦秉令，⽊⽕全⽆。⾦太旺者，似⽕也。亥运壬⽔坐禄，早游泮⽔，壬子运⽤神临旺，撞破烟楼，⾼ 攀⽉桂；癸丑合去壬⽔旺地，囊内青蚨成蝶舞，枝上子规⽉下啼；甲寅乙卯，尚有制⼟卫⽔之功，仁路清"
       }
     },
     {
-      "id": "case_110",
+      "id": "extended_case_078",
+      "legacy_id": "case_110",
+      "source_index": 78,
       "name": "滴天髓命例 己亥丁卯庚寅丙子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己亥",
         "month_pillar": "丁卯",
         "day_pillar": "庚寅",
         "hour_pillar": "丙子",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "《》 丙寅 乙丑 甲子 癸亥 壬戌 ⾟酉 此造⽊旺乘权，又得⽔⽣，四⾯皆逢财杀。⾦衰极者，似⽊也。所以乙丑运中，⼟⾦暗旺，家业破尽；⾄甲"
       }
     },
     {
-      "id": "case_111",
+      "id": "extended_case_079",
+      "legacy_id": "case_111",
+      "source_index": 79,
       "name": "滴天髓命例 癸亥癸亥壬子庚子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "癸亥",
         "day_pillar": "壬子",
         "hour_pillar": "庚子",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬戌 ⾟酉 庚申 己未 戊午 丁巳 此造四柱皆⽔，一⽆克泄，其势冲奔，不可遏也。初运壬戌，⽀逢⼟旺，早见刑丧；⾟酉庚申，⼲⽀皆⾦， 所谓⽉印舞江银作浪，门临五福锦铺花；交己未，妻子皆伤，家业破尽；戌午运，贫乏不堪，忧郁⽽卒。"
       }
     },
     {
-      "id": "case_112",
+      "id": "extended_case_080",
+      "legacy_id": "case_112",
+      "source_index": 80,
       "name": "滴天髓命例 丙辰乙未壬午癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "乙未",
         "day_pillar": "壬午",
         "hour_pillar": "癸卯",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙申 丁酉 戊戌 己亥 庚子 ⾟丑 此⽕⼟当权，又逢⽊助，五⾏⽆⾦。⽔太衰者，似⾦也。初交丙申丁酉，盖头是⽕，使申酉不能⽣⽔，财喜 并旺；戊戌运中，家业饶裕；己亥⼟⽆根，还喜⽀会⽊局，虽有破耗⽽⽆⼤患；一交庚子，家破⼈亡。"
       }
     },
     {
-      "id": "case_113",
+      "id": "extended_case_081",
+      "legacy_id": "case_113",
+      "source_index": 81,
       "name": "滴天髓命例 癸卯戊午壬寅丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "戊午",
         "day_pillar": "壬寅",
         "hour_pillar": "丙午",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 此造丙⽕当权，戊癸从化，枯⼲壬⽔。⽔衰极者，似⽕也。初运逢⽕，从其⽕旺，丰⾐⾜⾷；乙卯甲寅，名 利双全；癸丑争官夺财，破耗⽽亡。"
       }
     },
     {
-      "id": "case_114",
+      "id": "extended_case_082",
+      "legacy_id": "case_114",
+      "source_index": 82,
       "name": "滴天髓命例 己酉丙子癸未戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己酉",
         "month_pillar": "丙子",
         "day_pillar": "癸未",
         "hour_pillar": "戊午",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 甲戌 癸酉 壬申 ⾟未 庚午 此王观察造，癸⽇子⽉，似乎旺相，不知财杀太重，旺中变弱，局中⽆⽊，混浊不清，阴内阳外之象。⽉透 财星，其⼼意必欲爱之；时逢官杀，其⼼志必欲合之。所以权谋异众，才⼲过⼈，出⽣末微，⼼术不端。癸"
       }
     },
     {
-      "id": "case_115",
+      "id": "extended_case_083",
+      "legacy_id": "case_115",
+      "source_index": 83,
       "name": "滴天髓命例 庚寅壬午戊午丁巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚寅",
         "month_pillar": "壬午",
         "day_pillar": "戊午",
         "hour_pillar": "丁巳",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸未 甲申 乙酉 丙戌 丁亥 戊子 此以⽕为源头，年⽀寅⽊主节，⽉⼲壬⽔隔之，不能流⾄⾦。初运⼟⾦之地，冲化阻节之神，业同秋⽔春花 盛，⼈被尧天舜⽇恩；一交⽔春花盛，⼈被尧天舜⽇恩；一交丙戌，⽀会⽕局，枭神夺⾷，破耗异常，又克"
       }
     },
     {
-      "id": "case_116",
+      "id": "extended_case_084",
+      "legacy_id": "case_116",
+      "source_index": 84,
       "name": "滴天髓命例 癸酉甲子丁卯丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "甲子",
         "day_pillar": "丁卯",
         "hour_pillar": "丙午",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 乙未 戊午 此造天⼲地⽀皆杀⽣印，印⽣⾝，时归禄旺，尤妙四冲反为四助，⾦见⽔克⽊⽽⽣⽔，⽔见⽊不克⽕⽽⽣ ⽊，此⾃然不隔不占，⽆阻节之物。⽇主弱中变旺，运遇⽔，仍能⽣⽊；逢⾦仍能⽣⽔，印绶不伤，所以秋"
       }
     },
     {
-      "id": "case_117",
+      "id": "extended_case_085",
+      "legacy_id": "case_117",
+      "source_index": 85,
       "name": "滴天髓命例 己酉丙寅庚申庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己酉",
         "month_pillar": "丙寅",
         "day_pillar": "庚申",
         "hour_pillar": "庚辰",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "《》 乙丑 甲子 癸亥 壬戌 ⾟酉 庚申 此造以俗论之，春⾦失令，旺财⽣杀，杀坐长⽣，必要扶⾝抑杀，不知春⾦虽不当令，地⽀两逢禄旺，又得"
       }
     },
     {
-      "id": "case_118",
+      "id": "extended_case_086",
+      "legacy_id": "case_118",
+      "source_index": 86,
       "name": "滴天髓命例 戊子甲寅戊午甲寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊子",
         "month_pillar": "甲寅",
         "day_pillar": "戊午",
         "hour_pillar": "甲寅",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙卯 丙辰 丁巳 戊午 己未 庚申 戊⼟⽣寅⽉寅时，⼟衰⽊盛，最喜坐下午⽕，⽣拱有情，正谓众杀横⾏，一仁可化。子⽔之财，⽣寅⽊不冲 午⽕，其情协，其关通。尤羡运⾛南⽅⽕⼟，所以早登黄甲，出仕驰名。"
       }
     },
     {
-      "id": "case_119",
+      "id": "extended_case_087",
+      "legacy_id": "case_119",
+      "source_index": 87,
       "name": "滴天髓命例 己亥丙寅戊子甲寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己亥",
         "month_pillar": "丙寅",
         "day_pillar": "戊子",
         "hour_pillar": "甲寅",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙丑 甲子 癸亥 壬戌 ⾟酉 庚申 此造观格局似胜前造，此财印坐长⽣，前则印逢财冲。不知前则坐下印绶，七杀皆来⽣拱，⽽⽇主坚固，此 则财坐⽇下，反去⽣杀，助纣为虐。兼之运⾛西北，戊午年中乡榜，己丑中进⼠，此两年⽐劫帮⾝，冲去财"
       }
     },
     {
-      "id": "case_120",
+      "id": "extended_case_088",
+      "legacy_id": "case_120",
+      "source_index": 88,
       "name": "滴天髓命例 戊辰庚申甲子甲子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊辰",
         "month_pillar": "庚申",
         "day_pillar": "甲子",
         "hour_pillar": "甲子",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 壬戌 癸亥 甲子 乙丑 丙寅 此造⽊凋⾦锐，厚⼟⽣⾦，原可畏也，然喜⽀全⽔局，化其肃杀之⽓，⽣化有情。⾄癸亥运，科甲连登，早 蒙仕路之光；丙寅丁卯，制化皆宜。仕路封疆，官途平坦，⽣平履险如夷。"
       }
     },
     {
-      "id": "case_121",
+      "id": "extended_case_089",
+      "legacy_id": "case_121",
+      "source_index": 89,
       "name": "滴天髓命例 戊午丙辰庚寅丙戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊午",
         "month_pillar": "丙辰",
         "day_pillar": "庚寅",
         "hour_pillar": "丙戌",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 戊午 己未 庚申 ⾟酉 壬戌 此造⼲透两杀，⽀全杀局，所喜戊⼟原神透出，是以化杀；寅⽊本要破甲印，尤喜会⽕，反培⼟之根源，巧 借栽培。⾄己未运中，科甲连登；庚申⾟酉，帮⾝有情，驰名宦海,裕后光前也。"
       }
     },
     {
-      "id": "case_122",
+      "id": "extended_case_090",
+      "legacy_id": "case_122",
+      "source_index": 90,
       "name": "滴天髓命例 癸亥癸亥丁卯癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "癸亥",
         "day_pillar": "丁卯",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬戌 ⾟酉 庚申 己未 戊午 丁巳 丙辰 此造⼲透三癸，⽀逢两亥，乘权秉令。喜其⽆⾦，两印拱局，⽣化不悖，情⽽纯粹，⾟酉庚申运中，蹭蹬功 名，刑耗并见，已未交运，⼲制杀，⽀会印，功名层叠⽽上；接⾏戊午、丁巳、丙运，仕⾄观察，名利双"
       }
     },
     {
-      "id": "case_123",
+      "id": "extended_case_091",
+      "legacy_id": "case_123",
+      "source_index": 91,
       "name": "滴天髓命例 戊辰戊午壬辰甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊辰",
         "month_pillar": "戊午",
         "day_pillar": "壬辰",
         "hour_pillar": "甲辰",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己未 庚申 ⾟酉 壬戌 癸亥 甲子 此造四柱皆杀，喜⽀坐三辰，通根⾝库，妙在⽆⾦，时透⾷神制杀。辰乃⽊之余⽓，正谓一将当关，群凶⾃ 败。⾄癸亥运，⾷神逢⽣，⽇主得禄，科甲连登；甲运仕县令；子运衰神冲旺，不禄。"
       }
     },
     {
-      "id": "case_124",
+      "id": "extended_case_092",
+      "legacy_id": "case_124",
+      "source_index": 92,
       "name": "滴天髓命例 庚申庚辰甲戌丙寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚申",
         "month_pillar": "庚辰",
         "day_pillar": "甲戌",
         "hour_pillar": "丙寅",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟巳 壬午 癸未 甲申 乙酉 丙戌 此造甲⽊⽣辰，虽有余⽓，但庚⾦并透，通根斫伐，最喜寅时禄旺，更妙丙⽕独透，制杀扶⾝。午运暗会⽕ 局，中乡榜；甲申乙酉杀逢禄旺，刑耗多端；直⾄丙戌运，选知县。"
       }
     },
     {
-      "id": "case_125",
+      "id": "extended_case_093",
+      "legacy_id": "case_125",
+      "source_index": 93,
       "name": "滴天髓命例 壬子壬子丙戌戊戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬子",
         "month_pillar": "壬子",
         "day_pillar": "丙戌",
         "hour_pillar": "戊戌",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 甲寅 乙卯 丙辰 丁巳 戊午 此造年⽉两逢壬子，杀势猖狂。喜其⽇时坐戌，通根⾝库，更妙戊⼟透出，⾜以砥定汪洋，尤羡运⾛东南， 扶⾝抑杀。⾄乙卯运中，⽔临绝，⽕逢⽣，⿅鸣宴罢琼林宴，桂花⾹过杏花⾹，仕⾄郡守。"
       }
     },
     {
-      "id": "case_126",
+      "id": "extended_case_094",
+      "legacy_id": "case_126",
+      "source_index": 94,
       "name": "滴天髓命例 壬申丙午庚午丙戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "丙午",
         "day_pillar": "庚午",
         "hour_pillar": "丙戌",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 己酉 庚戌 ⾟亥 壬子 此造两杀当权临旺，原可畏也。喜赖年⼲壬⽔临申，⾜以制杀；更妙⽆⽊，则⽔不泄，⽕⽆助。申运⾦⽔得 助，发轫宫墙；酉运⽀类西⽅，早充观国之光，⾼豫南宫之选；后运⾦⽔，体⽤皆宜，由署郎出为郡守。"
       }
     },
     {
-      "id": "case_127",
+      "id": "extended_case_095",
+      "legacy_id": "case_127",
+      "source_index": 95,
       "name": "滴天髓命例 癸丑戊午丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸丑",
         "month_pillar": "戊午",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 此造⽕长夏天，旺之极矣。戊癸合⽽化为忌，还喜壬⽔通根⾝库；更妙年⽀坐丑，⾜以晦⽕养⾦⽽蓄⽔，则 癸⽔仍得根，虽合⽽不化也。不化反喜其合，则不抗呼壬⽔矣。是以乙卯甲寅运，克⼟卫⽔，云程直上；⾄"
       }
     },
     {
-      "id": "case_128",
+      "id": "extended_case_096",
+      "legacy_id": "case_128",
+      "source_index": 96,
       "name": "滴天髓命例 癸巳戊午丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸巳",
         "month_pillar": "戊午",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 庚戌 此铁樵⾃造(乾隆三十八年四⽉十八⽇辰时)，亦长夏天，与前造只换一丑字，天渊之隔矣。夫丑乃北⽅之湿 ⼟，能晦丙⽕之烈，能收午⽕之焰，又能蓄⽔藏⾦。巳乃南⽅之⽕，癸临绝地，杯⽔车薪，喜其混也。不喜"
       }
     },
     {
-      "id": "case_129",
+      "id": "extended_case_097",
+      "legacy_id": "case_129",
+      "source_index": 97,
       "name": "滴天髓命例 戊申癸亥丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "癸亥",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 乙丑 丙寅 丁卯 戊辰 己巳 此造⽇主虽坐旺刃，⽣于亥⽉，究竟休囚；五⾏⽆⽊，壬癸并透，⽀逢⽣旺，各⽴门户。喜其合去癸⽔，不 致混也；更妙运⾛东南⽊⽕，乡榜出⾝，宠赐传来紫闼，承宣协佐黄堂。"
       }
     },
     {
-      "id": "case_130",
+      "id": "extended_case_098",
+      "legacy_id": "case_130",
+      "source_index": 98,
       "name": "滴天髓命例 戊午癸亥丙戌壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊午",
         "month_pillar": "癸亥",
         "day_pillar": "丙戌",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 乙丑 丙寅 丁卯 戊辰 己巳 丙戌⽇元，⽣于辰时，冲去库根，壬癸并透。喜其戊合，去官留杀；更喜年逢刃助，⽕虚有焰；更妙⽆⾦， 稍胜前造。科甲出⾝，宿映台垣，重藉旬宣之职，猷分禹服，特隆锁钥之权。"
       }
     },
     {
-      "id": "case_131",
+      "id": "extended_case_099",
+      "legacy_id": "case_131",
+      "source_index": 99,
       "name": "滴天髓命例 壬申丁未丁未癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "丁未",
         "day_pillar": "丁未",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊申 己酉 庚戌 ⾟亥 壬子 癸丑 此造⽇⽉皆丁未，时杀⽆根，喜其壬⽔官星助杀，不宜合也。幸⽽壬⽔坐申，合⽽不化，申⾦为⽤，更妙运 ⾛西北⾦⽔，助起官杀，乡榜出⾝，仕榜连登，由县令⽽迁司马，位跻黄堂。"
       }
     },
     {
-      "id": "case_132",
+      "id": "extended_case_100",
+      "legacy_id": "case_132",
+      "source_index": 100,
       "name": "滴天髓命例 甲辰己巳戊辰乙卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲辰",
         "month_pillar": "己巳",
         "day_pillar": "戊辰",
         "hour_pillar": "乙卯",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚午 ⾟未 壬申 癸酉 甲戌 乙亥 戊⼟⽣于巳⽉，⽇主未尝不旺，然地⽀两辰，⽊之余⽓亦⾜。喜其合杀留官，官星坐禄，更妙运途⽣化不 悖。所以早登云路，掌典籍⽽知制诰，陪侍从⽽应传宣也。"
       }
     },
     {
-      "id": "case_133",
+      "id": "extended_case_101",
+      "legacy_id": "case_133",
+      "source_index": 101,
       "name": "滴天髓命例 癸亥戊午壬午己酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "戊午",
         "day_pillar": "壬午",
         "hour_pillar": "己酉",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 此造旺杀逢财，喜其合也。妙在癸⽔临旺，合⽽不化，则有情戊⼟，不抗壬⽔也。合⽽化，则⽆情化⽕，仍 ⽣⼟也。由此以推，运⾛东⽅⽊地，早遂青云之志；运⾛北⽅⽔地，去财护印，翔步天衢，置⾝⽇舍也。"
       }
     },
     {
-      "id": "case_134",
+      "id": "extended_case_102",
+      "legacy_id": "case_134",
+      "source_index": 102,
       "name": "滴天髓命例 壬辰壬子丙寅癸巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬辰",
         "month_pillar": "壬子",
         "day_pillar": "丙寅",
         "hour_pillar": "癸巳",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "《》 癸丑 甲寅 乙卯 丙辰 丁巳 戊午 此造壬癸当权，杀官重叠，最喜⽇坐长⽣，寅能纳⽔，化杀⽣⾝，时归禄旺，⾜以敌官；更妙⽆⾦，印星得"
       }
     },
     {
-      "id": "case_135",
+      "id": "extended_case_103",
+      "legacy_id": "case_135",
+      "source_index": 103,
       "name": "滴天髓命例 甲子乙亥己巳丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲子",
         "month_pillar": "乙亥",
         "day_pillar": "己巳",
         "hour_pillar": "丁卯",
-        "day_master": "己",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙子 丁丑 戊寅 己卯 庚辰 ⾟巳 此造官遇长⽣，杀逢禄旺，巳亥虽冲破印，喜印⽊仍能⽣⽕，寅运合亥，化⽊⽣印，连登甲榜。庚辰⾟巳制 官服煞，失幡皂盖，出守⼤郡，名利两优。"
       }
     },
     {
-      "id": "case_136",
+      "id": "extended_case_104",
+      "legacy_id": "case_136",
+      "source_index": 104,
       "name": "滴天髓命例 丙辰丁酉庚午戊寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "丁酉",
         "day_pillar": "庚午",
         "hour_pillar": "戊寅",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊戌 己亥 庚子 ⾟丑 壬寅 癸卯 此造杀逢⽣，官得禄，喜其秋⾦秉令，更妙辰⼟泄⽕⽣⾦，不失中和之象；尤喜运⾛北⽅⽔地。庚子运冲去 官根，⿅鸣⽅宴饮，雁塔又题名；⾟丑壬寅运，横琴⽽歌解愠，游刃⽽赋烹鲜。"
       }
     },
     {
-      "id": "case_137",
+      "id": "extended_case_105",
+      "legacy_id": "case_137",
+      "source_index": 105,
       "name": "滴天髓命例 壬辰丙午丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬辰",
         "month_pillar": "丙午",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 乙酉 庚戌 ⾟亥 壬子 此杀逢四制，柱中印虽不见，喜其杀透⾷藏，通根⾝库。总之夏⽕当权，⽔⽆⾦滋。⾄酉运，合去辰⼟，财 星滋杀，发甲点中书；庚运仁版连登，⼊参军机；戌运，燥⼟冲动壬⽔之根，又逢戊⼟透出，紧制壬⽔，不"
       }
     },
     {
-      "id": "case_138",
+      "id": "extended_case_106",
+      "legacy_id": "case_138",
+      "source_index": 106,
       "name": "滴天髓命例 甲寅戊辰壬辰壬寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲寅",
         "month_pillar": "戊辰",
         "day_pillar": "壬辰",
         "hour_pillar": "壬寅",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己巳 庚午 ⾟未 壬申 癸酉 甲戌 《》 此造五杀逢五制，⼟虽当权，⽊亦雄壮，幸⽇主两坐库根，又得⽐肩匡扶。壬申运，⽇主逢⽣，冲去寅⽊，"
       }
     },
     {
-      "id": "case_139",
+      "id": "extended_case_107",
+      "legacy_id": "case_139",
+      "source_index": 107,
       "name": "滴天髓命例 庚申戊寅戊寅庚申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚申",
         "month_pillar": "戊寅",
         "day_pillar": "戊寅",
         "hour_pillar": "庚申",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 庚辰 ⾟巳 壬午 癸未 甲申 此两杀逢四制，幸春⽊得时乘令，克不尽绝。⾄午运，补⼟之不⾜，去⾦之有余，登科擢县令：⾄甲申⽀， 又逢⾷制，死于军功。"
       }
     },
     {
-      "id": "case_140",
+      "id": "extended_case_108",
+      "legacy_id": "case_140",
+      "source_index": 108,
       "name": "滴天髓命例 壬戌壬子庚辰己卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬戌",
         "month_pillar": "壬子",
         "day_pillar": "庚辰",
         "hour_pillar": "己卯",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 甲寅 乙卯 丙辰 丁巳 戊午 此⾦⽔伤官当令，喜⽀藏暖⼟，⾜以砥定中流。因时财为病，兼之初运⽔⽊，以致书⾹不继；⾄三旬外，运 逢⽕⼟，异路出⾝，仕⾄州牧；午运衰神冲旺，台省⼏时⽆谪宦，郊亭今⽇倍离愁。"
       }
     },
     {
-      "id": "case_141",
+      "id": "extended_case_109",
+      "legacy_id": "case_141",
+      "source_index": 109,
       "name": "滴天髓命例 丙辰癸巳乙丑丙子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "癸巳",
         "day_pillar": "乙丑",
         "hour_pillar": "丙子",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲午 乙未 丙申 丁酉 戊戌 此⽊⽕伤官，印绶通根禄⽀，格局未尝不美。虽嫌财星坏印，⽽丑辰皆湿⼟，能蓄⽔晦⽕。惜乎运途⽆⽔， 以致一介寒儒，⾄申运⽕绝⽔⽣，名列泮宫，后九赴秋闱不捷。"
       }
     },
     {
-      "id": "case_142",
+      "id": "extended_case_110",
+      "legacy_id": "case_142",
+      "source_index": 110,
       "name": "滴天髓命例 丙申戊戌丁卯乙巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙申",
         "month_pillar": "戊戌",
         "day_pillar": "丁卯",
         "hour_pillar": "乙巳",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 庚子 ⾟丑 壬寅 癸卯 甲辰 此⽕⼟伤官，劫印重叠，旺可知矣，以申⾦财星为⽤。遗业本丰，⾟丑壬运，经营获利，发财十余万；⾄寅 运，⾦临绝地，劫遇长⽣，又寅申冲破，所谓“旺者冲衰衰者拔”，不禄宜矣。"
       }
     },
     {
-      "id": "case_143",
+      "id": "extended_case_111",
+      "legacy_id": "case_143",
+      "source_index": 111,
       "name": "滴天髓命例 癸亥乙卯壬申乙巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "乙卯",
         "day_pillar": "壬申",
         "hour_pillar": "乙巳",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 癸丑 壬子 ⾟亥 庚戌 己酉 此⽔⽊伤官，⽇主坐长⽣，年⽀禄旺，⽇主不弱，⾜以⽤巳⽕之财。嫌其中运⾦⽔，半⽣碌碌风霜，起倒万 状。⾄戌运，紧制亥⽔之劫，合起卯⽊化财，骤然发财数万；⾄酉冲破伤官，⽣助劫印，不禄。"
       }
     },
     {
-      "id": "case_144",
+      "id": "extended_case_112",
+      "legacy_id": "case_144",
+      "source_index": 112,
       "name": "滴天髓命例 己未癸酉戊戌庚申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己未",
         "month_pillar": "癸酉",
         "day_pillar": "戊戌",
         "hour_pillar": "庚申",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "《》 壬申 ⾟未 庚午 己巳 戊辰 丁卯 此⼟⾦伤官，⽀类西⽅，⾦⽓太重，以劫为⽤。喜其当头克癸，故书⾹继志；更妙运⾛南⽅⽕地，拔贡出"
       }
     },
     {
-      "id": "case_145",
+      "id": "extended_case_113",
+      "legacy_id": "case_145",
+      "source_index": 113,
       "name": "滴天髓命例 癸亥甲寅癸亥甲寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "甲寅",
         "day_pillar": "癸亥",
         "hour_pillar": "甲寅",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 壬子 ⾟亥 庚戌 己酉 戊申 此⽔⽊伤官，喜其⽆财，故继志书⾹，嫌其地⽀寅亥化⽊，伤官太重，难遂青云。⾟运⼊泮，亥运补廪，庚 戌加捐出仕。己酉戊申二十年⼟⾦，⽣化不悖，仕⾄别驾，宦资丰厚。"
       }
     },
     {
-      "id": "case_146",
+      "id": "extended_case_114",
+      "legacy_id": "case_146",
+      "source_index": 114,
       "name": "滴天髓命例 戊申己未丙戌己丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "己未",
         "day_pillar": "丙戌",
         "hour_pillar": "己丑",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚申 ⾟酉 壬戌 癸亥 甲子 乙丑 此四柱伤官，若⽣丑辰⽉，为从⼉格，名利皆遂。⽣于未⽉，⽕有余⽓，必以未中丁⽕为⽤。惜运⾛西北⾦ ⽔之地，以致破败祖业；⾄癸亥运，贫乏⽆聊，削发为僧。"
       }
     },
     {
-      "id": "case_147",
+      "id": "extended_case_115",
+      "legacy_id": "case_147",
+      "source_index": 115,
       "name": "滴天髓命例 戊辰庚申己酉癸酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊辰",
         "month_pillar": "庚申",
         "day_pillar": "己酉",
         "hour_pillar": "癸酉",
-        "day_master": "己",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 壬戌 癸亥 甲子 乙丑 丙寅 此亦伤官⽤劫，嫌其辰为湿⼟，⽣⾦拱⽔，未⾜帮⾝；更嫌运⾛西北⾦⽔之地，以致一败如灰，不成家室。 以上五造，皆是⽤劫，何前三造名利两全，此两造一事⽆成？因运⽆帮助之故⽿。由此推之，⾮⼈之⽆为，"
       }
     },
     {
-      "id": "case_148",
+      "id": "extended_case_116",
+      "legacy_id": "case_148",
+      "source_index": 116,
       "name": "滴天髓命例 庚辰己卯壬辰庚子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "己卯",
         "day_pillar": "壬辰",
         "hour_pillar": "庚子",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚辰 ⾟巳 壬午 癸未 甲申 乙酉 壬⽔⽣于卯⽉，正⽔⽊伤官格。天⼲己⼟临绝，地⽀两辰，乃⽊之余⽓，一⽣⾦，一拱⽔，又透两庚，不但 辰⼟不能制⽔，反⽣⾦助⽔，必以卯⽊为⽤，所谓一神得⽤，此象匪轻。初运庚辰⾟巳，⾦之旺地，功名不"
       }
     },
     {
-      "id": "case_149",
+      "id": "extended_case_117",
+      "legacy_id": "case_149",
+      "source_index": 117,
       "name": "滴天髓命例 乙酉戊寅癸酉癸丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙酉",
         "month_pillar": "戊寅",
         "day_pillar": "癸酉",
         "hour_pillar": "癸丑",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 丙子 乙亥 甲戌 癸酉 壬申 癸⽔⽣于寅⽉，正⽔⽊伤官。地⽀印星并旺，酉丑拱⾦，必以寅⽊为⽤，才能有余。乙亥运，⽊逢⽣旺，中 乡榜；甲戌癸运，出仕县令；酉运⽀逢三酉，⽊嫩⾦多，诖误落职。前造与此造皆因少⽕，有病⽆药之故，"
       }
     },
     {
-      "id": "case_150",
+      "id": "extended_case_118",
+      "legacy_id": "case_150",
+      "source_index": 118,
       "name": "滴天髓命例 己卯庚午甲寅丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己卯",
         "month_pillar": "庚午",
         "day_pillar": "甲寅",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己巳 戊辰 丁卯 丙寅 乙丑 甲子 甲⽊⽣于午⽉，⽊⽕伤官。年⽉两⼲，⼟⾦⽆根，置之不⽤；地⽀两卯一寅，⽇元强，必以丁⽕为⽤，故⼈ 权谋异众。丁卯运，⼊泮登科，仕县令；丙寅运，克尽庚⾦，宦资⼤丰；乙丑合庚，晦⽕⽣⾦，落职。"
       }
     },
     {
-      "id": "case_151",
+      "id": "extended_case_119",
+      "legacy_id": "case_151",
+      "source_index": 119,
       "name": "滴天髓命例 丙子乙未丙辰乙未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙子",
         "month_pillar": "乙未",
         "day_pillar": "丙辰",
         "hour_pillar": "乙未",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙申 丁酉 戊戌 己亥 庚子 ⾟丑 丙⽇未⽉，⽕⼟伤官。四柱⽆⾦，子⽔枯⼲，未⼟为⽤。第嫌乙⽊并透根深，功名难遂。初运丁酉丙申，制 化乙⽊，财喜称⼼；戊戌十年，熙熙攘攘，⽇炽⽇昌；己运⼟⽆根，⽊回克，刑耗并见；一交亥运，⽊得⽣"
       }
     },
     {
-      "id": "case_152",
+      "id": "extended_case_120",
+      "legacy_id": "case_152",
+      "source_index": 120,
       "name": "滴天髓命例 壬戌己酉戊戌乙卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬戌",
         "month_pillar": "己酉",
         "day_pillar": "戊戌",
         "hour_pillar": "乙卯",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 戊⽇酉⽉，⼟⾦伤官，地⽀两戌，燥⽽且厚，妙在年⼲壬⽔，润⼟泄⾦⽽⽣⽊，⾜以⽤官。亥运，财官皆得 ⽣扶，功名顺遂；壬子，早遂仕路之志；癸丑，⽀拱⾦局，服制重重；甲寅乙卯二十年，仕⾄侍郎。"
       }
     },
     {
-      "id": "case_153",
+      "id": "extended_case_121",
+      "legacy_id": "case_153",
+      "source_index": 121,
       "name": "滴天髓命例 庚午己卯壬申己酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚午",
         "month_pillar": "己卯",
         "day_pillar": "壬申",
         "hour_pillar": "己酉",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚辰 ⾟巳 壬午 癸未 甲申 乙酉 壬⽔⽣于卯⽉，⽔⽊伤官。喜其官印通根，年⽀逢财，伤官有制有化，⽇元⽣旺，⾜以⽤官。巳运，官星临 旺，采泮⽔之芹，折蟾宫之桂；壬午癸未，南⽅⽕地，出宰名区，莺迁州牧；甲申乙酉⾦得地，⽊临绝，虽"
       }
     },
     {
-      "id": "case_154",
+      "id": "extended_case_122",
+      "legacy_id": "case_154",
+      "source_index": 122,
       "name": "滴天髓命例 癸酉己未丙午癸巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "己未",
         "day_pillar": "丙午",
         "hour_pillar": "癸巳",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊午 丁巳 丙辰 乙卯 甲寅 癸丑 壬子 丙午⽇元，⽀类南⽅，未⼟秉令，己⼟透出，⽕⼟伤官，藏财受劫，⽆官则财⽆存，⽆财则官亦⽆根；况⽕ 焰⼟燥，官星并透，以官为⽤。运⾄⽕⼟，破耗刑丧；乙卯甲寅运，虽能⽣⽕，究竟制伤卫官，⼤获财利，"
       }
     },
     {
-      "id": "case_155",
+      "id": "extended_case_123",
+      "legacy_id": "case_155",
+      "source_index": 123,
       "name": "滴天髓命例 戊申戊午丁巳乙巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "戊午",
         "day_pillar": "丁巳",
         "hour_pillar": "乙巳",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己未 庚申 ⾟酉 壬戌 癸亥 甲子 此⽕⼟伤官，⽇主旺极，喜其伤官发泄菁华，更妙财星得⽤。庚申⾟酉运，少年创业，发财十余万；壬戌幸 ⽽⽔不通根，虽有刑耗⽽⽆⼤患；⾄癸亥运，激⽕之烈，泄财之⽓，不禄。"
       }
     },
     {
-      "id": "case_156",
+      "id": "extended_case_124",
+      "legacy_id": "case_156",
+      "source_index": 124,
       "name": "滴天髓命例 壬辰壬子壬子癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬辰",
         "month_pillar": "壬子",
         "day_pillar": "壬子",
         "hour_pillar": "癸卯",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "《》 癸丑 甲寅 乙卯 丙辰 丁巳 戊午 此天⼲皆⽔，⽀逢旺刃，喜其⽀合卯辰，精英吐秀，所以书⾹早遂。但⽊之原神不透，未免蹭蹬秋闱；更嫌"
       }
     },
     {
-      "id": "case_157",
+      "id": "extended_case_125",
+      "legacy_id": "case_157",
+      "source_index": 125,
       "name": "滴天髓命例 丁酉乙巳戊午丙辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁酉",
         "month_pillar": "乙巳",
         "day_pillar": "戊午",
         "hour_pillar": "丙辰",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲辰 癸卯 壬寅 ⾟丑 庚子 己亥 此与前造只换一⾟字，八字不及前造，⽽运途却胜于前，亦以⾟⾦为⽤，⾮官印论也。丁丑年湿⼟⽣⾦晦 ⽕，又全会⾦局，发甲⼊词林，盖运在⾟丑，正岁运皆宜也。"
       }
     },
     {
-      "id": "case_158",
+      "id": "extended_case_126",
+      "legacy_id": "case_158",
+      "source_index": 126,
       "name": "滴天髓命例 癸酉甲子丙寅乙未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "甲子",
         "day_pillar": "丙寅",
         "hour_pillar": "乙未",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 丙⽣子⽉，坐下长⽣，印透根深，弱中之旺。喜其官星当令，透⽽⽣财，所谓“一清到底有精神”也；更妙源 流不悖，纯粹可观。⾦⽔运中，登科发甲。名⾼翰苑；惜中运⽕⼟，以致终⽼于词林。"
       }
     },
     {
-      "id": "case_159",
+      "id": "extended_case_127",
+      "legacy_id": "case_159",
+      "source_index": 127,
       "name": "滴天髓命例 癸未甲子丙寅丁酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸未",
         "month_pillar": "甲子",
         "day_pillar": "丙寅",
         "hour_pillar": "丁酉",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 此与前癸酉者，⼤同⼩异。前则官坐财地，此则官坐伤地，兼之子未相贴，不但天⼲之官受克，即地⽀之官 亦伤。更嫌劫⼊财乡，所谓财劫官伤，纵使芹⾹早采，仍蹭蹬秋闱。⾟酉庚申运⼲⽀皆财，财如放稍春⽵，"
       }
     },
     {
-      "id": "case_160",
+      "id": "extended_case_128",
+      "legacy_id": "case_160",
+      "source_index": 128,
       "name": "滴天髓命例 乙亥庚辰戊戌丁巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "庚辰",
         "day_pillar": "戊戌",
         "hour_pillar": "丁巳",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 戊寅 丁丑 丙子 乙亥 甲戌 戊戌⽇元，⽣于辰⽉巳时，⽊退⽓，⼟乘权，印绶重逢。⽤官则被庚⾦合坏，⽤⾷则官又不从化，⽽⽕又克 ⾦，⽆奈何⽽⽤财，又有巳时遥冲，又不当令；若邀庚⾦⽣助，贪合忘⽣，且遥隔⽆情，所以起倒不一，幸"
       }
     },
     {
-      "id": "case_161",
+      "id": "extended_case_129",
+      "legacy_id": "case_161",
+      "source_index": 129,
       "name": "滴天髓命例 癸亥己未丙午己丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "己未",
         "day_pillar": "丙午",
         "hour_pillar": "己丑",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊辰 丁巳 丙辰 乙卯 甲寅 癸丑 ⽕长夏令，原属旺论，然时在季夏，⽕⽓稍退，兼之重叠伤官泄⽓，丑乃湿⼟，能晦丙⽕之光，以旺变弱。 浊⽓当权，清⽓失势，兼之先⾏三十年⽕⼟运，半⽣起倒多端。⾄乙卯甲寅，⽊蔬厚⼟，扫除浊⽓，⽣扶⽇"
       }
     },
     {
-      "id": "case_162",
+      "id": "extended_case_130",
+      "legacy_id": "case_162",
+      "source_index": 130,
       "name": "滴天髓命例 丁卯丁未庚午己卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁卯",
         "month_pillar": "丁未",
         "day_pillar": "庚午",
         "hour_pillar": "己卯",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙午 乙巳 甲辰 癸卯 壬寅 ⾟丑 此造⼤略观之，财⽣官，官⽣印，印⽣⾝，似乎清美，⽆如午未南⽅，⽕烈⼟焦，能脆⾦，不能⽣⾦；且⽊ 从⽕势，又坏印绶，⽆⽣化之情，⾮清枯⽽何？更嫌运⾛东⽅，一⽣未遂，所谓“明⽉清风谁与共，⾼⼭流"
       }
     },
     {
-      "id": "case_163",
+      "id": "extended_case_131",
+      "legacy_id": "case_163",
+      "source_index": 131,
       "name": "滴天髓命例 甲子丙寅己丑甲子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲子",
         "month_pillar": "丙寅",
         "day_pillar": "己丑",
         "hour_pillar": "甲子",
-        "day_master": "己",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁卯 戊辰 己巳 庚午 ⾟未 壬申 ⼭东刘中堂造，已⼟卑薄，⽣于春初，寒湿之体，其⽓虚弱，得甲丙并透，印正官清，聚得真也。柱中⾦不 现⽽不得化，假神不乱；更喜运⾛东南印旺之地，仕⾄尚书，有尊君庇民之德，负经邦论道之才也。"
       }
     },
     {
-      "id": "case_164",
+      "id": "extended_case_132",
+      "legacy_id": "case_164",
+      "source_index": 132,
       "name": "滴天髓命例 壬申壬寅丙子乙未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "壬寅",
         "day_pillar": "丙子",
         "hour_pillar": "乙未",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸卯 甲辰 乙巳 丙午 丁未 戊申 铁制军造，杀逞财势，嫩⽊逢⽣，最喜寅⽊真神当令，时⼲透出乙⽊元神。寅申之冲，谓之有病。运⾄南⽅ ⽕地，去申⾦之病，仕⾄封疆，声名赫弈。有润泽⽣民之德，怀任重致远之才也。"
       }
     },
     {
-      "id": "case_165",
+      "id": "extended_case_133",
+      "legacy_id": "case_165",
+      "source_index": 133,
       "name": "滴天髓命例 庚申戊寅壬子甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚申",
         "month_pillar": "戊寅",
         "day_pillar": "壬子",
         "hour_pillar": "甲辰",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 庚辰 ⾟巳 壬午 癸未 甲申 此造⽇临旺地，会局帮⾝，不当弱论。喜其时⼲甲⽊，真神发露；所嫌者，年遇庚申，冲克甲寅，又逢戊⼟ 之助，谓假乱真。虽然早采芹⾹，屡困秋闱；⾄壬午运，制化庚⾦，秋桂⾼攀，加捐县令；申运冲寅，假神"
       }
     },
     {
-      "id": "case_166",
+      "id": "extended_case_134",
+      "legacy_id": "case_166",
+      "source_index": 134,
       "name": "滴天髓命例 乙酉戊寅壬午庚戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙酉",
         "month_pillar": "戊寅",
         "day_pillar": "壬午",
         "hour_pillar": "庚戌",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 丙子 乙亥 甲戌 癸酉 壬申 壬⽔⽣于⽴春二十二⽇，正当甲⽊真神司令，⽽天⼲⼟⾦并透，地⽀通根戌酉，此谓真神失势，假神得局， ⽤以庚⾦化煞，法当以假作真，纯粹可观。虽嫌⽀全⽕局。克⾦灼⽔，喜其⽕不透⼲，又得戊⼟⽣化更妙。"
       }
     },
     {
-      "id": "case_167",
+      "id": "extended_case_135",
+      "legacy_id": "case_167",
+      "source_index": 135,
       "name": "滴天髓命例 庚戌戊寅癸未癸丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚戌",
         "month_pillar": "戊寅",
         "day_pillar": "癸未",
         "hour_pillar": "癸丑",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 庚辰 ⾟巳 壬午 癸未 甲申 乙酉 丙戌 《》 癸⽔⽣于⽴春二十六⽇，正当甲⽊真神司令，⽽天⼲⼟⾦并透，地⽀丑戌通根。伤官虽当令，⽽官杀之势纵"
       }
     },
     {
-      "id": "case_168",
+      "id": "extended_case_136",
+      "legacy_id": "case_168",
+      "source_index": 136,
       "name": "滴天髓命例 壬申戊申庚辰甲申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "戊申",
         "day_pillar": "庚辰",
         "hour_pillar": "甲申",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 庚戌 ⾟亥 壬子 癸丑 甲寅 庚⾦⽣于七⽉，地⽀三申，旺之极矣，时⼲甲⽊⽆根，⽤年⼲壬⽔，泄其刚杀之⽓。所嫌者，⽉⼲枭神夺 ⾷。初年运⾛⼟⾦，刑丧早见，祖业⽆恒；一交⾟亥，运转北⽅，经营得意，及壬子癸丑三十年财发十余"
       }
     },
     {
-      "id": "case_169",
+      "id": "extended_case_137",
+      "legacy_id": "case_169",
+      "source_index": 137,
       "name": "滴天髓命例 壬戌戊申庚寅丙戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬戌",
         "month_pillar": "戊申",
         "day_pillar": "庚寅",
         "hour_pillar": "丙戌",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 庚⾦⽣于七⽉，⽀类⼟⾦，旺之极矣，壬⽔坐戌逢戊，枭神夺尽，时透丙⽕，⽀拱寅戌，必以丙⽕为⽤。惜 运⾛四十载⼟⾦⽔地，所以五旬之前，一事⽆成：⾄甲寅运克制枭神，⽣起丙⽕，及乙卯二十年，财发巨"
       }
     },
     {
-      "id": "case_170",
+      "id": "extended_case_138",
+      "legacy_id": "case_170",
+      "source_index": 138,
       "name": "滴天髓命例 庚辰庚辰庚申庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "庚辰",
         "day_pillar": "庚申",
         "hour_pillar": "庚辰",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟巳 壬午 癸未 甲申 乙酉 丙戌 天⼲皆庚，又坐禄旺，印星当令，刚之极矣，谓权在一⼈。⾏伍出⾝，壬午癸未运，⽔盖天⼲地⽀之⽕，难 以克⾦，故⽆害；一交甲申，西⽅⾦地及乙酉合化皆⾦，仕⾄总兵；丙运犯其旺神，死于军中。"
       }
     },
     {
-      "id": "case_171",
+      "id": "extended_case_139",
+      "legacy_id": "case_171",
+      "source_index": 139,
       "name": "滴天髓命例 癸酉甲子庚辰甲申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "甲子",
         "day_pillar": "庚辰",
         "hour_pillar": "甲申",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 庚辰⽇元，⽀逢禄旺，⽔本当权，又会⽔局，天⼲枯⽊⽆根，置之不论，谓⾦⽔二⼈同⼼，必须顺其⾦⽔之 性。故癸亥壬运，荫庇有余；戌运制⽔，还喜申、酉、戌全，虽见刑丧地⽽⽆⼤患，⾟运⼊泮，酉运补廪，"
       }
     },
     {
-      "id": "case_172",
+      "id": "extended_case_140",
+      "legacy_id": "case_172",
+      "source_index": 140,
       "name": "滴天髓命例 甲申丙子庚辰戊寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲申",
         "month_pillar": "丙子",
         "day_pillar": "庚辰",
         "hour_pillar": "戊寅",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 戊寅 己卯 庚辰 ⾟巳 壬午 此寒⾦冷⽔，⽊凋⼟寒，若⾮寅时，则年⽉⽊⽕⽆根，不能作⽤矣，所谓寒虽甚，要暖有⽓也。由引论之， 年得者寅也，地⽓上升，⽊⽕绝处逢⽣，一阳解冻。然不动丙⽕⾼亦不发，妙在寅中遥冲，谓之动，动则⽣"
       }
     },
     {
-      "id": "case_173",
+      "id": "extended_case_141",
+      "legacy_id": "case_173",
+      "source_index": 141,
       "name": "滴天髓命例 己酉丙子庚辰甲申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己酉",
         "month_pillar": "丙子",
         "day_pillar": "庚辰",
         "hour_pillar": "甲申",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥 甲戌 癸酉 壬申 ⾟未 庚午 此亦寒⾦冷⽔，⼟冻⽊凋，与前⼤同⼩异，前则有寅⽊，⽕有根，此则⽆寅⽊，⽕临绝，所谓寒甚⽽瞹⽆ ⽓，反以⽆瞹为美，所以初运乙亥，北主⽔地，有喜⽆忧；甲戌暗藏丁⽕，为丙⽕之根，刑丧破耗；壬运克"
       }
     },
     {
-      "id": "case_174",
+      "id": "extended_case_142",
+      "legacy_id": "case_174",
+      "source_index": 142,
       "name": "滴天髓命例 丁丑丙午丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁丑",
         "month_pillar": "丙午",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己巳 甲辰 癸卯 壬寅 ⾟丑 庚子 此⽕焰南离，重逢刽刃，暖之⾄矣。一点壬⽔，本不⾜以制猛烈之⽕，喜其坐辰，通根⾝库；更可爱者，年 ⽀丑⼟，丑乃北⽅湿⼟，能⽣⾦晦⽕⽽蓄⽔，所谓暖虽⾄⽽寒有根也。科甲出⾝，仕⾄封疆，微嫌运途⽋"
       }
     },
     {
-      "id": "case_175",
+      "id": "extended_case_143",
+      "legacy_id": "case_175",
+      "source_index": 143,
       "name": "滴天髓命例 癸未丁巳丙午癸巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸未",
         "month_pillar": "丁巳",
         "day_pillar": "丙午",
         "hour_pillar": "癸巳",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 此⽀类南⽅,又⽣巳时，暖之⾄矣。天⼲丙癸，地⽀全⽆根⽓，所谓暖之⾄，寒⽆根，反以⽆寒为美。所以 初运丙辰，叨荫庇之福；乙卯甲寅，泄⽔⽣⽕，家业增新；癸丑寒⽓通根，叹椿萱之并逝，嗟兰桂之摧残；"
       }
     },
     {
-      "id": "case_176",
+      "id": "extended_case_144",
+      "legacy_id": "case_176",
+      "source_index": 144,
       "name": "滴天髓命例 丁未壬子庚戌丙戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "壬子",
         "day_pillar": "庚戌",
         "hour_pillar": "丙戌",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟亥 庚戌 己酉 戊申 丁未 丙午 此造如以⽔势论之，此则仲冬⽔旺，所喜者⽀中重重燥⼟，⾜以去其湿⽓。只为相克，使子不能助壬；丁壬 一合，使壬不能克丙。中运⼟⾦，⼊部办事，运筹挫折，境遇违⼼；丁未南⽅⽕旺，议叙出仕，⾄丙午二十"
       }
     },
     {
-      "id": "case_177",
+      "id": "extended_case_145",
+      "legacy_id": "case_177",
+      "source_index": 145,
       "name": "滴天髓命例 癸未丁巳甲午庚午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸未",
         "month_pillar": "丁巳",
         "day_pillar": "甲午",
         "hour_pillar": "庚午",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 甲午⽇元，⽀全巳午未，燥烈极矣。天⼲⾦⽔⽆根，反激⽕之烈，只可顺⽕之⽓也。初运⽊⽕，顺其⽓势， 财喜频增，⾄癸丑，叹刑丧，遭挫折，破耗多端；壬子冲激更甚，犯⼈命，遭回禄，破家⽽亡。"
       }
     },
     {
-      "id": "case_178",
+      "id": "extended_case_146",
+      "legacy_id": "case_178",
+      "source_index": 146,
       "name": "滴天髓命例 癸丑丁巳甲辰庚午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸丑",
         "month_pillar": "丁巳",
         "day_pillar": "甲辰",
         "hour_pillar": "庚午",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 此与前造只换辰丑二字，丑乃北⽅湿⼟，晦⽕蓄⽔，癸⽔通根⽽载丑；辰亦湿⼟，又是⽊之余⽓，⽇元⾜盘 根；庚⾦虽不能⽣⽔辅⽤，⽽癸⽔坐下余⽓，竟可作⽤。初运⽊旺，帮⾝护⽤，和平迪吉；⾄癸丑北⽅⽔地"
       }
     },
     {
-      "id": "case_179",
+      "id": "extended_case_147",
+      "legacy_id": "case_179",
+      "source_index": 147,
       "name": "滴天髓命例 壬午乙巳丁丑丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬午",
         "month_pillar": "乙巳",
         "day_pillar": "丁丑",
         "hour_pillar": "丙午",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙午 丁未 戊申 己酉 庚戌 ⾟亥 丁⽕⽣于孟夏，柱中劫旺逢枭，天⼲壬⽆根，置之不⽤。最喜丑中一点财星，深藏归库，丑为湿⼟，能泄⽕ ⽓，不但⽆争夺之风，反有⽣财之谊。因初交丙午丁未，所以⾝出寒门，书⾹不继；喜中运三十载西⽅⼟⾦"
       }
     },
     {
-      "id": "case_180",
+      "id": "extended_case_148",
+      "legacy_id": "case_180",
+      "source_index": 148,
       "name": "滴天髓命例 戊午壬戌丁卯癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊午",
         "month_pillar": "壬戌",
         "day_pillar": "丁卯",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 甲子 乙丑 丙寅 丁卯 戊辰 己巳 此伤官当令，印星并见，官煞虽透⽆根，势在去官。初年运⾛北⽅，官星得势，一事⽆成；丙寅丁卯，⽣助 ⽕⼟，经营发财巨万；戊辰己巳，去尽官煞，一子登科，晚景峥嵘。此造戌午拱⽕，⽇时逢印，⽇主旺极，"
       }
     },
     {
-      "id": "case_181",
+      "id": "extended_case_149",
+      "legacy_id": "case_181",
+      "source_index": 149,
       "name": "滴天髓命例 癸丑壬戌丙午庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸丑",
         "month_pillar": "壬戌",
         "day_pillar": "丙午",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 庚申 己未 戊午 丁巳 丙辰 丙⽕⽣于九⽉，⽇主本不及时，第坐阳刃会⽕局，谓之强寡。年⼲癸进⽓，癸⽔通根余⽓丑⼟，泄其⽕局， 庚⾦⽣助壬癸为众也。势在成乎众，故交⾟酉庚申，⾦⽣⽔旺，遗业丰盈，其乐⾃如；一交己未，⽕⼟并"
       }
     },
     {
-      "id": "case_182",
+      "id": "extended_case_150",
+      "legacy_id": "case_182",
+      "source_index": 150,
       "name": "滴天髓命例 丙寅庚寅甲申乙丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙寅",
         "month_pillar": "庚寅",
         "day_pillar": "甲申",
         "hour_pillar": "乙丑",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟卯 壬辰 癸巳 甲午 乙未 丙申 甲⽊⽣于⽴春后四⽇，春初⽊嫩，天⽓寒凝，⽇主坐申，⽉透庚⾦，丑⼟贴⽣申⾦，⽊嫩⾦坚，⽤⽕以攻 之。喜得年于透丙，三阳开泰，万象回春，何其妙也！初运⾟卯壬辰，有伤丙⽕，蹭蹬芸窗；癸巳运转南"
       }
     },
     {
-      "id": "case_183",
+      "id": "extended_case_151",
+      "legacy_id": "case_183",
+      "source_index": 151,
       "name": "滴天髓命例 庚戌己卯甲寅丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚戌",
         "month_pillar": "己卯",
         "day_pillar": "甲寅",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚辰 ⾟巳 壬午 癸未 甲申 乙酉 甲⽊⽣于仲春，坐禄逢刃，⽊旺⾦衰，⽤⼟以成之，⽅能化⼟⽣⾦，斩削以成真。初游幕，获利纳捐，⾄癸 未运出仕；甲申乙酉，⽊⽆根，⾦得地，从佐二升知县⽽迁州牧。"
       }
     },
     {
-      "id": "case_184",
+      "id": "extended_case_152",
+      "legacy_id": "case_184",
+      "source_index": 152,
       "name": "滴天髓命例 庚辰壬午甲辰丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "壬午",
         "day_pillar": "甲辰",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸未 甲申 乙酉 丙戌 丁亥 戊子 甲⽊⽣于仲夏，时⼲丁⽕透出，⽤⽔以润之，然⽔亦赖⾦⽣，⾦亦赖⽔养；更妙⽀逢两辰，泄⽕⽣⾦蓄⽔， 一⽓相⽣，五⾏俱⾜。是以早游泮⽔，科甲联登，仕⾄观察，一⽣惟丙戌运⾦⽔两伤不利，其余皆顺境。"
       }
     },
     {
-      "id": "case_185",
+      "id": "extended_case_153",
+      "legacy_id": "case_185",
+      "source_index": 153,
       "name": "滴天髓命例 庚戌甲申甲戌乙丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚戌",
         "month_pillar": "甲申",
         "day_pillar": "甲戌",
         "hour_pillar": "乙丑",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙酉 丙戌 丁亥 戊子 己丑 庚寅 甲⽊⽣于孟秋，财⽣杀旺，虽天⼲三透甲乙，⽽地⽀不载，⽊凋⾦锐，⽤⼟以从之也。格成从杀。戌运武甲 出⾝；丁亥运⽣⽊克⾦，刑耗多端；戊子己丑，财⽣杀旺，仕⾄副将。"
       }
     },
     {
-      "id": "case_186",
+      "id": "extended_case_154",
+      "legacy_id": "case_186",
+      "source_index": 154,
       "name": "滴天髓命例 丙子己亥丙寅戊子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙子",
         "month_pillar": "己亥",
         "day_pillar": "丙寅",
         "hour_pillar": "戊子",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚子 ⾟丑 壬寅 癸卯 甲辰 乙巳 丙⽕⽣于孟冬，又逢两子，天⼲离衰，地⽀坎旺，⽤寅⽊以升之也。⾄壬寅，东⽅⽊地，采芹折桂；卯运出 仕，一路运⾛东南，仕⾄观察。"
       }
     },
     {
-      "id": "case_187",
+      "id": "extended_case_155",
+      "legacy_id": "case_187",
+      "source_index": 155,
       "name": "滴天髓命例 壬午壬寅壬戌庚戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬午",
         "month_pillar": "壬寅",
         "day_pillar": "壬戌",
         "hour_pillar": "庚戌",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸卯 甲辰 乙巳 丙午 丁未 戊申 壬⽔⽣于孟春，⽀全⽕局，虽年⽉两透⽐肩，皆属⽆根。天⼲坎衰，地⽀离旺，⽤庚⾦以降之也。惜乎运途 东南，在外奔驰四十年，一⽆成就；⾄五旬外，交戊申，娶妻三，年已六旬矣。连⽣三子，⾄戌运⽽终。"
       }
     },
     {
-      "id": "case_188",
+      "id": "extended_case_156",
+      "legacy_id": "case_188",
+      "source_index": 156,
       "name": "滴天髓命例 丙子丙申丙子丙申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙子",
         "month_pillar": "丙申",
         "day_pillar": "丙子",
         "hour_pillar": "丙申",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁酉 戊戌 己亥 庚子 ⾟丑 壬寅 癸卯 甲辰 此造地⽀，两申两子，⽔逢⽣旺，⾦作⽔论；天⼲四丙，地⽀⽆根，离衰坎旺，须以⽊运和之也。惜乎五⾏ 不顺，五十年西北⾦⽔之地，故艰难险阻，刑伤颠沛；五旬外运⾛壬寅，东⽅⽊地，财进业兴，及癸卯甲"
       }
     },
     {
-      "id": "case_189",
+      "id": "extended_case_157",
+      "legacy_id": "case_189",
+      "source_index": 157,
       "name": "滴天髓命例 癸巳壬戌壬午壬寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸巳",
         "month_pillar": "壬戌",
         "day_pillar": "壬午",
         "hour_pillar": "壬寅",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 庚申 己未 戊午 丁巳 丙辰 壬午⽇元，⽣于戌⽉，⽀会⽕局，年⽀坐巳，天⼲皆饮，地⽀皆离，必须⾦运以解之也。初交⾟酉庚申，正 得成其既济，解其财杀之势，叨化⽇之光，丰⾐⾜⾷；一交己未，刑耗异常，戊午财杀并旺，出外遇盗丧"
       }
     },
     {
-      "id": "case_190",
+      "id": "extended_case_158",
+      "legacy_id": "case_190",
+      "source_index": 158,
       "name": "滴天髓命例 壬子丙午壬子丙午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬子",
         "month_pillar": "丙午",
         "day_pillar": "壬子",
         "hour_pillar": "丙午",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 己酉 庚戌 ⾟亥 壬子 此造⽔⽕交战于⼲⽀，⽕当令，⽔休囚，喜其⽆⼟，⽇和不克。初交丁未，年逢戊午，天克地冲，财杀两 旺，⽗母双亡，流为乞丐；交申运逢际遇，己酉运发财数万，娶妻⽣子成家。"
       }
     },
     {
-      "id": "case_191",
+      "id": "extended_case_159",
+      "legacy_id": "case_191",
+      "source_index": 159,
       "name": "滴天髓命例 癸卯乙丑庚申丁丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "乙丑",
         "day_pillar": "庚申",
         "hour_pillar": "丁丑",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 癸亥 壬戌 ⾟酉 庚申 己未 此造寒⾦坐禄，印绶当权，⾜以⽤⽕敌寒。所忌者，年⼲癸⽔克丁为病，全赖⽉⼲乙⽊通根，泄⽔⽣⽕，此 喜神即是财星也。更喜财星逢合，谓财来就我，其妻贤淑勤能，⽣三子，皆就书⾹。"
       }
     },
     {
-      "id": "case_192",
+      "id": "extended_case_160",
+      "legacy_id": "case_192",
+      "source_index": 160,
       "name": "滴天髓命例 丁未乙巳丁酉癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "乙巳",
         "day_pillar": "丁酉",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲辰 癸卯 壬寅 ⾟丑 庚子 己亥 丁⽕⽣于孟夏，柱中枭劫当权，一点癸⽔，不⾜相制，最喜坐下酉⾦，冲去卯⽊，⽣起癸⽔。出⾝贫寒，癸 运⼊学，又得财巨万；壬运登科，⾟丑选知县，仕⾄郡守。此造若⽆酉⾦，不但⽆财，⽽且名亦不成矣。"
       }
     },
     {
-      "id": "case_193",
+      "id": "extended_case_161",
+      "legacy_id": "case_193",
+      "source_index": 161,
       "name": "滴天髓命例 乙亥庚辰丙申壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "庚辰",
         "day_pillar": "丙申",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯 戊寅 丁丑 丙子 乙亥 甲戌 丙⽕⽣于季春，印绶通根⽣旺，⽇主坐财，时⼲又透壬⽔，必以乙⽊为⽤。可嫌者，乙庚化⾦，⽣杀坏印， 其妻不贤，妒悍异常，⽆子⽽绝。财之为害。可畏哉！"
       }
     },
     {
-      "id": "case_194",
+      "id": "extended_case_162",
+      "legacy_id": "case_194",
+      "source_index": 162,
       "name": "滴天髓命例 癸亥甲子丁酉癸卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸亥",
         "month_pillar": "甲子",
         "day_pillar": "丁酉",
         "hour_pillar": "癸卯",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸亥 壬戌 ⾟酉 庚申 己未 戊午 此造杀官当令，嫌其甲⽊透⼲，不能弃命从杀，只得杀重⽤印，则忌卯酉逢冲，去甲⽊之旺地。所⽣妻⽣八 ⼥，妾⽣⼊⼥，竟⼉子。所谓⾝衰印作和，此财星坏印之故也，。"
       }
     },
     {
-      "id": "case_195",
+      "id": "extended_case_163",
+      "legacy_id": "case_195",
+      "source_index": 163,
       "name": "滴天髓命例 戊子癸亥壬戌甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊子",
         "month_pillar": "癸亥",
         "day_pillar": "壬戌",
         "hour_pillar": "甲辰",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 乙丑 丙寅 丁卯 戊辰 己巳 壬⽔⽣于孟冬，喜其⽆⾦，⾷神独透，所以书⾹⼩就，甲寅⼊泮，有十子皆育。其不妻者，⽆财之妙也；秋 闱不利者，⽆地寅卯也。此造如戌⼟换之以⽊，青云得路矣。"
       }
     },
     {
-      "id": "case_196",
+      "id": "extended_case_164",
+      "legacy_id": "case_196",
+      "source_index": 164,
       "name": "滴天髓命例 丁酉丁未戊戌丁巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁酉",
         "month_pillar": "丁未",
         "day_pillar": "戊戌",
         "hour_pillar": "丁巳",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙午 乙巳 甲辰 癸卯 壬寅 ⾟丑 ⼟⽣夏令，重叠印绶，四柱全⽆⽔⽓，燥⼟不泄⽕⽣⾦，克三妻五子。⾄丑运湿⼟晦⽕⽣⾦，又会⾦局，得 一子⽅育。"
       }
     },
     {
-      "id": "case_197",
+      "id": "extended_case_165",
+      "legacy_id": "case_197",
+      "source_index": 165,
       "name": "滴天髓命例 癸卯乙丑丙子己丑",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "乙丑",
         "day_pillar": "丙子",
         "hour_pillar": "己丑",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 癸亥 壬戌 ⾟酉 庚申 己未 此造官印透⽽得禄，财星藏⽽归库，格局未尝不美，所嫌者，丑时伤官肆逞，官星退⽓，⽇主衰弱，全赖乙 ⽊⽣⽕⽽卫官。年⽉官印相⽣，亦出⾝官家，⾄亥⽀⼊泮；壬戌⽔通根，破耗异常加捐出仕，不过清规；⾄"
       }
     },
     {
-      "id": "case_198",
+      "id": "extended_case_166",
+      "legacy_id": "case_198",
+      "source_index": 166,
       "name": "滴天髓命例 乙卯丁亥戊午丙辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙卯",
         "month_pillar": "丁亥",
         "day_pillar": "戊午",
         "hour_pillar": "丙辰",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙戌 乙酉 甲申 癸未 壬午 ⾟巳 戊⼟⽣于孟冬，财星临旺，官印双清坐禄，⽇元临旺逢⽣，四柱纯粹可观，五⾏⽣化有情，喜⽤皆有精神， 所以⾏运不破局，⾝出官家，连登科甲，⽣五子皆登仁籍，富贵福寿之造也。"
       }
     },
     {
-      "id": "case_199",
+      "id": "extended_case_167",
+      "legacy_id": "case_199",
+      "source_index": 167,
       "name": "滴天髓命例 丁亥壬寅丙子丁酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁亥",
         "month_pillar": "壬寅",
         "day_pillar": "丙子",
         "hour_pillar": "丁酉",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟丑 庚子 己亥 戊戌 丁酉 丙申 丙⽕⽣于春初，谓相⽕有焰，不作旺论。⽉⼲壬⽔通根，亥子杀旺⽆制，喜其丁午寅亥合⽽化印，以杂为 恩。时⽀财星，⽣官坏印，以杂为恩。时⽀财星，⽣官坏印，又得丁⽕盖头，使其不能克⽊，所以同胞七"
       }
     },
     {
-      "id": "case_200",
+      "id": "extended_case_168",
+      "legacy_id": "case_200",
+      "source_index": 168,
       "name": "滴天髓命例 癸巳戊午丙午庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸巳",
         "month_pillar": "戊午",
         "day_pillar": "丙午",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 此造⽺刃当权，又逢⽣旺，更可嫌者，戊癸合⽽化⽕，财为众劫所夺，兄弟六⼈，皆不成器，遭累不堪。余 造年⽉⽇皆同，换一壬辰时，弱杀不能相制，亦有六弟，得⼒者早亡，其余皆不肖，以致拖累破家。总之劫"
       }
     },
     {
-      "id": "case_201",
+      "id": "extended_case_169",
+      "legacy_id": "case_201",
+      "source_index": 169,
       "name": "滴天髓命例 壬申丙午癸亥戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬申",
         "month_pillar": "丙午",
         "day_pillar": "癸亥",
         "hour_pillar": "戊午",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁未 戊申 己酉 庚戌 ⾟亥 壬子 癸⽔⽣于仲夏，又逢午时，财官太旺。喜其⽇元得地，更妙年⼲劫坐长⽣，财星有⽓，尤羡五⾏⽆⽊，财⽔ 泄⽽⽕⽆助，壬⽔可⽤。且运⾛西北，⾦⽔得地，遗绪不丰，⾃创四五十万，一妻四妾八子。"
       }
     },
     {
-      "id": "case_202",
+      "id": "extended_case_170",
+      "legacy_id": "case_202",
+      "source_index": 170,
       "name": "滴天髓命例 癸酉丁巳丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸酉",
         "month_pillar": "丁巳",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 丙⽕⽣于孟夏，坐禄临旺，喜其巳酉拱⾦，财⽣官，官制劫，更妙时透壬⽔，助起官星，以成既济。三旬外 运⾛北⽅⽔地，登科发甲，名利双辉。勿以官杀混杂为嫌也，⾝旺者，必要官杀混杂⽽发也。"
       }
     },
     {
-      "id": "case_203",
+      "id": "extended_case_171",
+      "legacy_id": "case_203",
+      "source_index": 171,
       "name": "滴天髓命例 癸卯甲寅丁巳己酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "甲寅",
         "day_pillar": "丁巳",
         "hour_pillar": "己酉",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 壬子 ⾟亥 庚戌 己酉 戊申 此造财藏杀露，杀印相⽣，又联珠相⽣，似乎贵格，所以祖业二十余万；不知年⼲之杀⽆根，其菁华尽被印 绶窃去，必⽤酉⾦之财。盖头覆之以⼟。似科有情，但⽊旺⼟虚，相⽕逢⽣，则巳酉不会，财不真矣。一交"
       }
     },
     {
-      "id": "case_204",
+      "id": "extended_case_172",
+      "legacy_id": "case_204",
+      "source_index": 172,
       "name": "滴天髓命例 庚午壬午丙寅庚寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚午",
         "month_pillar": "壬午",
         "day_pillar": "丙寅",
         "hour_pillar": "庚寅",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸未 甲申 乙酉 丙戌 丁亥 戊子 此夏⽕逢⾦，财滋弱杀，两⽀不杂，杀刃神清，定然名利双辉。不知地⽀⽊⽕，不载⾦⽔，杯⽔车薪，不但 不能制⽕，反泄财星之⽓，夏⽉庚⾦败绝，财之不真可知矣。早运癸未、甲申、乙酉⼟⾦之地，丰⾐⾜⾷；"
       }
     },
     {
-      "id": "case_205",
+      "id": "extended_case_173",
+      "legacy_id": "case_205",
+      "source_index": 173,
       "name": "滴天髓命例 乙卯乙酉庚寅壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙卯",
         "month_pillar": "乙酉",
         "day_pillar": "庚寅",
         "hour_pillar": "壬午",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲申 癸未 壬午 ⾟巳 庚辰 己卯 秋⾦乘令，财官并旺，⾷神吐秀，⼤象观之，富贵之命。第财星太重，官星拱局，⽇主反弱，不任其财官， 全赖劫刃扶⾝，被卯冲午克，时⼲壬⽔，不能克⽕，反泄⽇元之⽓，财财星不真矣。初运甲申禄旺，早年⼊"
       }
     },
     {
-      "id": "case_206",
+      "id": "extended_case_174",
+      "legacy_id": "case_206",
+      "source_index": 174,
       "name": "滴天髓命例 庚辰乙酉丁丑乙巳",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "乙酉",
         "day_pillar": "丁丑",
         "hour_pillar": "乙巳",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙戌 丁亥 戊子 己丑 庚寅 ⾟卯 《》 丁⽕⽇元，时逢旺地，两印⽣⾝。⽕焰⾦叠，似乎富格，不知⽉⼲乙⽊，从庚⽽化，⽀会⾦局，四柱皆财，"
       }
     },
     {
-      "id": "case_207",
+      "id": "extended_case_175",
+      "legacy_id": "case_207",
+      "source_index": 175,
       "name": "滴天髓命例 丁丑壬子丁亥甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁丑",
         "month_pillar": "壬子",
         "day_pillar": "丁亥",
         "hour_pillar": "甲辰",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟亥 庚戌 己酉 戊申 丁未 丙午 丁⽕⽣于仲冬，⼲透壬⽔，⽀全亥、子、丑北⽅，官星旺格；辰乃湿⼟，不能制⽔，反能晦⽕，谓清枯之 象，官星反不真也。喜其⽆⾦，⽓势纯清，其为⼈学问真确，处世⽆苟，训蒙度⽇，苦守清贫，上等官星不"
       }
     },
     {
-      "id": "case_208",
+      "id": "extended_case_176",
+      "legacy_id": "case_208",
+      "source_index": 176,
       "name": "滴天髓命例 丙辰庚寅丙午壬辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "庚寅",
         "day_pillar": "丙午",
         "hour_pillar": "壬辰",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟卯 壬辰 癸巳 甲午 乙未 丙申 此造财绝⽆根，官又⽆⽓，兼之运⾛东南之地，幼年丧⽗，依母转嫁他姓；数年母死，牧⽜度⽇，稍长则卖 ⼒佣⼯；后双⽬失明，不能佣作，求乞⾃活。"
       }
     },
     {
-      "id": "case_209",
+      "id": "extended_case_177",
+      "legacy_id": "case_209",
+      "source_index": 177,
       "name": "滴天髓命例 甲子丙寅戊寅己未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲子",
         "month_pillar": "丙寅",
         "day_pillar": "戊寅",
         "hour_pillar": "己未",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁卯 戊辰 己巳 庚午 ⾟未 壬申 癸酉 甲戌 春初⼟虚，杀旺逢财，以丙⽕为⽤，喜其财印相隔，⽣⽣不悖；更妙未时帮⾝为喜，四柱纯粹，主从得宜。 所以早登甲第，一⽣有吉⽆凶，仕⾄观察，后退归优游林下，⽣六子皆登科第，夫妇齐眉，寿越八旬。"
       }
     },
     {
-      "id": "case_210",
+      "id": "extended_case_178",
+      "legacy_id": "case_210",
+      "source_index": 178,
       "name": "滴天髓命例 丙申己亥庚辰戊寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙申",
         "month_pillar": "己亥",
         "day_pillar": "庚辰",
         "hour_pillar": "戊寅",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚子 ⾟丑 壬寅 癸卯 甲辰 乙巳 丙午 此寒⾦喜⽕，得时⽀寅⽊之⽣，则⽕有焰，然有财杀，必先⾝旺。妙在年⽀坐禄，三印贴⽣，更妙亥⽔当 权，申⾦含⽣忘冲。⽆⽕则⼟冻⾦寒，⽆⽊则⽔旺⽕虚，以⽕为⽤，以⽊为喜，⽊⽕两字，缺一不可。所以"
       }
     },
     {
-      "id": "case_211",
+      "id": "extended_case_179",
+      "legacy_id": "case_211",
+      "source_index": 179,
       "name": "滴天髓命例 乙亥戊寅丙子甲午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "戊寅",
         "day_pillar": "丙子",
         "hour_pillar": "甲午",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 丙子 乙亥 甲戌 癸酉 壬申 丙⽕⽣于寅⽉，印星当令，时逢刃旺，甲乙并旺透，四柱⽆⾦；寅亥化⽊，子⽔冲破，官星⽆⽤，必以⽉⼲ 戊⼟为⽤"
       }
     },
     {
-      "id": "case_212",
+      "id": "extended_case_180",
+      "legacy_id": "case_212",
+      "source_index": 180,
       "name": "滴天髓命例 己酉乙亥丙寅戊子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己酉",
         "month_pillar": "乙亥",
         "day_pillar": "丙寅",
         "hour_pillar": "戊子",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲戌 癸酉 壬申 ⾟未 庚午 己巳 戊辰 此以酉⾦为源头，⽣亥⽔，亥⽔合寅⽽⽣丙，丙⽕⽣戊⼟，元神皆厚。乡榜出⾝，仕⾄观察，为⼈宽厚端 ⽅，九子二十四孙，富有百余万，寿⾄百二十岁，⽆疾⽽终。"
       }
     },
     {
-      "id": "case_213",
+      "id": "extended_case_181",
+      "legacy_id": "case_213",
+      "source_index": 181,
       "name": "滴天髓命例 丁未庚戌庚辰丙子",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "庚戌",
         "day_pillar": "庚辰",
         "hour_pillar": "丙子",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 戊申 丁未 丙午 乙巳 甲辰 《》 此以丁⽕为源头，⽣⼟，⼟⽣⾦，两藏财库，⾝旺⽤官。中年⾏运不背，所以早登乡榜，名利双辉。为⼈有"
       }
     },
     {
-      "id": "case_214",
+      "id": "extended_case_182",
+      "legacy_id": "case_214",
+      "source_index": 182,
       "name": "滴天髓命例 乙未戊寅乙卯庚辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙未",
         "month_pillar": "戊寅",
         "day_pillar": "乙卯",
         "hour_pillar": "庚辰",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 丙子 乙亥 甲戌 癸酉 壬申 ⾟未 庚午 此⽀类东⽅，正曲直仁寿格，⼤势观之，财官有⽓，名利裕如。第五⾏⽕不出现，财之元神虚脱，寅卯东⽅ ⽊旺，官司星之根亦薄。所以一⽣操剥削，资囊未满先倾，且平⽣仗义疏财；为⼈⽆骄谄，存古道，苦守清"
       }
     },
     {
-      "id": "case_215",
+      "id": "extended_case_183",
+      "legacy_id": "case_215",
+      "source_index": 183,
       "name": "滴天髓命例 癸丑甲寅戊戌庚申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸丑",
         "month_pillar": "甲寅",
         "day_pillar": "戊戌",
         "hour_pillar": "庚申",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 壬子 ⾟亥 庚戌 己酉 戊申 戊戌⽇逢庚申时，⾷神有⼒，杀旺⽆印，⾜以强制。⽣八九子，有三四子贵显⽽授一品之诰封者，⼟⾦有情 之妙也。其为⼈贪恶两备者，不能化杀之故也，淫靡⽆礼者，⽕不现，⽔得地之故也。盖寅申冲，则丙⽕必"
       }
     },
     {
-      "id": "case_216",
+      "id": "extended_case_184",
+      "legacy_id": "case_216",
+      "source_index": 184,
       "name": "滴天髓命例 戊辰庚申己卯戊辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊辰",
         "month_pillar": "庚申",
         "day_pillar": "己卯",
         "hour_pillar": "戊辰",
-        "day_master": "己",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟酉 壬戌 癸亥 甲子 乙丑 丙寅 此⼟⾦伤官，辰中癸⽔，正财归库，申中壬⽔，正财逢⽣，劫虽旺，⽽不能夺；且⼟⽓尽归于⾦，伤官化 劫，暗处⽣财，兼之独杀为权，故为⼈权谋异众，地⽀皆阴湿之⽓，作事诡谲多端，一⽣所重者财，⽽少仁"
       }
     },
     {
-      "id": "case_217",
+      "id": "extended_case_185",
+      "legacy_id": "case_217",
+      "source_index": 185,
       "name": "滴天髓命例 壬寅壬寅甲寅壬申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "壬寅",
         "month_pillar": "壬寅",
         "day_pillar": "甲寅",
         "hour_pillar": "壬申",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸卯 甲辰 乙巳 丙午 丁未 戊申 春⽊重逢禄，⽀得申时，似乎时杀留清，不知⽊旺⾦缺，必要有⽕才佳；天于三壬，寅中丙⽕受克，神枯可 知。⾄丙⽀，逢三壬回克，家业败尽，夭⽽⽆子。凡⽔⽊并旺⽆⼟者，最忌⽕运，即不伤⾝，刑耗异常。若"
       }
     },
     {
-      "id": "case_218",
+      "id": "extended_case_186",
+      "legacy_id": "case_218",
+      "source_index": 186,
       "name": "滴天髓命例 戊申甲寅壬寅丁未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊申",
         "month_pillar": "甲寅",
         "day_pillar": "壬寅",
         "hour_pillar": "丁未",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸丑 壬子 ⾟亥 庚戌 己酉 戊申 丁未 丙午 壬⽔⽣于孟春，⼟虚⽊盛。制杀太过。寅申逢冲，本是克⽊，不知⽊旺⾦缺。⾦反被伤，则戊⼟⽆根依抚， ⽽⽇主之壬⽔，可任性⽽⾏，见其财星有势，⾃然从财⽽去，以致伤夫败业，弃子从⼈也。"
       }
     },
     {
-      "id": "case_219",
+      "id": "extended_case_187",
+      "legacy_id": "case_219",
+      "source_index": 187,
       "name": "滴天髓命例 丁未乙巳甲午丁卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "乙巳",
         "day_pillar": "甲午",
         "hour_pillar": "丁卯",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丙午 丁未 戊申 己酉 庚戌 ⾟亥 壬子 癸丑 甲午⽇元，⽣于巳⽉，⽀类南⽅，⼲透两丁。⽕势猛烈。泄⽓太过，局中⽆⽔，只可⽤劫。初运又⾛⽕地， 是以早刑夫主。⼈极聪明美貌，⽽轻佻异常，不能守节。⾄戊申运，与⽊⽕争战，不堪⾔矣。"
       }
     },
     {
-      "id": "case_220",
+      "id": "extended_case_188",
+      "legacy_id": "case_220",
+      "source_index": 188,
       "name": "滴天髓命例 戊戌己未丙辰戊戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊戌",
         "month_pillar": "己未",
         "day_pillar": "丙辰",
         "hour_pillar": "戊戌",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "戊午 丁巳 丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 满局伤官，五⾏⽆⽊，印星不现，格成顺局，故其⼈聪明美貌。第四柱⽆⾦，⼟过燥厚，⾟⾦夫星投墓于 戌，是以淫乱不堪。夫遭凶死，又随⼈⾛，不二三年又克，⾄乙卯运，犯⼟之旺，⾃缢⽽死。"
       }
     },
     {
-      "id": "case_221",
+      "id": "extended_case_189",
+      "legacy_id": "case_221",
+      "source_index": 189,
       "name": "滴天髓命例 戊午乙丑戊戌丙辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊午",
         "month_pillar": "乙丑",
         "day_pillar": "戊戌",
         "hour_pillar": "丙辰",
-        "day_master": "戊",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲子 癸亥 壬戌 ⾟酉 庚申 己未 戊午 丁巳 戊⼟⽣于丑⽉，⼟旺⽤事，⽊正凋枯，且丑乃⾦库，⾟⾦伏藏，不能托根；更兼辰戌冲去藏官，置夫主于度 外，且中运西⽅⾦地，淫贱不堪。"
       }
     },
     {
-      "id": "case_222",
+      "id": "extended_case_190",
+      "legacy_id": "case_222",
+      "source_index": 190,
       "name": "滴天髓命例 己亥丙寅丁亥庚戌",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己亥",
         "month_pillar": "丙寅",
         "day_pillar": "丁亥",
         "hour_pillar": "庚戌",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁卯 戊辰 己巳 庚午 ⾟未 壬申 癸酉 《》 丁⽕⽣于寅⽉，⽊正当权，⽕逢相旺，必以亥⽔官星为夫明矣。年⽀亥⽔合寅化⽊，⽽⽇⽀亥⽔，必要⽣扶"
       }
     },
     {
-      "id": "case_223",
+      "id": "extended_case_191",
+      "legacy_id": "case_223",
+      "source_index": 191,
       "name": "滴天髓命例 丁未癸丑庚子丁亥",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁未",
         "month_pillar": "癸丑",
         "day_pillar": "庚子",
         "hour_pillar": "丁亥",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 乙卯 丙辰 丁巳 戊午 己未 庚申 寒⾦喜⽕，嫌其⽀全亥子丑。北⽅⽔旺，又有⼲癸克丁，丑未冲去丁⽕余⽓，五⾏⽆⽊，未得⽣化之情。时 ⼲之丁虚脱⽆根，焉能管伏庚⾦？⽽⽇主之情，不顾丁⽕可知，所以⽔性杨花也。"
       }
     },
     {
-      "id": "case_224",
+      "id": "extended_case_192",
+      "legacy_id": "case_224",
+      "source_index": 192,
       "name": "滴天髓命例 丁丑癸丑庚子乙酉",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁丑",
         "month_pillar": "癸丑",
         "day_pillar": "庚子",
         "hour_pillar": "乙酉",
-        "day_master": "庚",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲寅 乙卯 丙辰 丁巳 戊午 己未 庚申 ⾟酉 庚⾦⽣于季冬，不但寒⾦喜⽕，⽽且时逢阳刃印绶当权，⾜以⽤⽕敌寒；⽉⼲癸⽔，通根禄⽀，克绝丁⽕， 其意⾜以欺官；时逢乙⽊，喜⽽合之，其情必向财矣。所以背夫⽽去，淫秽不堪也。"
       }
     },
     {
-      "id": "case_225",
+      "id": "extended_case_193",
+      "legacy_id": "case_225",
+      "source_index": 193,
       "name": "滴天髓命例 戊子戊午癸酉戊午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "戊子",
         "month_pillar": "戊午",
         "day_pillar": "癸酉",
         "hour_pillar": "戊午",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁巳 丙辰 乙卯 甲寅 癸丑 壬子 ⾟亥 庚戌 癸⽔⽣于午⽉，财官并旺，坐下印绶，年⽀坐禄，未尝不中和。天⼲三透戊⼟，争合癸⽔，则⽇主之情，竟 ⽆定见；地⽀两午坏酉，⽽财官之势，不分强弱，⽇主之情，⾃然依财势⽽去。只有年⼲正夫⽆财势。其⼒"
       }
     },
     {
-      "id": "case_226",
+      "id": "extended_case_194",
+      "legacy_id": "case_226",
+      "source_index": 194,
       "name": "滴天髓命例 丁巳戊申癸丑乙卯",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁巳",
         "month_pillar": "戊申",
         "day_pillar": "癸丑",
         "hour_pillar": "乙卯",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己酉 庚戌 ⾟亥 壬子 癸丑 甲寅 乙卯 丙辰 此造官星⾷神坐禄，印绶当令逢⽣，财⽣官旺，不伤印绶，印绶当令，⾜以扶⾝，⾷神得地，一⽓相⽣，五 ⾏停匀，安详纯粹。夫荣子贵，受两代一品之封。"
       }
     },
     {
-      "id": "case_227",
+      "id": "extended_case_195",
+      "legacy_id": "case_227",
+      "source_index": 195,
       "name": "滴天髓命例 乙亥癸酉甲辰丙寅",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "癸酉",
         "day_pillar": "甲辰",
         "hour_pillar": "丙寅",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲戌 乙亥 丙子 丁丑 戊寅 乙卯 庚辰 ⾟巳 《》 八⽉官星财星助⾦，⽣于寅时，年时两⽀逢⽣得禄，⽕⽔⼲透，⽆相克之势，有⽣化之情。财星得地，四柱"
       }
     },
     {
-      "id": "case_228",
+      "id": "extended_case_196",
+      "legacy_id": "case_228",
+      "source_index": 196,
       "name": "滴天髓命例 己巳癸酉壬辰甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己巳",
         "month_pillar": "癸酉",
         "day_pillar": "壬辰",
         "hour_pillar": "甲辰",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲戌 乙亥 丙子 丁丑 戊寅 己卯 庚辰 ⾟巳 秋⽔通源，印星秉令，官杀虽旺，制化合宜，更妙时透甲⽊，制杀吐秀，一派纯粹之⽓，所以⼈品端庄，精 于诗书。喜运途⽆⽕。官不助，印不伤，夫星贵显，子嗣秀美，诰封二品之荣。"
       }
     },
     {
-      "id": "case_229",
+      "id": "extended_case_197",
+      "legacy_id": "case_229",
+      "source_index": 197,
       "name": "滴天髓命例 庚辰壬午乙亥癸未",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "壬午",
         "day_pillar": "乙亥",
         "hour_pillar": "癸未",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "⾟巳 庚辰 己卯 戊寅 丁丑 丙子 乙亥 甲戌 ⽊⽣午⽉，⽕势猛⽽⾦柔脆之时，喜壬癸通根制⽕，辰⼟泄⽕⽣⾦，则⽕⼟不烈燥，⽔⽊不枯涸，接续相 ⽣，清⽽纯粹。为⼥中才子，⽣三子，夫任京官，家道清寒。在家教子读书，二子登科，一子发甲，夫官郎"
       }
     },
     {
-      "id": "case_230",
+      "id": "extended_case_198",
+      "legacy_id": "case_230",
+      "source_index": 198,
       "name": "滴天髓命例 庚辰戊寅乙酉壬午",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚辰",
         "month_pillar": "戊寅",
         "day_pillar": "乙酉",
         "hour_pillar": "壬午",
-        "day_master": "乙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "丁丑 丙子 乙亥 甲戌 癸酉 壬申 ⾟未 庚午 乙⽊⽣于春初，⽊嫩⾦坚，最喜午时制杀卫⾝，寒⽊向阳，官印双清，财星⽣官，不坏印绶，纯粹安和。夫 官二品，五子二十三孙，一⽣⽆疾，夫妇齐眉，寿⾄八旬外，⽆疾⽽终，后裔皆显贵。"
       }
     },
     {
-      "id": "case_231",
+      "id": "extended_case_199",
+      "legacy_id": "case_231",
+      "source_index": 199,
       "name": "滴天髓命例 丙辰癸巳丁丑甲辰",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丙辰",
         "month_pillar": "癸巳",
         "day_pillar": "丁丑",
         "hour_pillar": "甲辰",
-        "day_master": "丁",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "壬辰 ⾟卯 庚寅 己丑 戊子 丁亥 丙戌 乙酉 丁⽕⽣于巳⽉，癸⽔夫星清透，时⼲甲⽊，印绶独清，是以品格端庄，持⾝贞洁。惜丙⽕太旺，⽣助伤官， 以臻镜破钗分。然喜巳丑拱⾦，财星得⽤，⾝旺以财为子，教子成名，两子皆贵，受三品之封。"
       }
     },
     {
-      "id": "case_232",
+      "id": "extended_case_200",
+      "legacy_id": "case_232",
+      "source_index": 200,
       "name": "滴天髓命例 丁酉癸卯丙辰丙申",
       "source": "滴天髓阐微",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "丁酉",
         "month_pillar": "癸卯",
         "day_pillar": "丙辰",
         "hour_pillar": "丙申",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲辰 乙巳 丙午 丁未 戊申 己酉 庚戌 ⾟亥 丙⽕⽣于仲春，官透财藏，印星秉令，⽐劫邦⾝，似乎旺相。第嫌卯酉逢冲，癸丁相克，⽊⽕损⽽⾦⽔存， 虽赖时⼲丙⽕之助，但丙临申位，亦⾃顾不暇。幸辰中蓄藏余⽓，一点微苗，尚存春令，犹能备⽤，较之前"
       }
     },
     {
-      "id": "case_201",
+      "id": "extended_case_201",
+      "legacy_id": "case_201",
+      "source_index": 201,
       "name": "水火既济格（辛巳辛丑丙子戊子）",
       "source": "三命通会",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "辛巳",
         "month_pillar": "辛丑",
         "day_pillar": "丙子",
         "hour_pillar": "戊子",
-        "day_master": "丙",
         "body_strength": "",
-        "pattern": "水火既济格",
+        "pattern": "水火既济格"
+      },
+      "legacy_annotations": {
         "description": "辛巳辛丑丙子戊子，丙日临子坐下正官月时引旺重逢奇仪入水火既济格大贵"
       }
     },
     {
-      "id": "case_202",
+      "id": "extended_case_202",
+      "legacy_id": "case_202",
+      "source_index": 202,
       "name": "萧耀南命造",
       "source": "穷通宝鉴-甲木篇",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "乙亥",
         "month_pillar": "己卯",
         "day_pillar": "甲申",
         "hour_pillar": "乙亥",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "乙亥己卯甲申乙亥，萧耀南命造是也，一见癸水泄煞之气便失制刃之意"
       }
     },
     {
-      "id": "case_203",
+      "id": "extended_case_203",
+      "legacy_id": "case_203",
+      "source_index": 203,
       "name": "梁鼎芬命造",
       "source": "穷通宝鉴-丙火篇",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己未",
         "month_pillar": "辛未",
         "day_pillar": "壬午",
         "hour_pillar": "戊申",
-        "day_master": "壬",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "咸丰九年六月初六日申时，申辰会局透壬用午丁火更有庚金劈甲引丁位至"
       }
     },
     {
-      "id": "case_204",
+      "id": "extended_case_204",
+      "legacy_id": "case_204",
+      "source_index": 204,
       "name": "天元一气甲木命造",
       "source": "穷通宝鉴",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "甲辰",
         "month_pillar": "甲戌",
         "day_pillar": "甲辰",
         "hour_pillar": "甲戌",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "甲辰甲戌甲辰甲戌四柱皆土天元一气甲木专取季土为财富贵长"
       }
     },
     {
-      "id": "case_205",
+      "id": "extended_case_205",
+      "legacy_id": "case_205",
+      "source_index": 205,
       "name": "孙世忠怀宁侯命造",
       "source": "穷通宝鉴-辛金篇",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "癸卯",
         "month_pillar": "辛酉",
         "day_pillar": "癸巳",
         "hour_pillar": "丙辰",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "癸卯辛酉癸巳丙辰孙世忠怀宁侯命造"
       }
     },
     {
-      "id": "case_206",
+      "id": "extended_case_206",
+      "legacy_id": "case_206",
+      "source_index": 206,
       "name": "谭延闿命造",
       "source": "穷通宝鉴-癸水篇",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "己卯",
         "month_pillar": "丁丑",
         "day_pillar": "癸丑",
         "hour_pillar": "乙卯",
-        "day_master": "癸",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "己卯丁丑癸丑乙卯谭院长延闿命造大寒节后"
       }
     },
     {
-      "id": "case_207",
+      "id": "extended_case_207",
+      "legacy_id": "case_207",
+      "source_index": 207,
       "name": "严嵩命造",
       "source": "穷通宝鉴-庚金篇",
-      "year": 0,
-      "month": 0,
-      "day": 0,
-      "hour": 0,
-      "minute": 0,
       "gender": "MALE",
       "expected": {
         "year_pillar": "庚子",
         "month_pillar": "辛巳",
         "day_pillar": "甲申",
         "hour_pillar": "丙寅",
-        "day_master": "甲",
         "body_strength": "",
-        "pattern": "",
+        "pattern": ""
+      },
+      "legacy_annotations": {
         "description": "庚辛并见而无丙丁虽科甲正途终嫌阴柔奸险此明代严嵩命造"
       }
     }

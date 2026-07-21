@@ -2,31 +2,30 @@ package bazi
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 )
 
 // =============================================================================
-// 神煞精度测试
+// 神煞探索性诊断
 // 对照依据：《渊海子平》《三命通会》神煞体系
 // 测试计划参考：PRECISION_TEST_PLAN.md — 1.5 CalcShenShaByPillars
 // =============================================================================
 
 // ShenShaTestCase 神煞测试用例
 type ShenShaTestCase struct {
-	ID       string
-	Desc     string
-	YearPillar string
+	ID          string
+	Desc        string
+	YearPillar  string
 	MonthPillar string
-	DayPillar  string
-	HourPillar string
-	Gender     string
-	Expected struct {
-		DayShenSha  []string // 期望日柱出现的神煞
-		YearShenSha []string // 期望年柱出现的神煞
-		MonthShenSha []string // 期望月柱出现的神煞
-		HourShenSha []string // 期望时柱出现的神煞
+	DayPillar   string
+	HourPillar  string
+	Gender      string
+	Expected    struct {
+		DayShenSha    []string // 期望日柱出现的神煞
+		YearShenSha   []string // 期望年柱出现的神煞
+		MonthShenSha  []string // 期望月柱出现的神煞
+		HourShenSha   []string // 期望时柱出现的神煞
 		GlobalShenSha []string // 期望全局神煞
 	}
 	Source string
@@ -40,51 +39,51 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-001", Desc: "甲日天乙贵人（丑未）",
 		YearPillar: "壬辰", MonthPillar: "壬寅", DayPillar: "甲寅", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"天乙贵人"}, YearShenSha: []string{}, MonthShenSha: []string{}, HourShenSha: []string{}, GlobalShenSha: []string{}},
-		Source: "渊海子平·论天乙贵人",
+		Source: "三命通会PDF第97-98页·论天乙贵人",
 	},
 	{
 		ID: "SS-002", Desc: "乙日天乙贵人（子申）",
 		YearPillar: "丙子", MonthPillar: "己亥", DayPillar: "乙丑", HourPillar: "壬午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"天乙贵人"}, YearShenSha: []string{}, MonthShenSha: []string{}, HourShenSha: []string{}, GlobalShenSha: []string{}},
-		Source: "渊海子平·论天乙贵人",
+		Source: "三命通会PDF第97-98页·论天乙贵人",
 	},
 	{
 		ID: "SS-003", Desc: "丙日天乙贵人（亥酉）",
 		YearPillar: "丁未", MonthPillar: "乙未", DayPillar: "丙午", HourPillar: "丁未", Gender: "FEMALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}, MonthShenSha: []string{}, YearShenSha: []string{}, HourShenSha: []string{}, GlobalShenSha: []string{}},
 		// 丙午日，地支午、未、未皆非亥酉，故无天乙贵人
-		Source: "渊海子平·论天乙贵人",
+		Source: "三命通会PDF第97-98页·论天乙贵人",
 	},
 	{
 		ID: "SS-004", Desc: "庚日天乙贵人（丑未）",
 		YearPillar: "庚申", MonthPillar: "乙酉", DayPillar: "庚戌", HourPillar: "庚辰", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		// 庚日贵人丑未，庚戌支为戌，故无天乙贵人
-		Source: "渊海子平·论天乙贵人",
+		Source: "三命通会PDF第97-98页·论天乙贵人",
 	},
 
 	// ====== 禄神 ======
@@ -93,10 +92,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-010", Desc: "甲日禄神（寅）",
 		YearPillar: "壬辰", MonthPillar: "壬寅", DayPillar: "甲寅", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"禄神"}},
 		Source: "渊海子平·论禄",
@@ -105,10 +104,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-011", Desc: "丙日禄神（巳）— 丙午日支午非巳",
 		YearPillar: "丁未", MonthPillar: "乙未", DayPillar: "丙午", HourPillar: "丁未", Gender: "FEMALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论禄",
@@ -117,10 +116,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-012", Desc: "癸日禄神（子）— 无子支",
 		YearPillar: "癸酉", MonthPillar: "甲子", DayPillar: "癸亥", HourPillar: "辛酉", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"禄神"}},
 		// 癸亥日，亥非子 → 无禄神
@@ -134,10 +133,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-020", Desc: "甲日羊刃（卯）— 甲寅日支寅非卯",
 		YearPillar: "壬辰", MonthPillar: "壬寅", DayPillar: "甲寅", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论羊刃",
@@ -146,52 +145,52 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-021", Desc: "壬日羊刃（子）— 壬戌日支戌非子",
 		YearPillar: "己酉", MonthPillar: "乙丑", DayPillar: "壬戌", HourPillar: "庚子", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论羊刃",
 	},
 
-	// ====== 三合神煞（驿马/华盖/桃花/劫煞/亡神/灾煞）=====
+	// ====== 三合神煞（驿马/华盖/咸池/劫煞/亡神/灾煞）=====
 	// 申子辰：马寅、盖辰、桃酉、劫巳、亡亥、灾午
 	// 寅午戌：马申、盖戌、桃卯、劫亥、亡巳、灾子
-	// 巳酉丑：马亥、盖丑、桃午、劫寅、亡申、灾卯
-	// 亥卯未：马巳、盖未、桃子、劫申、亡寅、灾酉
+	// 巳酉丑：马亥、盖丑、咸池午、劫寅、亡申、灾卯
+	// 亥卯未：马巳、盖未、咸池子、劫申、亡寅、灾酉
 	{
 		ID: "SS-030", Desc: "申子辰驿马（寅）",
 		YearPillar: "壬申", MonthPillar: "庚子", DayPillar: "壬辰", HourPillar: "庚子", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论驿马",
 	},
 	{
-		ID: "SS-031", Desc: "亥卯未桃花（子）",
+		ID: "SS-031", Desc: "亥卯未咸池（子）",
 		YearPillar: "乙亥", MonthPillar: "戊寅", DayPillar: "己亥", HourPillar: "丙寅", Gender: "FEMALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
-		Source: "渊海子平·论桃花",
+		Source: "三命通会PDF第81页·论咸池",
 	},
 	{
 		ID: "SS-032", Desc: "寅午戌华盖（戌）",
 		YearPillar: "庚戌", MonthPillar: "丙戌", DayPillar: "甲寅", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"华盖"}},
 		// 甲寅日，寅午戌华盖在戌，日支寅非戌
@@ -202,10 +201,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-033", Desc: "巳酉丑劫煞（寅）",
 		YearPillar: "癸酉", MonthPillar: "甲子", DayPillar: "癸亥", HourPillar: "辛酉", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论劫煞",
@@ -218,10 +217,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-040", Desc: "寅月天德（丁）",
 		YearPillar: "乙丑", MonthPillar: "戊寅", DayPillar: "甲子", HourPillar: "丙寅", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{MonthShenSha: []string{"天德"}},
 		// 寅月(正月)天德在丁，月柱戊寅，寅藏干丙→非丁，月干戊→非丁
@@ -232,10 +231,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-041", Desc: "申子辰月月德（壬）",
 		YearPillar: "壬申", MonthPillar: "庚子", DayPillar: "丙午", HourPillar: "甲午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{MonthShenSha: []string{}},
 		// 子月：申子辰月德在壬。月柱庚子干庚非壬
@@ -249,10 +248,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-050", Desc: "壬辰日魁罡",
 		YearPillar: "壬辰", MonthPillar: "壬寅", DayPillar: "壬辰", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{"魁罡"}},
 		Source: "渊海子平·论魁罡",
@@ -261,10 +260,10 @@ var shenShaTestCases = []ShenShaTestCase{
 		ID: "SS-051", Desc: "甲寅日非魁罡",
 		YearPillar: "壬辰", MonthPillar: "壬寅", DayPillar: "甲寅", HourPillar: "庚午", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
 		}{DayShenSha: []string{}},
 		Source: "渊海子平·论魁罡",
@@ -276,17 +275,17 @@ var shenShaTestCases = []ShenShaTestCase{
 	// 巳午未：孤辰在申、寡宿在辰
 	// 申酉戌：孤辰在亥、寡宿在未
 	{
-		ID: "SS-060", Desc: "亥子丑孤辰（寅）",
+		ID: "SS-060", Desc: "酉年孤辰在亥并落日柱",
 		YearPillar: "癸酉", MonthPillar: "甲子", DayPillar: "癸亥", HourPillar: "辛酉", Gender: "MALE",
 		Expected: struct {
-			DayShenSha  []string
-			YearShenSha []string
-			MonthShenSha []string
-			HourShenSha []string
+			DayShenSha    []string
+			YearShenSha   []string
+			MonthShenSha  []string
+			HourShenSha   []string
 			GlobalShenSha []string
-		}{DayShenSha: []string{}},
-		// 日支亥属亥子丑局，孤辰在寅。日支亥非寅
-		Source: "渊海子平·论孤辰寡宿",
+		}{DayShenSha: []string{"孤辰"}},
+		// 生年支酉属申酉戌方，孤辰在亥；日支亥因此命中。
+		Source: "三命通会PDF第118页；渊海子平PDF第632、744页",
 	},
 }
 
@@ -372,14 +371,9 @@ func TestShenShaPrecision(t *testing.T) {
 			dayItems, yearItems, monthItems, hourItems))
 	}
 
-	// 输出报告
+	// 输出探索性诊断；这些预期未进入 Gold，不构成准确性指标。
 	report := results.report()
 	t.Log("\n" + report)
-
-	if f, err := os.Create("/tmp/bazi_shensha_precision_report.txt"); err == nil {
-		defer f.Close()
-		f.WriteString(report)
-	}
 }
 
 // =============================================================================
@@ -412,10 +406,10 @@ func containsString(slice []string, s string) bool {
 // =============================================================================
 
 type shenShaTestRecord struct {
-	caseID  string
+	caseID   string
 	category string
-	passed  bool
-	detail  string
+	passed   bool
+	detail   string
 }
 
 type shenShaReport struct {
@@ -451,18 +445,13 @@ func (r *shenShaReport) report() string {
 	var sb strings.Builder
 	sb.WriteString("\n")
 	sb.WriteString("╔══════════════════════════════════════════════════════════════════╗\n")
-	sb.WriteString("║          神煞精度测试报告                                     ║\n")
+	sb.WriteString("║          神煞探索性诊断报告                                   ║\n")
 	sb.WriteString("║ 对照来源: 《渊海子平》《三命通会》                              ║\n")
 	sb.WriteString("╚══════════════════════════════════════════════════════════════════╝\n\n")
 
 	total := r.passed + r.failed
-	rate := 0.0
-	if total > 0 {
-		rate = float64(r.passed) / float64(total) * 100
-	}
-
-	sb.WriteString(fmt.Sprintf("总断言数: %d | 通过: %d | 失败: %d | 准确率: %.1f%%\n\n",
-		total, r.passed, r.failed, rate))
+	sb.WriteString(fmt.Sprintf("探索性检查: %d | 一致: %d | 差异: %d；不进入发布指标分母\n\n",
+		total, r.passed, r.failed))
 	sb.WriteString(fmt.Sprintf("测试用例数: %d\n\n", r.total))
 
 	// 失败详情
@@ -473,18 +462,18 @@ func (r *shenShaReport) report() string {
 		}
 	}
 
-		// 报告实际输出和人工核查结论
-		sb.WriteString("\n=== 实际输出（供分析）===\n")
-		sb.WriteString("⚠️ 注意：神煞测试是「探索性测试」— 用于发现算法的真实输出。\n")
-		sb.WriteString("   多数失败的根源是测试用例预期写到了错误的柱位，而非算法错误。\n")
-		sb.WriteString("   以下结果需人工核查后修正预期，再升级为压制性测试。\n\n")
-		for id, actual := range r.actuals {
-			sb.WriteString(fmt.Sprintf("  [%s] %s\n", id, actual))
-		}
+	// 报告实际输出和人工核查结论
+	sb.WriteString("\n=== 实际输出（供分析）===\n")
+	sb.WriteString("⚠️ 注意：神煞测试是「探索性测试」— 用于发现算法的真实输出。\n")
+	sb.WriteString("   多数失败的根源是测试用例预期写到了错误的柱位，而非算法错误。\n")
+	sb.WriteString("   以下结果需人工核查后修正预期，再升级为压制性测试。\n\n")
+	for id, actual := range r.actuals {
+		sb.WriteString(fmt.Sprintf("  [%s] %s\n", id, actual))
+	}
 
-		// === 人工核查结论 ===
-		sb.WriteString("\n=== 初步人工核查结论 ===\n")
-		sb.WriteString(`SS-001 (甲日天乙贵人): 甲日贵人丑未。日寅/年辰/月寅/时午皆非→全柱无✓ 预期误写在日柱
+	// === 人工核查结论 ===
+	sb.WriteString("\n=== 初步人工核查结论 ===\n")
+	sb.WriteString(`SS-001 (甲日天乙贵人): 甲日贵人丑未。日寅/年辰/月寅/时午皆非→全柱无✓ 预期误写在日柱
 SS-002 (乙日天乙贵人): 乙日贵人在子申。日丑非→日无✓。年支子→年柱有✓ 预期误写在日柱
 SS-003 (丙日天乙贵人): 丙日贵人亥酉。日午/年未/月未/时未皆非→全柱无✓
 SS-004 (庚日天乙贵人): 庚日贵人丑未。日戌→日无✓。但时柱辰→辰是丑未？不，辰≠丑未
@@ -494,22 +483,22 @@ SS-012 (癸日禄神): 癸禄在子。日亥→日无✓。月柱子→月柱有
 SS-020 (甲日羊刃): 甲刃在卯。日寅→日无✓ 
 SS-021 (壬日羊刃): 壬刃在子。日戌→日无✓。时柱子→时柱有羊刃✓
 SS-030 (申子辰驿马): 日辰→辰不为寅,但属四墓库地带✓
-SS-031 (亥卯未桃花): 桃花在子。四柱无子→全柱无桃花✓
+SS-031 (亥卯未咸池): 咸池在子。四柱无子→全柱无咸池✓
 SS-032 (寅午戌华盖): 华盖在戌。日寅非戌→日无✓。年戌→年有华盖✓ 预期误写在日柱
 SS-033 (巳酉丑劫煞): 劫煞在寅。日亥→日无✓
 SS-040 (寅月天德): 天德在丁。全局无丁→月柱无天德✓
 SS-041 (申子辰月德): 月德在壬。月干庚非壬。但年干壬→全局有✓
 SS-050 (壬辰日魁罡): 日柱有魁罡✓ 通过
 SS-051 (甲寅日非魁罡): 日柱无魁罡✓
-SS-060 (亥子丑孤辰): 孤辰在寅。日亥→日亥不是寅,但日支亥属亥子丑局→月柱寅有孤辰✓
+SS-060 (酉年孤辰): 生年支酉属申酉戌方，孤辰在亥；日支亥命中✓
 
 结论：算法推测工作正常！18用例中算法本身无错误。
 所有失败原因：测试用例预期设计到了错误的柱位（日柱vs年柱/月柱）。需重写测试用例。
 `)
-		sb.WriteString("\n=== 神煞精度汇总 ===\n")
-		sb.WriteString(fmt.Sprintf("算法正确率（初步）: 100%% (%d/%d)\n", r.passed+r.failed, r.passed+r.failed))
-		sb.WriteString("测试用例设计错误: 5/7 失败断言\n")
-		sb.WriteString("需修复：重新设计神煞测试用例，精确指定每个神煞应出现的柱位\n")
+	sb.WriteString("\n=== 神煞精度汇总 ===\n")
+	sb.WriteString(fmt.Sprintf("算法正确率（初步）: 100%% (%d/%d)\n", r.passed+r.failed, r.passed+r.failed))
+	sb.WriteString("测试用例设计错误: 5/7 失败断言\n")
+	sb.WriteString("需修复：重新设计神煞测试用例，精确指定每个神煞应出现的柱位\n")
 
 	return sb.String()
 }

@@ -85,7 +85,6 @@ var DayShenMap = map[string][12]string{
 	"桃花": [12]string{"酉", "午", "卯", "子", "酉", "午", "卯", "子", "酉", "午", "卯", "子"},
 }
 
-
 var SpecialDayShenShaMap = map[string][]string{
 	// 九丑日
 	"戊子": {"九丑日", "阴差阳错", "六秀日", "阳煞"},
@@ -162,8 +161,9 @@ var GanShenMap = map[string][10]string{
 	"红艳": [10]string{"午", "申", "寅", "未", "辰", "辰", "戌", "酉", "子", "申"},
 }
 
-// ShenInfoMap holds 神煞 description texts.
-var ShenInfoMap = map[string]string{
+// legacyShenInfoMap is quarantined historical interpretation text. Product
+// output must use the controlled metadata in bazi/shensha_meta.go instead.
+var legacyShenInfoMap = map[string]string{
 	// === 吉神类 ===
 	"天乙贵人": "后天解难，逢凶化吉，得权贵提携。女命多贵人则交际广，易有感情烦恼。",
 	"天德贵人": "先天福泽，化解灾祸，一生少病，女命旺夫。",
@@ -363,18 +363,4 @@ var TiaoHou = map[string]string{
 	"壬申": "1戊2_丁", "壬酉": "1甲2_庚", "壬戌": "1甲2_丙", "壬亥": "1戊2庚丙", "壬子": "1丙2_戊", "壬丑": "1丙2甲丁",
 	"癸寅": "1辛2_丙", "癸卯": "1庚2_辛", "癸辰": "1丙2甲辛", "癸巳": "1辛", "癸午": "1庚2癸壬", "癸未": "1庚2壬辛3癸",
 	"癸申": "1丁", "癸酉": "1辛2_丙", "癸戌": "1辛2壬甲3癸", "癸亥": "1庚2戊辛3丁", "癸子": "1丙3_辛", "癸丑": "1丙2丁",
-}
-
-// JinBuHuan maps stem (甲, 乙, ...) to金不换调候 description.
-var JinBuHuan = map[string]string{
-	"甲": "辰戌丑未入墓库运；巳未申酉亥月有夭折运；申酉戌亥月调候待改进！",
-	"乙": "辰未亥有夭寿运；寅辰午申酉调候待改进！",
-	"丙": "子酉亥有夭折运；午未亥调候待改进！",
-	"丁": "子辰午亥有夭折运；寅巳午酉戌调候待改进！",
-	"戊": "卯亥有夭折运；未辰戌调候待改进！",
-	"己": "子寅卯酉亥有夭损运；寅卯辰巳亥子丑调候待改进！",
-	"庚": "子卯辰巳午戌有损寿运；寅卯辰巳午申调候待改进！",
-	"辛": "丑寅有夭折运；寅卯巳午酉戌亥调候待改进！",
-	"壬": "巳未申有损寿运；寅卯巳午亥调候待改进！",
-	"癸": "丑寅午戌亥有损寿运；子丑辰巳午未亥调候待改进！",
 }

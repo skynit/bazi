@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bazi.local/schemas/sanming-ncl-page-review-submission-v1.schema.json",
+  "title": "Sanming NCL independent page-mapping review submission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "version",
+    "protocol_id",
+    "assignment_id",
+    "reviewer_pseudonym",
+    "stage",
+    "submitted_at",
+    "attestations",
+    "items"
+  ],
+  "properties": {
+    "schema": {
+      "const": "sanming_ncl_page_mapping_review_submission_v1"
+    },
+    "version": {
+      "const": "2026-07-17.1"
+    },
+    "protocol_id": {
+      "const": "sanming-ncl-page-mapping-review-v1"
+    },
+    "assignment_id": {
+      "type": "string",
+      "pattern": "^(volume|chapter)-reviewer-[ab]-[0-9]{3}$"
+    },
+    "reviewer_pseudonym": {
+      "type": "string",
+      "pattern": "^reviewer-[A-Z0-9]{8}$"
+    },
+    "stage": {
+      "enum": [
+        "volume_label_review",
+        "chapter_boundary_review"
+      ]
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attestations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worked_independently",
+        "other_reviewer_decisions_unseen",
+        "machine_page_candidates_unseen",
+        "no_prior_volume_label_operator_role"
+      ],
+      "properties": {
+        "worked_independently": {
+          "const": true
+        },
+        "other_reviewer_decisions_unseen": {
+          "const": true
+        },
+        "machine_page_candidates_unseen": {
+          "const": true
+        },
+        "no_prior_volume_label_operator_role": {
+          "const": true
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reviewItem"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "volume_label_review"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "items": {
+            "items": {
+              "properties": {
+                "item_id": {
+                  "pattern": "^volume-[0-9]{2}$"
+                },
+                "decision": {
+                  "enum": [
+                    "volume_heading_confirmed",
+                    "volume_heading_differs",
+                    "wrong_book_segment",
+                    "scan_incomplete_or_illegible"
+                  ]
+                },
+                "chapter_start": {
+                  "type": "null"
+                },
+                "chapter_end": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "chapter_boundary_review"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "items": {
+            "items": {
+              "properties": {
+                "item_id": {
+                  "pattern": "^chapter-[0-9]{3}$"
+                },
+                "decision": {
+                  "enum": [
+                    "chapter_boundary_located",
+                    "chapter_not_located",
+                    "scan_incomplete_or_illegible"
+                  ]
+                },
+                "transcribed_heading": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "part",
+        "physical_page"
+      ],
+      "properties": {
+        "part": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "physical_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "reviewItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "decision",
+        "transcribed_heading",
+        "chapter_start",
+        "chapter_end",
+        "evidence_pages",
+        "notes"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "string",
+          "pattern": "^(volume-[0-9]{2}|chapter-[0-9]{3})$"
+        },
+        "decision": {
+          "enum": [
+            "volume_heading_confirmed",
+            "volume_heading_differs",
+            "wrong_book_segment",
+            "chapter_boundary_located",
+            "chapter_not_located",
+            "scan_incomplete_or_illegible"
+          ]
+        },
+        "transcribed_heading": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "chapter_start": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/page"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "chapter_end": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/page"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/page"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "volume_heading_confirmed",
+                  "volume_heading_differs"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "transcribed_heading": {
+                "type": "string",
+                "minLength": 1
+              },
+              "chapter_start": {
+                "type": "null"
+              },
+              "chapter_end": {
+                "type": "null"
+              },
+              "evidence_pages": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "enum": [
+                  "wrong_book_segment"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "chapter_start": {
+                "type": "null"
+              },
+              "chapter_end": {
+                "type": "null"
+              },
+              "evidence_pages": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "chapter_boundary_located"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "transcribed_heading": {
+                "type": "null"
+              },
+              "chapter_start": {
+                "$ref": "#/$defs/page"
+              },
+              "chapter_end": {
+                "$ref": "#/$defs/page"
+              },
+              "evidence_pages": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "chapter_not_located"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "transcribed_heading": {
+                "type": "null"
+              },
+              "chapter_start": {
+                "type": "null"
+              },
+              "chapter_end": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "scan_incomplete_or_illegible"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "chapter_start": {
+                "type": "null"
+              },
+              "chapter_end": {
+                "type": "null"
+              },
+              "evidence_pages": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

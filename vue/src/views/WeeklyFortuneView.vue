@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  fetchWeekly,
-  parseTrend,
-  type WeeklyFortuneResponse,
-} from '../api/fortune'
+import { fetchWeekly, parseTrend, type WeeklyFortuneResponse } from '../api/fortune'
 import FortuneChart from '../components/FortuneChart.vue'
 import AuroraMeshBackground from '../components/fortune/AuroraMeshBackground.vue'
 import ScoreOrb from '../components/fortune/ScoreOrb.vue'
@@ -32,17 +28,17 @@ const weekRange = computed(() => {
 
 const heatDays = computed(() => {
   const summary = data.value?.summary
-  return (data.value?.daily_fortunes ?? []).map(d => ({
+  return (data.value?.daily_fortunes ?? []).map((d) => ({
     date: d.solar_date,
     score: d.score,
     dayPillar: d.day_gan_zhi,
-    isBest: summary?.best_day === d.solar_date,
-    isWorst: summary?.worst_day === d.solar_date,
+    isHighest: summary?.highest_index_day === d.solar_date,
+    isLowest: summary?.lowest_index_day === d.solar_date,
   }))
 })
 
 const weekdayLabels = computed(() => {
-  return (data.value?.daily_fortunes ?? []).map(d => {
+  return (data.value?.daily_fortunes ?? []).map((d) => {
     const dt = new Date(d.solar_date + 'T00:00:00')
     return dt.toLocaleDateString('zh-CN', { weekday: 'short' }).replace('星期', '')
   })
@@ -66,7 +62,9 @@ async function load() {
     try {
       const s = localStorage.getItem('bazi_last_birth')
       if (s) cid = Number(JSON.parse(s).chartId) || null
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   if (!cid) {
     error.value = '请先创建命盘'
@@ -112,21 +110,20 @@ onMounted(load)
         <section class="hero">
           <div class="hero-left">
             <span class="eyebrow">BaZi · Weekly</span>
-            <h1 class="title">本周运势</h1>
+            <h1 class="title">本周结构观察</h1>
             <p class="range tabular-nums">{{ weekRange }}</p>
-            <p class="advice">{{ data.summary.key_advice }}</p>
             <div class="chips">
               <BestWorstChip
-                v-if="data.summary.best_day"
-                variant="best"
-                :date="data.summary.best_day"
-                :score="data.summary.best_score"
+                v-if="data.summary.highest_index_day"
+                variant="highest"
+                :date="data.summary.highest_index_day"
+                :score="data.summary.highest_index"
               />
               <BestWorstChip
-                v-if="data.summary.worst_day"
-                variant="worst"
-                :date="data.summary.worst_day"
-                :score="data.summary.worst_score"
+                v-if="data.summary.lowest_index_day"
+                variant="lowest"
+                :date="data.summary.lowest_index_day"
+                :score="data.summary.lowest_index"
               />
               <span v-if="data.summary.dominant_element" class="meta-chip">
                 <span class="dot" :style="{ background: 'var(--jade-accent)' }"></span>
@@ -139,9 +136,9 @@ onMounted(load)
           </div>
           <div class="hero-right">
             <ScoreOrb
-              :score="data.weekly_score"
-              label="本周综合"
-              :caption="`波动 ±${data.summary.volatility.toFixed(1)}`"
+              :score="data.structural_relation_index"
+              label="周均结构指数"
+              :caption="`标准差 ${data.summary.index_standard_deviation.toFixed(1)}`"
             />
           </div>
         </section>
@@ -149,8 +146,10 @@ onMounted(load)
         <!-- Heat strip -->
         <section class="glass-card heat-card">
           <header class="card-head">
-            <span class="card-eyebrow">日历强度</span>
-            <span class="card-meta">连吉 {{ data.summary.good_streak }}d · 连低 {{ data.summary.bad_streak }}d</span>
+            <span class="card-eyebrow">每日结构指数</span>
+            <span class="card-meta">
+              最高 {{ data.summary.highest_index }} · 最低 {{ data.summary.lowest_index }}
+            </span>
           </header>
           <FortuneHeatStrip :days="heatDays" :weekday-labels="weekdayLabels" />
         </section>
@@ -166,8 +165,10 @@ onMounted(load)
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">分数曲线</span>
-              <span class="card-meta tabular-nums">均 {{ data.summary.average_score.toFixed(1) }}</span>
+              <span class="card-eyebrow">结构指数曲线</span>
+              <span class="card-meta tabular-nums"
+                >均 {{ data.summary.average_index.toFixed(1) }}</span
+              >
             </header>
             <FortuneChart :daily-data="trendData" height="260px" />
           </div>
@@ -186,17 +187,10 @@ onMounted(load)
               :date="d.solar_date"
               :day-pillar="d.day_gan_zhi"
               :score="d.score"
-              :lucky-color="d.lucky_color"
-              :lucky-number="d.lucky_number"
-              :wealth-dir="d.wealth_direction"
-              :guide-strategy="d.guide?.strategy"
-              :guide-element="d.guide?.primary_element"
-              :yi-items="d.yi"
-              :ji-items="d.ji"
-              :today-ten-god="d.today_ten_god"
+              :ten-god="d.ten_god?.name"
               :weekday="weekdayFor(d.solar_date)"
-              :is-best="data!.summary.best_day === d.solar_date"
-              :is-worst="data!.summary.worst_day === d.solar_date"
+              :is-highest="data!.summary.highest_index_day === d.solar_date"
+              :is-lowest="data!.summary.lowest_index_day === d.solar_date"
             />
           </div>
         </section>
@@ -240,7 +234,9 @@ onMounted(load)
   color: var(--text-muted);
   font-size: var(--fs-sm);
 }
-.state.error p { color: var(--crimson); }
+.state.error p {
+  color: var(--crimson);
+}
 .btn-link {
   color: rgba(var(--jade-accent-rgb), 1);
   text-decoration: none;
@@ -248,12 +244,22 @@ onMounted(load)
   letter-spacing: 0.04em;
 }
 .orb-skeleton {
-  width: 100px; height: 100px; border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
   background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.45), transparent 70%);
   filter: blur(4px);
   animation: pulse 1.6s ease-in-out infinite;
 }
-@keyframes pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.95 } }
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
 
 /* hero */
 .hero {
@@ -272,13 +278,25 @@ onMounted(load)
   box-shadow: var(--shadow-lg);
 }
 :global(.dark) .hero {
-  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
 }
 @media (min-width: 900px) {
-  .hero { grid-template-columns: 1.4fr 1fr; align-items: center; }
+  .hero {
+    grid-template-columns: 1.4fr 1fr;
+    align-items: center;
+  }
 }
-.hero-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.hero-right { display: flex; align-items: center; justify-content: center; }
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .eyebrow {
   font-family: var(--font-mono), monospace;
@@ -295,18 +313,21 @@ onMounted(load)
   margin: 0;
   color: var(--text);
 }
-.range { color: var(--text-muted); margin: 0; letter-spacing: 0.06em; font-size: var(--fs-sm); }
-.advice {
-  font-family: var(--font-serif), serif;
-  font-size: var(--fs-body);
-  line-height: 1.75;
-  color: var(--text);
-  margin: 4px 0 6px;
-  letter-spacing: 0.02em;
+.range {
+  color: var(--text-muted);
+  margin: 0;
+  letter-spacing: 0.06em;
+  font-size: var(--fs-sm);
 }
-.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .meta-chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
@@ -314,7 +335,12 @@ onMounted(load)
   color: var(--text-muted);
   background: var(--glass-bg);
 }
-.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 6px currentColor; }
+.meta-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
 
 /* glass card primitive */
 .glass-card {
@@ -330,14 +356,23 @@ onMounted(load)
   box-shadow: var(--shadow-md);
 }
 :global(.dark) .glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
 }
-.heat-card { display: flex; flex-direction: column; gap: 14px; }
+.heat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
 .card-head {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
-.card-head.plain { padding: 0 4px; }
+.card-head.plain {
+  padding: 0 4px;
+}
 .card-eyebrow {
   font-size: var(--fs-xs);
   letter-spacing: 0.32em;
@@ -345,12 +380,28 @@ onMounted(load)
   font-family: var(--font-mono), monospace;
   text-transform: uppercase;
 }
-.card-meta { font-size: var(--fs-xs); color: var(--text-soft); letter-spacing: 0.06em; }
+.card-meta {
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  letter-spacing: 0.06em;
+}
 
-.grid-2 { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+.grid-2 {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
-.day-grid-section { display: flex; flex-direction: column; gap: 14px; }
+.day-grid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .day-grid {
   display: grid;
   gap: 12px;
@@ -358,7 +409,10 @@ onMounted(load)
 }
 
 .footer-nav {
-  display: flex; gap: 14px; justify-content: center; padding: 8px 0;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  padding: 8px 0;
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
@@ -368,7 +422,11 @@ onMounted(load)
   font-weight: 500;
   letter-spacing: 0.04em;
 }
-.footer-nav a:hover { text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55); }
+.footer-nav a:hover {
+  text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55);
+}
 
-.tabular-nums { font-variant-numeric: tabular-nums; }
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
 </style>

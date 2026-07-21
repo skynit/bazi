@@ -88,7 +88,12 @@ func (r *Retriever) retrieveFTS(ctx context.Context, db *sql.DB, terms []string,
 		return nil, nil
 	}
 	rows, err := db.QueryContext(ctx, `
-		SELECT c.id, c.content, c.book, c.chapter, c.source_path, c.title, c.is_index, c.document_id, bm25(chunks_fts) AS rank
+		SELECT c.id, c.content, c.book, c.author, c.edition, c.volume, c.chapter, c.page, c.locator,
+		       c.source_path, c.title, c.artifact_path, c.artifact_sha256, c.document_sha256,
+		       c.source_tier, c.verification_status, c.artifact_kind, c.provenance_status,
+		       c.independence_status, c.coverage_status, c.catalog_claim_eligible, c.catalog_schema,
+		       c.catalog_version, c.catalog_sha256,
+		       c.is_index, c.document_id, bm25(chunks_fts) AS rank
 		FROM chunks_fts
 		JOIN chunks c ON c.id = chunks_fts.rowid
 		WHERE chunks_fts MATCH ? AND c.domain = 'bazi'
@@ -133,7 +138,12 @@ func (r *Retriever) retrieveLike(ctx context.Context, db *sql.DB, terms []string
 	}
 	args = append(args, topK*8)
 	rows, err := db.QueryContext(ctx, `
-		SELECT c.id, c.content, c.book, c.chapter, c.source_path, c.title, c.is_index, c.document_id
+		SELECT c.id, c.content, c.book, c.author, c.edition, c.volume, c.chapter, c.page, c.locator,
+		       c.source_path, c.title, c.artifact_path, c.artifact_sha256, c.document_sha256,
+		       c.source_tier, c.verification_status, c.artifact_kind, c.provenance_status,
+		       c.independence_status, c.coverage_status, c.catalog_claim_eligible, c.catalog_schema,
+		       c.catalog_version, c.catalog_sha256,
+		       c.is_index, c.document_id
 		FROM chunks c
 		WHERE c.domain = 'bazi' AND (`+strings.Join(clauses, " OR ")+`)
 		LIMIT ?`, args...)
@@ -201,53 +211,138 @@ type rowScanner interface {
 
 func scanChunkWithRank(rows rowScanner) (rag.RetrievedChunk, float64, error) {
 	var (
-		id         int64
-		content    string
-		book       string
-		chapter    string
-		sourcePath string
-		title      string
-		isIndex    int
-		documentID string
-		rank       float64
+		id                   int64
+		content              string
+		book                 string
+		author               string
+		edition              string
+		volume               string
+		chapter              string
+		page                 string
+		locator              string
+		sourcePath           string
+		title                string
+		artifactPath         string
+		artifactSHA256       string
+		documentSHA256       string
+		sourceTier           string
+		verificationStatus   string
+		artifactKind         string
+		provenanceStatus     string
+		independenceStatus   string
+		coverageStatus       string
+		catalogClaimEligible int
+		catalogSchema        string
+		catalogVersion       string
+		catalogSHA256        string
+		isIndex              int
+		documentID           string
+		rank                 float64
 	)
-	err := rows.Scan(&id, &content, &book, &chapter, &sourcePath, &title, &isIndex, &documentID, &rank)
+	err := rows.Scan(
+		&id, &content, &book, &author, &edition, &volume, &chapter, &page, &locator,
+		&sourcePath, &title, &artifactPath, &artifactSHA256, &documentSHA256, &sourceTier,
+		&verificationStatus, &artifactKind, &provenanceStatus, &independenceStatus, &coverageStatus,
+		&catalogClaimEligible, &catalogSchema, &catalogVersion, &catalogSHA256,
+		&isIndex, &documentID, &rank,
+	)
 	if err != nil {
 		return rag.RetrievedChunk{}, 0, err
 	}
-	return buildChunk(id, content, book, chapter, sourcePath, title, isIndex, documentID), rank, nil
+	return buildChunk(
+		id, content, book, author, edition, volume, chapter, page, locator, sourcePath, title,
+		artifactPath, artifactSHA256, documentSHA256, sourceTier, verificationStatus,
+		artifactKind, provenanceStatus, independenceStatus, coverageStatus, catalogClaimEligible,
+		catalogSchema, catalogVersion, catalogSHA256, isIndex, documentID,
+	), rank, nil
 }
 
 func scanChunk(rows rowScanner) (rag.RetrievedChunk, error) {
 	var (
-		id         int64
-		content    string
-		book       string
-		chapter    string
-		sourcePath string
-		title      string
-		isIndex    int
-		documentID string
+		id                   int64
+		content              string
+		book                 string
+		author               string
+		edition              string
+		volume               string
+		chapter              string
+		page                 string
+		locator              string
+		sourcePath           string
+		title                string
+		artifactPath         string
+		artifactSHA256       string
+		documentSHA256       string
+		sourceTier           string
+		verificationStatus   string
+		artifactKind         string
+		provenanceStatus     string
+		independenceStatus   string
+		coverageStatus       string
+		catalogClaimEligible int
+		catalogSchema        string
+		catalogVersion       string
+		catalogSHA256        string
+		isIndex              int
+		documentID           string
 	)
-	err := rows.Scan(&id, &content, &book, &chapter, &sourcePath, &title, &isIndex, &documentID)
+	err := rows.Scan(
+		&id, &content, &book, &author, &edition, &volume, &chapter, &page, &locator,
+		&sourcePath, &title, &artifactPath, &artifactSHA256, &documentSHA256, &sourceTier,
+		&verificationStatus, &artifactKind, &provenanceStatus, &independenceStatus, &coverageStatus,
+		&catalogClaimEligible, &catalogSchema, &catalogVersion, &catalogSHA256,
+		&isIndex, &documentID,
+	)
 	if err != nil {
 		return rag.RetrievedChunk{}, err
 	}
-	return buildChunk(id, content, book, chapter, sourcePath, title, isIndex, documentID), nil
+	return buildChunk(
+		id, content, book, author, edition, volume, chapter, page, locator, sourcePath, title,
+		artifactPath, artifactSHA256, documentSHA256, sourceTier, verificationStatus,
+		artifactKind, provenanceStatus, independenceStatus, coverageStatus, catalogClaimEligible,
+		catalogSchema, catalogVersion, catalogSHA256, isIndex, documentID,
+	), nil
 }
 
-func buildChunk(id int64, content, book, chapter, sourcePath, title string, isIndex int, documentID string) rag.RetrievedChunk {
+func buildChunk(
+	id int64,
+	content, book, author, edition, volume, chapter, page, locator, sourcePath, title string,
+	artifactPath, artifactSHA256, documentSHA256, sourceTier, verificationStatus string,
+	artifactKind, provenanceStatus, independenceStatus, coverageStatus string,
+	catalogClaimEligible int,
+	catalogSchema, catalogVersion, catalogSHA256 string,
+	isIndex int,
+	documentID string,
+) rag.RetrievedChunk {
 	return rag.RetrievedChunk{
 		ID:         fmt.Sprintf("local:%d", id),
 		Content:    content,
 		DocumentID: documentID,
 		Metadata: map[string]string{
-			"domain":      "bazi",
-			"book":        book,
-			"chapter":     chapter,
-			"source_path": sourcePath,
-			"title":       title,
-			"is_index":    fmt.Sprintf("%t", isIndex != 0),
+			"domain":                 "bazi",
+			"book":                   book,
+			"author":                 author,
+			"edition":                edition,
+			"volume":                 volume,
+			"chapter":                chapter,
+			"page":                   page,
+			"locator":                locator,
+			"source_path":            sourcePath,
+			"title":                  title,
+			"artifact_path":          artifactPath,
+			"artifact_sha256":        artifactSHA256,
+			"document_sha256":        documentSHA256,
+			"source_tier":            sourceTier,
+			"verification_status":    verificationStatus,
+			"artifact_kind":          artifactKind,
+			"provenance_status":      provenanceStatus,
+			"independence_status":    independenceStatus,
+			"coverage_status":        coverageStatus,
+			"catalog_claim_eligible": fmt.Sprintf("%t", catalogClaimEligible != 0),
+			"catalog_schema":         catalogSchema,
+			"catalog_version":        catalogVersion,
+			"catalog_sha256":         catalogSHA256,
+			"is_index":               fmt.Sprintf("%t", isIndex != 0),
 		},
 	}
 }

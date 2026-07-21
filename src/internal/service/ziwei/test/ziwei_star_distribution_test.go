@@ -29,13 +29,13 @@ var allMaleficStars = []string{
 
 // starDistributionTestCase holds a test case for star distribution verification.
 type starDistributionTestCase struct {
-	name       string
-	year       int
-	month      int
-	day        int
-	hour       int
-	minute     int
-	gender     string
+	name   string
+	year   int
+	month  int
+	day    int
+	hour   int
+	minute int
+	gender string
 }
 
 // TestMainStarDistribution verifies that all 14 main stars appear exactly once
@@ -67,7 +67,7 @@ func TestMainStarDistribution(t *testing.T) {
 			starCount := make(map[string]int)
 			starPalace := make(map[string]string)
 			for _, p := range chart.Palaces {
-				for _, s := range p.MainStars {
+				for _, s := range publishedMainStarNames(p) {
 					starCount[s]++
 					starPalace[s] = p.Name
 				}
@@ -124,7 +124,7 @@ func TestAuxiliaryStarDistribution(t *testing.T) {
 			// Collect all auxiliary stars from all palaces
 			auxCount := make(map[string]int)
 			for _, p := range chart.Palaces {
-				for _, s := range p.AuxStars {
+				for _, s := range publishedAuxStarNames(p) {
 					auxCount[s]++
 				}
 			}
@@ -193,12 +193,12 @@ func TestStarNoCrossContamination(t *testing.T) {
 			auxSet["天马"] = true
 
 			for _, p := range chart.Palaces {
-				for _, s := range p.MainStars {
+				for _, s := range publishedMainStarNames(p) {
 					if auxSet[s] {
 						t.Errorf("宫位 %s: 辅星 %s 出现在主星列表中", p.Name, s)
 					}
 				}
-				for _, s := range p.AuxStars {
+				for _, s := range publishedAuxStarNames(p) {
 					if mainSet[s] {
 						t.Errorf("宫位 %s: 主星 %s 出现在辅星列表中", p.Name, s)
 					}
@@ -227,12 +227,16 @@ func TestStarBrightnessMapIntegrity(t *testing.T) {
 		}
 	}
 
-	// Verify auxiliary star brightness map has entries for all key aux stars
-	auxStarsWithBrightness := []string{"左辅", "右弼", "文昌", "文曲", "天魁", "天钺",
-		"禄存", "天马", "擎羊", "陀罗", "火星", "铃星"}
+	// The pinned iztro source defines brightness only for these six auxiliary stars.
+	auxStarsWithBrightness := []string{"文昌", "文曲", "擎羊", "陀罗", "火星", "铃星"}
 	for _, star := range auxStarsWithBrightness {
 		if _, ok := AuxStarBrightnessMap[star]; !ok {
 			t.Errorf("AuxStarBrightnessMap 缺少辅星 %s 的亮度数据", star)
+		}
+	}
+	for _, star := range []string{"左辅", "右弼", "天魁", "天钺", "禄存", "天马", "地空", "地劫"} {
+		if _, ok := AuxStarBrightnessMap[star]; ok {
+			t.Errorf("AuxStarBrightnessMap 不应为无来源辅星 %s 生成亮度", star)
 		}
 	}
 }
@@ -265,13 +269,13 @@ func TestStarPlacementUniqueness(t *testing.T) {
 		t.Run("chart_"+strings.ReplaceAll(chart.FiveBureau, "局", ""), func(t *testing.T) {
 			starPalaces := make(map[string]string)
 			for _, p := range chart.Palaces {
-				for _, s := range p.MainStars {
+				for _, s := range publishedMainStarNames(p) {
 					if prev, ok := starPalaces[s]; ok {
 						t.Errorf("主星 %s 出现在多个宫位: %s 和 %s", s, prev, p.Name)
 					}
 					starPalaces[s] = p.Name
 				}
-				for _, s := range p.AuxStars {
+				for _, s := range publishedAuxStarNames(p) {
 					if prev, ok := starPalaces[s]; ok {
 						t.Errorf("辅星 %s 出现在多个宫位: %s 和 %s", s, prev, p.Name)
 					}

@@ -1,0 +1,250 @@
+{
+  "schema": "fortune_calculation_profile_manifest_v1",
+  "manifest_version": "2026-07-17.1",
+  "profile_id": "ziwei-nihaixia-v1",
+  "system": "ziwei",
+  "title": "紫微斗数倪海厦天纪 v1 研究 Profile",
+  "status": "draft_not_selectable_source_missing",
+  "runtime_selectable": false,
+  "activation_policy": "explicit_runtime_registration_after_gold_gate_only",
+  "runtime_binding": {
+    "kind": "research_only_no_equivalent_runtime",
+    "registered_profile_id": "",
+    "reference_profile_id": "ziwei-local-composite-v2",
+    "engine_version": "ziwei-local-go-2026-07-16.47",
+    "rule_version": "ziwei-rules-2026-07-16.47",
+    "school": "紫微斗数-本地综合规则-v2",
+    "equivalence_status": "reference_runtime_is_not_nihaixia_profile"
+  },
+  "calculation_scope": [
+    "source_catalog_and_edition",
+    "lunar_input_and_leap_month",
+    "life_and_body_palaces",
+    "twelve_palaces_and_heavenly_stems",
+    "five_bureau",
+    "fourteen_main_stars",
+    "school_specific_auxiliary_stars",
+    "school_specific_four_transformations",
+    "star_brightness",
+    "major_periods_and_transits",
+    "school_specific_pattern_findings",
+    "dataset_differential_only_after_provenance_review"
+  ],
+  "rule_modules": [
+    {
+      "rule_id": "ziwei.nihaixia.source-catalog-v1",
+      "status": "draft_unimplemented",
+      "scope": "《天纪》资料版次、章节、许可、页码/时间码和引文摘要目录",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap"],
+      "limitations": ["本地没有可定位的倪海厦紫微主资料", "资料未到位前不得实现规则表"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.calendar-and-leap-month-v1",
+      "status": "draft_unimplemented",
+      "scope": "历法、闰月及命身宫口径",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap"],
+      "limitations": ["不能继承本地综合 Profile 或 iztro 默认口径"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.main-star-placement-v1",
+      "status": "draft_unimplemented",
+      "scope": "五行局与十四主星安置",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap", "ziwei_iztro_silver_reference_only"],
+      "limitations": ["iztro 只能用于差分发现，不能补写倪海厦规则"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.auxiliary-star-allowlist-v1",
+      "status": "draft_unimplemented",
+      "scope": "辅星、煞星、杂曜白名单及逐星安置",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap"],
+      "limitations": ["星曜集合尚未从授权资料抽取并双人复核"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.four-transformations-v1",
+      "status": "draft_unimplemented",
+      "scope": "四化表、触发层级和落宫规则",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap"],
+      "limitations": ["不得从三合、飞星、钦天或 iztro 表静默回退"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.brightness-and-patterns-v1",
+      "status": "draft_unimplemented",
+      "scope": "亮度表、格局、三方会照与否决条件",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap", "ziwei_full_chart_gold_empty"],
+      "limitations": ["没有主资料与基础盘 Gold 时禁止生成该流派格局结论"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.period-and-transit-v1",
+      "status": "draft_unimplemented",
+      "scope": "大限、流年、流月、流日及本命分层",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_primary_source_gap"],
+      "limitations": ["运限口径尚未定位，不能沿用本地综合 Profile"]
+    },
+    {
+      "rule_id": "ziwei.nihaixia.dataset-differential-v1",
+      "status": "draft_unimplemented",
+      "scope": "计划书所述 51.8 万数据的结构、不变量和差分验证",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["nihaixia_dataset_gap"],
+      "limitations": ["数据集当前不在仓库", "来源、许可、生成口径与去重泄漏均未审核", "即使全量一致也不能作为现实预测准确率"]
+    }
+  ],
+  "source_evidence": [
+    {
+      "id": "nihaixia_primary_source_gap",
+      "tier": "not_available",
+      "kind": "evidence_gap",
+      "artifact_path": "",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "",
+      "license_scope": "not_available",
+      "review_status": "missing_primary_source",
+      "case_count": 0,
+      "limitations": ["library 目录没有倪海厦《天纪》紫微资料", "版次、许可与可审计定位均缺失"]
+    },
+    {
+      "id": "nihaixia_dataset_gap",
+      "tier": "not_available",
+      "kind": "evidence_gap",
+      "artifact_path": "",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "",
+      "license_scope": "not_available",
+      "review_status": "missing_dataset_and_provenance",
+      "case_count": 0,
+      "limitations": ["51.8 万数据未提供", "不得虚构数据摘要、许可或样本数量证明"]
+    },
+    {
+      "id": "ziwei_iztro_silver_reference_only",
+      "tier": "silver_external",
+      "kind": "local_fixture",
+      "artifact_path": "src/internal/service/testdata/ziwei_iztro_silver.json",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "",
+      "sha256": "e7537048cb9ba140b6bda16ef097329b146e47e66e13747a05e35dc51a2a3db2",
+      "license_scope": "MIT",
+      "review_status": "differential_only_not_nihaixia_evidence",
+      "case_count": 37,
+      "limitations": ["不得从 iztro 差分结果反推倪海厦规则"]
+    },
+    {
+      "id": "ziwei_full_chart_gold_empty",
+      "tier": "gold_registry",
+      "kind": "local_fixture",
+      "artifact_path": "src/internal/service/testdata/ziwei_full_chart_gold.json",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "922afe892d3b1471485c3443675927ec592a83c8812bba36ffbf19c36956f993",
+      "license_scope": "repository_fixture",
+      "review_status": "empty_not_frozen",
+      "case_count": 0,
+      "limitations": ["没有任何合格全盘 Gold"]
+    }
+  ],
+  "unsupported_rules": [
+    {
+      "rule_id": "ziwei.nihaixia.all-school-specific-rules",
+      "reason": "主资料、版次、许可和逐条引用均缺失",
+      "required_evidence": "授权资料目录、逐规则证据和双专家盲审"
+    },
+    {
+      "rule_id": "ziwei.nihaixia.dataset-calibration",
+      "reason": "51.8 万数据的文件、来源和生成口径均不可核验",
+      "required_evidence": "数据许可、去重方案、生成器 Profile、冻结摘要和泄漏审计"
+    },
+    {
+      "rule_id": "ziwei.local-composite-fallback",
+      "reason": "本地综合 Profile 不是倪海厦 Profile",
+      "required_evidence": "禁止回退；缺规则时返回 unavailable"
+    },
+    {
+      "rule_id": "ziwei.sanhe-fallback",
+      "reason": "三合 Profile 也不能替代倪海厦口径",
+      "required_evidence": "禁止跨 Profile 继承"
+    }
+  ],
+  "disputed_conventions": [
+    {
+      "id": "source_edition",
+      "question": "采用哪一版《天纪》文本或音视频资料",
+      "options": ["licensed_text_edition", "licensed_video_transcript_edition"],
+      "selected": "unadjudicated",
+      "status": "source_required",
+      "resolution_gate": "确定合法来源、版次、章节/时间码与摘要"
+    },
+    {
+      "id": "leap_month_placement",
+      "question": "闰月排盘口径",
+      "options": ["source_defined_only"],
+      "selected": "unadjudicated",
+      "status": "source_required",
+      "resolution_gate": "从选定资料定位规则并建立边界 Gold"
+    },
+    {
+      "id": "four_transformations_scope",
+      "question": "四化使用生年、宫干、自化或其他层级",
+      "options": ["source_defined_only"],
+      "selected": "unadjudicated",
+      "status": "source_required",
+      "resolution_gate": "逐层规则来源和冲突样例裁决"
+    },
+    {
+      "id": "dataset_role",
+      "question": "51.8 万数据在研究中可承担什么证据角色",
+      "options": ["bronze_or_silver_differential", "gold"],
+      "selected": "bronze_or_silver_differential_after_audit",
+      "status": "fixed_research_policy",
+      "resolution_gate": "机器生成或单一来源数据永不自动升级 Gold"
+    }
+  ],
+  "gold_gates": [
+    {
+      "gate_id": "ziwei_nihaixia_full_chart_gold",
+      "minimum_cases": 240,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_source_and_gold",
+      "admission_scope": "固定资料版次下的命身宫、十二宫、五行局、十四主星、核心辅煞、四化与大限"
+    },
+    {
+      "gate_id": "ziwei_nihaixia_profile_difference_gold",
+      "minimum_cases": 60,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_source_and_gold",
+      "admission_scope": "同盘与三合及本地综合 Profile 分开标注，不合并差异"
+    }
+  ],
+  "mixing_policy": {
+    "fallback": "prohibited",
+    "cross_profile_rule_import": "prohibited_without_new_profile_id",
+    "silent_default": "prohibited",
+    "missing_rule_behavior": "return_unavailable",
+    "interpretation_mixing": "nihaixia_sanhe_flying_star_qintian_local_composite_must_not_be_merged"
+  },
+  "claim_boundary": {
+    "publishable_accuracy": false,
+    "traditional_correctness_proven": false,
+    "predictive_validity_proven": false,
+    "event_probability_allowed": false,
+    "allowed_claims": ["资料和数据缺口已登记", "研究模块边界已定义", "未来差分流程要求"],
+    "prohibited_claims": ["运行时可选择", "已经实现倪海厦口径", "51.8 万样本已经核验", "与生成数据一致就是准确", "现实事件预测概率"]
+  }
+}

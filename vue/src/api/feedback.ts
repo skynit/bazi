@@ -9,12 +9,8 @@ export interface FeedbackRequest {
   rating: FeedbackRating
   tags?: string[]
   comment?: string
-  event_year?: number
-  event_category?: string
   consent_research?: boolean
   consent_training?: boolean
-  engine_version?: string
-  rule_version?: string
 }
 
 export interface FeedbackResponse {
@@ -23,13 +19,19 @@ export interface FeedbackResponse {
 }
 
 export interface FeedbackSummaryItem {
+  target_type: string
+  target_id: string
   rating: FeedbackRating
+  engine_version: string
+  rule_version: string
   count: number
 }
 
 export interface FeedbackSummaryResponse {
   chart_id: number
   total: number
+  research_eligible: number
+  scope: 'interpretation_quality_not_outcome_accuracy'
   items: FeedbackSummaryItem[]
 }
 

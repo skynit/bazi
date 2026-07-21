@@ -8,26 +8,31 @@ import (
 // BirthChart stores a user's BaZi (八字) birth chart analysis.
 type BirthChart struct {
 	gorm.Model
-	UserID           uint           `gorm:"not null;index" json:"user_id"`
-	User             User           `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
-	Name             string         `gorm:"type:varchar(64);not null" json:"name"`
-	Gender           string         `gorm:"type:varchar(4);not null" json:"gender"` // 男/女
-	BirthYear        int            `gorm:"not null" json:"birth_year"`
-	BirthMonth       int            `gorm:"not null" json:"birth_month"`
-	BirthDay         int            `gorm:"not null" json:"birth_day"`
-	BirthHour        int            `gorm:"not null" json:"birth_hour"`
-	BirthMin         int            `gorm:"not null;default:0" json:"birth_min"`
-	CalendarType     string         `gorm:"type:varchar(16);not null;default:'solar'" json:"calendar_type"` // solar/lunar
-	LunarLeapMonth   bool           `gorm:"not null;default:false" json:"lunar_leap_month"`
-	BirthPlace       string         `gorm:"type:varchar(128);not null;default:''" json:"birth_place"`
-	Timezone         string         `gorm:"type:varchar(64);not null;default:'Asia/Shanghai'" json:"timezone"`
-	Longitude        *float64       `json:"longitude"`
-	UseTrueSolarTime bool           `gorm:"not null;default:false" json:"use_true_solar_time"`
-	TimeUncertain    bool           `gorm:"not null;default:false" json:"time_uncertain"`
-	EngineVersion    string         `gorm:"type:varchar(64);not null;default:'';index" json:"engine_version"`
-	RuleVersion      string         `gorm:"type:varchar(64);not null;default:'';index" json:"rule_version"`
-	NormalizedBirth  datatypes.JSON `gorm:"type:json" json:"normalized_birth"`
-	BaziSnapshot     datatypes.JSON `gorm:"type:json" json:"bazi_snapshot"`
+	UserID                uint           `gorm:"not null;index" json:"user_id"`
+	User                  User           `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+	Name                  string         `gorm:"type:varchar(64);not null" json:"name"`
+	Gender                string         `gorm:"type:varchar(4);not null" json:"gender"` // 男/女
+	ZiHourPolicy          string         `gorm:"type:varchar(32);not null;default:'late_zi_next_day'" json:"zi_hour_policy"`
+	BirthYear             int            `gorm:"not null" json:"birth_year"`
+	BirthMonth            int            `gorm:"not null" json:"birth_month"`
+	BirthDay              int            `gorm:"not null" json:"birth_day"`
+	BirthHour             int            `gorm:"not null" json:"birth_hour"`
+	BirthMin              int            `gorm:"not null;default:0" json:"birth_min"`
+	BirthSec              int            `gorm:"not null;default:0" json:"birth_sec"`
+	CalendarType          string         `gorm:"type:varchar(16);not null;default:'solar'" json:"calendar_type"` // solar/lunar
+	LunarLeapMonth        bool           `gorm:"not null;default:false" json:"lunar_leap_month"`
+	BirthPlace            string         `gorm:"type:varchar(128);not null;default:''" json:"birth_place"`
+	Timezone              string         `gorm:"type:varchar(64);not null;default:'Asia/Shanghai'" json:"timezone"`
+	BirthUTCOffsetSeconds *int           `json:"birth_utc_offset_seconds"`
+	Longitude             *float64       `json:"longitude"`
+	UseTrueSolarTime      bool           `gorm:"not null;default:false" json:"use_true_solar_time"`
+	TimeUncertain         bool           `gorm:"not null;default:false" json:"time_uncertain"`
+	UncertaintySeconds    int            `gorm:"not null;default:0" json:"uncertainty_seconds"`
+	SelectedCandidateID   string         `gorm:"type:varchar(32);not null;default:''" json:"selected_candidate_id"`
+	EngineVersion         string         `gorm:"type:varchar(64);not null;default:'';index" json:"engine_version"`
+	RuleVersion           string         `gorm:"type:varchar(64);not null;default:'';index" json:"rule_version"`
+	NormalizedBirth       datatypes.JSON `gorm:"type:json" json:"normalized_birth"`
+	BaziSnapshot          datatypes.JSON `gorm:"type:json" json:"bazi_snapshot"`
 
 	YearPillar  datatypes.JSON `gorm:"type:json" json:"year_pillar"`
 	MonthPillar datatypes.JSON `gorm:"type:json" json:"month_pillar"`

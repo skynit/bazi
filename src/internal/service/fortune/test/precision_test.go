@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -13,136 +12,118 @@ import (
 )
 
 type RikuyoTestCase struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Source    string `json:"source"`
-	BirthYear int    `json:"birth_year"`
-	BirthMonth int   `json:"birth_month"`
-	BirthDay   int   `json:"birth_day"`
-	BirthHour  int   `json:"birth_hour"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Source     string `json:"source"`
+	BirthYear  int    `json:"birth_year"`
+	BirthMonth int    `json:"birth_month"`
+	BirthDay   int    `json:"birth_day"`
+	BirthHour  int    `json:"birth_hour"`
 	QueryDate  string `json:"query_date"`
-	Expected   struct {
-		JianChuShouldBe        string `json:"jian_chu_should_be"`
-		MonthZhi               string `json:"month_zhi"`
-		Favorable              bool   `json:"favorable"`
-		HuangDaoOrHeiDao       string `json:"huang_dao_or_hei_dao"`
-		TodayGan               string `json:"today_gan"`
-		PengzuGanTaboo         string `json:"pengzu_gan_taboo"`
-		OverallVerdictShouldBeFavorable bool `json:"overall_verdict_should_be_favorable"`
-	} `json:"expected"`
 }
 
 type RikuyoTestData struct {
-	Version string             `json:"version"`
-	Cases   []RikuyoTestCase   `json:"cases"`
+	Version string           `json:"version"`
+	Cases   []RikuyoTestCase `json:"cases"`
 }
 
-type RikuyoAccuracyStats struct {
-	Total        int
-	CompiledOK   int
-	HasJianChu   int
-	HasHuangDao  int
-	HasPengzu    int
-	NonEmptyResult int
+type RikuyoEvidenceStats struct {
+	Total         int
+	Calculated    int
+	TwelveStageOK int
+	JianChuOK     int
+	HuangDaoOK    int
 }
 
-func TestPrecisionRikuyo(t *testing.T) {
+func TestRikuyoEvidenceCompleteness(t *testing.T) {
 	data, err := loadRikuyoTestData("../../testdata/rikuyo_cases.json")
 	if err != nil {
 		t.Fatalf("加载日课测试数据失败: %v", err)
 	}
 
-	stats := RikuyoAccuracyStats{Total: len(data.Cases)}
-	detailedResults := []string{}
+	stats := RikuyoEvidenceStats{Total: len(data.Cases)}
+	details := make([]string, 0, len(data.Cases))
 	baziSvc := &bazipkg.BaziService{}
 
 	for _, tc := range data.Cases {
-		// 计算八字基础
-		bazi, err := baziSvc.Calculate(tc.BirthYear, tc.BirthMonth, tc.BirthDay, tc.BirthHour, 0, "MALE")
+		chart, err := baziSvc.Calculate(tc.BirthYear, tc.BirthMonth, tc.BirthDay, tc.BirthHour, 0, "MALE")
 		if err != nil {
-			t.Logf("[%s] 八字计算失败: %v", tc.ID, err)
+			t.Errorf("[%s] 八字计算失败: %v", tc.ID, err)
 			continue
 		}
-
-		// 解析查询日期
 		queryDate, err := time.Parse("2006-01-02", tc.QueryDate)
 		if err != nil {
-			t.Logf("[%s] 日期解析失败: %v", tc.ID, err)
+			t.Errorf("[%s] 日期解析失败: %v", tc.ID, err)
 			continue
 		}
 
-		// 计算日课
-		result := CalcRikuyo(bazi, queryDate, tc.BirthYear)
+		result := CalcRikuyo(chart, queryDate)
 		if result == nil {
-			detailedResults = append(detailedResults, fmt.Sprintf("[%s] 日课结果为空", tc.ID))
+			t.Errorf("[%s] 日课结果为空", tc.ID)
 			continue
 		}
+		stats.Calculated++
 
-		stats.CompiledOK++
-
-		// 校验建除十二神
-		if result.JianChuName != "" {
-			stats.HasJianChu++
-			if tc.Expected.JianChuShouldBe != "" {
-				if strings.Contains(result.JianChuName, tc.Expected.JianChuShouldBe) ||
-				   strings.Contains(tc.Expected.JianChuShouldBe, result.JianChuName) {
-					// 通过
-				} else {
-					detailedResults = append(detailedResults,
-						fmt.Sprintf("[%s] 建除不符: 期望 %s, 实际 %s", tc.ID, tc.Expected.JianChuShouldBe, result.JianChuName))
-				}
-			}
+		if result.TwelveStage.RuleID == "rikuyo.twelve-stage-v1" &&
+			result.TwelveStage.ReferenceStem == chart.DayPillar.Gan &&
+			result.TwelveStage.QueryBranch != "" &&
+			result.TwelveStage.Name != "" &&
+			isObservedUnadjudicated(result.TwelveStage.Status, result.TwelveStage.InterpretationStatus) {
+			stats.TwelveStageOK++
 		} else {
-			detailedResults = append(detailedResults, fmt.Sprintf("[%s] 建除十二神为空", tc.ID))
+			t.Errorf("[%s] 十二长生证据不完整: %+v", tc.ID, result.TwelveStage)
 		}
 
-		// 校验黄道黑道
-		if result.HuangDaoName != "" {
-			stats.HasHuangDao++
-			if tc.Expected.HuangDaoOrHeiDao != "" {
-				if strings.Contains(result.HuangDaoName, tc.Expected.HuangDaoOrHeiDao) ||
-				   tc.Expected.HuangDaoOrHeiDao == "黄道" && result.HuangDaoFavorable ||
-				   tc.Expected.HuangDaoOrHeiDao == "黑道" && !result.HuangDaoFavorable {
-					// 通过
-				}
-			}
+		if result.JianChu.RuleID == "rikuyo.jianchu-month-branch-v1" &&
+			result.JianChu.MonthBranch != "" &&
+			result.JianChu.QueryBranch == result.TwelveStage.QueryBranch &&
+			result.JianChu.Name != "" &&
+			isObservedUnadjudicated(result.JianChu.Status, result.JianChu.InterpretationStatus) {
+			stats.JianChuOK++
+		} else {
+			t.Errorf("[%s] 建除证据不完整: %+v", tc.ID, result.JianChu)
 		}
 
-		// 校验彭祖百忌
-		if result.PengzuGanTaboo != "" {
-			stats.HasPengzu++
+		if result.HuangDao.RuleID == "rikuyo.twelve-star.tyme4go-v2" &&
+			result.HuangDao.MonthBranch == result.JianChu.MonthBranch &&
+			result.HuangDao.QueryBranch == result.TwelveStage.QueryBranch &&
+			result.HuangDao.Name != "" &&
+			isObservedUnadjudicated(result.HuangDao.Status, result.HuangDao.InterpretationStatus) {
+			stats.HuangDaoOK++
+		} else {
+			t.Errorf("[%s] 值神证据不完整: %+v", tc.ID, result.HuangDao)
 		}
 
-		// 校验综合判断
-		if result.OverallVerdict != "" || result.FavorScore != 0 {
-			stats.NonEmptyResult++
-		}
-
-		detailedResults = append(detailedResults,
-			fmt.Sprintf("[%s] 建除=%s 黄道=%s 吉=%v 评分=%d",
-				tc.ID, result.JianChuName, result.HuangDaoName, result.HuangDaoFavorable, result.FavorScore))
+		details = append(details, fmt.Sprintf(
+			"[%s] 十二长生=%s 建除=%s 值神=%s 月支=%s 日支=%s",
+			tc.ID,
+			result.TwelveStage.Name,
+			result.JianChu.Name,
+			result.HuangDao.Name,
+			result.JianChu.MonthBranch,
+			result.JianChu.QueryBranch,
+		))
 	}
 
-	// 报告
-	report := fmt.Sprintf("\n=== 日课/运势精度测试报告 ===\n")
+	report := fmt.Sprintf("\n=== 日课结构证据完整性报告 ===\n")
+	report += "说明: Bronze 夹具未独立裁决，本测试不发布传统解释准确率。\n"
 	report += fmt.Sprintf("总命例数: %d\n", stats.Total)
-	report += fmt.Sprintf("日课计算成功: %d/%d = %.1f%%\n", stats.CompiledOK, stats.Total, pct(stats.CompiledOK, stats.Total))
-	report += fmt.Sprintf("建除十二神有结果: %d/%d = %.1f%%\n", stats.HasJianChu, stats.Total, pct(stats.HasJianChu, stats.Total))
-	report += fmt.Sprintf("黄道黑道有结果: %d/%d = %.1f%%\n", stats.HasHuangDao, stats.Total, pct(stats.HasHuangDao, stats.Total))
-	report += fmt.Sprintf("彭祖百忌有结果: %d/%d = %.1f%%\n", stats.HasPengzu, stats.Total, pct(stats.HasPengzu, stats.Total))
-	report += fmt.Sprintf("综合判断非空: %d/%d = %.1f%%\n", stats.NonEmptyResult, stats.Total, pct(stats.NonEmptyResult, stats.Total))
-	report += "\n=== 详细结果 ===\n"
-	for _, r := range detailedResults {
-		report += r + "\n"
+	report += fmt.Sprintf("计算成功: %d/%d = %.1f%%\n", stats.Calculated, stats.Total, pct(stats.Calculated, stats.Total))
+	report += fmt.Sprintf("十二长生证据完整: %d/%d = %.1f%%\n", stats.TwelveStageOK, stats.Total, pct(stats.TwelveStageOK, stats.Total))
+	report += fmt.Sprintf("建除证据完整: %d/%d = %.1f%%\n", stats.JianChuOK, stats.Total, pct(stats.JianChuOK, stats.Total))
+	report += fmt.Sprintf("值神证据完整: %d/%d = %.1f%%\n", stats.HuangDaoOK, stats.Total, pct(stats.HuangDaoOK, stats.Total))
+	for _, detail := range details {
+		report += detail + "\n"
 	}
-
 	t.Log(report)
 
-	reportFile, _ := os.Create("/tmp/rikuyo_precision_report.txt")
-	if reportFile != nil {
-		defer reportFile.Close()
-		reportFile.WriteString(report)
+	if err := os.WriteFile("/tmp/rikuyo_precision_report.txt", []byte(report), 0o600); err != nil {
+		t.Logf("写入临时报告失败: %v", err)
 	}
+}
+
+func isObservedUnadjudicated(status, interpretationStatus string) bool {
+	return status == "observed" && interpretationStatus == "not_adjudicated"
 }
 
 func loadRikuyoTestData(path string) (*RikuyoTestData, error) {

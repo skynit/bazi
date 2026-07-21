@@ -6,21 +6,14 @@ import (
 
 	"bazi/internal/model"
 	"bazi/internal/service/bazi"
-	"bazi/internal/service/data"
 	fortunePkg "bazi/internal/service/fortune"
 
 	"github.com/gin-gonic/gin"
 )
 
-// FortuneHandler handles fortune-telling endpoints.
-type BlessingAssetBuilder interface {
-	BuildBlessingSet(chartID uint, date, primary, secondary, avoid string, actionElements []string) (model.BlessingAssetSet, error)
-}
-
 type FortuneHandler struct {
 	Engine     *fortunePkg.FortuneEngine
 	ChartStore ChartStore
-	Assets     BlessingAssetBuilder
 }
 
 // CalculateDaily handles POST /api/fortune.
@@ -49,16 +42,13 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	gender := normalizeGender(chart.Gender)
 	baziSvc := bazi.BaziService{}
-	baziResult, err := baziSvc.Calculate(
-		chart.BirthYear, chart.BirthMonth, chart.BirthDay,
-		chart.BirthHour, chart.BirthMin, gender,
-	)
+	resolved, err := resolveChartBazi(&baziSvc, chart)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to compute chart: "+err.Error())
 		return
 	}
+	baziResult := resolved.Result
 
 	queryDate, err := time.ParseInLocation("2006-01-02", req.QueryDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
@@ -66,24 +56,12 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		return
 	}
 
-	fortune := h.Engine.CalculateDaily(baziResult, queryDate, chart.BirthYear)
+	fortune := h.Engine.CalculateDaily(baziResult, queryDate, resolved.BirthYear)
 
-	// Map daily fortune to response
-	yiItems := make([]string, len(fortune.Yi))
-	for i, item := range fortune.Yi {
-		yiItems[i] = item.Activity
-	}
-	jiItems := make([]string, len(fortune.Ji))
-	for i, item := range fortune.Ji {
-		jiItems[i] = item.Activity
-	}
-
-	luckyNum := 0
-	if len(fortune.LuckyNumbers) > 0 {
-		luckyNum = fortune.LuckyNumbers[0]
-	}
 	resp := model.FortuneResponse{
 		EngineVersion:        fortunePkg.FortuneEngineVersion,
+		BaziEngineVersion:    resolved.EngineVersion,
+		BaziResolutionSource: resolved.Source,
 		RuleVersion:          baziResult.RuleVersion,
 		School:               baziResult.School,
 		RuleMeta:             baziResult.RuleMeta,
@@ -105,65 +83,24 @@ func (h *FortuneHandler) CalculateDaily(c *gin.Context) {
 		EvidenceCompleteness: fortune.ScoreBreakdown.EvidenceCompleteness,
 		SupportingEvidence:   fortune.ScoreBreakdown.SupportingEvidence,
 		CounterEvidence:      fortune.ScoreBreakdown.CounterEvidence,
-		LuckyColor:           fortune.LuckyColor,
-		LuckyNumber:          luckyNum,
-		WealthDir:            fortune.WealthDir,
-		Guide:                fortune.Guide,
 		ClashZodiac:          fortune.ClashZodiac,
-		AuspiciousHours:      fortune.AuspiciousHours,
-		YiItems:              yiItems,
-		JiItems:              jiItems,
 		TodayElements:        fortune.TodayElements,
-		TiaoHou:              data.TiaoHou[baziResult.DayPillar.Gan+baziResult.MonthPillar.Zhi],
-		SeasonElementAdvice:  fortune.SeasonElementAdvice,
-		FlowImpact:           fortune.FlowImpact,
+		SeasonElement:        fortune.SeasonElement,
 		ShengKeAnalysis:      model.ShengKeAnalysis(fortune.ShengKe),
 		FortuneLayers:        fortune.Layers,
 	}
 	// 日课推算结果
 	if rikuyo := fortune.Rikuyo; rikuyo != nil {
-		resp.TodayTenGod = rikuyo.TodayTenGod
-		resp.TenGodFavorable = rikuyo.TenGodFavorable
-		resp.TenGodDesc = rikuyo.TenGodDesc
+		resp.TenGod = rikuyo.TenGod
 		resp.TwelveStage = rikuyo.TwelveStage
-		resp.StageFavorable = rikuyo.StageFavorable
-		resp.StageDesc = rikuyo.StageDesc
-		resp.StageFlexible = rikuyo.StageFlexible
+		resp.JianChu = rikuyo.JianChu
+		resp.HuangDao = rikuyo.HuangDao
 		resp.HiddenStems = rikuyo.HiddenStems
 		resp.StemRelations = rikuyo.StemRelations
 		resp.BranchRelations = rikuyo.BranchRelations
 		resp.ActivatedShenSha = rikuyo.ActivatedShenSha
-		resp.DaYunInfluence = rikuyo.DaYunInfluence
-		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
-		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
-		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.SeasonalState = rikuyo.SeasonalState
 		resp.FortuneLayers = fortune.Layers
-		resp.OverallVerdict = rikuyo.OverallVerdict
-		resp.FavorScore = rikuyo.FavorScore
-		resp.PatternName = rikuyo.PatternName
-		resp.PatternType = rikuyo.PatternType
-		resp.PatternFavorable = rikuyo.PatternFavorable
-		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
 	}
-	resp.Analysis = fortune.Analysis
-
-	if h.Assets != nil && fortune.Guide != nil {
-		actionElements := make([]string, 0, len(fortune.Guide.RecommendedActions))
-		for _, action := range fortune.Guide.RecommendedActions {
-			actionElements = append(actionElements, action.Element)
-		}
-		assets, assetErr := h.Assets.BuildBlessingSet(
-			chart.ID,
-			fortune.Date,
-			fortune.Guide.PrimaryElement,
-			fortune.Guide.SecondaryElement,
-			fortune.Guide.AvoidElement,
-			actionElements,
-		)
-		if assetErr == nil {
-			resp.BlessingAssets = &assets
-		}
-	}
-
 	respondJSON(c, http.StatusOK, resp)
 }

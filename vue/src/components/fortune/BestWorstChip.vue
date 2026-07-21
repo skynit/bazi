@@ -1,9 +1,7 @@
 <script setup lang="ts">
-/**
- * BestWorstChip — small badge marking either the best or worst day in a window.
- */
+/** Marks the highest or lowest observed index in a period. */
 interface Props {
-  variant: 'best' | 'worst'
+  variant: 'highest' | 'lowest'
   date?: string
   score?: number
 }
@@ -13,7 +11,7 @@ defineProps<Props>()
 <template>
   <span class="chip" :class="variant">
     <span class="dot" aria-hidden="true"></span>
-    <span class="label">{{ variant === 'best' ? '吉峰' : '低谷' }}</span>
+    <span class="label">{{ variant === 'highest' ? '最高值' : '最低值' }}</span>
     <span v-if="date" class="date">{{ date.slice(5) }}</span>
     <span v-if="typeof score === 'number'" class="score tabular-nums">{{ score }}</span>
   </span>
@@ -35,24 +33,38 @@ defineProps<Props>()
 }
 
 .chip .dot {
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
-.chip.best {
+.chip.highest {
   border-color: rgba(var(--jade-accent-rgb), 0.45);
   color: rgba(var(--jade-accent-rgb), 1);
-  background: rgba(var(--jade-accent-rgb), 0.10);
+  background: rgba(var(--jade-accent-rgb), 0.1);
 }
-.chip.best .dot { background: var(--jade-accent); box-shadow: 0 0 8px var(--jade-accent); }
-
-.chip.worst {
-  border-color: rgba(232, 64, 87, 0.42);
-  color: var(--crimson);
-  background: rgba(232, 64, 87, 0.08);
+.chip.highest .dot {
+  background: var(--jade-accent);
+  box-shadow: 0 0 8px var(--jade-accent);
 }
-.chip.worst .dot { background: var(--crimson); box-shadow: 0 0 8px rgba(232, 64, 87, 0.6); }
 
-.score { font-weight: 700; opacity: 0.9; }
-.date { color: var(--text-muted); }
-.tabular-nums { font-variant-numeric: tabular-nums; }
+.chip.lowest {
+  border-color: var(--line-strong);
+  color: var(--text-muted);
+  background: var(--glass-bg);
+}
+.chip.lowest .dot {
+  background: var(--text-soft);
+}
+
+.score {
+  font-weight: 700;
+  opacity: 0.9;
+}
+.date {
+  color: var(--text-muted);
+}
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
 </style>

@@ -2,35 +2,43 @@ package ziwei
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 )
 
 // LiunianOverlayAnalysis explains how an annual overlay was derived and which
 // palaces are most affected.
 type LiunianOverlayAnalysis struct {
-	Year         int                  `json:"year"`
-	GanZhi       string               `json:"gan_zhi"`
-	Stem         string               `json:"stem"`
-	Branch       string               `json:"branch"`
-	ShiShen      string               `json:"shi_shen,omitempty"`
-	Score        int                  `json:"score"`
-	Tone         string               `json:"tone"`
-	KeyTips      string               `json:"key_tips"`
-	Summary      string               `json:"summary"`
-	Method       []OverlayMethodStep  `json:"method"`
-	FourHua      []OverlayTrigger     `json:"four_hua"`
-	AnnualStars  []OverlayTrigger     `json:"annual_stars"`
-	FocusPalaces []OverlayFocusPalace `json:"focus_palaces"`
+	Year                 int                    `json:"year"`
+	GanZhi               string                 `json:"gan_zhi"`
+	Stem                 string                 `json:"stem"`
+	Branch               string                 `json:"branch"`
+	ShiShen              string                 `json:"shi_shen,omitempty"`
+	RelationToMing       string                 `json:"relation_to_ming"`
+	RelationEvidence     []PeriodBranchRelation `json:"relation_evidence"`
+	ReviewNote           string                 `json:"review_note"`
+	Summary              string                 `json:"summary"`
+	Method               []OverlayMethodStep    `json:"method"`
+	FourHua              []OverlayTrigger       `json:"four_hua"`
+	AnnualStars          []OverlayTrigger       `json:"annual_stars"`
+	FocusPalaces         []OverlayFocusPalace   `json:"focus_palaces"`
+	DayunContext         *DayunStageAnalysis    `json:"dayun_context,omitempty"`
+	EvidenceBasis        string                 `json:"evidence_basis"`
+	PlacementBasis       string                 `json:"placement_basis"`
+	InterpretationBasis  string                 `json:"interpretation_basis"`
+	InterpretationStatus string                 `json:"interpretation_status"`
+	ValidationStatus     string                 `json:"validation_status"`
+	IsOutcomeConclusion  bool                   `json:"is_outcome_conclusion"`
 }
 
 type OverlayMethodStep struct {
+	PeriodEvidenceSemantics
 	Label   string `json:"label"`
 	Value   string `json:"value"`
 	Meaning string `json:"meaning"`
 }
 
 type OverlayTrigger struct {
+	PeriodEvidenceSemantics
 	Type     string `json:"type"`
 	Star     string `json:"star,omitempty"`
 	Palace   string `json:"palace"`
@@ -40,44 +48,40 @@ type OverlayTrigger struct {
 }
 
 type OverlayFocusPalace struct {
-	Palace    string           `json:"palace"`
-	Branch    string           `json:"branch"`
-	Score     int              `json:"score"`
-	Triggers  []OverlayTrigger `json:"triggers"`
-	MainStars []string         `json:"main_stars"`
-	Advice    string           `json:"advice"`
+	PeriodEvidenceSemantics
+	Palace     string           `json:"palace"`
+	Branch     string           `json:"branch"`
+	Triggers   []OverlayTrigger `json:"triggers"`
+	MainStars  []string         `json:"main_stars"`
+	ReviewNote string           `json:"review_note"`
 }
 
 // AnalyzeLiunianOverlay combines annual star placement, annual four-hua and
 // period interpretation into a structured explanation for the frontend.
 func (s *ZiWeiService) AnalyzeLiunianOverlay(base *ZiWeiChart, liunian *ZiWeiChart, year int) *LiunianOverlayAnalysis {
-	if base == nil {
+	interpreter := NewPeriodInterpreterFromChart(base)
+	if interpreter == nil {
 		return nil
 	}
-	chart := base
-	if liunian != nil {
-		chart = liunian
+	if liunian == nil {
+		liunian = s.CalculateLiunian(base, year)
 	}
+	if liunian == nil || !DerivedChartMatchesBase(liunian, base) {
+		return nil
+	}
+	chart := liunian
 
 	stemIdx, branchIdx := annualStemBranch(year)
 	stem := StemNames[stemIdx]
 	branch := BranchNames[branchIdx]
 	ganZhi := stem + branch
 
-	score := 60
-	tone := "依据流年干支、四化与流禄羊陀马定位，重点观察被触发宫位。"
-	keyTips := "先看年度四化落宫，再看流禄、流羊、流陀、流马是否叠加到同一宫位。"
-	shiShen := ""
-	if birth := base.GetBirthData(); birth != nil {
-		interp := NewPeriodInterpreter(birth)
-		if result := interp.AnalyzeLiunian(chart, year); result != nil {
-			score = result.Score
-			tone = result.OverallTone
-			keyTips = result.KeyTips
-			shiShen = result.ShiShen
-			ganZhi = result.GanZhi
-		}
+	result := interpreter.AnalyzeLiunian(chart, year)
+	if result == nil {
+		return nil
 	}
+	shiShen := result.ShiShen
+	ganZhi = result.GanZhi
 
 	fourHua := buildLiunianFourHuaTriggers(chart, stemIdx)
 	annualStars := buildAnnualStarTriggers(chart, stemIdx, branchIdx)
@@ -86,41 +90,52 @@ func (s *ZiWeiService) AnalyzeLiunianOverlay(base *ZiWeiChart, liunian *ZiWeiCha
 
 	method := []OverlayMethodStep{
 		{
-			Label:   "流年干支",
-			Value:   fmt.Sprintf("%d年 %s", year, ganZhi),
-			Meaning: "用目标年份推得流年天干地支，作为本年叠盘的时间层。",
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Label:                   "流年干支",
+			Value:                   fmt.Sprintf("%d年 %s", year, ganZhi),
+			Meaning:                 "用目标年份推得流年天干地支，作为本年叠盘的时间层。",
 		},
 		{
-			Label:   "天干四化",
-			Value:   describeFourHuaByStem(stemIdx),
-			Meaning: "流年天干决定化禄、化权、化科、化忌，落到含对应星曜的本命宫位。",
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Label:                   "天干四化",
+			Value:                   describeFourHuaByStem(stemIdx),
+			Meaning:                 "流年天干决定化禄、化权、化科、化忌，落到含对应星曜的本命宫位。",
 		},
 		{
-			Label:   "禄羊陀马",
-			Value:   describeAnnualStarPositions(chart, stemIdx, branchIdx),
-			Meaning: "流禄看资源，流羊看竞争压力，流陀看拖延阻滞，流马看移动变化。",
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Label:                   "禄羊陀马",
+			Value:                   describeAnnualStarPositions(chart, stemIdx, branchIdx),
+			Meaning:                 "记录流禄、流羊、流陀、流马的落宫及传统分类，不据此推导现实结果。",
 		},
 		{
-			Label:   "三方四正",
-			Value:   "悬停宫位可查看本宫、对宫、三合宫关系",
-			Meaning: "年度触发宫位不孤立判断，需要连同对宫和三合宫一起读。",
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Label:                   "三方四正",
+			Value:                   "悬停宫位可查看本宫、对宫、三合宫关系",
+			Meaning:                 "年度触发宫位连同对宫和三合宫作为完整结构展示。",
 		},
 	}
 
 	return &LiunianOverlayAnalysis{
-		Year:         year,
-		GanZhi:       ganZhi,
-		Stem:         stem,
-		Branch:       branch,
-		ShiShen:      shiShen,
-		Score:        score,
-		Tone:         tone,
-		KeyTips:      keyTips,
-		Summary:      buildOverlaySummary(year, ganZhi, focus),
-		Method:       method,
-		FourHua:      fourHua,
-		AnnualStars:  annualStars,
-		FocusPalaces: focus,
+		Year:                 year,
+		GanZhi:               ganZhi,
+		Stem:                 stem,
+		Branch:               branch,
+		ShiShen:              shiShen,
+		RelationToMing:       result.RelationToMing,
+		RelationEvidence:     append([]PeriodBranchRelation{}, result.RelationEvidence...),
+		ReviewNote:           result.ReviewNote,
+		Summary:              buildOverlaySummary(year, ganZhi, focus),
+		Method:               method,
+		FourHua:              fourHua,
+		AnnualStars:          annualStars,
+		FocusPalaces:         focus,
+		DayunContext:         dayunContextForLunarYear(base, year),
+		EvidenceBasis:        periodMixedEvidenceBasis,
+		PlacementBasis:       periodPlacementBasis,
+		InterpretationBasis:  periodInterpretationBasis,
+		InterpretationStatus: periodInterpretationStatus,
+		ValidationStatus:     periodInterpretationStatus,
+		IsOutcomeConclusion:  false,
 	}
 }
 
@@ -147,51 +162,53 @@ func buildLiunianFourHuaTriggers(chart *ZiWeiChart, stemIdx int) []OverlayTrigge
 			continue
 		}
 		triggers = append(triggers, OverlayTrigger{
-			Type:     label,
-			Star:     star,
-			Palace:   palace.Name,
-			Branch:   palace.Branch,
-			Meaning:  fourHuaMeaning(label, star, palace.Name),
-			Polarity: fourHuaPolarity(label),
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Type:                    label,
+			Star:                    star,
+			Palace:                  palace.Name,
+			Branch:                  palace.Branch,
+			Meaning:                 fourHuaMeaning(label, star, palace.Name),
+			Polarity:                fourHuaPolarity(label),
 		})
 	}
 	return triggers
 }
 
 func buildAnnualStarTriggers(chart *ZiWeiChart, stemIdx, branchIdx int) []OverlayTrigger {
-	positions := []struct {
-		label    string
-		branch   int
-		polarity string
-	}{
-		{"流禄", LucunBranchIdx[stemIdx], "good"},
-		{"流羊", fixIndex(LucunBranchIdx[stemIdx] + 1), "watch"},
-		{"流陀", fixIndex(LucunBranchIdx[stemIdx] - 1), "watch"},
-		{"流马", TianmaBranchIdx[branchIdx], "movement"},
-	}
-
-	triggers := make([]OverlayTrigger, 0, len(positions))
-	for _, pos := range positions {
-		palace := findPalaceByBranch(chart, pos.branch)
-		if palace == nil {
-			continue
+	distribution := buildTransitStarDistribution(chart, stemIdx, branchIdx, "liunian")
+	triggers := make([]OverlayTrigger, 0, 11)
+	for i, stars := range distribution {
+		for _, star := range stars {
+			triggers = append(triggers, OverlayTrigger{
+				PeriodEvidenceSemantics: periodEvidenceSemantics(),
+				Type:                    star,
+				Palace:                  chart.Palaces[i].Name,
+				Branch:                  chart.Palaces[i].Branch,
+				Meaning:                 annualStarMeaning(star, chart.Palaces[i].Name),
+				Polarity:                transitStarPolarity(star),
+			})
 		}
-		triggers = append(triggers, OverlayTrigger{
-			Type:     pos.label,
-			Palace:   palace.Name,
-			Branch:   palace.Branch,
-			Meaning:  annualStarMeaning(pos.label, palace.Name),
-			Polarity: pos.polarity,
-		})
 	}
 	return triggers
+}
+
+func transitStarPolarity(star string) string {
+	switch {
+	case strings.HasSuffix(star, "禄"):
+		return "resource"
+	case strings.HasSuffix(star, "羊"), strings.HasSuffix(star, "陀"):
+		return "constraint"
+	case strings.HasSuffix(star, "马"):
+		return "movement"
+	default:
+		return "neutral"
+	}
 }
 
 func buildOverlayFocusPalaces(chart *ZiWeiChart, triggers []OverlayTrigger) []OverlayFocusPalace {
 	type group struct {
 		palace   *PalaceInfo
 		triggers []OverlayTrigger
-		score    int
 	}
 	groups := map[string]*group{}
 	for _, trigger := range triggers {
@@ -203,81 +220,60 @@ func buildOverlayFocusPalaces(chart *ZiWeiChart, triggers []OverlayTrigger) []Ov
 			groups[key] = g
 		}
 		g.triggers = append(g.triggers, trigger)
-		g.score += triggerWeight(trigger)
 	}
 
 	focus := make([]OverlayFocusPalace, 0, len(groups))
-	for _, g := range groups {
+	for i := range chart.Palaces {
+		palace := &chart.Palaces[i]
+		g := groups[palace.Name+"|"+palace.Branch]
+		if g == nil {
+			continue
+		}
 		if g.palace == nil {
 			continue
 		}
 		focus = append(focus, OverlayFocusPalace{
-			Palace:    g.palace.Name,
-			Branch:    g.palace.Branch,
-			Score:     g.score,
-			Triggers:  cloneOverlayTriggers(g.triggers),
-			MainStars: palaceMainStarNames(*g.palace),
-			Advice:    focusAdvice(g.palace.Name, g.triggers),
+			PeriodEvidenceSemantics: periodEvidenceSemantics(),
+			Palace:                  g.palace.Name,
+			Branch:                  g.palace.Branch,
+			Triggers:                cloneOverlayTriggers(g.triggers),
+			MainStars:               palaceMainStarNames(*g.palace),
+			ReviewNote:              focusReviewNote(g.palace.Name, g.triggers),
 		})
-	}
-
-	sort.SliceStable(focus, func(i, j int) bool {
-		if focus[i].Score == focus[j].Score {
-			return focus[i].Palace < focus[j].Palace
-		}
-		return focus[i].Score > focus[j].Score
-	})
-	if len(focus) > 5 {
-		focus = focus[:5]
 	}
 	return focus
 }
 
-func triggerWeight(trigger OverlayTrigger) int {
-	switch trigger.Type {
-	case "化忌":
-		return 4
-	case "流羊", "流陀":
-		return 3
-	case "化禄", "流禄":
-		return 3
-	case "化权", "化科", "流马":
-		return 2
-	default:
-		return 1
-	}
-}
-
-func focusAdvice(palace string, triggers []OverlayTrigger) string {
-	hasWatch := false
-	hasGood := false
+func focusReviewNote(palace string, triggers []OverlayTrigger) string {
+	hasConstraint := false
+	hasResource := false
 	hasMove := false
 	for _, trigger := range triggers {
 		switch trigger.Polarity {
-		case "watch":
-			hasWatch = true
-		case "good":
-			hasGood = true
+		case "constraint":
+			hasConstraint = true
+		case "resource":
+			hasResource = true
 		case "movement":
 			hasMove = true
 		}
 		if trigger.Type == "化忌" {
-			hasWatch = true
+			hasConstraint = true
 		}
 	}
 	switch {
-	case hasWatch && hasGood:
-		return fmt.Sprintf("%s同时有助力和压力，适合先定边界，再把资源投入到可验证的事项。", palace)
-	case hasWatch:
-		return fmt.Sprintf("%s有压力或阻滞信号，宜做风险控制，避免情绪化决策。", palace)
-	case hasGood && hasMove:
-		return fmt.Sprintf("%s有资源与变动并行，适合主动争取机会，同时预留调整空间。", palace)
-	case hasGood:
-		return fmt.Sprintf("%s有资源、名望或助力信号，可把握窗口推进重点事项。", palace)
+	case hasConstraint && hasResource:
+		return fmt.Sprintf("%s同时记录资源类与约束类传统标签；不据此推导现实机会或风险。", palace)
+	case hasConstraint:
+		return fmt.Sprintf("%s记录约束类传统标签；不据此推导现实阻滞、损失或个体状态。", palace)
+	case hasResource && hasMove:
+		return fmt.Sprintf("%s同时记录资源类与移动类传统标签；不据此推导现实机会。", palace)
+	case hasResource:
+		return fmt.Sprintf("%s记录资源类传统标签；不据此推导现实收益或助力。", palace)
 	case hasMove:
-		return fmt.Sprintf("%s有移动变化信号，适合处理出行、迁动、转换与对外联络。", palace)
+		return fmt.Sprintf("%s记录移动类传统标签；不据此给出出行、迁动或职业建议。", palace)
 	default:
-		return fmt.Sprintf("%s被流年触发，需结合本命星曜和三方四正一起判断。", palace)
+		return fmt.Sprintf("%s记录流年触发结构，需连同本命星曜和三方四正展示。", palace)
 	}
 }
 
@@ -289,7 +285,7 @@ func buildOverlaySummary(year int, ganZhi string, focus []OverlayFocusPalace) st
 	for _, item := range focus {
 		names = append(names, item.Palace)
 	}
-	return fmt.Sprintf("%d年%s叠盘优先观察%s；这些宫位承接了流年四化或流禄羊陀马。", year, ganZhi, strings.Join(names, "、"))
+	return fmt.Sprintf("%d年%s叠盘记录的触发宫位为%s；这些宫位承接了流年四化或流禄羊陀马，按命盘十二宫顺序展示。", year, ganZhi, strings.Join(names, "、"))
 }
 
 func describeFourHuaByStem(stemIdx int) string {
@@ -312,13 +308,13 @@ func describeAnnualStarPositions(chart *ZiWeiChart, stemIdx, branchIdx int) stri
 func fourHuaMeaning(label, star, palace string) string {
 	switch label {
 	case "化禄":
-		return fmt.Sprintf("%s化禄落%s，主资源、机会或收益倾向增加。", star, palace)
+		return fmt.Sprintf("%s化禄落%s，记录资源与承接主题；具体结果未裁决。", star, palace)
 	case "化权":
-		return fmt.Sprintf("%s化权落%s，主责任、执行力和竞争压力上升。", star, palace)
+		return fmt.Sprintf("%s化权落%s，记录责任与执行主题；具体结果未裁决。", star, palace)
 	case "化科":
-		return fmt.Sprintf("%s化科落%s，主名誉、学习、文书和缓冲修复。", star, palace)
+		return fmt.Sprintf("%s化科落%s，记录名声、学习与凭证主题；具体结果未裁决。", star, palace)
 	case "化忌":
-		return fmt.Sprintf("%s化忌落%s，主卡点、牵挂、延误或过度消耗。", star, palace)
+		return fmt.Sprintf("%s化忌落%s，记录阻滞、执着与代价主题；具体结果未裁决。", star, palace)
 	default:
 		return fmt.Sprintf("%s%s落%s。", star, label, palace)
 	}
@@ -327,9 +323,9 @@ func fourHuaMeaning(label, star, palace string) string {
 func fourHuaPolarity(label string) string {
 	switch label {
 	case "化禄", "化科":
-		return "good"
+		return "resource"
 	case "化忌":
-		return "watch"
+		return "constraint"
 	case "化权":
 		return "neutral"
 	default:
@@ -340,13 +336,13 @@ func fourHuaPolarity(label string) string {
 func annualStarMeaning(label, palace string) string {
 	switch label {
 	case "流禄":
-		return fmt.Sprintf("流禄落%s，代表本年资源、财气或人情助力的入口。", palace)
+		return fmt.Sprintf("流禄落%s，记录传统资源类标签；具体收益或助力未裁决。", palace)
 	case "流羊":
-		return fmt.Sprintf("流羊落%s，代表竞争、冲突、急躁和硬碰硬的压力点。", palace)
+		return fmt.Sprintf("流羊落%s，记录传统约束类标签；具体冲突或个体状态未裁决。", palace)
 	case "流陀":
-		return fmt.Sprintf("流陀落%s，代表拖延、反复、阻滞和难以快速收尾的事项。", palace)
+		return fmt.Sprintf("流陀落%s，记录传统约束类标签；具体阻滞未裁决。", palace)
 	case "流马":
-		return fmt.Sprintf("流马落%s，代表迁动、出行、岗位转换或对外奔波。", palace)
+		return fmt.Sprintf("流马落%s，记录传统移动类标签；具体出行或职业变化未裁决。", palace)
 	default:
 		return fmt.Sprintf("%s落%s。", label, palace)
 	}
@@ -400,11 +396,6 @@ func palaceHasStar(palace PalaceInfo, star string) bool {
 }
 
 func palaceStarNames(palace PalaceInfo) []string {
-	if len(palace.MainStars) > 0 || len(palace.AuxStars) > 0 {
-		names := append([]string{}, palace.MainStars...)
-		names = append(names, palace.AuxStars...)
-		return overlayUniqueStrings(names)
-	}
 	names := make([]string, 0, len(palace.Stars))
 	for _, star := range palace.Stars {
 		names = append(names, star.Name)
@@ -413,9 +404,6 @@ func palaceStarNames(palace PalaceInfo) []string {
 }
 
 func palaceMainStarNames(palace PalaceInfo) []string {
-	if len(palace.MainStars) > 0 {
-		return overlayUniqueStrings(palace.MainStars)
-	}
 	names := make([]string, 0)
 	for _, star := range palace.Stars {
 		if star.Type == "major" {

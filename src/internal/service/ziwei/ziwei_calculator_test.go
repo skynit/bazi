@@ -17,7 +17,7 @@ func verifyChartSize(t *testing.T, chart *ZiWeiChart) {
 		if p.Branch == "" {
 			t.Errorf("Palaces[%d].Branch is empty", i)
 		}
-		if len(p.MainStars) > 0 || len(p.AuxStars) > 0 {
+		if len(p.Stars) > 0 {
 			nonEmptyPalaces++
 		}
 	}
@@ -62,7 +62,7 @@ func TestChart_GuiWeiYear_Month3_Day14_WeiHour(t *testing.T) {
 	t.Run("禄存位置", func(t *testing.T) {
 		found := false
 		for _, p := range chart.Palaces {
-			for _, s := range p.AuxStars {
+			for _, s := range palaceAuxStars(p) {
 				if s == "禄存" {
 					found = true
 					if p.Branch != "子" {
@@ -90,7 +90,7 @@ func TestChart_GuiWeiYear_Month3_Day14_WeiHour(t *testing.T) {
 	})
 	t.Run("紫微星位置", func(t *testing.T) {
 		for _, p := range chart.Palaces {
-			for _, s := range p.MainStars {
+			for _, s := range palaceMainStars(p) {
 				if s == "紫微" {
 					if p.Branch != "巳" {
 						t.Errorf("紫微在 %s, want 巳", p.Branch)
@@ -103,7 +103,7 @@ func TestChart_GuiWeiYear_Month3_Day14_WeiHour(t *testing.T) {
 	})
 	t.Run("天府星位置", func(t *testing.T) {
 		for _, p := range chart.Palaces {
-			for _, s := range p.MainStars {
+			for _, s := range palaceMainStars(p) {
 				if s == "天府" {
 					if p.Branch != "亥" {
 						t.Errorf("天府在 %s, want 亥", p.Branch)
@@ -270,8 +270,9 @@ func TestChart_MajorStarsMatchIztroFixture(t *testing.T) {
 		if p == nil {
 			t.Fatalf("missing palace for branch %s", branch)
 		}
-		if !sameStringSet(p.MainStars, wantStars) {
-			t.Errorf("%s宫主星 = %v, want %v", branch, p.MainStars, wantStars)
+		gotStars := palaceMainStars(*p)
+		if !sameStringSet(gotStars, wantStars) {
+			t.Errorf("%s宫主星 = %v, want %v", branch, gotStars, wantStars)
 		}
 	}
 }
@@ -313,69 +314,31 @@ func TestStarBrightnessMap(t *testing.T) {
 		}
 	}
 
-	wantExtendedAux := map[string][12]string{
-		"左辅": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
-		"右弼": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
-		"天魁": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
-		"天钺": {"旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺"},
-		"禄存": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
-		"天马": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
-		"地空": {"平", "陷", "陷", "平", "陷", "庙", "庙", "平", "庙", "庙", "陷", "陷"},
-		"地劫": {"陷", "陷", "平", "平", "陷", "平", "庙", "平", "庙", "平", "平", "旺"},
-	}
-	for star, want := range wantExtendedAux {
-		if got := AuxStarBrightnessMap[star]; got != want {
-			t.Errorf("extended AuxStarBrightnessMap[%s] = %v, want %v", star, got, want)
+	for _, star := range []string{"左辅", "右弼", "天魁", "天钺", "禄存", "天马", "地空", "地劫"} {
+		if _, ok := AuxStarBrightnessMap[star]; ok {
+			t.Errorf("unsupported star %s must not have a brightness table", star)
 		}
-	}
-
-	if got := getStarBrightness("左辅", BranchIndex["酉"]); got != "平" {
-		t.Errorf("左辅酉宫 brightness = %q, want 平", got)
-	}
-	if got := getStarBrightness("右弼", BranchIndex["酉"]); got != "平" {
-		t.Errorf("右弼酉宫 brightness = %q, want 平", got)
-	}
-	if got := getStarBrightness("天魁", BranchIndex["酉"]); got != "庙" {
-		t.Errorf("天魁酉宫 brightness = %q, want 庙", got)
-	}
-	if got := getStarBrightness("天钺", BranchIndex["酉"]); got != "旺" {
-		t.Errorf("天钺酉宫 brightness = %q, want 旺", got)
-	}
-	if got := getStarBrightness("禄存", BranchIndex["酉"]); got != "庙" {
-		t.Errorf("禄存酉宫 brightness = %q, want 庙", got)
-	}
-	if got := getStarBrightness("天马", BranchIndex["酉"]); got != "平" {
-		t.Errorf("天马酉宫 brightness = %q, want 平", got)
-	}
-	if got := getStarBrightness("地空", BranchIndex["巳"]); got != "庙" {
-		t.Errorf("地空巳宫 brightness = %q, want 庙", got)
-	}
-	if got := getStarBrightness("地劫", BranchIndex["亥"]); got != "旺" {
-		t.Errorf("地劫亥宫 brightness = %q, want 旺", got)
+		if got := getStarBrightness(star, BranchIndex["酉"]); got != "" {
+			t.Errorf("%s unsupported brightness = %q, want empty", star, got)
+		}
 	}
 }
 
-func TestAttachBirthData_NormalizesLucunBrightness(t *testing.T) {
+func TestAttachBirthData_RejectsIncompleteChartWithoutMutation(t *testing.T) {
 	chart := &ZiWeiChart{
 		EarthlyBranchOfSoulPalace: "子",
 		EarthlyBranchOfBodyPalace: "子",
 	}
 	chart.Palaces[0] = PalaceInfo{
 		Stars: []StarOutput{{Name: "禄存", Type: "lucun", Brightness: "陷"}},
-		Brightness: map[string]string{
-			"禄存": "陷",
-		},
 	}
 
 	svc := NewZiWeiService()
-	if err := svc.AttachBirthData(chart, 1984, 2, 15, 8, 0, "男"); err != nil {
-		t.Fatalf("AttachBirthData failed: %v", err)
+	if err := svc.AttachBirthData(chart, 1984, 2, 15, 8, 0, "男"); err == nil {
+		t.Fatal("AttachBirthData accepted an incomplete chart")
 	}
-	if got := chart.Palaces[0].Stars[0].Brightness; got != "庙" {
-		t.Errorf("cached 禄存 star brightness = %q, want 庙", got)
-	}
-	if got := chart.Palaces[0].Brightness["禄存"]; got != "庙" {
-		t.Errorf("cached 禄存 brightness map = %q, want 庙", got)
+	if chart.Palaces[0].Stars[0].Brightness != "陷" {
+		t.Fatalf("failed attachment mutated chart: %+v", chart)
 	}
 }
 

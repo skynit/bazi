@@ -23,6 +23,7 @@ vue/node_modules*
 vue/node_modules.old/
 *.md
 *.txt
+!research/rag/snapshots/**/ATTRIBUTION.md
 # Re-include important JSON config files
 !.vscode/launch.json
 !.vscode/settings.json
@@ -49,4 +50,7 @@ src/cmd/*
 !src/cmd/database.go
 !src/cmd/bazi-rag-index/
 !src/cmd/bazi-rag-index/main.go
+!src/cmd/precision-report/
+!src/cmd/precision-report/main.go
+!src/cmd/precision-report/main_test.go
 __debug_*

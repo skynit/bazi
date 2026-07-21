@@ -47,17 +47,13 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		return
 	}
 
-	gender := normalizeGender(chart.Gender)
-
 	baziSvc := bazi.BaziService{}
-	baziResult, err := baziSvc.Calculate(
-		chart.BirthYear, chart.BirthMonth, chart.BirthDay,
-		chart.BirthHour, chart.BirthMin, gender,
-	)
+	resolved, err := resolveChartBazi(&baziSvc, chart)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to compute chart: "+err.Error())
 		return
 	}
+	baziResult := resolved.Result
 
 	startDate, err := time.ParseInLocation("2006-01-02", req.StartDate, time.FixedZone("CST", 8*3600))
 	if err != nil {
@@ -65,120 +61,78 @@ func (h *WeeklyFortuneHandler) Weekly(c *gin.Context) {
 		return
 	}
 
-	result := h.Engine.CalculateWeekly(baziResult, startDate, chart.BirthYear)
+	result := h.Engine.CalculateWeekly(baziResult, startDate, resolved.BirthYear)
 
 	dailyFortunes := make([]model.FortuneResponse, len(result.DailyFortunes))
 	for i, df := range result.DailyFortunes {
-		dailyFortunes[i] = dailyFortuneToResponse(df)
+		dailyFortunes[i] = dailyFortuneToResponse(df, resolved)
 	}
 
 	trendJSON, _ := json.Marshal(result.ElementTrend)
 
 	respondJSON(c, http.StatusOK, model.WeeklyFortuneResponse{
-		DailyFortunes: dailyFortunes,
-		WeeklyScore:   result.WeeklyScore,
-		ElementTrend:  string(trendJSON),
-		Summary:       result.Summary,
+		DailyFortunes:           dailyFortunes,
+		StructuralRelationIndex: result.StructuralRelationIndex,
+		ElementTrend:            string(trendJSON),
+		Summary:                 result.Summary,
 	})
 }
 
 func normalizeGender(g string) string {
+	gender, ok := parseGender(g)
+	if ok {
+		return gender
+	}
+	return model.GenderMale
+}
+
+func parseGender(g string) (string, bool) {
 	s := strings.TrimSpace(g)
 	switch {
 	case s == "男" || strings.EqualFold(s, "male") || strings.EqualFold(s, "m"):
-		return model.GenderMale
+		return model.GenderMale, true
 	case s == "女" || strings.EqualFold(s, "female") || strings.EqualFold(s, "f"):
-		return model.GenderFemale
+		return model.GenderFemale, true
 	default:
-		return model.GenderMale
+		return "", false
 	}
 }
 
-func dailyFortuneToResponse(df fortune.DailyFortune) model.FortuneResponse {
-	yiJi := buildYiJiString(df.Yi, df.Ji)
-
-	yiItems := make([]string, len(df.Yi))
-	for i, item := range df.Yi {
-		yiItems[i] = item.Activity
-	}
-	jiItems := make([]string, len(df.Ji))
-	for i, item := range df.Ji {
-		jiItems[i] = item.Activity
-	}
-
-	luckyNum := 0
-	if len(df.LuckyNumbers) > 0 {
-		luckyNum = df.LuckyNumbers[0]
-	}
-
+func dailyFortuneToResponse(df fortune.DailyFortune, resolved *resolvedChartBazi) model.FortuneResponse {
 	resp := model.FortuneResponse{
 		EngineVersion:        fortune.FortuneEngineVersion,
+		BaziEngineVersion:    resolved.EngineVersion,
+		BaziResolutionSource: resolved.Source,
 		RuleVersion:          df.Layers.RuleVersion,
 		School:               df.Layers.School,
 		RuleMeta:             bazi.DefaultRuleMeta(),
 		SolarDate:            df.Date,
 		DayGanZhi:            df.DayPillar.Gan + df.DayPillar.Zhi,
-		YiJi:                 yiJi,
 		ElementImages:        df.ElementImages,
 		Score:                df.Score,
 		ScoreBreakdown:       df.ScoreBreakdown,
 		EvidenceCompleteness: df.ScoreBreakdown.EvidenceCompleteness,
 		SupportingEvidence:   df.ScoreBreakdown.SupportingEvidence,
 		CounterEvidence:      df.ScoreBreakdown.CounterEvidence,
-		LuckyColor:           df.LuckyColor,
-		LuckyNumber:          luckyNum,
-		WealthDir:            df.WealthDir,
-		Guide:                df.Guide,
 		ClashZodiac:          df.ClashZodiac,
-		AuspiciousHours:      df.AuspiciousHours,
-		YiItems:              yiItems,
-		JiItems:              jiItems,
 		TodayElements:        df.TodayElements,
-		SeasonElementAdvice:  df.SeasonElementAdvice,
-		FlowImpact:           df.FlowImpact,
+		SeasonElement:        df.SeasonElement,
 		ShengKeAnalysis:      model.ShengKeAnalysis(df.ShengKe),
 		FortuneLayers:        df.Layers,
-		Analysis:             df.Analysis,
 	}
 	if rikuyo := df.Rikuyo; rikuyo != nil {
-		resp.TodayTenGod = rikuyo.TodayTenGod
-		resp.TenGodFavorable = rikuyo.TenGodFavorable
-		resp.TenGodDesc = rikuyo.TenGodDesc
+		resp.TenGod = rikuyo.TenGod
 		resp.TwelveStage = rikuyo.TwelveStage
-		resp.StageFavorable = rikuyo.StageFavorable
-		resp.StageDesc = rikuyo.StageDesc
-		resp.StageFlexible = rikuyo.StageFlexible
+		resp.JianChu = rikuyo.JianChu
+		resp.HuangDao = rikuyo.HuangDao
 		resp.HiddenStems = rikuyo.HiddenStems
 		resp.StemRelations = rikuyo.StemRelations
 		resp.BranchRelations = rikuyo.BranchRelations
 		resp.ActivatedShenSha = rikuyo.ActivatedShenSha
-		resp.DaYunInfluence = rikuyo.DaYunInfluence
-		resp.LiuNianInfluence = rikuyo.LiuNianInfluence
-		resp.AdvanceRetreat = rikuyo.AdvanceRetreat
-		resp.YongShenImpact = rikuyo.YongShenImpact
+		resp.SeasonalState = rikuyo.SeasonalState
 		resp.FortuneLayers = df.Layers
-		resp.OverallVerdict = rikuyo.OverallVerdict
-		resp.FavorScore = rikuyo.FavorScore
-		resp.PatternName = rikuyo.PatternName
-		resp.PatternType = rikuyo.PatternType
-		resp.PatternFavorable = rikuyo.PatternFavorable
-		resp.PatternUnfavorable = rikuyo.PatternUnfavorable
 	}
 	return resp
-}
-
-func buildYiJiString(yi, ji []model.YiJiItem) string {
-	parts := make([]string, 0, len(yi)+len(ji))
-	for _, item := range yi {
-		parts = append(parts, "宜"+item.Activity)
-	}
-	for _, item := range ji {
-		parts = append(parts, "忌"+item.Activity)
-	}
-	if len(parts) == 0 {
-		return ""
-	}
-	return strings.Join(parts, "; ")
 }
 
 // RegisterFortuneRoutes registers fortune routes requiring JWT.

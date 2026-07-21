@@ -292,11 +292,11 @@ export function getShaderFragment(type: ShaderType): string {
 
 export function createShaderUniforms(
   type: ShaderType,
-  yongshen: WuxingKey,
+  elementTheme: WuxingKey,
   image?: HTMLImageElement | null,
   mode: ShaderThemeMode = 'dark'
 ): ShaderMountUniforms {
-  const theme = wuxingThemes[yongshen]
+  const theme = wuxingThemes[elementTheme]
   switch (type) {
     case 'dithering': return ditheringUniforms(theme)
     case 'dotGrid': return dotGridUniforms(theme)

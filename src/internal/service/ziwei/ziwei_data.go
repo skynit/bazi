@@ -145,32 +145,23 @@ var StarBrightnessMap = map[string][12]string{
 	"破军": {"庙", "旺", "得", "陷", "旺", "平", "庙", "旺", "得", "陷", "旺", "平"},
 }
 
-// AuxStarBrightnessMap maps auxiliary star names to brightness arrays.
-// Iztro provides brightness for 文昌、文曲、火星、铃星、擎羊、陀罗.
-// Project extensions add 左辅、右弼、天魁、天钺、禄存、天马、地空、地劫.
-// Stars without a stable brightness table are retained with empty rows so
-// lookups return no brightness instead of fabricating a level.
+// AuxStarBrightnessMap contains only auxiliary stars for which the pinned
+// iztro STARS_INFO source defines a 12-branch brightness table.
 var AuxStarBrightnessMap = map[string][12]string{
-	"左辅": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
-	"右弼": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
 	"文昌": {"得", "庙", "陷", "利", "得", "庙", "陷", "利", "得", "庙", "陷", "利"},
 	"文曲": {"得", "庙", "平", "旺", "得", "庙", "陷", "旺", "得", "庙", "陷", "旺"},
-	"天魁": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
-	"天钺": {"旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺", "旺"},
-	"禄存": {"庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙", "庙"},
-	"天马": {"平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平", "平"},
 	"擎羊": {"陷", "庙", "", "陷", "庙", "", "陷", "庙", "", "陷", "庙", ""},
 	"陀罗": {"", "庙", "陷", "", "庙", "陷", "", "庙", "陷", "", "庙", "陷"},
 	"火星": {"陷", "得", "庙", "利", "陷", "得", "庙", "利", "陷", "得", "庙", "利"},
 	"铃星": {"陷", "得", "庙", "利", "陷", "得", "庙", "利", "陷", "得", "庙", "利"},
-	"地空": {"平", "陷", "陷", "平", "陷", "庙", "庙", "平", "庙", "庙", "陷", "陷"},
-	"地劫": {"陷", "陷", "平", "平", "陷", "平", "庙", "平", "庙", "平", "平", "旺"},
 }
 
 // ──────────── Four Transformations Table (四化表) ────────────
 
 // SiHuaTable maps year stem index → [化禄, 化权, 化科, 化忌].
-// Reference: iztro heavenlyStems.ts mutagen data.
+// Source: SiHuaSourceRepo@SiHuaSourceCommit, SiHuaSourcePath (MIT).
+// This is the only authoritative four-hua table used by chart, chain, flying
+// star, and period consumers in this profile.
 var SiHuaTable = [10][4]string{
 	{"廉贞", "破军", "武曲", "太阳"}, // 甲
 	{"天机", "天梁", "紫微", "太阴"}, // 乙
@@ -226,7 +217,7 @@ var KuiYueTable = [10][2]int{
 
 // iztro location.ts getLuYangTuoMaIndex:
 // 甲→寅(2), 乙→卯(3), 丙→巳(5), 丁→午(6), 戊→巳(5), 己→午(6),
-// 庚→申(8), 辛→酉(9), 壬→亥(10), 癸→子(0)
+// 庚→申(8), 辛→酉(9), 壬→亥(11), 癸→子(0)
 var LucunBranchIdx = [10]int{
 	2,  // 甲
 	3,  // 乙
@@ -236,7 +227,7 @@ var LucunBranchIdx = [10]int{
 	6,  // 己
 	8,  // 庚
 	9,  // 辛
-	10, // 壬
+	11, // 壬
 	0,  // 癸
 }
 
@@ -292,11 +283,16 @@ func HuolingIndex(yearBranch, timeIndex int) (huoIdx, lingIdx int) {
 func HongLuanIndex(yearBranch int) int { return fixIndex(3 - yearBranch) }
 func TianXiIndex(yearBranch int) int   { return fixIndex(HongLuanIndex(yearBranch) + 6) }
 
-// TianYaoTable: 天姚 from 丑(1) + lunarMonth
-func TianYaoIndex(lunarMonth int) int { return fixIndex(1 + lunarMonth) }
+// TianYaoTable: 天姚 from 丑(1), with 正月 at 丑.
+func TianYaoIndex(lunarMonth int) int { return fixIndex(lunarMonth) }
 
-// TianXingTable: 天刑 from 酉(9) + lunarMonth
-func TianXingIndex(lunarMonth int) int { return fixIndex(9 + lunarMonth) }
+// TianXingTable: 天刑 from 酉(9), with 正月 at 酉.
+func TianXingIndex(lunarMonth int) int { return fixIndex(8 + lunarMonth) }
+
+// Monthly adjective-star branches, indexed by the effective lunar month - 1.
+var YueJieBranchByMonth = [12]int{8, 8, 10, 10, 0, 0, 2, 2, 4, 4, 6, 6}
+var TianYueBranchByMonth = [12]int{10, 5, 4, 2, 7, 3, 11, 7, 2, 6, 10, 2}
+var TianWuBranchByMonth = [12]int{5, 8, 2, 11, 5, 8, 2, 11, 5, 8, 2, 11}
 
 // XianChiBranch maps year branch → 咸池 branch.
 // 申子辰→酉(9), 寅午戌→卯(3), 巳酉丑→午(6), 亥卯未→子(0)
@@ -306,17 +302,28 @@ var XianChiBranch = [12]int{9, 6, 3, 0, 9, 6, 3, 0, 9, 6, 3, 0}
 // 申子辰→辰(4), 寅午戌→戌(10), 巳酉丑→丑(1), 亥卯未→未(7)
 var HuaGaiBranch = [12]int{4, 1, 10, 7, 4, 1, 10, 7, 4, 1, 10, 7}
 
-// PoSuiBranch maps year branch → 破碎 branch (same groups as 华盖 but different targets).
-var PoSuiBranch = [12]int{4, 1, 10, 7, 4, 1, 10, 7, 4, 1, 10, 7}
+// GuChenBranch and GuaSuBranch map year branch → 孤辰/寡宿 branch.
+var GuChenBranch = [12]int{2, 2, 5, 5, 5, 8, 8, 8, 11, 11, 11, 2}
+var GuaSuBranch = [12]int{10, 10, 1, 1, 1, 4, 4, 4, 7, 7, 7, 10}
 
-// FeiLianBranch maps year branch → 飞廉 branch.
-var FeiLianBranch = [12]int{2, 11, 8, 5, 2, 11, 8, 5, 2, 11, 8, 5}
+// PoSuiBranch maps year branch → 破碎 branch.
+var PoSuiBranch = [12]int{5, 1, 9, 5, 1, 9, 5, 1, 9, 5, 1, 9}
+
+// FeiLianBranch maps year branch → 蜚廉 branch.
+var FeiLianBranch = [12]int{8, 9, 10, 5, 6, 7, 2, 3, 4, 11, 0, 1}
 
 // YinShaBranch maps month index → 阴煞 branch.
-var YinShaBranch = [12]int{3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2}
+var YinShaBranch = [12]int{2, 0, 10, 8, 6, 4, 2, 0, 10, 8, 6, 4}
 
-// TianKongBranch: 天空 from 亥(11) reverse by time.
-func TianKongIndex(timeIndex int) int { return fixIndex(11 - timeIndex) }
+// Irregular year-stem adjective-star branches.
+var TianChuBranchByStem = [10]int{5, 6, 0, 5, 6, 8, 2, 6, 9, 11}
+var TianGuanBranchByStem = [10]int{7, 4, 5, 2, 3, 9, 11, 9, 10, 6}
+var TianFuAdjectiveBranchByStem = [10]int{9, 8, 0, 11, 3, 2, 6, 5, 6, 5}
+var JieLuBranchByStem = [10]int{8, 6, 4, 2, 0, 8, 6, 4, 2, 0}
+var KongWangBranchByStem = [10]int{9, 7, 5, 3, 1, 9, 7, 5, 3, 1}
+
+// NianJieBranch maps year branch → 年解 branch.
+var NianJieBranch = [12]int{10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11}
 
 // ──────────── Life Master / Body Master (命主/身主) ────────────
 

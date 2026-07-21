@@ -37,14 +37,9 @@ func TestCalculateWeekly_Basic(t *testing.T) {
 		t.Fatalf("DailyFortunes 应有 7 天, got %d", len(result.DailyFortunes))
 	}
 
-	// 验证周评分在 [0, 100] 范围内
-	if result.WeeklyScore < 0 || result.WeeklyScore > 100 {
-		t.Errorf("WeeklyScore = %d, 不在 [0,100] 范围内", result.WeeklyScore)
-	}
-
-	// 验证汇总非空
-	if result.OverallSummary == "" {
-		t.Error("OverallSummary 为空")
+	// 验证周结构关系指数在 [0, 100] 范围内
+	if result.StructuralRelationIndex < 0 || result.StructuralRelationIndex > 100 {
+		t.Errorf("StructuralRelationIndex = %d, 不在 [0,100] 范围内", result.StructuralRelationIndex)
 	}
 
 	// 验证每日评分
@@ -62,14 +57,14 @@ func TestCalculateWeekly_Basic(t *testing.T) {
 		t.Fatalf("ElementTrend 应有 7 项, got %d", len(result.ElementTrend))
 	}
 
-	// 验证周评分是 7 天平均分
+	// 验证周结构关系指数是 7 天平均值
 	sum := 0
 	for _, df := range result.DailyFortunes {
 		sum += df.Score
 	}
 	avg := sum / 7
-	if result.WeeklyScore != avg {
-		t.Errorf("WeeklyScore = %d, 期望平均分 = %d", result.WeeklyScore, avg)
+	if result.StructuralRelationIndex != avg {
+		t.Errorf("StructuralRelationIndex = %d, 期望平均值 = %d", result.StructuralRelationIndex, avg)
 	}
 }
 
@@ -95,8 +90,8 @@ func TestCalculateWeekly_ScoreRange(t *testing.T) {
 		start, _ := time.Parse("2006-01-02", c.startDate)
 		result := engine.CalculateWeekly(bazi, start, c.y)
 
-		if result.WeeklyScore < 0 || result.WeeklyScore > 100 {
-			t.Errorf("八字 %d-%d-%d 周评分=%d 超出 [0,100]", c.y, c.m, c.d, result.WeeklyScore)
+		if result.StructuralRelationIndex < 0 || result.StructuralRelationIndex > 100 {
+			t.Errorf("八字 %d-%d-%d 周结构关系指数=%d 超出 [0,100]", c.y, c.m, c.d, result.StructuralRelationIndex)
 		}
 	}
 }
@@ -151,14 +146,9 @@ func TestCalculateMonthly_Basic(t *testing.T) {
 		t.Fatalf("DailyFortunes 应有 31 天, got %d", len(result.DailyFortunes))
 	}
 
-	// 验证月评分在 [0, 100] 范围内
-	if result.MonthlyScore < 0 || result.MonthlyScore > 100 {
-		t.Errorf("MonthlyScore = %d, 不在 [0,100] 范围内", result.MonthlyScore)
-	}
-
-	// 验证汇总非空
-	if result.OverallSummary == "" {
-		t.Error("OverallSummary 为空")
+	// 验证月结构关系指数在 [0, 100] 范围内
+	if result.StructuralRelationIndex < 0 || result.StructuralRelationIndex > 100 {
+		t.Errorf("StructuralRelationIndex = %d, 不在 [0,100] 范围内", result.StructuralRelationIndex)
 	}
 
 	// 验证每日评分和日期
@@ -176,14 +166,14 @@ func TestCalculateMonthly_Basic(t *testing.T) {
 		t.Fatalf("ElementTrend 应有 31 项, got %d", len(result.ElementTrend))
 	}
 
-	// 验证月评分是平均分
+	// 验证月结构关系指数是平均值
 	sum := 0
 	for _, df := range result.DailyFortunes {
 		sum += df.Score
 	}
 	avg := sum / 31
-	if result.MonthlyScore != avg {
-		t.Errorf("MonthlyScore = %d, 期望平均分 = %d", result.MonthlyScore, avg)
+	if result.StructuralRelationIndex != avg {
+		t.Errorf("StructuralRelationIndex = %d, 期望平均值 = %d", result.StructuralRelationIndex, avg)
 	}
 }
 
@@ -220,7 +210,7 @@ func TestCalculateMonthly_ScoreRange(t *testing.T) {
 	baziSvc := &bazipkg.BaziService{}
 
 	charts := []struct {
-		y, m, d, h int
+		y, m, d, h     int
 		queryY, queryM int
 	}{
 		{1990, 6, 15, 8, 2025, 1},
@@ -234,8 +224,8 @@ func TestCalculateMonthly_ScoreRange(t *testing.T) {
 			t.Fatalf("计算八字失败 (%d-%d-%d): %v", c.y, c.m, c.d, err)
 		}
 		result := engine.CalculateMonthly(bazi, c.queryY, c.queryM, c.y)
-		if result.MonthlyScore < 0 || result.MonthlyScore > 100 {
-			t.Errorf("八字 %d-%d-%d 月评分=%d 超出 [0,100]", c.y, c.m, c.d, result.MonthlyScore)
+		if result.StructuralRelationIndex < 0 || result.StructuralRelationIndex > 100 {
+			t.Errorf("八字 %d-%d-%d 月结构关系指数=%d 超出 [0,100]", c.y, c.m, c.d, result.StructuralRelationIndex)
 		}
 	}
 }

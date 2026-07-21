@@ -6,14 +6,14 @@ import (
 )
 
 // ════════════════════════════════════════════════════════════════
-// Tests for SiHuaTable (ziwei_data.go) and SI_HUA_TABLE (ziwei_knowledge.go)
+// Tests for the single authoritative SiHuaTable in ziwei_data.go.
 // ════════════════════════════════════════════════════════════════
 
 // TestSiHuaTable_AllStems verifies calcFourHua for all 10 heavenly stems.
 func TestSiHuaTable_AllStems(t *testing.T) {
 	// Expected four transformations for each stem (0=甲 through 9=癸)
 	// Order: [化禄, 化权, 化科, 化忌]
-	expected := [][]string{
+	expected := [10][4]string{
 		{"廉贞", "破军", "武曲", "太阳"}, // 甲
 		{"天机", "天梁", "紫微", "太阴"}, // 乙
 		{"天同", "天机", "文昌", "廉贞"}, // 丙
@@ -24,6 +24,9 @@ func TestSiHuaTable_AllStems(t *testing.T) {
 		{"巨门", "太阳", "文曲", "文昌"}, // 辛
 		{"天梁", "紫微", "左辅", "武曲"}, // 壬
 		{"破军", "巨门", "太阴", "贪狼"}, // 癸
+	}
+	if SiHuaTable != expected {
+		t.Fatalf("SiHuaTable = %v, want %v", SiHuaTable, expected)
 	}
 
 	labels := []string{"化禄", "化权", "化科", "化忌"}
@@ -44,33 +47,45 @@ func TestSiHuaTable_AllStems(t *testing.T) {
 	}
 }
 
-// TestSiHuaTable_Consistency verifies that SiHuaTable (array in ziwei_data.go)
-// and SI_HUA_TABLE (map in ziwei_knowledge.go) hold identical data.
-//
-// NOTE: 庚年 (stem 6) is a known intentional difference:
-//   - SiHuaTable[6] = [太阳, 武曲, 太阴, 天同]  (太阴=科, 天同=忌)
-//   - SI_HUA_TABLE[6] = [太阳, 武曲, 天同, 太阴] (天同=科, 太阴=忌)
-//   The SI_HUA_TABLE value includes a "(含line5435定盘修正)" correction.
-func TestSiHuaTable_Consistency(t *testing.T) {
+func TestSiHuaTable_SourcePinned(t *testing.T) {
+	if SiHuaRuleID != "ziwei.sihua.ten-stem.iztro-v1" ||
+		SiHuaSourceRepo != "https://github.com/SylarLong/iztro" ||
+		SiHuaSourceCommit != "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13" ||
+		SiHuaSourcePath != "src/data/heavenlyStems.ts" {
+		t.Fatalf("four-hua source metadata is not pinned: %s %s %s %s", SiHuaRuleID, SiHuaSourceRepo, SiHuaSourceCommit, SiHuaSourcePath)
+	}
+}
+
+func TestSiHuaTable_AllConsumersAgree(t *testing.T) {
+	chart := chartContainingAllFourHuaStars()
 	for stem := 0; stem < 10; stem++ {
 		t.Run(StemNames[stem], func(t *testing.T) {
-			// From the array-based table in ziwei_data.go
 			want := SiHuaTable[stem]
+			chart.Palaces[0].HeavenlyStem = StemNames[stem]
+			stampPublishedFourHua(chart, stem)
 
-			// From the map-based table in ziwei_knowledge.go
-			got, ok := SI_HUA_TABLE[stem]
-			if !ok {
-				t.Fatalf("SI_HUA_TABLE missing entry for stem %d", stem)
+			chain := analyzeSihuaChain(chart)
+			if chain == nil || len(chain.HuaLu) == 0 || len(chain.HuaQuan) == 0 || len(chain.HuaKe) == 0 || len(chain.HuaJi) == 0 {
+				t.Fatalf("AnalyzeSihuaChain(%s) omitted a transformation: %+v", StemNames[stem], chain)
+			}
+			if got := [4]string{chain.HuaLu[0].TransformedStar, chain.HuaQuan[0].TransformedStar, chain.HuaKe[0].TransformedStar, chain.HuaJi[0].TransformedStar}; got != want {
+				t.Errorf("chain = %v, want %v", got, want)
 			}
 
-			// 庚年 (stem 6) has a known intentional difference — skip strict equality
-			if stem == 6 {
-				t.Logf("庚年: known difference — SiHuaTable=%v, SI_HUA_TABLE=%v", want, got)
-				return
+			flying := buildFlyingStarAnalysisFromChart(chart)
+			if flying == nil || len(flying.HuaLu) == 0 || len(flying.HuaQuan) == 0 || len(flying.HuaKe) == 0 || len(flying.HuaJi) == 0 {
+				t.Fatalf("flying-star analysis omitted a transformation: %+v", flying)
+			}
+			if got := [4]string{flying.HuaLu[0].TransformedStar, flying.HuaQuan[0].TransformedStar, flying.HuaKe[0].TransformedStar, flying.HuaJi[0].TransformedStar}; got != want {
+				t.Errorf("flying = %v, want %v", got, want)
 			}
 
-			if !reflect.DeepEqual(want[:], got) {
-				t.Errorf("SiHuaTable[%d] = %v, SI_HUA_TABLE[%d] = %v", stem, want, stem, got)
+			overlay := buildLiunianFourHuaTriggers(chart, stem)
+			if len(overlay) != 4 {
+				t.Fatalf("overlay transformations = %d, want 4: %+v", len(overlay), overlay)
+			}
+			if got := [4]string{overlay[0].Star, overlay[1].Star, overlay[2].Star, overlay[3].Star}; got != want {
+				t.Errorf("overlay = %v, want %v", got, want)
 			}
 		})
 	}
@@ -82,12 +97,38 @@ func TestSiHuaTable_Length(t *testing.T) {
 		if len(SiHuaTable[stem]) != 4 {
 			t.Errorf("SiHuaTable[%d] has length %d, want 4", stem, len(SiHuaTable[stem]))
 		}
-		got, ok := SI_HUA_TABLE[stem]
-		if !ok {
-			t.Errorf("SI_HUA_TABLE missing stem %d", stem)
-		} else if len(got) != 4 {
-			t.Errorf("SI_HUA_TABLE[%d] has length %d, want 4", stem, len(got))
+	}
+}
+
+func chartContainingAllFourHuaStars() *ZiWeiChart {
+	stars := []string{
+		"廉贞", "破军", "武曲", "太阳", "天机", "天梁", "紫微", "太阴",
+		"天同", "文昌", "巨门", "贪狼", "右弼", "文曲", "左辅",
+	}
+	chart := &ZiWeiChart{}
+	for i := range chart.Palaces {
+		chart.Palaces[i].Name = PALACE_NAMES[i]
+		chart.Palaces[i].Branch = BranchNames[i]
+	}
+	for i, star := range stars {
+		idx := i % len(chart.Palaces)
+		starType := "major"
+		if star == "文昌" || star == "右弼" || star == "文曲" || star == "左辅" {
+			starType = "soft"
 		}
+		chart.Palaces[idx].Stars = append(chart.Palaces[idx].Stars, StarOutput{Name: star, Type: starType, Scope: "origin"})
+	}
+	return chart
+}
+
+func stampPublishedFourHua(chart *ZiWeiChart, stem int) {
+	for i := range chart.Palaces {
+		chart.Palaces[i].FourHua = nil
+	}
+	starToPalace := buildStarPalaceIndex(chart)
+	for huaIdx, star := range SiHuaTable[stem] {
+		palaceIdx := starToPalace[star]
+		chart.Palaces[palaceIdx].FourHua = append(chart.Palaces[palaceIdx].FourHua, star+SiHuaLabels[huaIdx])
 	}
 }
 
@@ -244,28 +285,17 @@ func TestApplyFourHua(t *testing.T) {
 
 // TestAnalyzeSihuaChain_NilChart verifies nil handling.
 func TestAnalyzeSihuaChain_NilChart(t *testing.T) {
-	result := AnalyzeSihuaChain(nil)
+	result := analyzeSihuaChain(nil)
 	if result != nil {
 		t.Errorf("AnalyzeSihuaChain(nil) = %v, want nil", result)
 	}
 }
 
-// TestAnalyzeSihuaChain_WithSimplifiedChart uses SimplifiedZiWei to get a
-// minimal chart and runs chain analysis on it.
-func TestAnalyzeSihuaChain_WithSimplifiedChart(t *testing.T) {
-	chart := SimplifiedZiWei(2000, 6, 15, 12, 0, "MALE")
-	if chart == nil {
-		t.Fatal("SimplifiedZiWei returned nil chart")
-	}
-
-	// SimplifiedZiWei doesn't set YearStem; set it explicitly for testing.
-	// Use 甲年 (stem 0): 廉贞化禄, 破军化权, 武曲化科, 太阳化忌
-	chart.YearStem = 0
-
-	// The simplified chart has MainStars=["紫微","天机"] and AuxStars=["左辅","文昌"]
-	// in every palace. None of these are in the 甲年 SiHuaTable,
-	// so chain results should be empty arrays.
-	result := AnalyzeSihuaChain(chart)
+// TestAnalyzeSihuaChain_WithEmptySyntheticChart verifies the pure projection
+// helper against an explicitly synthetic chart with no palace stems.
+func TestAnalyzeSihuaChain_WithEmptySyntheticChart(t *testing.T) {
+	chart := &ZiWeiChart{}
+	result := analyzeSihuaChain(chart)
 	if result == nil {
 		t.Fatal("AnalyzeSihuaChain returned nil")
 	}
@@ -282,8 +312,9 @@ func TestAnalyzeSihuaChain_WithSimplifiedChart(t *testing.T) {
 	if len(result.HuaJi) != 0 {
 		t.Errorf("expected 0 HuaJi items, got %d: %v", len(result.HuaJi), result.HuaJi)
 	}
-	if result.TotalChainDepth != 0 {
-		t.Errorf("expected TotalChainDepth=0, got %d", result.TotalChainDepth)
+	assertSihuaProjectionSemantics(t, result.SihuaProjectionSemantics)
+	if result.AnalysisKind != sihuaDirectFlightAnalysisKind {
+		t.Errorf("analysis_kind = %q, want %q", result.AnalysisKind, sihuaDirectFlightAnalysisKind)
 	}
 }
 
@@ -295,24 +326,24 @@ func TestAnalyzeSihuaChain_WithKnownTransformations(t *testing.T) {
 	var palaces [12]PalaceInfo
 	for i := range palaces {
 		palaces[i] = PalaceInfo{
-			Name:     PALACE_NAMES[i],
-			MainStars: []string{},
-			AuxStars:  []string{},
-			FourHua:   []string{},
+			Name:         PALACE_NAMES[i],
+			HeavenlyStem: "",
+			Stars:        []StarOutput{},
+			FourHua:      []string{},
 		}
 	}
+	palaces[0].HeavenlyStem = "甲"
 
 	// Place 廉贞 in 命宫 (index 0) — this is 化禄 in 甲年
-	palaces[0].MainStars = []string{"廉贞"}
+	palaces[0].Stars = []StarOutput{{Name: "廉贞", Type: "major", Scope: "origin"}}
 	// Place 破军 in 子女 (index 3) — this is 化权 in 甲年
-	palaces[3].MainStars = []string{"破军"}
+	palaces[3].Stars = []StarOutput{{Name: "破军", Type: "major", Scope: "origin"}}
 
 	chart := &ZiWeiChart{
-		Palaces:  palaces,
-		YearStem: 0, // 甲年: 廉贞化禄, 破军化权, 武曲化科, 太阳化忌
+		Palaces: palaces,
 	}
 
-	result := AnalyzeSihuaChain(chart)
+	result := analyzeSihuaChain(chart)
 	if result == nil {
 		t.Fatal("AnalyzeSihuaChain returned nil")
 	}
@@ -321,25 +352,31 @@ func TestAnalyzeSihuaChain_WithKnownTransformations(t *testing.T) {
 	if len(result.HuaLu) != 1 {
 		t.Fatalf("expected 1 HuaLu item, got %d: %+v", len(result.HuaLu), result.HuaLu)
 	}
-	if result.HuaLu[0].FromStar != "廉贞" {
-		t.Errorf("HuaLu[0].FromStar = %q, want %q", result.HuaLu[0].FromStar, "廉贞")
+	if result.HuaLu[0].TransformedStar != "廉贞" {
+		t.Errorf("HuaLu[0].TransformedStar = %q, want %q", result.HuaLu[0].TransformedStar, "廉贞")
 	}
-	if result.HuaLu[0].ToPalace != "命宫" {
-		t.Errorf("HuaLu[0].ToPalace = %q, want %q", result.HuaLu[0].ToPalace, "命宫")
+	if result.HuaLu[0].TargetPalace != "命宫" {
+		t.Errorf("HuaLu[0].TargetPalace = %q, want %q", result.HuaLu[0].TargetPalace, "命宫")
 	}
-	if result.HuaLu[0].FromPalace != "命宫" {
-		t.Errorf("HuaLu[0].FromPalace = %q, want %q", result.HuaLu[0].FromPalace, "命宫")
+	if result.HuaLu[0].SourcePalace != "命宫" {
+		t.Errorf("HuaLu[0].SourcePalace = %q, want %q", result.HuaLu[0].SourcePalace, "命宫")
+	}
+	if !result.HuaLu[0].IsSelfMutagen {
+		t.Errorf("HuaLu[0] should be a palace-stem self mutagen: %+v", result.HuaLu[0])
 	}
 
 	// Should find 破军化权 pointing to 子女
 	if len(result.HuaQuan) != 1 {
 		t.Fatalf("expected 1 HuaQuan item, got %d: %+v", len(result.HuaQuan), result.HuaQuan)
 	}
-	if result.HuaQuan[0].FromStar != "破军" {
-		t.Errorf("HuaQuan[0].FromStar = %q, want %q", result.HuaQuan[0].FromStar, "破军")
+	if result.HuaQuan[0].TransformedStar != "破军" {
+		t.Errorf("HuaQuan[0].TransformedStar = %q, want %q", result.HuaQuan[0].TransformedStar, "破军")
 	}
-	if result.HuaQuan[0].ToPalace != "子女" {
-		t.Errorf("HuaQuan[0].ToPalace = %q, want %q", result.HuaQuan[0].ToPalace, "子女")
+	if result.HuaQuan[0].TargetPalace != "子女" {
+		t.Errorf("HuaQuan[0].TargetPalace = %q, want %q", result.HuaQuan[0].TargetPalace, "子女")
+	}
+	if result.HuaQuan[0].SourcePalace != "命宫" || result.HuaQuan[0].IsSelfMutagen {
+		t.Errorf("HuaQuan[0] should fly from 命宫 to 子女: %+v", result.HuaQuan[0])
 	}
 
 	// 武曲化科 and 太阳化忌 should exist in the table but have no chart stars → empty results
@@ -356,24 +393,24 @@ func TestAnalyzeSihuaChain_WithAuxStars(t *testing.T) {
 	var palaces [12]PalaceInfo
 	for i := range palaces {
 		palaces[i] = PalaceInfo{
-			Name:     PALACE_NAMES[i],
-			MainStars: []string{},
-			AuxStars:  []string{},
-			FourHua:   []string{},
+			Name:         PALACE_NAMES[i],
+			HeavenlyStem: "",
+			Stars:        []StarOutput{},
+			FourHua:      []string{},
 		}
 	}
+	palaces[0].HeavenlyStem = "己"
 	// 己年 (stem 5): 武曲化禄, 贪狼化权, 天梁化科, 文曲化忌
 	// Place 文曲 as an aux star in 交友 (index 7)
-	palaces[7].AuxStars = []string{"文曲"}
+	palaces[7].Stars = []StarOutput{{Name: "文曲", Type: "soft", Scope: "origin"}}
 	// Place 天梁 as a main star in 迁移 (index 6)
-	palaces[6].MainStars = []string{"天梁"}
+	palaces[6].Stars = []StarOutput{{Name: "天梁", Type: "major", Scope: "origin"}}
 
 	chart := &ZiWeiChart{
-		Palaces:  palaces,
-		YearStem: 5, // 己年
+		Palaces: palaces,
 	}
 
-	result := AnalyzeSihuaChain(chart)
+	result := analyzeSihuaChain(chart)
 	if result == nil {
 		t.Fatal("AnalyzeSihuaChain returned nil")
 	}
@@ -382,22 +419,22 @@ func TestAnalyzeSihuaChain_WithAuxStars(t *testing.T) {
 	if len(result.HuaKe) != 1 {
 		t.Fatalf("expected 1 HuaKe item for 天梁化科, got %d: %+v", len(result.HuaKe), result.HuaKe)
 	}
-	if result.HuaKe[0].FromStar != "天梁" {
-		t.Errorf("HuaKe[0].FromStar = %q, want %q", result.HuaKe[0].FromStar, "天梁")
+	if result.HuaKe[0].TransformedStar != "天梁" {
+		t.Errorf("HuaKe[0].TransformedStar = %q, want %q", result.HuaKe[0].TransformedStar, "天梁")
 	}
-	if result.HuaKe[0].ToPalace != "迁移" {
-		t.Errorf("HuaKe[0].ToPalace = %q, want %q", result.HuaKe[0].ToPalace, "迁移")
+	if result.HuaKe[0].TargetPalace != "迁移" {
+		t.Errorf("HuaKe[0].TargetPalace = %q, want %q", result.HuaKe[0].TargetPalace, "迁移")
 	}
 
 	// 文曲化忌 should point to 交友
 	if len(result.HuaJi) != 1 {
 		t.Fatalf("expected 1 HuaJi item for 文曲化忌, got %d: %+v", len(result.HuaJi), result.HuaJi)
 	}
-	if result.HuaJi[0].FromStar != "文曲" {
-		t.Errorf("HuaJi[0].FromStar = %q, want %q", result.HuaJi[0].FromStar, "文曲")
+	if result.HuaJi[0].TransformedStar != "文曲" {
+		t.Errorf("HuaJi[0].TransformedStar = %q, want %q", result.HuaJi[0].TransformedStar, "文曲")
 	}
-	if result.HuaJi[0].ToPalace != "交友" {
-		t.Errorf("HuaJi[0].ToPalace = %q, want %q", result.HuaJi[0].ToPalace, "交友")
+	if result.HuaJi[0].TargetPalace != "交友" {
+		t.Errorf("HuaJi[0].TargetPalace = %q, want %q", result.HuaJi[0].TargetPalace, "交友")
 	}
 }
 
@@ -408,18 +445,11 @@ func TestAnalyzeSihuaChain_WithAuxStars(t *testing.T) {
 // TestAnalyzeFlyingStars_YearHua tests the flying stars analysis for
 // the annual (流年) four transformations.
 func TestAnalyzeFlyingStars_YearHua(t *testing.T) {
-	chart := SimplifiedZiWei(2000, 6, 15, 12, 0, "MALE")
-	if chart == nil {
-		t.Fatal("SimplifiedZiWei returned nil")
+	service := NewZiWeiService()
+	chart, err := service.CalculateChart(2000, 6, 15, 12, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart: %v", err)
 	}
-
-	// SimplifiedZiWei doesn't set YearStem; set for 壬年 (stem 8)
-	// 壬年: 天梁化禄, 紫微化权, 左辅化科, 武曲化忌
-	chart.YearStem = 8
-
-	// The service method wraps FlyingStarAnalysis, so test the public API
-	// via ZiWeiService
-	service := &ZiWeiService{}
 	flyingResult := service.AnalyzeFlyingStars(chart)
 	if flyingResult == nil {
 		t.Fatal("AnalyzeFlyingStars returned nil")

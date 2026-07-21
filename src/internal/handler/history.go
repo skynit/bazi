@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -101,28 +100,11 @@ func (h *HistoryHandler) GetChart(c *gin.Context) {
 }
 
 func storedOrCalculatedBazi(service *bazi.BaziService, chart *model.BirthChart) (*bazi.BaziResult, error) {
-	if len(chart.BaziSnapshot) > 0 && json.Valid(chart.BaziSnapshot) {
-		var snapshot bazi.BaziResult
-		if err := json.Unmarshal(chart.BaziSnapshot, &snapshot); err == nil && snapshot.DayPillar.Gan != "" {
-			return &snapshot, nil
-		}
+	resolved, err := resolveChartBazi(service, chart)
+	if err != nil {
+		return nil, err
 	}
-
-	var normalized bazi.NormalizedBirth
-	if len(chart.NormalizedBirth) > 0 && json.Valid(chart.NormalizedBirth) {
-		if err := json.Unmarshal(chart.NormalizedBirth, &normalized); err == nil && normalized.Year > 0 {
-			return service.Calculate(normalized.Year, normalized.Month, normalized.Day, normalized.Hour, normalized.Minute, normalized.Gender)
-		}
-	}
-
-	return service.Calculate(
-		chart.BirthYear,
-		chart.BirthMonth,
-		chart.BirthDay,
-		chart.BirthHour,
-		chart.BirthMin,
-		normalizeGender(chart.Gender),
-	)
+	return resolved.Result, nil
 }
 
 // FortuneHistoryList handles GET /api/fortune/history?chart_id=X.

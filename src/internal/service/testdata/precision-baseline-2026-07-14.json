@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "captured_at": "2026-07-14",
+  "baseline_kind": "data_quality",
+  "publication_status": "not_publishable",
+  "report_version": "1.0",
+  "comparison_mode": "legacy_bidirectional_substring",
+  "metrics": {
+    "cases": 266,
+    "checks": 232,
+    "passed": 77,
+    "failed": 155,
+    "skipped": 1
+  },
+  "limitations": [
+    "All four fixture files lacked complete provenance and review metadata.",
+    "Scalar comparisons used bidirectional substring matching and produced false passes.",
+    "Pillar-only cases could not validate calendar conversion accuracy.",
+    "The extended Bazi fixture contained 207 cases but only one supported derived-rule assertion.",
+    "The metrics must not be presented as fortune-telling or predictive accuracy."
+  ]
+}

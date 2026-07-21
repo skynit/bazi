@@ -11,7 +11,7 @@ interface ReadingEvidence {
   type: string
   label: string
   value: string
-  impact: string
+  basis: string
 }
 
 interface SanfangContext {
@@ -29,7 +29,8 @@ interface PatternDetail {
   palace: string
   stars: string[]
   basis: string
-  confidence: number
+  structure_status: string
+  validation_status: string
 }
 
 interface PalaceReading {
@@ -40,9 +41,10 @@ interface PalaceReading {
   evidence?: ReadingEvidence[]
   sanfangContext?: SanfangContext | null
   patternDetails?: PatternDetail[]
-  advice?: string[]
-  riskFlags?: string[]
-  confidence?: number
+  reviewNotes?: string[]
+  limitations?: string[]
+  evidenceBasis?: string
+  validationStatus?: string
   mainStarAnalysis: SectionData
   auxStarInfluence: SectionData
   sihuaInfluence: SectionData
@@ -55,12 +57,6 @@ const props = defineProps<{
 }>()
 
 const expanded = ref(true)
-
-const confidencePercent = computed(() => {
-  const raw = props.palaceReading.confidence ?? 0
-  if (!raw) return 0
-  return Math.round(raw * 100)
-})
 
 const groupedEvidence = computed(() => {
   const groups: Record<string, ReadingEvidence[]> = {}
@@ -112,9 +108,6 @@ function evidenceClass(type: string) {
   return `evidence-${type.replaceAll('_', '-')}`
 }
 
-function formatConfidence(value: number) {
-  return `${Math.round(value * 100)}%`
-}
 </script>
 
 <template>
@@ -123,7 +116,7 @@ function formatConfidence(value: number) {
       <span class="header-kicker">命盘详解</span>
       <span class="header-title">{{ palaceReading.palaceName }}</span>
       <span v-if="palaceReading.palaceFocus" class="focus-pill">{{ palaceReading.palaceFocus }}</span>
-      <span v-if="confidencePercent" class="confidence-pill">依据 {{ confidencePercent }}%</span>
+      <span v-if="palaceReading.validationStatus === 'not_adjudicated'" class="validation-pill">未独立裁决</span>
       <span class="toggle-icon">{{ expanded ? '收起' : '展开' }}</span>
     </button>
 
@@ -156,7 +149,7 @@ function formatConfidence(value: number) {
                 <span class="evidence-label">{{ item.label }}</span>
                 <strong class="evidence-value">{{ item.value }}</strong>
               </div>
-              <p class="evidence-impact">{{ item.impact }}</p>
+              <p class="evidence-basis">{{ item.basis }}</p>
             </div>
           </div>
         </section>
@@ -191,7 +184,7 @@ function formatConfidence(value: number) {
             <div v-for="pattern in palaceReading.patternDetails" :key="pattern.name + pattern.basis" class="pattern-card">
               <div class="pattern-head">
                 <strong>{{ pattern.name }}</strong>
-                <span>{{ formatConfidence(pattern.confidence) }}</span>
+                <span>{{ pattern.structure_status === 'matched' ? '结构匹配' : pattern.structure_status }}</span>
               </div>
               <p>{{ pattern.basis }}</p>
               <div v-if="pattern.stars?.length" class="mini-tags">
@@ -202,16 +195,16 @@ function formatConfidence(value: number) {
         </section>
 
         <section class="advice-risk-grid">
-          <div v-if="palaceReading.advice?.length" class="reading-block advice-block">
-            <h4 class="block-title">行动建议</h4>
+          <div v-if="palaceReading.reviewNotes?.length" class="reading-block advice-block">
+            <h4 class="block-title">复核说明</h4>
             <ul class="note-list">
-              <li v-for="item in palaceReading.advice" :key="item">{{ item }}</li>
+              <li v-for="item in palaceReading.reviewNotes" :key="item">{{ item }}</li>
             </ul>
           </div>
-          <div v-if="palaceReading.riskFlags?.length" class="reading-block risk-block">
-            <h4 class="block-title">风险提示</h4>
+          <div v-if="palaceReading.limitations?.length" class="reading-block risk-block">
+            <h4 class="block-title">解释限制</h4>
             <ul class="note-list">
-              <li v-for="item in palaceReading.riskFlags" :key="item">{{ item }}</li>
+              <li v-for="item in palaceReading.limitations" :key="item">{{ item }}</li>
             </ul>
           </div>
         </section>
@@ -265,7 +258,7 @@ function formatConfidence(value: number) {
   color: var(--accent);
 }
 
-.confidence-pill {
+.validation-pill {
   @apply text-xs font-semibold;
   color: #0f766e;
   background: rgba(15, 118, 110, 0.1);
@@ -368,7 +361,7 @@ function formatConfidence(value: number) {
   overflow-wrap: anywhere;
 }
 
-.evidence-impact {
+.evidence-basis {
   @apply m-0 text-xs leading-relaxed;
   color: var(--text-soft);
 }
@@ -528,7 +521,7 @@ function formatConfidence(value: number) {
 }
 
 :global(.dark) {
-  .confidence-pill {
+  .validation-pill {
     color: #86efac;
     background: rgba(74, 222, 128, 0.1);
     border-color: rgba(74, 222, 128, 0.18);
@@ -556,7 +549,7 @@ function formatConfidence(value: number) {
 
   .header-kicker,
   .focus-pill,
-  .confidence-pill {
+  .validation-pill {
     grid-column: 1 / -1;
   }
 

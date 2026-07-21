@@ -1,0 +1,90 @@
+{
+  "version": "1.2",
+  "description": "八字基础排盘外部 Silver 差分输入。普通日期要求 lunar-javascript 与 cnlunar 四柱共识；十二节令、跨世纪立春秒级边界及两种晚子时换日口径使用支持对应精度和 sect 的固定 lunar-javascript。",
+  "sources": {
+    "lunar_javascript": {
+      "repository": "https://github.com/6tail/lunar-javascript",
+      "commit": "4c45a59f79b856125516f31aefa8295035c16afd",
+      "license": "MIT",
+      "files": {
+        "lunar.js": "9750324bfe1aa63c146f8c72b1143df924466c11c8a5277d7d9225c541a18aaa"
+      }
+    },
+    "cnlunar": {
+      "repository": "https://github.com/OPN48/cnlunar",
+      "commit": "1d7f868967cc533c9b577ed0c3ffb3cb67bb5352",
+      "license": "MIT",
+      "files": {
+        "cnlunar/lunar.py": "049ad17c4153208d4cbcdc358177eff30d46f6429f0caf3676ea7d4170a2cdd8",
+        "cnlunar/config.py": "aa804333238a07633057f614ae611798cc64da4621549940bb0d2025c2ab478a",
+        "cnlunar/solar24.py": "a284dbe276637fb27d93f12c608c234b516cd4fbb1201fa2415df27a49886bf1",
+        "cnlunar/tools.py": "2f99d0d77a2365b23021c5adf56354ed4a233df7e1856244aff2ee592e091b6a"
+      }
+    }
+  },
+  "cases": [
+    {"id":"y1902","scope":"dual_consensus","year":1902,"month":1,"day":15,"hour":12,"minute":30,"second":0,"gender":"MALE"},
+    {"id":"y1912","scope":"dual_consensus","year":1912,"month":4,"day":15,"hour":0,"minute":30,"second":0,"gender":"FEMALE"},
+    {"id":"y1924","scope":"dual_consensus","year":1924,"month":7,"day":19,"hour":3,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y1936","scope":"dual_consensus","year":1936,"month":10,"day":21,"hour":5,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"y1948","scope":"dual_consensus","year":1948,"month":12,"day":18,"hour":7,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y1960","scope":"dual_consensus","year":1960,"month":3,"day":20,"hour":8,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"y1972","scope":"dual_consensus","year":1972,"month":6,"day":18,"hour":9,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y1984","scope":"dual_consensus","year":1984,"month":9,"day":19,"hour":11,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"latezi1988","scope":"dual_consensus","year":1988,"month":2,"day":15,"hour":23,"minute":30,"second":0,"gender":"MALE"},
+    {"id":"y1995","scope":"dual_consensus","year":1995,"month":12,"day":18,"hour":10,"minute":28,"second":0,"gender":"FEMALE"},
+    {"id":"sample2003","scope":"dual_consensus","year":2003,"month":4,"day":15,"hour":14,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y2012","scope":"dual_consensus","year":2012,"month":8,"day":16,"hour":15,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y2018","scope":"dual_consensus","year":2018,"month":6,"day":11,"hour":9,"minute":30,"second":0,"gender":"FEMALE"},
+    {"id":"y2022","scope":"dual_consensus","year":2022,"month":3,"day":9,"hour":20,"minute":51,"second":0,"gender":"MALE"},
+    {"id":"y2024a","scope":"dual_consensus","year":2024,"month":1,"day":29,"hour":9,"minute":30,"second":0,"gender":"FEMALE"},
+    {"id":"latezi2024","scope":"dual_consensus","year":2024,"month":2,"day":15,"hour":23,"minute":30,"second":0,"gender":"MALE"},
+    {"id":"y2028","scope":"dual_consensus","year":2028,"month":8,"day":18,"hour":17,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"y2036","scope":"dual_consensus","year":2036,"month":11,"day":20,"hour":19,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y2050","scope":"dual_consensus","year":2050,"month":5,"day":16,"hour":21,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"y2075","scope":"dual_consensus","year":2075,"month":9,"day":22,"hour":22,"minute":0,"second":0,"gender":"MALE"},
+    {"id":"y2099","scope":"dual_consensus","year":2099,"month":12,"day":20,"hour":1,"minute":0,"second":0,"gender":"FEMALE"},
+    {"id":"disputed_2005","scope":"upstream_disputed","year":2005,"month":12,"day":23,"hour":8,"minute":37,"second":0,"gender":"FEMALE"},
+
+    {"id":"zi_next_225959","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":22,"minute":59,"second":59,"gender":"MALE","zi_hour_policy":"late_zi_next_day"},
+    {"id":"zi_next_230000","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":23,"minute":0,"second":0,"gender":"MALE","zi_hour_policy":"late_zi_next_day"},
+    {"id":"zi_next_235959","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":23,"minute":59,"second":59,"gender":"MALE","zi_hour_policy":"late_zi_next_day"},
+    {"id":"zi_next_000000","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":11,"hour":0,"minute":0,"second":0,"gender":"MALE","zi_hour_policy":"late_zi_next_day"},
+    {"id":"zi_same_225959","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":22,"minute":59,"second":59,"gender":"FEMALE","zi_hour_policy":"late_zi_same_day"},
+    {"id":"zi_same_230000","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":23,"minute":0,"second":0,"gender":"FEMALE","zi_hour_policy":"late_zi_same_day"},
+    {"id":"zi_same_235959","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":10,"hour":23,"minute":59,"second":59,"gender":"FEMALE","zi_hour_policy":"late_zi_same_day"},
+    {"id":"zi_same_000000","scope":"lunar_js_zi_boundary","year":2024,"month":6,"day":11,"hour":0,"minute":0,"second":0,"gender":"FEMALE","zi_hour_policy":"late_zi_same_day"},
+
+    {"id":"lichun_1902_before","scope":"lunar_js_jie_boundary","term":"立春","year":1902,"month":2,"day":5,"hour":1,"minute":38,"second":9,"gender":"MALE"},
+    {"id":"lichun_1902_at","scope":"lunar_js_jie_boundary","term":"立春","year":1902,"month":2,"day":5,"hour":1,"minute":38,"second":10,"gender":"MALE"},
+    {"id":"lichun_2026_before","scope":"lunar_js_jie_boundary","term":"立春","year":2026,"month":2,"day":4,"hour":4,"minute":2,"second":7,"gender":"FEMALE"},
+    {"id":"lichun_2026_at","scope":"lunar_js_jie_boundary","term":"立春","year":2026,"month":2,"day":4,"hour":4,"minute":2,"second":8,"gender":"FEMALE"},
+    {"id":"lichun_2099_before","scope":"lunar_js_jie_boundary","term":"立春","year":2099,"month":2,"day":3,"hour":21,"minute":9,"second":28,"gender":"MALE"},
+    {"id":"lichun_2099_at","scope":"lunar_js_jie_boundary","term":"立春","year":2099,"month":2,"day":3,"hour":21,"minute":9,"second":29,"gender":"MALE"},
+
+    {"id":"xiaohan_before","scope":"lunar_js_jie_boundary","term":"小寒","year":2024,"month":1,"day":6,"hour":4,"minute":49,"second":21,"gender":"MALE"},
+    {"id":"xiaohan_at","scope":"lunar_js_jie_boundary","term":"小寒","year":2024,"month":1,"day":6,"hour":4,"minute":49,"second":22,"gender":"MALE"},
+    {"id":"lichun_before","scope":"lunar_js_jie_boundary","term":"立春","year":2024,"month":2,"day":4,"hour":16,"minute":27,"second":6,"gender":"FEMALE"},
+    {"id":"lichun_at","scope":"lunar_js_jie_boundary","term":"立春","year":2024,"month":2,"day":4,"hour":16,"minute":27,"second":7,"gender":"FEMALE"},
+    {"id":"jingzhe_before","scope":"lunar_js_jie_boundary","term":"惊蛰","year":2024,"month":3,"day":5,"hour":10,"minute":22,"second":44,"gender":"MALE"},
+    {"id":"jingzhe_at","scope":"lunar_js_jie_boundary","term":"惊蛰","year":2024,"month":3,"day":5,"hour":10,"minute":22,"second":45,"gender":"MALE"},
+    {"id":"qingming_before","scope":"lunar_js_jie_boundary","term":"清明","year":2024,"month":4,"day":4,"hour":15,"minute":2,"second":16,"gender":"FEMALE"},
+    {"id":"qingming_at","scope":"lunar_js_jie_boundary","term":"清明","year":2024,"month":4,"day":4,"hour":15,"minute":2,"second":17,"gender":"FEMALE"},
+    {"id":"lixia_before","scope":"lunar_js_jie_boundary","term":"立夏","year":2024,"month":5,"day":5,"hour":8,"minute":10,"second":4,"gender":"MALE"},
+    {"id":"lixia_at","scope":"lunar_js_jie_boundary","term":"立夏","year":2024,"month":5,"day":5,"hour":8,"minute":10,"second":5,"gender":"MALE"},
+    {"id":"mangzhong_before","scope":"lunar_js_jie_boundary","term":"芒种","year":2024,"month":6,"day":5,"hour":12,"minute":9,"second":53,"gender":"FEMALE"},
+    {"id":"mangzhong_at","scope":"lunar_js_jie_boundary","term":"芒种","year":2024,"month":6,"day":5,"hour":12,"minute":9,"second":54,"gender":"FEMALE"},
+    {"id":"xiaoshu_before","scope":"lunar_js_jie_boundary","term":"小暑","year":2024,"month":7,"day":6,"hour":22,"minute":20,"second":2,"gender":"MALE"},
+    {"id":"xiaoshu_at","scope":"lunar_js_jie_boundary","term":"小暑","year":2024,"month":7,"day":6,"hour":22,"minute":20,"second":3,"gender":"MALE"},
+    {"id":"liqiu_before","scope":"lunar_js_jie_boundary","term":"立秋","year":2024,"month":8,"day":7,"hour":8,"minute":9,"second":15,"gender":"FEMALE"},
+    {"id":"liqiu_at","scope":"lunar_js_jie_boundary","term":"立秋","year":2024,"month":8,"day":7,"hour":8,"minute":9,"second":16,"gender":"FEMALE"},
+    {"id":"bailu_before","scope":"lunar_js_jie_boundary","term":"白露","year":2024,"month":9,"day":7,"hour":11,"minute":11,"second":19,"gender":"MALE"},
+    {"id":"bailu_at","scope":"lunar_js_jie_boundary","term":"白露","year":2024,"month":9,"day":7,"hour":11,"minute":11,"second":20,"gender":"MALE"},
+    {"id":"hanlu_before","scope":"lunar_js_jie_boundary","term":"寒露","year":2024,"month":10,"day":8,"hour":2,"minute":59,"second":56,"gender":"FEMALE"},
+    {"id":"hanlu_at","scope":"lunar_js_jie_boundary","term":"寒露","year":2024,"month":10,"day":8,"hour":2,"minute":59,"second":57,"gender":"FEMALE"},
+    {"id":"lidong_before","scope":"lunar_js_jie_boundary","term":"立冬","year":2024,"month":11,"day":7,"hour":6,"minute":20,"second":3,"gender":"MALE"},
+    {"id":"lidong_at","scope":"lunar_js_jie_boundary","term":"立冬","year":2024,"month":11,"day":7,"hour":6,"minute":20,"second":4,"gender":"MALE"},
+    {"id":"daxue_before","scope":"lunar_js_jie_boundary","term":"大雪","year":2024,"month":12,"day":6,"hour":23,"minute":17,"second":2,"gender":"FEMALE"},
+    {"id":"daxue_at","scope":"lunar_js_jie_boundary","term":"大雪","year":2024,"month":12,"day":6,"hour":23,"minute":17,"second":3,"gender":"FEMALE"}
+  ]
+}

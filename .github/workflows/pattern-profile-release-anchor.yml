@@ -1,0 +1,38 @@
+name: Verify pattern profile release anchor
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pattern-profile-release-anchor.yml'
+      - 'release/pattern-detector-profile-anchor.json'
+      - 'src/internal/service/bazi/**'
+  push:
+    paths:
+      - '.github/workflows/pattern-profile-release-anchor.yml'
+      - 'release/pattern-detector-profile-anchor.json'
+      - 'src/internal/service/bazi/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-anchor:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+      - name: Cross-check release anchor against runtime evidence
+        run: go test -run '^TestPatternDetectorProfileReleaseAnchorArtifact$' -count=1 ./internal/service/bazi
+      - name: Upload unsigned release anchor
+        uses: actions/upload-artifact@v4
+        with:
+          name: pattern-detector-profile-anchor-v34
+          path: release/pattern-detector-profile-anchor.json
+          if-no-files-found: error

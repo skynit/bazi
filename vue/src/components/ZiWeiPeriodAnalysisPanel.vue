@@ -20,10 +20,12 @@ const stages = computed<ZiWeiDayunStageAnalysis[]>(() => list(props.analysis?.da
 const focusPalaces = computed<ZiWeiPeriodPalaceFocus[]>(() => list(props.analysis?.focus_palaces))
 const highlights = computed<ZiWeiPeriodHighlight[]>(() => list(props.analysis?.highlights))
 const evidence = computed<ZiWeiPeriodEvidence[]>(() => list(props.analysis?.evidence))
+const crossLayerRelations = computed(() => list(props.analysis?.cross_layer_relations))
 const methods = computed<string[]>(() => list(props.analysis?.method))
-const recommendations = computed<string[]>(() => list(props.analysis?.recommendations))
-const risks = computed<string[]>(() => list(props.analysis?.risks))
+const reviewNotes = computed<string[]>(() => list(props.analysis?.review_notes))
+const limitations = computed<string[]>(() => list(props.analysis?.limitations))
 const currentStage = computed(() => stages.value.find((stage) => stage.current))
+const dayunContext = computed(() => props.analysis?.dayun_context)
 
 function list<T>(items: T[] | null | undefined): T[] {
   return Array.isArray(items) ? items : []
@@ -31,12 +33,6 @@ function list<T>(items: T[] | null | undefined): T[] {
 
 function hasItems(items: unknown[] | null | undefined) {
   return list(items).length > 0
-}
-
-function scoreClass(score: number) {
-  if (score >= 72) return 'is-strong'
-  if (score >= 55) return 'is-mid'
-  return 'is-low'
 }
 
 function shortLayer(layer: string) {
@@ -54,6 +50,21 @@ function shortLayer(layer: string) {
   }
 }
 
+function periodLayerLabel(layer: string) {
+  switch (layer) {
+    case 'liunian':
+      return '流年'
+    case 'liuyue':
+      return '流月'
+    case 'liuri':
+      return '流日'
+    case 'dayun':
+      return '大限'
+    default:
+      return layer
+  }
+}
+
 function starTags(item: ZiWeiPeriodPalaceFocus | ZiWeiDayunStageAnalysis) {
   return [
     ...list(item.main_stars).map((name) => ({ name, kind: 'main' })),
@@ -66,14 +77,17 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   return list(item.period_stars).map((name) => ({ name, kind: 'period' }))
 }
 
+function dayunTags(item: ZiWeiDayunStageAnalysis) {
+  return list(item.period_stars).map((name) => ({ name, kind: 'period' }))
+}
 </script>
 
 <template>
   <section v-if="analysis" class="zw-period-panel">
     <header class="zw-period-desk">
-      <div class="zw-score-seal" :class="scoreClass(analysis.score)">
-        <strong>{{ analysis.score }}</strong>
-        <span>{{ analysis.tone }}</span>
+      <div class="zw-structure-seal">
+        <strong>结构</strong>
+        <span>未裁决</span>
       </div>
       <div class="zw-period-copy">
         <div class="zw-period-meta-line">
@@ -88,15 +102,32 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
     </header>
 
     <section class="zw-signal-strip" aria-label="周期提示">
-      <article v-for="item in highlights" :key="`${item.label}-${item.value}`" class="zw-signal-item">
+      <article
+        v-for="item in highlights"
+        :key="`${item.label}-${item.value}`"
+        class="zw-signal-item"
+      >
         <span>{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
         <p>{{ item.note }}</p>
       </article>
       <article v-if="currentStage" class="zw-signal-item is-current">
         <span>当前大限</span>
-        <strong>{{ currentStage.palace }} {{ currentStage.start_age }}-{{ currentStage.end_age }}岁</strong>
+        <strong
+          >{{ currentStage.palace }} {{ currentStage.start_age }}-{{
+            currentStage.end_age
+          }}岁</strong
+        >
         <p>{{ currentStage.summary }}</p>
+      </article>
+      <article v-if="dayunContext" class="zw-signal-item is-current">
+        <span>目标年份大限</span>
+        <strong>{{ dayunContext.gan_zhi }} · {{ dayunContext.palace }}</strong>
+        <p>
+          虚岁 {{ dayunContext.nominal_age }}，处于 {{ dayunContext.start_age }}-{{
+            dayunContext.end_age
+          }}岁大限
+        </p>
       </article>
     </section>
 
@@ -120,12 +151,15 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
           <div class="zw-stage-main">
             <div class="zw-stage-title">
               <strong>{{ stage.palace }}</strong>
-              <span>{{ stage.branch }} · {{ stage.tone }}</span>
+              <span
+                >{{ stage.gan_zhi || stage.branch }} · 三方四正
+                {{ list(stage.sanfang).join('、') || '无' }}</span
+              >
             </div>
             <p>{{ stage.summary }}</p>
             <div class="zw-token-row">
               <span
-                v-for="tag in starTags(stage)"
+                v-for="tag in [...starTags(stage), ...dayunTags(stage)]"
                 :key="`${stage.palace}-${tag.kind}-${tag.name}`"
                 class="zw-token"
                 :class="`is-${tag.kind}`"
@@ -134,7 +168,6 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
               </span>
             </div>
           </div>
-          <div class="zw-row-score" :class="scoreClass(stage.score)">{{ stage.score }}</div>
         </article>
       </div>
     </section>
@@ -142,14 +175,18 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
     <section class="zw-focus-board">
       <div class="zw-section-head">
         <h4>触发宫位</h4>
-        <span>{{ focusPalaces.length }} 个重点</span>
+        <span>{{ focusPalaces.length }} 个触发宫位</span>
       </div>
 
       <div v-if="focusPalaces.length" class="zw-focus-list">
-        <article v-for="item in focusPalaces" :key="`${item.palace}-${item.branch}`" class="zw-focus-row">
+        <article
+          v-for="item in focusPalaces"
+          :key="`${item.palace}-${item.branch}`"
+          class="zw-focus-row"
+        >
           <div class="zw-focus-place">
             <strong>{{ item.palace }}</strong>
-            <span>{{ item.branch }} · {{ item.level }}</span>
+            <span>{{ item.branch }} · 本层{{ item.period_palace || '宫位未标注' }}</span>
           </div>
           <div class="zw-focus-stars">
             <div class="zw-token-row">
@@ -161,11 +198,18 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
               >
                 {{ tag.name }}
               </span>
-              <span v-if="!hasItems(item.main_stars) && !hasItems(item.period_stars) && !hasItems(item.four_hua)" class="zw-token is-empty">无明显星曜</span>
+              <span
+                v-if="
+                  !hasItems(item.main_stars) &&
+                  !hasItems(item.period_stars) &&
+                  !hasItems(item.four_hua)
+                "
+                class="zw-token is-empty"
+                >无明显星曜</span
+              >
             </div>
             <p>{{ item.reason }}</p>
           </div>
-          <div class="zw-row-score" :class="scoreClass(item.score)">{{ item.score }}</div>
         </article>
       </div>
 
@@ -175,30 +219,42 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
     <div class="zw-reading-grid">
       <section class="zw-evidence-panel">
         <div class="zw-section-head">
-          <h4>判断依据</h4>
-          <span>{{ evidence.length }} 条</span>
+          <h4>结构依据</h4>
+          <span>{{ evidence.length + crossLayerRelations.length }} 条</span>
         </div>
         <ul class="zw-evidence-list">
           <li v-for="item in evidence" :key="`${item.label}-${item.value}`">
             <span>{{ item.label }}</span>
             <strong>{{ item.value }}</strong>
-            <p>{{ item.impact }}</p>
+            <p>{{ item.basis }}</p>
           </li>
         </ul>
+        <div v-if="crossLayerRelations.length" class="zw-cross-layer-list">
+          <strong>周期联动</strong>
+          <span
+            v-for="item in crossLayerRelations"
+            :key="`${item.source_layer}-${item.target_layer}-${item.rule_id}`"
+          >
+            {{ item.source_gan_zhi }}（{{ periodLayerLabel(item.source_layer) }}） ·
+            {{ item.relation }}<template v-if="item.subtype">（{{ item.subtype }}）</template> ·
+            {{ item.target_gan_zhi }}（{{ periodLayerLabel(item.target_layer) }}）
+          </span>
+          <small>仅记录周期干支结构，不换算为吉凶或概率</small>
+        </div>
       </section>
 
-      <section v-if="recommendations.length || risks.length" class="zw-action-panel">
+      <section v-if="reviewNotes.length || limitations.length" class="zw-action-panel">
         <div class="zw-section-head">
-          <h4>需要留意</h4>
-          <span>{{ recommendations.length + risks.length }} 条</span>
+          <h4>解释边界</h4>
+          <span>{{ reviewNotes.length + limitations.length }} 条</span>
         </div>
-        <div v-if="recommendations.length" class="zw-note-block">
-          <strong>提示</strong>
-          <p v-for="item in recommendations" :key="item">{{ item }}</p>
+        <div v-if="reviewNotes.length" class="zw-note-block">
+          <strong>复核说明</strong>
+          <p v-for="item in reviewNotes" :key="item">{{ item }}</p>
         </div>
-        <div v-if="risks.length" class="zw-note-block is-risk">
-          <strong>风险</strong>
-          <p v-for="item in risks" :key="item">{{ item }}</p>
+        <div v-if="limitations.length" class="zw-note-block is-risk">
+          <strong>解释限制</strong>
+          <p v-for="item in limitations" :key="item">{{ item }}</p>
         </div>
       </section>
     </div>
@@ -252,12 +308,10 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   padding: 0.85rem;
   border: 1px solid var(--period-line);
   border-radius: 8px;
-  background:
-    linear-gradient(90deg, var(--period-wash), transparent 42%),
-    var(--period-paper);
+  background: linear-gradient(90deg, var(--period-wash), transparent 42%), var(--period-paper);
 }
 
-.zw-score-seal {
+.zw-structure-seal {
   display: grid;
   place-content: center;
   min-height: 92px;
@@ -268,22 +322,14 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   text-align: center;
 }
 
-.zw-score-seal.is-mid {
-  color: var(--period-amber);
-}
-
-.zw-score-seal.is-low {
-  color: var(--period-cinnabar);
-}
-
-.zw-score-seal strong {
+.zw-structure-seal strong {
   font-size: var(--fs-3xl);
   line-height: 1;
   font-weight: 800;
   font-family: Georgia, 'Times New Roman', serif;
 }
 
-.zw-score-seal span {
+.zw-structure-seal span {
   margin-top: 0.2rem;
   font-size: var(--fs-2xs);
   font-weight: 700;
@@ -425,7 +471,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
 }
 
 .zw-stage-row {
-  grid-template-columns: 72px minmax(0, 1fr) 42px;
+  grid-template-columns: 72px minmax(0, 1fr);
 }
 
 .zw-stage-row.current,
@@ -434,8 +480,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   background: color-mix(in oklab, var(--period-jade) 6%, var(--period-paper));
 }
 
-.zw-age-cell,
-.zw-row-score {
+.zw-age-cell {
   display: grid;
   place-content: center;
   min-height: 52px;
@@ -444,8 +489,7 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   text-align: center;
 }
 
-.zw-age-cell strong,
-.zw-row-score {
+.zw-age-cell strong {
   color: var(--period-ink);
   font-size: var(--fs-xs);
   font-weight: 800;
@@ -482,6 +526,30 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   color: var(--text-muted);
   font-size: var(--fs-2xs);
   line-height: 1.5;
+}
+
+.zw-cross-layer-list {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--period-line);
+}
+
+.zw-cross-layer-list strong {
+  color: var(--period-ink);
+  font-size: var(--fs-xs);
+}
+
+.zw-cross-layer-list span,
+.zw-cross-layer-list small {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+}
+
+.zw-cross-layer-list small {
+  color: var(--period-muted);
 }
 
 .zw-token-row {
@@ -522,20 +590,8 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
   color: var(--period-muted);
 }
 
-.zw-row-score {
-  color: var(--period-jade);
-}
-
-.zw-row-score.is-mid {
-  color: var(--period-amber);
-}
-
-.zw-row-score.is-low {
-  color: var(--period-cinnabar);
-}
-
 .zw-focus-row {
-  grid-template-columns: minmax(84px, 0.25fr) minmax(0, 1fr) 42px;
+  grid-template-columns: minmax(84px, 0.25fr) minmax(0, 1fr);
 }
 
 .zw-reading-grid {
@@ -643,9 +699,8 @@ function periodTags(item: ZiWeiPeriodPalaceFocus) {
     grid-template-columns: 1fr;
   }
 
-  .zw-score-seal,
-  .zw-age-cell,
-  .zw-row-score {
+  .zw-structure-seal,
+  .zw-age-cell {
     min-height: auto;
     justify-items: start;
     padding: 0.45rem 0.55rem;

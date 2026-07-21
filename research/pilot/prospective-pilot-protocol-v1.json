@@ -1,0 +1,260 @@
+{
+  "schema": "prospective_fortune_pilot_protocol_v1",
+  "protocol_id": "fortune-prospective-pilot-v1",
+  "version": "2026-07-17.1",
+  "title": "八字与紫微斗数前瞻性预测研究 Pilot 草案",
+  "language": "zh-CN",
+  "status": "draft_not_approved",
+  "purpose": "在不预设预测有效的前提下，验证预注册、随访、盲评、对照、评分和数据保护流程是否可行。",
+  "runtime_boundary": {
+    "research_only": true,
+    "recruitment_enabled": false,
+    "event_collection_enabled": false,
+    "pilot_api_enabled": false,
+    "pilot_database_enabled": false,
+    "participant_predictions_visible_during_followup": false,
+    "claim_boundary": "流程 Pilot 不证明传统正确性或预测有效性"
+  },
+  "research_questions": [
+    "冻结后的八字声明是否比随机、通用话术和打乱出生信息基线更具体且更能区分后续低风险事件？",
+    "冻结后的紫微声明是否比相同基线更具体且更能区分后续低风险事件？",
+    "八字与紫微组合是否在预注册主要指标上稳定优于两个单系统，而不是只在事后选择的指标上更好？",
+    "输入时间精度、Profile 和参与者分层是否造成可重复的性能差异？"
+  ],
+  "objectives": {
+    "primary": "验证研究流程能否生成可证伪声明、按期取得低风险结构化事件、完成盲评并重算预注册指标",
+    "secondary": [
+      "估计弃权率、失访率、事件基础率和评分者一致度",
+      "发现巴纳姆话术、时间窗漂移、信息泄漏和敏感风险",
+      "为正式研究的 power analysis 提供流程参数，而不是用 Pilot 宣称效力"
+    ],
+    "not_objectives": [
+      "证明命理必然有效",
+      "优化到 Pilot 参与者的结果",
+      "给参与者提供医疗、法律、财务、职业或关系决策建议",
+      "把用户点赞、历史回忆或第三方算法一致性解释为预测准确率"
+    ]
+  },
+  "study_design": {
+    "design": "prospective_preregistered_controlled_blinded_process_pilot",
+    "proposed_pilot_sample_size": 200,
+    "sample_size_status": "proposal_not_power_approved",
+    "formal_sample_size_policy": "由 Pilot 流失率、基础率、方差和预先选定效应量完成 power analysis 后确定",
+    "followup_duration": null,
+    "followup_schedule": [],
+    "followup_status": "not_approved",
+    "prediction_freeze": "所有声明、时间窗、证据、Profile、引擎、规则版本和弃权必须在结果窗口开始前冻结并生成摘要",
+    "participant_exposure": "随访期间不向参与者展示封存的个体事件声明，以降低自我实现和行为干预",
+    "arms": [
+      {"id": "bazi_actual", "kind": "system", "birth_input": "actual", "status": "not_eligible_until_profile_and_scoring_approval"},
+      {"id": "ziwei_actual", "kind": "system", "birth_input": "actual", "status": "not_eligible_until_profile_and_scoring_approval"},
+      {"id": "bazi_ziwei_combined", "kind": "system", "birth_input": "actual", "status": "not_eligible_until_combination_rule_is_preregistered"},
+      {"id": "base_rate_random", "kind": "control", "birth_input": "none", "status": "not_approved"},
+      {"id": "generic_statement", "kind": "control", "birth_input": "none", "status": "not_approved"},
+      {"id": "shuffled_birth_input", "kind": "control", "birth_input": "participant_permuted", "status": "not_approved"},
+      {"id": "expert_baseline", "kind": "control", "birth_input": "actual", "status": "not_approved"}
+    ],
+    "randomization": {
+      "enabled": false,
+      "unit": "participant",
+      "seed_commitment_required": true,
+      "allocation_concealment_required": true,
+      "status": "method_not_approved"
+    },
+    "blinding": {
+      "participant_blinded_to_sealed_claims": true,
+      "outcome_reviewers_blinded_to_system_profile_and_arm": true,
+      "analyst_blinded_until_primary_table_frozen": true,
+      "independent_reviewers": 2,
+      "third_reviewer_for_disagreement": true
+    }
+  },
+  "profile_gate": {
+    "eligible_profiles": [],
+    "candidates": [
+      {"profile_id": "ziping-fuyi-v2", "status": "not_eligible_draft_not_runtime_selectable"},
+      {"profile_id": "ziwei-sanhe-v1", "status": "not_eligible_draft_not_runtime_selectable"},
+      {"profile_id": "ziwei-nihaixia-v1", "status": "not_eligible_missing_source_and_gold"}
+    ],
+    "requirements": [
+      "Profile 必须可运行时选择且失败关闭",
+      "排盘 P0 Gold 门禁通过",
+      "声明规则、版本和引用冻结",
+      "同一参与者不得在研究中切换 Profile",
+      "八字、紫微和组合结果必须分别报告，不能只报告最好者"
+    ]
+  },
+  "event_scope": {
+    "status": "taxonomy_not_approved",
+    "proposed_low_risk_categories": [
+      "employment_role_or_status_change",
+      "city_level_relocation",
+      "education_or_training_milestone",
+      "predeclared_project_milestone"
+    ],
+    "prohibited_categories": [
+      "death_or_lifespan",
+      "medical_or_mental_health_diagnosis",
+      "self_harm_or_violence",
+      "crime_or_legal_outcome",
+      "investment_return_or_financial_instruction",
+      "pregnancy_or_fertility",
+      "sexual_activity",
+      "marriage_or_divorce_decision",
+      "minor_child_outcome"
+    ],
+    "minimum_time_granularity": "month",
+    "free_text_enabled": false,
+    "exact_amount_enabled": false,
+    "exact_address_enabled": false,
+    "retrospective_event_entry_enabled": false,
+    "ambiguity_policy": "未在事件字典中预定义且不能由盲审 exact/rubric 判定的事件记为不可评分，不得事后扩展定义"
+  },
+  "prediction_contract": {
+    "status": "not_approved",
+    "required_fields": ["claim_id", "event_category", "time_window", "profile_id", "engine_version", "rule_version", "evidence", "abstain"],
+    "probability_output_enabled": false,
+    "probability_status": "no_calibrated_event_probability_model",
+    "abstention_required": true,
+    "barnum_statement_policy": "无法对应单一事件字典项和固定时间窗的通用话术不得计为命中",
+    "time_window_policy": "结果揭盲后不得扩大、平移、合并或拆分时间窗"
+  },
+  "pre_registration": {
+    "registry": "not_selected",
+    "registration_id": "",
+    "status": "not_registered",
+    "must_freeze": [
+      "研究问题和主要假设",
+      "事件字典和时间窗",
+      "纳入排除标准",
+      "Profile、引擎、规则、提示和检索索引版本",
+      "声明格式、弃权规则和禁止话术",
+      "对照组、随机种子承诺和盲法",
+      "主要指标、次要指标和多重比较方案",
+      "缺失、失访、部分命中和不可评分规则",
+      "分层、公平性、停止规则和负面结果报告方案",
+      "分析代码与数据冻结摘要"
+    ],
+    "post_registration_changes": "只能形成带时间戳的修订版；不得覆盖原注册，主要分析必须同时按原方案报告"
+  },
+  "scoring_plan": {
+    "status": "not_approved",
+    "primary_endpoint": "not_selected",
+    "candidate_classification_metrics": ["precision", "recall", "F1", "PR_AUC"],
+    "candidate_probability_metrics": ["Brier_score", "log_loss", "expected_calibration_error"],
+    "probability_metric_gate": "只有独立批准且冻结的概率模型才能计算；当前禁用",
+    "candidate_time_metrics": ["time_window_IoU", "absolute_month_error", "lead_time"],
+    "specificity_metrics": ["barnum_statement_rate", "falsifiable_claim_rate", "abstention_rate"],
+    "process_metrics": ["recruitment_rate", "retention_rate", "missingness", "reviewer_agreement", "adjudication_rate"],
+    "fairness_strata": ["gender", "age_band", "region", "birth_time_precision", "profile"],
+    "partial_match_rule": "not_selected",
+    "missing_data_rule": "not_selected",
+    "multiple_comparison_rule": "not_selected",
+    "single_accuracy_percentage_allowed": false,
+    "pilot_effect_claim_allowed": false
+  },
+  "participants": {
+    "minimum_age": 18,
+    "inclusion": [
+      "能够理解同意书并自主同意",
+      "能够提供出生时间精度而非被迫给出伪精确时间",
+      "能够按审批后的固定计划完成结构化随访"
+    ],
+    "exclusion": [
+      "未成年人",
+      "无法自主同意",
+      "当前心理危机或对命理有强依赖风险",
+      "研究参与可能影响医疗、法律、财务、婚姻或其他重大决定",
+      "研究团队成员或直接参与系统开发、评分与裁决者"
+    ],
+    "recruitment_channels": [],
+    "compensation": null,
+    "compensation_status": "not_approved"
+  },
+  "data_governance": {
+    "collection_enabled": false,
+    "collection_endpoint": "none",
+    "database_schema": "none",
+    "data_controller": "not_designated",
+    "privacy_contact": "not_designated",
+    "storage_region": "not_selected",
+    "retention_days": null,
+    "retention_status": "not_approved",
+    "encryption": {"in_transit": "required_not_verified", "at_rest": "required_not_verified"},
+    "separation": ["identity_or_contact", "birth_input", "event_labels", "analysis_dataset"],
+    "prohibited_identifiers": ["name", "government_id", "exact_address", "contacts", "chat_history"],
+    "research_id": "cryptographically_random_nonsemantic_id_required",
+    "access_control": "least_privilege_with_logged_access_and_periodic_review",
+    "export_correction_deletion": "required_but_workflow_not_approved",
+    "training_use": "separate_opt_in_required_default_false",
+    "secondary_research_use": "separate_opt_in_required_default_false",
+    "public_reporting": "aggregated_only_after_minimum_cell_size_and_reidentification_review",
+    "legacy_feedback_audit": {
+      "status": "required_before_approval",
+      "known_legacy_storage_fields": ["fortune_feedbacks.event_year", "fortune_feedbacks.event_category"],
+      "public_request_fields_removed": true,
+      "runtime_persistence_assignments_removed": true,
+      "required_actions": [
+        "确认历史部署是否实际存有非零事件字段",
+        "记录来源、同意状态、数量、时间范围和访问记录",
+        "由隐私审查决定删除、隔离或合法保留",
+        "验证备份和派生数据的删除或隔离",
+        "禁止把旧段落反馈自动并入 Pilot"
+      ]
+    }
+  },
+  "safety": {
+    "no_professional_advice": ["medical", "mental_health", "legal", "financial", "career", "relationship"],
+    "crisis_handling_status": "not_approved",
+    "adverse_event_process_status": "not_approved",
+    "participant_support_status": "not_approved",
+    "stop_conditions": [
+      "发生未授权事件数据采集",
+      "高风险预测进入参与者输出",
+      "身份与事件数据未按方案隔离",
+      "盲法或预注册冻结被破坏",
+      "安全事件、重大投诉或再识别风险未及时处理",
+      "伦理、隐私或数据控制者撤回批准"
+    ]
+  },
+  "consent": {
+    "document_path": "research/pilot/participant-consent-v1.zh-CN.md",
+    "document_sha256": "f176e00a4f1dc14c50d7a54e2a2929162bb0fc5fae26cbf7e63f93d3c99f177b",
+    "status": "draft_not_approved_not_for_recruitment",
+    "separate_choices": ["pilot_participation", "research_use", "secondary_research", "model_training", "individual_results", "aggregate_results"],
+    "withdrawal_required": true,
+    "deletion_required": true,
+    "missing_final_fields": ["principal_investigator", "institution", "ethics_approval_id", "privacy_contact", "complaint_channel", "retention_period", "compensation", "effective_date"]
+  },
+  "approval_gates": [
+    {"gate_id": "ethics_review", "status": "not_approved", "blocking": true, "required_evidence": "独立伦理审查批准编号、范围和有效期"},
+    {"gate_id": "privacy_impact_assessment", "status": "not_approved", "blocking": true, "required_evidence": "数据流、合法基础、最小化、保留、删除和跨境评估"},
+    {"gate_id": "scoring_plan", "status": "not_approved", "blocking": true, "required_evidence": "事件字典、主要指标、部分命中、缺失和多重比较冻结"},
+    {"gate_id": "power_and_sample", "status": "not_approved", "blocking": true, "required_evidence": "Pilot 目标与正式研究 power analysis 方案"},
+    {"gate_id": "security_review", "status": "not_approved", "blocking": true, "required_evidence": "加密、隔离、权限、日志、备份和删除验证"},
+    {"gate_id": "consent_finalization", "status": "not_approved", "blocking": true, "required_evidence": "负责人、机构、联系人、补偿、投诉和退出流程完整"},
+    {"gate_id": "profile_and_claim_freeze", "status": "not_approved", "blocking": true, "required_evidence": "合格运行时 Profile、Gold 门禁和 Claim/Evidence/Citation 合同"},
+    {"gate_id": "legacy_feedback_audit", "status": "not_approved", "blocking": true, "required_evidence": "历史 event 字段盘点、合法性和删除/隔离决定"},
+    {"gate_id": "incident_and_support_plan", "status": "not_approved", "blocking": true, "required_evidence": "安全事件、心理不适、投诉和停止流程"},
+    {"gate_id": "public_preregistration", "status": "not_approved", "blocking": true, "required_evidence": "公开注册地址、ID、时间戳和冻结摘要"}
+  ],
+  "launch_gate": {
+    "policy": "all_approval_gates_must_be_approved",
+    "approved_gate_count": 0,
+    "required_gate_count": 10,
+    "can_recruit": false,
+    "can_collect_event_data": false,
+    "can_publish_predictive_accuracy": false
+  },
+  "reporting": {
+    "negative_results_required": true,
+    "all_arms_reported": true,
+    "all_preregistered_primary_metrics_reported": true,
+    "protocol_deviations_reported": true,
+    "participant_flow_reported": true,
+    "subgroup_results_require_minimum_cell_and_uncertainty": true,
+    "independent_replication_required_before_predictive_claim": true,
+    "allowed_current_claim": "Pilot 草案已建立，但尚未批准、招募或采集事件数据",
+    "prohibited_current_claims": ["预测有效", "预测准确率", "已通过伦理审批", "已获得参与者同意", "200 人研究已经启动"]
+  }
+}

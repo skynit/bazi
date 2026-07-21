@@ -12,9 +12,28 @@ export interface InterpretationSection {
 export interface InterpretationCitation {
   id: number
   book: string
+  author: string
+  edition: string
+  volume: string
   chapter: string
+  page: string
+  locator: string
   path: string
+  artifact_path: string
+  artifact_sha256: string
+  document_sha256: string
   quote: string
+  quote_sha256: string
+  source_tier: string
+  verification_status: string
+  artifact_kind: string
+  provenance_status: string
+  independence_status: string
+  coverage_status: string
+  catalog_schema: string
+  catalog_version: string
+  catalog_sha256: string
+  claim_eligible: boolean
   score: number
 }
 

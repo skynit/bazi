@@ -1,0 +1,308 @@
+{
+  "schema": "fortune_calculation_profile_manifest_v1",
+  "manifest_version": "2026-07-17.1",
+  "profile_id": "ziping-fuyi-v2",
+  "system": "bazi",
+  "title": "子平扶抑 v2 研究 Profile",
+  "status": "draft_partial_implementation_not_selectable",
+  "runtime_selectable": false,
+  "activation_policy": "explicit_runtime_registration_after_gold_gate_only",
+  "runtime_binding": {
+    "kind": "partial_current_runtime_reference",
+    "registered_profile_id": "",
+    "reference_profile_id": "",
+    "engine_version": "bazi-engine-2026-07-17.27",
+    "rule_version": "bazi-rules-2026-07-17.27",
+    "school": "子平八字-扶抑调候-v2",
+    "equivalence_status": "not_adjudicated_as_complete_profile"
+  },
+  "calculation_scope": [
+    "birth_input_normalization",
+    "solar_term_four_pillars",
+    "zi_hour_day_boundary_policy",
+    "hidden_stems_and_ten_gods",
+    "five_element_structure",
+    "stem_branch_relation_graph",
+    "body_strength_evidence",
+    "pattern_candidates",
+    "fuyi_yongshen",
+    "tiaohou_findings",
+    "dayun_structure",
+    "shensha_auxiliary_findings"
+  ],
+  "rule_modules": [
+    {
+      "rule_id": "bazi.calendar.four-pillars",
+      "status": "implemented_current_engine",
+      "scope": "公历输入、节气换月与四柱结构；秒级边界仅由现有 Silver 差分覆盖",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["bazi_external_silver_v1_2"],
+      "limitations": ["尚无 500 例历法 Gold", "历史时区、DST 与真太阳时未形成完整 Gold 门禁"]
+    },
+    {
+      "rule_id": "bazi.calendar.zi-hour-policy",
+      "status": "implemented_current_engine",
+      "scope": "late_zi_next_day 与 late_zi_same_day 显式口径",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["bazi_external_silver_v1_2"],
+      "limitations": ["外部晚子时证据来自单一固定上游，属于相关 Silver"]
+    },
+    {
+      "rule_id": "bazi.structure.hidden-stems-ten-gods-five-elements",
+      "status": "implemented_current_engine",
+      "scope": "藏干、十神、五行计数与结构证据",
+      "evidence_tier": "local_contract",
+      "evidence_refs": ["yuanhai_ziping_local", "sanming_tonghui_local"],
+      "limitations": ["结构一致性不等于流派解释已经裁决"]
+    },
+    {
+      "rule_id": "bazi.relations.stem-branch-graph",
+      "status": "implemented_current_engine",
+      "scope": "天干合冲克与地支合冲刑害破的参与关系图",
+      "evidence_tier": "classical_text_local",
+      "evidence_refs": ["yuanhai_ziping_local", "sanming_tonghui_local"],
+      "limitations": ["只发布关系事实，不自动裁决成化、成局强度与现实事件"]
+    },
+    {
+      "rule_id": "bazi.body-strength.local-fuyi-weighted-score-v1",
+      "status": "implemented_candidate_only",
+      "scope": "得令、得地、得势、得生及局部修正的连续证据分与候选档位",
+      "evidence_tier": "local_contract",
+      "evidence_refs": ["ditiansui_chanwei_local", "yuanhai_ziping_local"],
+      "limitations": ["当前输出明确为 not_validated/not_adjudicated", "阈值尚未由 Train Gold 学习并在 Frozen Gold 验证", "不得把候选档位称为已验证身强结论"]
+    },
+    {
+      "rule_id": "bazi.pattern-candidate-set-v34",
+      "status": "implemented_candidate_only",
+      "scope": "十个本地古籍结构检测器的多候选输出与三层工程摘要",
+      "evidence_tier": "classical_text_local",
+      "evidence_refs": ["yuanhai_ziping_local", "sanming_tonghui_local", "pattern_release_anchor_v34"],
+      "limitations": ["复杂检测器行为证据不是完整四柱穷举", "候选未进入专家 Gold", "工程摘要不证明传统正确性或现实预测有效性"]
+    },
+    {
+      "rule_id": "bazi.tiaohou.table-candidates-v2",
+      "status": "implemented_candidate_only",
+      "scope": "按日干、月支与节气深度输出调候候选",
+      "evidence_tier": "classical_text_local",
+      "evidence_refs": ["qiongtong_baojian_local"],
+      "limitations": ["调候结果与扶抑用神保持独立", "候选未由专家 Gold 裁决"]
+    },
+    {
+      "rule_id": "bazi.dayun.structure",
+      "status": "implemented_current_engine",
+      "scope": "大运顺逆与运柱结构",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["bazi_external_silver_v1_2"],
+      "limitations": ["起运时长、起运时刻及门派换算尚未形成冻结 Gold"]
+    },
+    {
+      "rule_id": "bazi.shensha.auxiliary-layer",
+      "status": "implemented_candidate_only",
+      "scope": "已定位规则的低权重结构命中",
+      "evidence_tier": "classical_text_local",
+      "evidence_refs": ["yuanhai_ziping_local", "sanming_tonghui_local"],
+      "limitations": ["神煞不得覆盖四柱、月令、格局和用神主结论", "不生成健康、伤亡、婚姻、刑狱或其他现实事件断语"]
+    },
+    {
+      "rule_id": "bazi.yongshen.fuyi-v2",
+      "status": "draft_unimplemented",
+      "scope": "扶抑用神的支持条件、否决条件、反证与稳定区间",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["bazi_rule_gold_gap"],
+      "limitations": ["当前代码没有可选择的 ziping-fuyi-v2 完整用神规则图", "不得由身强分数直接映射成幸运五行"]
+    }
+  ],
+  "source_evidence": [
+    {
+      "id": "yuanhai_ziping_local",
+      "tier": "classical_text_local",
+      "kind": "local_primary_text_scan",
+      "artifact_path": "library/渊海子平.pdf",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "57a130f26a4d45abd0f706405c7f9de00a8e90b6d4630676370f504ebbe2a0f5",
+      "license_scope": "internal_research_review_required",
+      "review_status": "text_located_not_expert_gold",
+      "case_count": 0,
+      "limitations": ["页码、原文切片与逐规则引用仍需继续结构化"]
+    },
+    {
+      "id": "sanming_tonghui_local",
+      "tier": "classical_text_local",
+      "kind": "local_primary_text_scan",
+      "artifact_path": "library/三命通会.pdf",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "63eb2a85036ebbd360b815a58780edd242bda0fd1a5faaac7413e00c5f726d47",
+      "license_scope": "internal_research_review_required",
+      "review_status": "text_located_not_expert_gold",
+      "case_count": 0,
+      "limitations": ["文本定位不能替代双专家盲审"]
+    },
+    {
+      "id": "ditiansui_chanwei_local",
+      "tier": "classical_text_local",
+      "kind": "local_primary_text_scan",
+      "artifact_path": "library/滴天髓阐微.pdf",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "65c67d88421319fccbba23bce88d61d4ace288a7913edd6a10ebf3143e72a48b",
+      "license_scope": "internal_research_review_required",
+      "review_status": "text_located_not_expert_gold",
+      "case_count": 0,
+      "limitations": ["现代阐释与原文必须分层引用"]
+    },
+    {
+      "id": "qiongtong_baojian_local",
+      "tier": "classical_text_local",
+      "kind": "local_primary_text_scan",
+      "artifact_path": "library/穷通宝鉴.pdf",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "1c7ef872809bd17ce55607343680489832d58a39b8e2e3584429484d2fd02219",
+      "license_scope": "internal_research_review_required",
+      "review_status": "text_located_not_expert_gold",
+      "case_count": 0,
+      "limitations": ["调候候选尚未进入专家 Gold"]
+    },
+    {
+      "id": "bazi_external_silver_v1_2",
+      "tier": "silver_external",
+      "kind": "local_fixture",
+      "artifact_path": "src/internal/service/testdata/bazi_external_silver.json",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "c7434cda95904ddf6fe79e0b9425ada41b9f6f73ed855b78d240991153027ebd",
+      "license_scope": "pinned_upstream_licenses",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 60,
+      "limitations": ["publishable_accuracy=false", "部分边界证据来自相关上游实现"]
+    },
+    {
+      "id": "pattern_release_anchor_v34",
+      "tier": "engineering_digest",
+      "kind": "local_release_artifact",
+      "artifact_path": "release/pattern-detector-profile-anchor.json",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "ebd6323f28715695aa3c4ee9038e74d261c9fa34b422037266c4b097e3086a2e",
+      "license_scope": "repository_artifact",
+      "review_status": "unsigned_repository_ci_artifact",
+      "case_count": 0,
+      "limitations": ["规范 JSON 摘要，不是原始文件字节摘要", "不是签名、透明日志或外部时间戳"]
+    },
+    {
+      "id": "bazi_rule_gold_gap",
+      "tier": "not_available",
+      "kind": "evidence_gap",
+      "artifact_path": "",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "",
+      "license_scope": "not_applicable",
+      "review_status": "missing_required_gold",
+      "case_count": 0,
+      "limitations": ["尚无满足双人独立盲审与第三人裁决要求的八字规则 Gold"]
+    }
+  ],
+  "unsupported_rules": [
+    {
+      "rule_id": "bazi.yongshen.fuyi-v2",
+      "reason": "完整扶抑规则图、否决条件和 Gold 阈值尚未完成",
+      "required_evidence": "300 盘分层八字规则 Gold 与组件消融结果"
+    },
+    {
+      "rule_id": "bazi.yongshen.bingyao",
+      "reason": "病药体系不是扶抑规则的隐式补丁",
+      "required_evidence": "独立 Profile、来源裁决和 Gold"
+    },
+    {
+      "rule_id": "bazi.yongshen.tongguan",
+      "reason": "通关候选不得静默替代扶抑用神",
+      "required_evidence": "独立 Profile 与冲突裁决样例"
+    },
+    {
+      "rule_id": "bazi.true-solar-time",
+      "reason": "当前清单未绑定地点、经纬度、均时差算法和历史时区版本",
+      "required_evidence": "天文算法合同与边界 Gold"
+    }
+  ],
+  "disputed_conventions": [
+    {
+      "id": "late_zi_day_boundary",
+      "question": "晚子时是否换日",
+      "options": ["late_zi_next_day", "late_zi_same_day"],
+      "selected": "explicit_input_required",
+      "status": "school_dependent",
+      "resolution_gate": "结果必须记录口径，不以默认值伪装唯一传统答案"
+    },
+    {
+      "id": "earth_month_and_storage_weighting",
+      "question": "四土月、墓库与进退气如何计入旺衰",
+      "options": ["profile_specific_tables", "gold_fitted_parameters"],
+      "selected": "unadjudicated",
+      "status": "expert_review_required",
+      "resolution_gate": "两位专家独立裁决 10x12 月令表并冻结版本"
+    },
+    {
+      "id": "yongshen_system_separation",
+      "question": "扶抑、调候、通关、病药是否合并",
+      "options": ["separate_findings", "single_merged_lucky_element"],
+      "selected": "separate_findings",
+      "status": "fixed_profile_policy",
+      "resolution_gate": "任何合并必须创建新 Profile，禁止在本 Profile 内静默发生"
+    },
+    {
+      "id": "dayun_start_conversion",
+      "question": "起运时长到岁月日的换算口径",
+      "options": ["profile_specific_conversion"],
+      "selected": "unadjudicated",
+      "status": "expert_review_required",
+      "resolution_gate": "保存原始时长、起运时刻与算法依据后再裁决"
+    }
+  ],
+  "gold_gates": [
+    {
+      "gate_id": "bazi_calendar_gold",
+      "minimum_cases": 500,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_gold",
+      "admission_scope": "节气、子时、闰月、时区、DST、真太阳时与常规日期分层"
+    },
+    {
+      "gate_id": "bazi_rule_gold",
+      "minimum_cases": 300,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_gold",
+      "admission_scope": "十日主、十二月令、身强档位与主要格局分层"
+    }
+  ],
+  "mixing_policy": {
+    "fallback": "prohibited",
+    "cross_profile_rule_import": "prohibited_without_new_profile_id",
+    "silent_default": "prohibited",
+    "missing_rule_behavior": "return_unavailable_or_candidate_only",
+    "interpretation_mixing": "fuyi_tiaohou_tongguan_bingyao_must_remain_separate_findings"
+  },
+  "claim_boundary": {
+    "publishable_accuracy": false,
+    "traditional_correctness_proven": false,
+    "predictive_validity_proven": false,
+    "event_probability_allowed": false,
+    "allowed_claims": ["当前工程实现状态", "固定证据来源与摘要", "Silver 一致性或差异", "候选规则及其限制"],
+    "prohibited_claims": ["最准确", "传统唯一正确", "Silver 即 Gold", "现实事件命中率", "候选档位即专家结论"]
+  }
+}

@@ -3,7 +3,6 @@ package bazi
 import (
 	"fmt"
 	"math"
-	"strings"
 
 	"bazi/internal/model"
 	"bazi/internal/service/data"
@@ -24,21 +23,15 @@ var tenGodNames = [10]string{
 	"正印", "偏印",
 }
 
-// PillarTenGods tracks which ten gods appear in each pillar position.
-type PillarTenGods struct {
-	Year  []string `json:"year"`
-	Month []string `json:"month"`
-	Day   []string `json:"day"`
-	Hour  []string `json:"hour"`
-}
-
 // BaziService calculates BaZi (八字) birth charts using tyme4go.
 type BaziService struct{}
 
 // BaziResult holds the complete BaZi calculation output.
 type BaziResult struct {
 	RuleVersion          string                      `json:"rule_version"`
+	CalendarVersion      string                      `json:"calendar_version"`
 	School               string                      `json:"school"`
+	ZiHourPolicy         string                      `json:"zi_hour_policy,omitempty"`
 	RuleMeta             RuleMeta                    `json:"rule_meta"`
 	YearPillar           model.Pillar                `json:"year_pillar"`
 	MonthPillar          model.Pillar                `json:"month_pillar"`
@@ -51,37 +44,20 @@ type BaziResult struct {
 	NaYin                map[string]NaYinInfo        `json:"na_yin"`
 	HiddenStems          map[string][]string         `json:"hidden_stems"`
 	DaYunInfo            DaYunInfo                   `json:"da_yun_info"`
-	ClashHarmony         []ClashRelation             `json:"clash_harmony"`
 	GanZhiAnalysis       GanZhiAnalysis              `json:"gan_zhi_analysis"`
 	PatternAnalysis      PatternAnalysis             `json:"pattern_analysis"`
 	MingGong             data.MingGongDetail         `json:"ming_gong"`
-	RiZhuDesc            string                      `json:"ri_zhu_desc"`
 	PillarDetails        []PillarDetail              `json:"pillar_details"`
-	DayStemTiaoHou       string                      `json:"tiao_hou"`
-	DayStemJinBuHuan     string                      `json:"jin_bu_huan"`
 	DayShenSha           []string                    `json:"day_shen_sha"`
 	DayShenShaDetails    []ShenShaMeta               `json:"day_shen_sha_details"`
 	ShenShaByPillar      []PillarShenSha             `json:"shen_sha_by_pillar"`
 	GlobalShenSha        []string                    `json:"global_shen_sha"`
 	GlobalShenShaDetails []ShenShaMeta               `json:"global_shen_sha_details"`
-	ShenShaSummary       *ShenShaSummary             `json:"shen_sha_summary"`
-	SeasonText           string                      `json:"season_text"`
-	SeasonTextMonth      string                      `json:"season_text_month"` // month-specific data.YueTexts when available
+	MonthSeason          MonthSeasonEvidence         `json:"month_season"`
 	TenGodProportion     []TenGodRatio               `json:"ten_god_proportion"`
 	TenGodAnalysis       *TenGodAnalysis             `json:"ten_god_analysis"`
-	RiZhuPoem            string                      `json:"ri_zhu_poem"`
-	RiZhuSource          string                      `json:"ri_zhu_source"`
-	RiZhuComment         string                      `json:"ri_zhu_comment"`
-	RiZhuHourDetail      string                      `json:"ri_zhu_hour_detail"`
-	JiaZiDetail          *data.JiaZiEntry            `json:"jia_zi_detail"`      // 《三命通会》60甲子性质
-	WuxingSeasonNote     string                      `json:"wuxing_season_note"` // 五行四时论分析
-	HealthNote           string                      `json:"health_note"`        // 五行疾病提示
-	Tiaohou              *TiaohouResult              `json:"tiaohou"`            // 《穷通宝鉴》调候用神分析
-	WuXingFlow           data.WuXingFlowAnalysis     `json:"wuxing_flow"`        // 五行流通分析
-	TongGuan             data.TongGuanAnalysis       `json:"tong_guan"`          // 通关用神
-	MissingElements      data.MissingElementAnalysis `json:"missing_elements"`   // 缺失五行
-	FlowPatternDesc      string                      `json:"flow_pattern_desc"`  // 流通格局描述
-	DaYunFlow            []data.DaYunFlowItem        `json:"dayun_flow"`         // 大运流通影响
+	Tiaohou              *TiaohouResult              `json:"tiaohou"`          // 《穷通宝鉴》调候查表证据
+	MissingElements      data.MissingElementAnalysis `json:"missing_elements"` // 缺失五行
 }
 
 // ElementStrength holds the strength breakdown for one element.
@@ -93,97 +69,151 @@ type ElementStrength struct {
 	CangGanList []string `json:"cang_gan_list"` // e.g. ["未中乙", "辰中乙"]
 }
 
-// BodyStrengthResult holds the body strength conclusion.
+// BodyStrengthResult exposes a local weighted-score observation. Its discrete
+// band is a threshold candidate, not an adjudicated strength conclusion.
 type BodyStrengthResult struct {
-	RuleVersion string                   `json:"rule_version"`
-	School      string                   `json:"school"`
-	Verdict     string                   `json:"verdict"`
-	Like        []string                 `json:"like"`
-	Dislike     []string                 `json:"dislike"`
-	TotalScore  float64                  `json:"total_score"`
-	LingScore   float64                  `json:"ling_score"`
-	DiScore     float64                  `json:"di_score"`
-	ShiScore    float64                  `json:"shi_score"`
-	ShengScore  float64                  `json:"sheng_score"`
-	LuBonus     float64                  `json:"lu_bonus"`
-	Components  []BodyStrengthComponent  `json:"components"`
-	Evidence    []BodyStrengthEvidence   `json:"evidence"`
-	Adjustments []BodyStrengthAdjustment `json:"adjustments"`
-	Summary     string                   `json:"summary"`
+	RuleID               string                    `json:"rule_id"`
+	SchemaVersion        string                    `json:"schema_version"`
+	RuleVersion          string                    `json:"rule_version"`
+	School               string                    `json:"school"`
+	ScoringProfile       string                    `json:"scoring_profile"`
+	YueLingRuleID        string                    `json:"yue_ling_rule_id"`
+	YueLingProfile       string                    `json:"yue_ling_profile"`
+	YueLingTableSHA256   string                    `json:"yue_ling_table_sha256"`
+	Inputs               BodyStrengthInputSnapshot `json:"inputs"`
+	ScoreBandCandidate   string                    `json:"score_band_candidate"`
+	BandSelectionBasis   string                    `json:"band_selection_basis"`
+	BandRules            []BodyStrengthBandRule    `json:"band_rules"`
+	TotalScore           float64                   `json:"total_score"`
+	LingScore            float64                   `json:"ling_score"`
+	DiScore              float64                   `json:"di_score"`
+	ShiScore             float64                   `json:"shi_score"`
+	ShengScore           float64                   `json:"sheng_score"`
+	LuBonus              float64                   `json:"lu_bonus"`
+	Components           []BodyStrengthComponent   `json:"components"`
+	Evidence             []BodyStrengthEvidence    `json:"evidence"`
+	Adjustments          []BodyStrengthAdjustment  `json:"adjustments"`
+	Status               string                    `json:"status"`
+	ValidationStatus     string                    `json:"validation_status"`
+	InterpretationStatus string                    `json:"interpretation_status"`
+	IsStrengthConclusion bool                      `json:"is_strength_conclusion"`
+	Limitations          []string                  `json:"limitations"`
+}
+
+type BodyStrengthInputSnapshot struct {
+	Pillars     []string `json:"pillars"`
+	DayStem     string   `json:"day_stem"`
+	DayElement  string   `json:"day_element"`
+	MonthBranch string   `json:"month_branch"`
+}
+
+type BodyStrengthBandRule struct {
+	Candidate string  `json:"candidate"`
+	Operator  string  `json:"operator"`
+	Threshold float64 `json:"threshold,omitempty"`
 }
 
 // BodyStrengthComponent is one weighted part of the strength score.
 type BodyStrengthComponent struct {
-	Key             string  `json:"key"`
-	Name            string  `json:"name"`
-	RawScore        float64 `json:"raw_score"`
-	NormalizedScore float64 `json:"normalized_score"`
-	Weight          float64 `json:"weight"`
-	WeightedScore   float64 `json:"weighted_score"`
-	Description     string  `json:"description"`
+	RuleID           string  `json:"rule_id"`
+	Key              string  `json:"key"`
+	Name             string  `json:"name"`
+	RawScore         float64 `json:"raw_score"`
+	NormalizedScore  float64 `json:"normalized_score"`
+	Weight           float64 `json:"weight"`
+	WeightedScore    float64 `json:"weighted_score"`
+	Basis            string  `json:"basis"`
+	Status           string  `json:"status"`
+	ValidationStatus string  `json:"validation_status"`
+	Description      string  `json:"description"`
 }
 
 // BodyStrengthEvidence is a computable fact that affected the verdict.
 type BodyStrengthEvidence struct {
-	Component string  `json:"component"`
-	Polarity  string  `json:"polarity"`
-	Source    string  `json:"source"`
-	Item      string  `json:"item"`
-	Score     float64 `json:"score"`
-	Reason    string  `json:"reason"`
+	RuleID               string  `json:"rule_id"`
+	Component            string  `json:"component"`
+	Polarity             string  `json:"polarity"`
+	Source               string  `json:"source"`
+	Item                 string  `json:"item"`
+	Score                float64 `json:"score"`
+	Basis                string  `json:"basis"`
+	Status               string  `json:"status"`
+	InterpretationStatus string  `json:"interpretation_status"`
+	Reason               string  `json:"reason"`
 }
 
-// BodyStrengthAdjustment records posterior corrections such as 得令不旺.
+// BodyStrengthAdjustment records a posterior score correction.
 type BodyStrengthAdjustment struct {
-	Name        string  `json:"name"`
-	Before      float64 `json:"before"`
-	After       float64 `json:"after"`
-	Reason      string  `json:"reason"`
-	Description string  `json:"description"`
+	RuleID           string  `json:"rule_id"`
+	Name             string  `json:"name"`
+	Before           float64 `json:"before"`
+	After            float64 `json:"after"`
+	Reason           string  `json:"reason"`
+	Basis            string  `json:"basis"`
+	Status           string  `json:"status"`
+	ValidationStatus string  `json:"validation_status"`
+	Description      string  `json:"description"`
 }
 
 // DaYunInfo describes the major fortune cycle (大运).
 type DaYunInfo struct {
-	StartAge  int            `json:"start_age"`
-	Direction string         `json:"direction"`
-	Pillars   []model.Pillar `json:"pillars"`
+	Calculated            bool            `json:"calculated"`
+	StartAge              int             `json:"start_age"`
+	StartAgeDetail        DaYunStartAge   `json:"start_age_detail"`
+	StartAt               string          `json:"start_at,omitempty"`
+	Direction             string          `json:"direction"`
+	DirectionBasis        string          `json:"direction_basis,omitempty"`
+	CalculationProfile    string          `json:"calculation_profile,omitempty"`
+	Provider              string          `json:"provider,omitempty"`
+	TimeBasis             string          `json:"time_basis,omitempty"`
+	SolarTermReferenceAt  string          `json:"solar_term_reference_at,omitempty"`
+	SolarTermTimezone     string          `json:"solar_term_timezone,omitempty"`
+	AgeConversionRule     string          `json:"age_conversion_rule,omitempty"`
+	BoundaryRule          string          `json:"boundary_rule,omitempty"`
+	PreviousJie           *DaYunSolarTerm `json:"previous_jie,omitempty"`
+	NextJie               *DaYunSolarTerm `json:"next_jie,omitempty"`
+	ReferenceJie          *DaYunSolarTerm `json:"reference_jie,omitempty"`
+	ReferenceDeltaSeconds int             `json:"reference_delta_seconds"`
+	Pillars               []model.Pillar  `json:"pillars"`
 }
 
-// ClashRelation describes a clash/harmony relation between two pillars.
-type ClashRelation struct {
-	Pillar1 string `json:"pillar1"`
-	Pillar2 string `json:"pillar2"`
-	Type    string `json:"type"`
+// DaYunStartAge keeps the full traditional conversion result. StartAge on
+// DaYunInfo remains the whole-year component used by downstream fortune code.
+type DaYunStartAge struct {
+	Years   int `json:"years"`
+	Months  int `json:"months"`
+	Days    int `json:"days"`
+	Hours   int `json:"hours"`
+	Minutes int `json:"minutes"`
+}
+
+// DaYunSolarTerm records one solar-month boundary in China Standard Time.
+// DeltaSeconds is signed against the same physical birth instant: past/current
+// boundaries are <= 0 and future boundaries are > 0.
+type DaYunSolarTerm struct {
+	Name         string `json:"name"`
+	At           string `json:"at"`
+	DeltaSeconds int    `json:"delta_seconds"`
 }
 
 // PillarShenSha groups shen-sha items for a single pillar with metadata.
 type PillarShenSha struct {
-	Pillar   string        `json:"pillar"`
-	Label    string        `json:"label"`
-	Gan      string        `json:"gan"`
-	Zhi      string        `json:"zhi"`
-	Priority int           `json:"priority"`
-	Role     string        `json:"role"`
-	Items    []string      `json:"items"`
-	Details  []ShenShaMeta `json:"details"`
+	Pillar  string        `json:"pillar"`
+	Label   string        `json:"label"`
+	Gan     string        `json:"gan"`
+	Zhi     string        `json:"zhi"`
+	Items   []string      `json:"items"`
+	Details []ShenShaMeta `json:"details"`
 }
 
-// ShenShaSummary provides a high-level explanation of the shen-sha ordering.
-type ShenShaSummary struct {
-	Title       string   `json:"title"`
-	Description []string `json:"description"`
-}
-
-// NaYinInfo is the JSON-serializable na-yin detail for API responses.
-// StemBranches is omitted to keep response compact; it is available in the knowledge base.
+// NaYinInfo is factual evidence for a sixty-cycle na-yin mapping.
 type NaYinInfo struct {
-	Name        string   `json:"name"`
-	Element     string   `json:"element"`
-	ImageDesc   string   `json:"image_desc"`
-	Personality string   `json:"personality"`
-	EnergyStage string   `json:"energy_stage"`
-	ModernExt   string   `json:"modern_ext"`
-	Judgments   []string `json:"judgments"`
+	RuleID  string `json:"rule_id"`
+	GanZhi  string `json:"gan_zhi"`
+	Name    string `json:"name"`
+	Element string `json:"element"`
+	Basis   string `json:"basis"`
+	Status  string `json:"status"`
 }
 
 // PillarDetail holds enriched per-pillar data.
@@ -197,22 +227,79 @@ type PillarDetail struct {
 
 // Calculate computes a full BaZi chart.
 func (s *BaziService) Calculate(year, month, day, hour, minute int, gender string) (*BaziResult, error) {
+	return s.CalculateAt(year, month, day, hour, minute, 0, gender)
+}
+
+// CalculateAt computes a full BaZi chart while preserving the factual birth
+// second for solar-term boundaries and date-level da-yun calculation.
+func (s *BaziService) CalculateAt(year, month, day, hour, minute, second int, gender string) (*BaziResult, error) {
+	return s.CalculateAtWithPolicy(year, month, day, hour, minute, second, gender, DefaultZiHourPolicy)
+}
+
+// CalculateAtWithPolicy computes a chart using an explicit late-Zi day-boundary
+// convention without mutating tyme4go's process-global EightCharProvider.
+func (s *BaziService) CalculateAtWithPolicy(year, month, day, hour, minute, second int, gender, ziHourPolicy string) (*BaziResult, error) {
+	st, err := tyme.SolarTime{}.FromYmdHms(year, month, day, hour, minute, second)
+	if err != nil {
+		return nil, fmt.Errorf("invalid birth time: %w", err)
+	}
+	return s.calculateWithTimeBases(st, st, gender, ziHourPolicy)
+}
+
+// CalculateNormalizedBirth keeps local day/hour conventions separate from the
+// globally instantaneous solar-term year/month boundary.
+func (s *BaziService) CalculateNormalizedBirth(birth *NormalizedBirth) (*BaziResult, error) {
+	if birth == nil {
+		return nil, fmt.Errorf("normalized birth is required")
+	}
+	calculationTime, err := tyme.SolarTime{}.FromYmdHms(
+		birth.Year, birth.Month, birth.Day, birth.Hour, birth.Minute, birth.Second,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("invalid normalized calculation time: %w", err)
+	}
+	reference := birth.SolarTermReference
+	termReferenceTime, err := tyme.SolarTime{}.FromYmdHms(
+		reference.Year, reference.Month, reference.Day, reference.Hour, reference.Minute, reference.Second,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("invalid normalized solar-term reference time: %w", err)
+	}
+	if birth.Validation.CalendarEngineVersion != CalendarEngineVersion ||
+		birth.Validation.NormalizationVersion != BirthNormalizationVersion {
+		return nil, fmt.Errorf("normalized birth calendar version is stale")
+	}
+	return s.calculateWithTimeBases(calculationTime, termReferenceTime, birth.Gender, birth.ZiHourPolicy)
+}
+
+func (s *BaziService) calculateWithTimeBases(calculationTime, termReferenceTime *tyme.SolarTime, gender, ziHourPolicy string) (*BaziResult, error) {
 	tymeGender, err := toTymeGender(gender)
 	if err != nil {
 		return nil, err
 	}
 
-	st, err := tyme.SolarTime{}.FromYmdHms(year, month, day, hour, minute, 0)
+	ziHourPolicy, err = NormalizeZiHourPolicy(ziHourPolicy)
 	if err != nil {
-		return nil, fmt.Errorf("invalid birth time: %w", err)
+		return nil, err
 	}
-
-	ec := st.GetLunarHour().GetEightChar()
+	localEightChar, err := eightCharWithZiHourPolicy(calculationTime, ziHourPolicy)
+	if err != nil {
+		return nil, err
+	}
+	termEightChar, err := eightCharWithZiHourPolicy(termReferenceTime, DefaultZiHourPolicy)
+	if err != nil {
+		return nil, err
+	}
+	ec := tyme.EightChar{}.FromSixtyCycle(
+		termEightChar.GetYear(), termEightChar.GetMonth(), localEightChar.GetDay(), localEightChar.GetHour(),
+	)
 
 	result := &BaziResult{
-		RuleVersion: RuleVersion,
-		School:      RuleSchool,
-		RuleMeta:    DefaultRuleMeta(),
+		RuleVersion:     RuleVersion,
+		CalendarVersion: CalendarEngineVersion,
+		School:          RuleSchool,
+		ZiHourPolicy:    ziHourPolicy,
+		RuleMeta:        DefaultRuleMeta(),
 	}
 
 	// --- four pillars ---
@@ -220,17 +307,14 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	result.MonthPillar = pillarFromSixtyCycle(ec.GetMonth())
 	result.DayPillar = pillarFromSixtyCycle(ec.GetDay())
 	result.HourPillar = pillarFromSixtyCycle(ec.GetHour())
+	result.MonthSeason = observeMonthSeason(result.MonthPillar.Zhi)
 
 	// MingGong from year gan, month zhi, hour zhi (《渊海子平》古法)
-	mingGongGanZhi, err := data.CalcMingGong(result.YearPillar.Gan, result.MonthPillar.Zhi, result.HourPillar.Zhi)
+	mingGongGanZhi, err := calcMingGongGanZhi(result.YearPillar.Gan, result.MonthPillar.Zhi, result.HourPillar.Zhi)
 	if err != nil {
 		return nil, fmt.Errorf("计算命宫失败: %w", err)
 	}
-	result.MingGong = data.BuildMingGongDetail(mingGongGanZhi)
-	// RiZhuDesc from day pillar (key format: dayGan + "日" + dayZhi e.g. "甲日甲子")
-	riZhuKey := result.DayPillar.Gan + "日" + result.DayPillar.Zhi
-	result.RiZhuDesc = data.SiZiSummaries[riZhuKey]
-
+	result.MingGong = buildMingGongDetail(mingGongGanZhi)
 	// --- five elements scores ---
 	result.FiveElements = calcFiveElements(&ec)
 	result.ElementDetail = calcElementDetail(&ec)
@@ -246,171 +330,107 @@ func (s *BaziService) Calculate(year, month, day, hour, minute int, gender strin
 	result.HiddenStems = calcHiddenStems(&ec)
 
 	// --- da yun ---
-	result.DaYunInfo = calcDaYun(st, tymeGender)
-
-	// --- clash / harmony ---
-	result.ClashHarmony = calcClashHarmony(&ec)
+	result.DaYunInfo = calcDaYunWithReference(calculationTime, termReferenceTime, ec, tymeGender)
 
 	// --- gan/zhi analysis ---
-	result.GanZhiAnalysis = CalcGanZhiAnalysis(
+	result.GanZhiAnalysis, err = CalcGanZhiAnalysis(
 		result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("计算干支关系失败: %w", err)
+	}
 	result.PatternAnalysis = AnalyzePatternExtended(
 		[]model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar},
 		result.MonthPillar.Zhi,
-		result.FiveElements,
-		result.BodyStrength,
 	)
 
 	// --- enrich pillar details ---
-	dayElem := data.GanElement[result.DayPillar.Gan]
 	result.TenGodProportion = calcTenGodProportion(&ec, result.DayPillar.Gan)
-	pillarTenGods := calcPillarTenGods(&ec, result.DayPillar.Gan)
-	analyzer := &TenGodAnalyzer{}
-	result.TenGodAnalysis = analyzer.AnalyzeTenGod(result.TenGodProportion, dayElem, result.BodyStrength, pillarTenGods, gender)
-	s.enrichPillarDetails(result, month, gender)
-
-	enrichRiZhuText(result)
-
-	// --- enrich from 《三命通会》knowledge ---
-	enrichWuxingSeason(result, month)
-	enrichJiaZiDetail(result)
-	enrichHealthNote(result)
+	result.TenGodAnalysis = ObserveTenGodDistribution(result.TenGodProportion)
+	if err := s.enrichPillarDetails(result, gender); err != nil {
+		return nil, fmt.Errorf("计算柱位神煞失败: %w", err)
+	}
 
 	// --- enrich from 《穷通宝鉴》tiaohou analysis ---
-	tiaohouResult, _ := AnalyzeTiaohou(result.DayPillar.Gan, result.MonthPillar.Zhi)
+	tiaohouResult, _ := AnalyzeTiaohouForPillarsAt(
+		result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar, *termReferenceTime,
+	)
 	result.Tiaohou = tiaohouResult
 
-	// --- enrich from 《滴天髓》流通分析 ---
-	pillars := []model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar}
-	result.WuXingFlow = data.AnalyzeWuXingFlowV2(result.FiveElements, dayElem)
-	result.TongGuan = data.FindTongGuan(pillars, dayElem, result.MonthPillar.Zhi)
+	// --- retain raw five-element presence facts ---
 	result.MissingElements = data.FindMissingElements(result.FiveElements)
-	result.FlowPatternDesc = data.BuildFlowPatternDesc(result.WuXingFlow, result.TongGuan, result.MissingElements)
-
-	// --- 大运流通分析 ---
-	if len(result.DaYunInfo.Pillars) > 0 {
-		result.DaYunFlow = data.CalcDaYunFlow(result.DayPillar.Gan, result.FiveElements, result.DaYunInfo.Pillars, result.DaYunInfo.StartAge)
-	}
 
 	return result, nil
 }
 
-func (s *BaziService) enrichPillarDetails(result *BaziResult, birthMonth int, gender string) {
+func (s *BaziService) enrichPillarDetails(result *BaziResult, gender string) error {
 	pillars := []model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar}
+	result.PillarDetails = buildPillarDetails(pillars)
 
-	// PillarDetails: one per pillar
-	for _, p := range pillars {
-		gIdx := data.GanIndex(p.Gan)
-		zIdx := data.ZhiIndex(p.Zhi)
-		nayinName := data.Nayin[gIdx][zIdx]
-		entry := data.NaYinMap[nayinName]
-		detail := PillarDetail{
-			Stem:      p.Gan,
-			Branch:    p.Zhi,
-			ShengXiao: data.ShengXiao[zIdx],
-			Empties:   data.Empties[gIdx][zIdx],
-			Nayin: NaYinInfo{
-				Name:        entry.Name,
-				Element:     entry.Element,
-				ImageDesc:   entry.ImageDesc,
-				Personality: entry.Personality,
-				EnergyStage: entry.EnergyStage,
-				ModernExt:   entry.ModernExt,
-				Judgments:   entry.Judgments,
-			},
-		}
-		result.PillarDetails = append(result.PillarDetails, detail)
-	}
-
-	shenSha := CalcShenShaByPillars(ShenShaPillars{
+	shenSha, err := CalcShenShaByPillars(ShenShaPillars{
 		Year:   result.YearPillar,
 		Month:  result.MonthPillar,
 		Day:    result.DayPillar,
 		Hour:   result.HourPillar,
 		Gender: gender,
 	})
+	if err != nil {
+		return err
+	}
 	result.DayShenSha = shenSha.Day
 	result.DayShenShaDetails = BuildShenShaDetails(shenSha.Day)
 	result.ShenShaByPillar = buildPillarShenSha(result, shenSha)
 	result.GlobalShenSha = shenSha.Global
 	result.GlobalShenShaDetails = BuildShenShaDetails(shenSha.Global)
-	result.ShenShaSummary = &ShenShaSummary{
-		Title: "神煞排序说明",
-		Description: []string{
-			"日柱最重要：代表自身、配偶、中年运势，影响最直接、最持久。多数神煞以日干、日支为直接查法。",
-			"年柱次之：代表祖上、童年、大环境，决定先天福荫。病符、官符、丧门、吊客等依年支而定。",
-			"月柱辅助：代表父母、兄弟、青年期。天德、月德、天赦等特定神煞需参考月令。",
-			"时柱辅助：代表子女、晚年、事业成果。童子煞、桃花等特定神煞有时需看时支。",
-			"注意：不同神煞有不同查法依据，本模块按柱位优先级展示，个别神煞仍有其他特定查法。",
-		},
-	}
 
-	// data.TiaoHou & data.JinBuHuan
-	// 调候用神按日干+月支查（非日干+日支）
-	tiaoKey := result.DayPillar.Gan + result.MonthPillar.Zhi
-	result.DayStemTiaoHou = data.TiaoHou[tiaoKey]
-	result.DayStemJinBuHuan = data.JinBuHuan[result.DayPillar.Gan]
-
-	// SeasonText via data.YueTexts[dayGan][season]
-	season := monthKey(birthMonth)
-	if texts, ok := data.YueTexts[result.DayPillar.Gan]; ok {
-		if txt, ok := texts[season]; ok {
-			result.SeasonText = txt
-		}
-		// Also set month-specific text when available (5月 or 6月)
-		if m := birthMonth; m == 5 || m == 6 {
-			if txt, ok := texts[fmt.Sprintf("%d月", m)]; ok {
-				result.SeasonTextMonth = txt
-			}
-		}
-	}
+	return nil
 }
 
-// monthKey returns the best-matching data.YueTexts key for a given birth month.
-// It prefers specific month anchors (正二月/五月/六月) where the data has them,
-// and falls back to the generic season (春/夏/秋/冬).
+func buildPillarDetails(pillars []model.Pillar) []PillarDetail {
+	details := make([]PillarDetail, 0, len(pillars))
+	for _, p := range pillars {
+		detail := PillarDetail{
+			Stem:   p.Gan,
+			Branch: p.Zhi,
+			Nayin:  observeNaYin(p.Gan, p.Zhi),
+		}
+		cycle, err := tyme.SixtyCycle{}.FromName(p.Gan + p.Zhi)
+		if err == nil {
+			detail.ShengXiao = cycle.GetEarthBranch().GetZodiac().GetName()
+			empties := cycle.GetExtraEarthBranches()
+			detail.Empties = [2]string{empties[0].GetName(), empties[1].GetName()}
+		}
+		details = append(details, detail)
+	}
+	return details
+}
+
 func buildPillarShenSha(result *BaziResult, calc ShenShaCalcResult) []PillarShenSha {
 	pillars := []struct {
-		pillar   string
-		label    string
-		gan      string
-		zhi      string
-		priority int
-		role     string
-		items    []string
+		pillar string
+		label  string
+		gan    string
+		zhi    string
+		items  []string
 	}{
-		{"day", "日柱", result.DayPillar.Gan, result.DayPillar.Zhi, 1, "自身·配偶·中年", calc.Day},
-		{"year", "年柱", result.YearPillar.Gan, result.YearPillar.Zhi, 2, "祖上·童年·大环境", calc.Year},
-		{"month", "月柱", result.MonthPillar.Gan, result.MonthPillar.Zhi, 3, "父母·兄弟·青年", calc.Month},
-		{"hour", "时柱", result.HourPillar.Gan, result.HourPillar.Zhi, 4, "子女·晚年·事业成果", calc.Hour},
+		{"year", "年柱", result.YearPillar.Gan, result.YearPillar.Zhi, calc.Year},
+		{"month", "月柱", result.MonthPillar.Gan, result.MonthPillar.Zhi, calc.Month},
+		{"day", "日柱", result.DayPillar.Gan, result.DayPillar.Zhi, calc.Day},
+		{"hour", "时柱", result.HourPillar.Gan, result.HourPillar.Zhi, calc.Hour},
 	}
 
 	output := make([]PillarShenSha, 0, len(pillars))
 	for _, p := range pillars {
 		output = append(output, PillarShenSha{
-			Pillar:   p.pillar,
-			Label:    p.label,
-			Gan:      p.gan,
-			Zhi:      p.zhi,
-			Priority: p.priority,
-			Role:     p.role,
-			Items:    p.items,
-			Details:  BuildShenShaDetails(p.items),
+			Pillar:  p.pillar,
+			Label:   p.label,
+			Gan:     p.gan,
+			Zhi:     p.zhi,
+			Items:   p.items,
+			Details: BuildShenShaDetails(p.items),
 		})
 	}
 	return output
-}
-
-func monthKey(m int) string {
-	switch m {
-	case 1, 2:
-		return "正二月"
-	case 5, 6:
-		return fmt.Sprintf("%d月", m)
-	default:
-		return data.SeasonFromMonth(m)
-	}
 }
 
 // --- helpers ---------------------------------------------------------------
@@ -518,17 +538,11 @@ func calcNaYin(ec *tyme.EightChar) map[string]NaYinInfo {
 	}
 	result := make(map[string]NaYinInfo, 4)
 	for _, p := range pillars {
-		nayinName := data.Nayin[data.GanIndex(p.fn().GetHeavenStem().GetName())][data.ZhiIndex(p.fn().GetEarthBranch().GetName())]
-		entry := data.NaYinMap[nayinName]
-		result[p.key] = NaYinInfo{
-			Name:        entry.Name,
-			Element:     entry.Element,
-			ImageDesc:   entry.ImageDesc,
-			Personality: entry.Personality,
-			EnergyStage: entry.EnergyStage,
-			ModernExt:   entry.ModernExt,
-			Judgments:   entry.Judgments,
-		}
+		cycle := p.fn()
+		result[p.key] = observeNaYin(
+			cycle.GetHeavenStem().GetName(),
+			cycle.GetEarthBranch().GetName(),
+		)
 	}
 	return result
 }
@@ -560,22 +574,76 @@ func calcHiddenStems(ec *tyme.EightChar) map[string][]string {
 }
 
 func calcDaYun(st *tyme.SolarTime, gender tyme.Gender) DaYunInfo {
-	cl := tyme.ChildLimit{}.FromSolarTime(*st, gender)
+	eightChar := st.GetLunarHour().GetEightChar()
+	return calcDaYunWithReference(st, st, eightChar, gender)
+}
 
+func calcDaYunWithReference(calculationBirth, termReferenceBirth *tyme.SolarTime, eightChar tyme.EightChar, gender tyme.Gender) DaYunInfo {
+	yearStem := eightChar.GetYear().GetHeavenStem()
+	yang := tyme.YANG == yearStem.GetYinYang()
+	man := tyme.MAN == gender
+	forward := (yang && man) || (!yang && !man)
 	dir := "逆行"
-	if cl.IsForward() {
+	if forward {
 		dir = "顺行"
 	}
+	previousJie, nextJie := surroundingJie(*termReferenceBirth)
+	referenceJie := previousJie
+	if forward {
+		referenceJie = nextJie
+	}
+	childLimit := (tyme.DefaultChildLimitProvider{}).GetInfo(*termReferenceBirth, referenceJie)
+	previousEvidence := daYunTermEvidence(previousJie, *termReferenceBirth)
+	nextEvidence := daYunTermEvidence(nextJie, *termReferenceBirth)
+	referenceEvidence := previousEvidence
+	if forward {
+		referenceEvidence = nextEvidence
+	}
+	referenceDeltaSeconds := referenceEvidence.DeltaSeconds
+	if referenceDeltaSeconds < 0 {
+		referenceDeltaSeconds = -referenceDeltaSeconds
+	}
+	profile, conversionRule := defaultChildLimitProfile()
+	yinYang := yearStem.GetYinYang().GetName()
+	genderName := gender.GetName()
+	directionClass := yinYang + genderName
 
 	daYun := DaYunInfo{
-		StartAge:  cl.GetYearCount(),
-		Direction: dir,
+		Calculated: true,
+		StartAge:   childLimit.GetYearCount(),
+		StartAgeDetail: DaYunStartAge{
+			Years:   childLimit.GetYearCount(),
+			Months:  childLimit.GetMonthCount(),
+			Days:    childLimit.GetDayCount(),
+			Hours:   childLimit.GetHourCount(),
+			Minutes: childLimit.GetMinuteCount(),
+		},
+		StartAt: formatSolarTime(addChildLimitToBirth(
+			*calculationBirth,
+			childLimit.GetYearCount(), childLimit.GetMonthCount(), childLimit.GetDayCount(),
+			childLimit.GetHourCount(), childLimit.GetMinuteCount(),
+		)),
+		Direction:             dir,
+		DirectionBasis:        fmt.Sprintf("年干%s属%s，%s命；按‘阳男阴女顺、阴男阳女逆’判为%s%s。", yearStem.GetName(), yinYang, genderName, directionClass, dir),
+		CalculationProfile:    profile,
+		Provider:              "tyme.DefaultChildLimitProvider",
+		TimeBasis:             "日时柱与起运落点使用归一化当地/真太阳钟表时间；年、月柱及节令秒差使用同一出生 UTC 瞬间换算的中国标准时。",
+		SolarTermReferenceAt:  formatSolarTime(*termReferenceBirth),
+		SolarTermTimezone:     "UTC+08:00",
+		AgeConversionRule:     conversionRule,
+		BoundaryRule:          "节令边界按秒判定：出生时刻等于节令交接时刻时归入新节令；顺行取下一节令，逆行取出生时刻已进入的当前节令。",
+		PreviousJie:           &previousEvidence,
+		NextJie:               &nextEvidence,
+		ReferenceJie:          &referenceEvidence,
+		ReferenceDeltaSeconds: referenceDeltaSeconds,
 	}
 
-	df := cl.GetStartDecadeFortune()
 	for i := 0; i < 8; i++ {
-		cur := df.Next(i)
-		sx := cur.GetSixtyCycle()
+		offset := i + 1
+		if !forward {
+			offset = -offset
+		}
+		sx := eightChar.GetMonth().Next(offset)
 		daYun.Pillars = append(daYun.Pillars, model.Pillar{
 			Gan: sx.GetHeavenStem().GetName(),
 			Zhi: sx.GetEarthBranch().GetName(),
@@ -584,179 +652,51 @@ func calcDaYun(st *tyme.SolarTime, gender tyme.Gender) DaYunInfo {
 	return daYun
 }
 
-// --- clash / harmony detection ---------------------------------------------
+func addChildLimitToBirth(birth tyme.SolarTime, years, months, days, hours, minutes int) tyme.SolarTime {
+	day := birth.GetDay() + days
+	hour := birth.GetHour() + hours
+	minute := birth.GetMinute() + minutes
+	minuteCarry := minute / 60
+	minute %= 60
+	hour += minuteCarry
+	day += hour / 24
+	hour %= 24
 
-type pillarPair struct {
-	name   string
-	branch tyme.EarthBranch
+	baseMonth, _ := tyme.SolarMonth{}.FromYm(birth.GetYear()+years, birth.GetMonth())
+	month := baseMonth.Next(months)
+	for day > month.GetDayCount() {
+		day -= month.GetDayCount()
+		month = month.Next(1)
+	}
+	result, _ := tyme.SolarTime{}.FromYmdHms(
+		month.GetYear(), month.GetMonth(), day, hour, minute, birth.GetSecond(),
+	)
+	return *result
 }
 
-func calcClashHarmony(ec *tyme.EightChar) []ClashRelation {
-	pairs := []pillarPair{
-		{"年柱", ec.GetYear().GetEarthBranch()},
-		{"月柱", ec.GetMonth().GetEarthBranch()},
-		{"日柱", ec.GetDay().GetEarthBranch()},
-		{"时柱", ec.GetHour().GetEarthBranch()},
+func surroundingJie(st tyme.SolarTime) (tyme.SolarTerm, tyme.SolarTerm) {
+	previous := st.GetTerm()
+	if !previous.IsJie() {
+		previous = previous.Next(-1)
 	}
-
-	var relations []ClashRelation
-
-	// pairwise
-	for i := 0; i < len(pairs); i++ {
-		for j := i + 1; j < len(pairs); j++ {
-			a, b := pairs[i], pairs[j]
-
-			// 伏吟：同支重复出现
-			if a.branch.GetName() == b.branch.GetName() {
-				relations = append(relations, ClashRelation{a.name, b.name, "伏吟"})
-			}
-
-			if a.branch.GetOpposite().Equals(b.branch) {
-				relations = append(relations, ClashRelation{a.name, b.name, "六冲"})
-			}
-			if a.branch.GetCombine().Equals(b.branch) {
-				relations = append(relations, ClashRelation{a.name, b.name, "六合"})
-			}
-			if a.branch.GetHarm().Equals(b.branch) {
-				relations = append(relations, ClashRelation{a.name, b.name, "六害"})
-			}
-
-			// 三刑
-			if t := tortureType(a.branch, b.branch); t != "" {
-				relations = append(relations, ClashRelation{a.name, b.name, t})
-			}
-		}
-	}
-
-	// 三合: check all 4 branches for 3-branch sanhe groups
-	relations = append(relations, detectTripleCombinations(pairs)...)
-
-	// 三会: check all 4 branches for 3-branch groups
-	relations = append(relations, detectTripleMeetings(pairs)...)
-
-	return relations
+	return previous, previous.Next(2)
 }
 
-// tortureType checks if two branches form a 三刑 relation.
-func tortureType(a, b tyme.EarthBranch) string {
-	aName := a.GetName()
-	bName := b.GetName()
-
-	// 无礼之刑: 子-卯
-	if (aName == "子" && bName == "卯") || (aName == "卯" && bName == "子") {
-		return "无礼之刑"
+func daYunTermEvidence(term tyme.SolarTerm, birth tyme.SolarTime) DaYunSolarTerm {
+	termTime := term.GetJulianDay().GetSolarTime()
+	return DaYunSolarTerm{
+		Name:         term.GetName(),
+		At:           formatSolarTime(termTime),
+		DeltaSeconds: termTime.Subtract(birth),
 	}
-	// 恃势之刑: 丑-戌, 戌-未, 未-丑 (三命通会第38章)
-	shiShi := [][]string{{"丑", "戌"}, {"戌", "未"}, {"未", "丑"}}
-	for _, pair := range shiShi {
-		if (aName == pair[0] && bName == pair[1]) || (aName == pair[1] && bName == pair[0]) {
-			return "恃势之刑"
-		}
-	}
-	// 无恩之刑: 寅-巳, 巳-申, 申-寅 (三命通会第38章)
-	wuEn := [][]string{{"寅", "巳"}, {"巳", "申"}, {"申", "寅"}}
-	for _, pair := range wuEn {
-		if (aName == pair[0] && bName == pair[1]) || (aName == pair[1] && bName == pair[0]) {
-			return "无恩之刑"
-		}
-	}
-	// 自刑: 辰-辰, 午-午, 酉-酉, 亥-亥
-	selfTorture := map[string]bool{"辰": true, "午": true, "酉": true, "亥": true}
-	if aName == bName && selfTorture[aName] {
-		return "自刑"
-	}
-	return ""
 }
 
-// detectTripleCombinations detects 三合 (three-branch combination for element generation).
-func detectTripleCombinations(pairs []pillarPair) []ClashRelation {
-	// 三合局: 申子辰(水), 亥卯未(木), 寅午戌(火), 巳酉丑(金)
-	tripleGroups := [][]string{
-		{"申", "子", "辰"}, // 水局
-		{"亥", "卯", "未"}, // 木局
-		{"寅", "午", "戌"}, // 火局
-		{"巳", "酉", "丑"}, // 金局
-	}
-
-	var relations []ClashRelation
-	branchIndex := make(map[string]int)
-	for i, p := range pairs {
-		n := p.branch.GetName()
-		branchIndex[n] = i
-	}
-
-	seen := make(map[string]bool)
-
-	for _, group := range tripleGroups {
-		var matched []int
-		for _, b := range group {
-			if idx, ok := branchIndex[b]; ok {
-				matched = append(matched, idx)
-			}
-		}
-		if len(matched) >= 3 {
-			for i := 0; i < len(matched); i++ {
-				for j := i + 1; j < len(matched); j++ {
-					pi, pj := pairs[matched[i]], pairs[matched[j]]
-					key := pi.name + "<>" + pj.name + "<>三合"
-					if key2 := pj.name + "<>" + pi.name + "<>三合"; seen[key2] {
-						continue
-					}
-					if !seen[key] {
-						seen[key] = true
-						relations = append(relations, ClashRelation{pi.name, pj.name, "三合"})
-					}
-				}
-			}
-		}
-	}
-	return relations
+func formatSolarTime(st tyme.SolarTime) string {
+	return fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d", st.GetYear(), st.GetMonth(), st.GetDay(), st.GetHour(), st.GetMinute(), st.GetSecond())
 }
 
-// detectTripleMeetings detects 三会 (three-branch meeting of same direction element).
-func detectTripleMeetings(pairs []pillarPair) []ClashRelation {
-	// 三会局: 寅卯辰(木), 巳午未(火), 申酉戌(金), 亥子丑(水)
-	tripleGroups := [][]string{
-		{"寅", "卯", "辰"}, // 东方木
-		{"巳", "午", "未"}, // 南方火
-		{"申", "酉", "戌"}, // 西方金
-		{"亥", "子", "丑"}, // 北方水
-	}
-
-	var relations []ClashRelation
-	branchIndex := make(map[string]int)
-	for i, p := range pairs {
-		n := p.branch.GetName()
-		branchIndex[n] = i
-	}
-
-	seen := make(map[string]bool) // deduplicate
-
-	for _, group := range tripleGroups {
-		var matched []int
-		for _, b := range group {
-			if idx, ok := branchIndex[b]; ok {
-				matched = append(matched, idx)
-			}
-		}
-		if len(matched) >= 3 {
-			// generate pairwise relations among the three
-			for i := 0; i < len(matched); i++ {
-				for j := i + 1; j < len(matched); j++ {
-					pi, pj := pairs[matched[i]], pairs[matched[j]]
-					key := pi.name + "<>" + pj.name + "<>三会"
-					if key2 := pj.name + "<>" + pi.name + "<>三会"; seen[key2] {
-						continue
-					}
-					if !seen[key] {
-						seen[key] = true
-						relations = append(relations, ClashRelation{pi.name, pj.name, "三会"})
-					}
-				}
-			}
-		}
-	}
-	return relations
+func defaultChildLimitProfile() (string, string) {
+	return "tyme-default-seconds-v1", "按节令时刻差逐秒换算：259200秒=1年，21600秒=1月，720秒=1日，30秒=1时，1秒=2分。"
 }
 
 // ganInfo holds element and yang flag for a stem name.
@@ -791,6 +731,9 @@ func dayGanElement(dayGan string) string {
 func ClassifyTenGod(stemName string, dayGan string, isDayPillarStem bool) string {
 	stem := GanInfoOf(stemName)
 	day := GanInfoOf(dayGan)
+	if stem.elem == "" || day.elem == "" {
+		return ""
+	}
 
 	// Only the visible day pillar stem is 日主 — hidden stems use normal classification
 	if isDayPillarStem && stemName == dayGan {
@@ -898,136 +841,6 @@ func calcTenGodProportion(ec *tyme.EightChar, dayGan string) []TenGodRatio {
 		result = append(result, TenGodRatio{Name: name, Count: c, Percent: pct})
 	}
 	return result
-}
-
-// calcPillarTenGods computes which ten gods appear in each pillar position.
-func calcPillarTenGods(ec *tyme.EightChar, dayGan string) PillarTenGods {
-	classify := func(stemName string) string {
-		god := ClassifyTenGod(stemName, dayGan, false)
-		if god == "日主" {
-			return ""
-		}
-		return god
-	}
-
-	ptg := PillarTenGods{}
-
-	// Visible stems (year, month, hour)
-	if g := classify(ec.GetYear().GetHeavenStem().GetName()); g != "" {
-		ptg.Year = append(ptg.Year, g)
-	}
-	if g := classify(ec.GetMonth().GetHeavenStem().GetName()); g != "" {
-		ptg.Month = append(ptg.Month, g)
-	}
-	if g := classify(ec.GetHour().GetHeavenStem().GetName()); g != "" {
-		ptg.Hour = append(ptg.Hour, g)
-	}
-
-	// Hidden stems from all 4 branches
-	type pillarTarget struct {
-		fn     func() tyme.SixtyCycle
-		target *[]string
-	}
-	for _, pair := range []pillarTarget{
-		{ec.GetYear, &ptg.Year},
-		{ec.GetMonth, &ptg.Month},
-		{ec.GetDay, &ptg.Day},
-		{ec.GetHour, &ptg.Hour},
-	} {
-		for _, hhs := range pair.fn().GetEarthBranch().GetHideHeavenStems() {
-			if g := classify(hhs.GetHeavenStem().GetName()); g != "" {
-				*pair.target = append(*pair.target, g)
-			}
-		}
-	}
-
-	return ptg
-}
-
-// enrichRiZhuText splits the data.SiZiSummaries text into poem/source/comment/hourDetail.
-func enrichRiZhuText(result *BaziResult) {
-	key := result.DayPillar.Gan + "日" + result.DayPillar.Zhi
-	text := data.SiZiSummaries[key]
-
-	// Split by " # " to get all segments
-	allParts := strings.Split(text, " # ")
-	if len(allParts) == 1 {
-		// No " # " found, whole text is the poem
-		result.RiZhuPoem = text
-		return
-	}
-
-	result.RiZhuPoem = allParts[0]
-	if len(allParts) >= 2 {
-		result.RiZhuSource = allParts[1]
-	}
-	if len(allParts) >= 3 {
-		result.RiZhuComment = allParts[2]
-	}
-	if len(allParts) >= 4 {
-		result.RiZhuHourDetail = strings.Join(allParts[3:], " # ")
-	}
-}
-
-// --- 《三命通会》knowledge enrichment functions ---
-
-// enrichWuxingSeason adds seasonal five-element analysis from 《三命通会》chapters 65-69.
-func enrichWuxingSeason(result *BaziResult, birthMonth int) {
-	dayElem := data.GanElement[result.DayPillar.Gan]
-	season := data.SeasonFromMonth(birthMonth)
-	entries, ok := data.WuxingSeasonKnowledge[dayElem]
-	if !ok {
-		return
-	}
-	for _, e := range entries {
-		if e.Season == season {
-			result.WuxingSeasonNote = fmt.Sprintf("【%s%s论】%s：%s 喜：%s 忌：%s",
-				dayElem, season, e.State, e.Judgment, e.Favor, e.Taboo)
-			return
-		}
-	}
-}
-
-// enrichJiaZiDetail adds 60-Jiazi properties from 《三命通会》chapter 7.
-func enrichJiaZiDetail(result *BaziResult) {
-	dayGZ := result.DayPillar.Gan + result.DayPillar.Zhi
-	if entry, ok := data.JiaZiKnowledge[dayGZ]; ok {
-		result.JiaZiDetail = &entry
-	}
-}
-
-// enrichHealthNote adds health analysis based on five-element imbalance.
-func enrichHealthNote(result *BaziResult) {
-	// Find the most excessive element
-	var maxElem string
-	maxScore := 0
-	for elem, score := range result.FiveElements {
-		if score > maxScore {
-			maxScore = score
-			maxElem = elem
-		}
-	}
-	if health, ok := data.WuxingHealthMap[maxElem]; ok && maxScore > 10 {
-		result.HealthNote = fmt.Sprintf("【%s过旺】注意%s：%s", maxElem,
-			strings.Join(health.Organs, "、"), health.Excess)
-	}
-
-	// Also check the weakest element
-	var minElem string
-	minScore := int(^uint(0) >> 1) // max int
-	for elem, score := range result.FiveElements {
-		if score < minScore {
-			minScore = score
-			minElem = elem
-		}
-	}
-	if health, ok := data.WuxingHealthMap[minElem]; ok && minScore < 3 {
-		if result.HealthNote != "" {
-			result.HealthNote += "；"
-		}
-		result.HealthNote += fmt.Sprintf("【%s过弱】注意%s：%s", minElem,
-			strings.Join(health.Organs, "、"), health.Deficit)
-	}
 }
 
 func toTymeGender(gender string) (tyme.Gender, error) {

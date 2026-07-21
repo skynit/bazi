@@ -34,18 +34,20 @@ const visibleCounter = computed(() =>
   <section class="evidence-panel glass-card" aria-label="运势证据">
     <header class="evidence-head">
       <div>
-        <span class="evidence-eyebrow">可解释评分</span>
-        <h2>支持证据与反向证据</h2>
+        <span class="evidence-eyebrow">结构关系指数</span>
+        <h2>正向权重与负向权重</h2>
       </div>
       <span class="completeness">证据完整度 {{ completeness }}%</span>
     </header>
 
-    <p class="evidence-note">证据完整度表示规则所需资料的覆盖程度，不是事件发生概率。</p>
+    <p class="evidence-note">
+      权重为本地启发式配置，未经 Gold 验证；完整度只表示计算输入是否齐备，不是事件发生概率。
+    </p>
 
     <div class="evidence-grid">
       <article class="evidence-column support">
         <div class="evidence-title">
-          <strong>支持证据</strong><span>{{ supporting.length }} 条</span>
+          <strong>正向权重</strong><span>{{ supporting.length }} 条</span>
         </div>
         <ul v-if="visibleSupporting.length">
           <li v-for="item in visibleSupporting" :key="item.code">
@@ -55,16 +57,17 @@ const visibleCounter = computed(() =>
             </div>
             <p v-if="level !== 'basic'">{{ item.description }}</p>
             <small v-if="level === 'professional'"
-              >{{ item.code }} · {{ item.stage }} · {{ item.source }}</small
+              >{{ item.code }} · {{ item.validation_status }} · {{ item.interpretation_status }} ·
+              {{ item.source }}</small
             >
           </li>
         </ul>
-        <p v-else class="empty-evidence">当前规则未识别到明确支持项。</p>
+        <p v-else class="empty-evidence">当前结构规则没有正向权重项。</p>
       </article>
 
       <article class="evidence-column counter">
         <div class="evidence-title">
-          <strong>反向证据</strong><span>{{ counter.length }} 条</span>
+          <strong>负向权重</strong><span>{{ counter.length }} 条</span>
         </div>
         <ul v-if="visibleCounter.length">
           <li v-for="item in visibleCounter" :key="item.code">
@@ -74,11 +77,12 @@ const visibleCounter = computed(() =>
             </div>
             <p v-if="level !== 'basic'">{{ item.description }}</p>
             <small v-if="level === 'professional'"
-              >{{ item.code }} · {{ item.stage }} · {{ item.source }}</small
+              >{{ item.code }} · {{ item.validation_status }} · {{ item.interpretation_status }} ·
+              {{ item.source }}</small
             >
           </li>
         </ul>
-        <p v-else class="empty-evidence">当前规则未识别到明确反向项，仍需结合现实条件判断。</p>
+        <p v-else class="empty-evidence">当前结构规则没有负向权重项。</p>
       </article>
     </div>
 
@@ -86,13 +90,23 @@ const visibleCounter = computed(() =>
       <div class="score-flow" v-if="breakdown">
         <span>中性起分 {{ breakdown.base_score }}</span>
         <span>关系分 {{ breakdown.relation_score }}</span>
-        <span>细项分 {{ breakdown.detail_score }}</span>
-        <strong>最终分 {{ breakdown.final_score }}</strong>
+        <strong>结构指数 {{ breakdown.final_score }}</strong>
       </div>
       <dl>
         <div>
           <dt>评分流水线</dt>
           <dd>{{ breakdown?.pipeline_version || '—' }}</dd>
+        </div>
+        <div>
+          <dt>指数类型</dt>
+          <dd>{{ breakdown?.score_kind || '—' }}</dd>
+        </div>
+        <div>
+          <dt>验证状态</dt>
+          <dd>
+            {{ breakdown?.evidence_basis || '—' }} · {{ breakdown?.validation_status || '—' }} ·
+            {{ breakdown?.interpretation_status || '—' }}
+          </dd>
         </div>
         <div>
           <dt>引擎版本</dt>

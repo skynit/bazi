@@ -3,7 +3,7 @@ package ziwei
 import "sort"
 
 const (
-	QueryRuleVersion = "ziwei-query-2026-06-16"
+	QueryRuleVersion = "ziwei-query-2026-07-16.1"
 	QuerySchool      = "紫微斗数-三方四正查询-v1"
 )
 
@@ -52,8 +52,9 @@ type SurroundedPalace struct {
 	Stars  []string `json:"stars"`
 }
 
-// BuildQueryView builds a precomputed palace/star lookup surface.
-func BuildQueryView(chart *ZiWeiChart) *QueryView {
+// buildQueryView builds a precomputed palace/star lookup surface after the
+// service entry point authenticates the chart contract.
+func buildQueryView(chart *ZiWeiChart) *QueryView {
 	if chart == nil {
 		return nil
 	}

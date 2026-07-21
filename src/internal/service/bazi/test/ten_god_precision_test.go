@@ -156,14 +156,14 @@ func TestClassifyTenGod_EdgeCases(t *testing.T) {
 		{name: "empty stem", stemName: "", dayGan: "甲", isDayPillar: false, expected: ""},
 		// Empty dayGan with valid stem
 		{name: "empty dayGan", stemName: "甲", dayGan: "", isDayPillar: false, expected: ""},
-		// Both empty — GanInfoOf returns zero-value for both, same elem + same yang → 比肩
-		{name: "both empty", stemName: "", dayGan: "", isDayPillar: false, expected: "比肩"},
+		// Both empty — invalid inputs fail closed instead of fabricating a peer relation
+		{name: "both empty", stemName: "", dayGan: "", isDayPillar: false, expected: ""},
 		// Invalid stem name (only stemName invalid, dayGan valid)
 		{name: "invalid stem", stemName: "X", dayGan: "甲", isDayPillar: false, expected: ""},
 		// Invalid dayGan (stemName valid, dayGan invalid)
 		{name: "invalid dayGan", stemName: "甲", dayGan: "Y", isDayPillar: false, expected: ""},
-		// Both invalid — both get zero-value ganInfo, same elem + same yang → 比肩
-		{name: "both invalid", stemName: "Z", dayGan: "W", isDayPillar: false, expected: "比肩"},
+		// Both invalid — unknown stems cannot form a ten-god relation
+		{name: "both invalid", stemName: "Z", dayGan: "W", isDayPillar: false, expected: ""},
 		// isDayPillarStem=true with mismatch (same as non-day-pillar)
 		{name: "true with diff stem", stemName: "乙", dayGan: "甲", isDayPillar: true, expected: "劫财"},
 		// isDayPillarStem=true with match → 日主

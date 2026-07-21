@@ -2,6 +2,8 @@ package interpretation
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -17,13 +19,15 @@ const (
 	StatusOK       = "ok"
 	StatusFallback = "fallback"
 
-	ReasonDisabled        = "disabled"
-	ReasonNotConfigured   = "not_configured"
-	ReasonTimeout         = "timeout"
-	ReasonEmpty           = "empty"
-	ReasonUpstreamError   = "upstream_error"
-	ReasonInvalidResponse = "invalid_response"
-	ReasonRuleOnly        = "rule_only"
+	ReasonDisabled                   = "disabled"
+	ReasonNotConfigured              = "not_configured"
+	ReasonTimeout                    = "timeout"
+	ReasonEmpty                      = "empty"
+	ReasonUpstreamError              = "upstream_error"
+	ReasonInvalidResponse            = "invalid_response"
+	ReasonRuleOnly                   = "rule_only"
+	ReasonCitationMetadataIncomplete = "citation_metadata_incomplete"
+	ReasonCitationNotSupporting      = "citation_not_supporting_claim"
 )
 
 var (
@@ -93,17 +97,11 @@ func (s *Service) InterpretBazi(ctx context.Context, req Request) (model.BaziInt
 	if baziSvc == nil {
 		baziSvc = &bazipkg.BaziService{}
 	}
-	result, err := baziSvc.Calculate(
-		chart.BirthYear,
-		chart.BirthMonth,
-		chart.BirthDay,
-		chart.BirthHour,
-		chart.BirthMin,
-		normalizeGender(chart.Gender),
-	)
+	resolved, err := bazipkg.ResolveStoredBirth(baziSvc, chart)
 	if err != nil {
 		return resp, fmt.Errorf("%w: %v", ErrComputeChart, err)
 	}
+	result := resolved.Result
 
 	resp.Summary = buildSummary(result, focus, false)
 	resp.Sections = buildSections(result, focus, nil)
@@ -130,7 +128,16 @@ func (s *Service) InterpretBazi(ctx context.Context, req Request) (model.BaziInt
 	}
 
 	resp.Citations = buildCitations(merged)
-	resp.Sections = buildEvidenceSections(result, focus, evidence, resp.Citations)
+	if !hasClaimEligibleCitation(resp.Citations) {
+		resp.Reason = ReasonCitationMetadataIncomplete
+		return resp, nil
+	}
+	evidenceSections := buildEvidenceSections(result, focus, evidence, resp.Citations)
+	if !hasSectionCitation(evidenceSections) {
+		resp.Reason = ReasonCitationNotSupporting
+		return resp, nil
+	}
+	resp.Sections = evidenceSections
 	resp.Summary = buildSummary(result, focus, true)
 	resp.Status = StatusOK
 	resp.Reason = ""
@@ -178,9 +185,9 @@ func sectionFocuses(focus string) []string {
 func sectionTitle(focus string) string {
 	switch focus {
 	case "pattern":
-		return "格局与月令"
+		return "格局规则候选"
 	case "tiaohou":
-		return "调候与平衡"
+		return "调候查表证据"
 	case "ten_gods":
 		return "十神结构"
 	default:
@@ -232,18 +239,6 @@ func normalizeFocus(focus string) string {
 	}
 }
 
-func normalizeGender(g string) string {
-	s := strings.TrimSpace(g)
-	switch {
-	case s == "男" || strings.EqualFold(s, "male") || strings.EqualFold(s, "m"):
-		return model.GenderMale
-	case s == "女" || strings.EqualFold(s, "female") || strings.EqualFold(s, "f"):
-		return model.GenderFemale
-	default:
-		return model.GenderMale
-	}
-}
-
 func mapRetrieverError(err error) string {
 	switch {
 	case errors.Is(err, rag.ErrDisabled):
@@ -269,13 +264,10 @@ func buildQuery(result *bazipkg.BaziResult, focus string) string {
 	dayMaster := result.DayPillar.Gan
 	dayElement := data.GanElement[dayMaster]
 	tenGods := formatTenGodMap(result.TenGods)
-	pattern := result.PatternAnalysis.PatternName
-	if pattern == "" {
-		pattern = "正格"
-	}
+	pattern := formatPatternSearchTerms(result.PatternAnalysis)
 	tiaohou := ""
 	if result.Tiaohou != nil {
-		tiaohou = fmt.Sprintf("%s生%s月 调候用神%s %s", result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.Primary, result.Tiaohou.Summary)
+		tiaohou = fmt.Sprintf("%s生%s月 表首候选%s 状态未裁决", result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.TablePrimaryCandidate)
 	}
 	dayun := formatDayun(result.DaYunInfo)
 	relations := formatRelations(result.GanZhiAnalysis)
@@ -287,8 +279,8 @@ func buildQuery(result *bazipkg.BaziResult, focus string) string {
 		"日主=" + dayMaster + dayElement,
 		"月令=" + result.MonthPillar.Zhi,
 		"十神=" + tenGods,
-		"格局=" + pattern + " " + result.PatternAnalysis.PatternType,
-		"身旺=" + result.BodyStrength.Verdict,
+		"格局候选=" + pattern,
+		"身强评分分段候选=" + result.BodyStrength.ScoreBandCandidate,
 		"调候=" + tiaohou,
 		"刑冲合害=" + relations,
 		"大运=" + dayun,
@@ -296,7 +288,7 @@ func buildQuery(result *bazipkg.BaziResult, focus string) string {
 
 	switch focus {
 	case "pattern":
-		parts = append(parts, "重点检索格局、月令提纲、成格破格、喜忌")
+		parts = append(parts, "重点检索格局规则、月令提纲、候选条件、争议")
 	case "tiaohou":
 		parts = append(parts, "重点检索调候、寒暖燥湿、用神取法")
 	case "ten_gods":
@@ -309,6 +301,29 @@ func buildQuery(result *bazipkg.BaziResult, focus string) string {
 
 func BuildQueryForTest(result *bazipkg.BaziResult, focus string) string {
 	return buildQuery(result, normalizeFocus(focus))
+}
+
+func formatPatternSearchTerms(analysis bazipkg.PatternAnalysis) string {
+	parts := make([]string, 0, len(analysis.Candidates)+len(analysis.MonthCommandEvidence))
+	for _, candidate := range analysis.Candidates {
+		parts = append(parts, candidate.PatternName+" "+candidate.RuleID)
+	}
+	for _, evidence := range analysis.MonthCommandEvidence {
+		for _, name := range evidence.CandidateNames {
+			parts = append(parts, fmt.Sprintf(
+				"%s 月令%s中%s透干 %s",
+				name,
+				evidence.MonthBranch,
+				evidence.HiddenStem,
+				evidence.RuleID,
+			))
+		}
+	}
+	parts = uniqueStrings(parts)
+	if len(parts) == 0 {
+		return "无可用候选"
+	}
+	return strings.Join(parts, "；")
 }
 
 func FilterChunksForTest(chunks []rag.RetrievedChunk, minScore float64, topK int) []rag.RetrievedChunk {
@@ -344,12 +359,29 @@ func formatDayun(d bazipkg.DaYunInfo) string {
 }
 
 func formatRelations(g bazipkg.GanZhiAnalysis) string {
-	parts := []string{}
+	parts := make([]string, 0, len(g.GanRelations)+len(g.ZhiRelations))
 	for _, rel := range g.GanRelations {
-		parts = append(parts, rel.Type+":"+rel.Pillar1+"-"+rel.Pillar2)
+		if rel.Type != "五合" && rel.Type != "天干相冲" {
+			continue
+		}
+		item := fmt.Sprintf("天干%s=%s/%s", rel.Type, strings.Join(uniqueStrings(rel.Stems), ""), strings.Join(rel.Pillars, "-"))
+		if rel.Subtype != "" {
+			item += "/" + rel.Subtype
+		}
+		if rel.TargetElement != "" {
+			item += "/目标" + rel.TargetElement
+		}
+		parts = append(parts, item)
 	}
 	for _, rel := range g.ZhiRelations {
-		parts = append(parts, rel.Type+":"+rel.Pillar1+"-"+rel.Pillar2)
+		item := fmt.Sprintf("地支%s=%s/%s", rel.Type, strings.Join(uniqueStrings(rel.Branches), ""), strings.Join(rel.Pillars, "-"))
+		if rel.Subtype != "" && rel.Subtype != strings.Join(uniqueStrings(rel.Branches), "") {
+			item += "/" + rel.Subtype
+		}
+		if rel.TargetElement != "" {
+			item += "/目标" + rel.TargetElement
+		}
+		parts = append(parts, item)
 	}
 	return strings.Join(parts, " ")
 }
@@ -413,16 +445,90 @@ func buildCitations(chunks []rag.RetrievedChunk) []model.InterpretationCitation 
 	for i, chunk := range chunks {
 		meta := chunk.Metadata
 		path := firstNonEmpty(meta["source_path"], meta["path"])
-		out = append(out, model.InterpretationCitation{
-			ID:      i + 1,
-			Book:    firstNonEmpty(meta["book"], "未标注典籍"),
-			Chapter: firstNonEmpty(meta["chapter"], meta["title"]),
-			Path:    path,
-			Quote:   firstRunes(cleanContent(chunk.Content), 120),
-			Score:   chunk.Score,
-		})
+		quote := firstRunes(cleanContent(chunk.Content), 120)
+		citation := model.InterpretationCitation{
+			ID:                 i + 1,
+			Book:               firstNonEmpty(meta["book"], "未标注典籍"),
+			Author:             firstNonEmpty(meta["author"], "unrecorded"),
+			Edition:            firstNonEmpty(meta["edition"], "unrecorded"),
+			Volume:             meta["volume"],
+			Chapter:            firstNonEmpty(meta["chapter"], meta["title"]),
+			Page:               meta["page"],
+			Locator:            meta["locator"],
+			Path:               path,
+			ArtifactPath:       meta["artifact_path"],
+			ArtifactSHA256:     strings.ToLower(strings.TrimSpace(meta["artifact_sha256"])),
+			DocumentSHA256:     strings.ToLower(strings.TrimSpace(meta["document_sha256"])),
+			Quote:              quote,
+			QuoteSHA256:        citationTextSHA256(quote),
+			SourceTier:         firstNonEmpty(meta["source_tier"], "bronze_unverified"),
+			VerificationStatus: firstNonEmpty(meta["verification_status"], "source_metadata_missing"),
+			ArtifactKind:       firstNonEmpty(meta["artifact_kind"], "unregistered"),
+			ProvenanceStatus:   firstNonEmpty(meta["provenance_status"], "source_metadata_missing"),
+			IndependenceStatus: firstNonEmpty(meta["independence_status"], "unknown"),
+			CoverageStatus:     firstNonEmpty(meta["coverage_status"], "unknown"),
+			CatalogSchema:      meta["catalog_schema"],
+			CatalogVersion:     meta["catalog_version"],
+			CatalogSHA256:      strings.ToLower(strings.TrimSpace(meta["catalog_sha256"])),
+			Score:              chunk.Score,
+		}
+		citation.ClaimEligible = strings.EqualFold(strings.TrimSpace(meta["catalog_claim_eligible"]), "true") &&
+			validInterpretationCitation(citation)
+		out = append(out, citation)
 	}
 	return out
+}
+
+func validInterpretationCitation(citation model.InterpretationCitation) bool {
+	return citation.Book != "" && citation.Book != "未标注典籍" &&
+		citation.Author != "" && citation.Author != "unrecorded" &&
+		citation.Edition != "" && citation.Edition != "unrecorded" &&
+		citation.Path != "" && (citation.Page != "" || citation.Locator != "") &&
+		citation.ArtifactPath != "" && validInterpretationSHA256(citation.ArtifactSHA256) &&
+		validInterpretationSHA256(citation.DocumentSHA256) && citation.Quote != "" &&
+		validInterpretationSHA256(citation.QuoteSHA256) && citation.SourceTier == "classical_text_local" &&
+		citation.VerificationStatus == "bibliography_page_mapping_and_support_verified" &&
+		validClaimArtifactKind(citation.ArtifactKind) &&
+		citation.ProvenanceStatus == "bibliographic_provenance_verified" &&
+		citation.IndependenceStatus == "independent_primary_artifact_verified" &&
+		citation.CoverageStatus == "complete_primary_text_verified" &&
+		citation.CatalogSchema == "bazi_rag_source_catalog_v1" && citation.CatalogVersion != "" &&
+		validInterpretationSHA256(citation.CatalogSHA256)
+}
+
+func validClaimArtifactKind(value string) bool {
+	return value == "published_scan" || value == "publisher_digital_edition"
+}
+
+func hasClaimEligibleCitation(citations []model.InterpretationCitation) bool {
+	for _, citation := range citations {
+		if citation.ClaimEligible {
+			return true
+		}
+	}
+	return false
+}
+
+func hasSectionCitation(sections []model.InterpretationSection) bool {
+	for _, section := range sections {
+		if len(section.Citations) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func citationTextSHA256(value string) string {
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])
+}
+
+func validInterpretationSHA256(value string) bool {
+	if len(value) != 64 || value != strings.ToLower(value) {
+		return false
+	}
+	_, err := hex.DecodeString(value)
+	return err == nil
 }
 
 func mergeSectionChunks(sections []sectionChunks, topK int) []rag.RetrievedChunk {
@@ -461,9 +567,6 @@ func buildEvidenceSections(result *bazipkg.BaziResult, focus string, evidence []
 		sectionEvidence := byFocus[sectionFocus]
 		points := extractEvidencePoints(sectionEvidence.Chunks, citationIDs, evidenceKeywords(result, sectionFocus), result, 3)
 		ids := pointCitationIDs(points)
-		if len(ids) == 0 {
-			ids = firstCitationIDs(citations, 2)
-		}
 		return model.InterpretationSection{
 			Title:     sectionTitle(sectionFocus),
 			Content:   buildEvidenceContent(result, sectionFocus, points),
@@ -484,7 +587,7 @@ func buildEvidenceSections(result *bazipkg.BaziResult, focus string, evidence []
 func citationIDsByPath(citations []model.InterpretationCitation) map[string]int {
 	out := map[string]int{}
 	for _, citation := range citations {
-		if citation.Path != "" {
+		if citation.ClaimEligible && citation.Path != "" {
 			out[citation.Path] = citation.ID
 		}
 	}
@@ -622,31 +725,43 @@ func pointCitationIDs(points []evidencePoint) []int {
 	return out
 }
 
-func firstCitationIDs(citations []model.InterpretationCitation, max int) []int {
-	out := []int{}
-	for _, citation := range citations {
-		out = append(out, citation.ID)
-		if len(out) >= max {
-			break
-		}
-	}
-	return out
-}
-
 func evidenceKeywords(result *bazipkg.BaziResult, focus string) []string {
 	dayMaster := result.DayPillar.Gan
 	dayStem := dayMaster + data.GanElement[dayMaster]
-	pattern := firstNonEmpty(result.PatternAnalysis.PatternName, result.PatternAnalysis.PatternType)
 	month := result.MonthPillar.Zhi
 	keywords := []string{dayMaster, dayStem, month + "月"}
 	switch focus {
 	case "pattern":
-		keywords = append(keywords, pattern, "月令", "格局", "取格", "羊刃", "阳刃", "日刃", "刃神", "七煞相制", "官", "杀", "食伤", "喜", "忌", result.DayPillar.Gan+result.DayPillar.Zhi)
+		keywords = append(keywords, "月令", "格局", "取格", "候选", "争议", result.DayPillar.Gan+result.DayPillar.Zhi)
+		for _, candidate := range result.PatternAnalysis.Candidates {
+			keywords = append(keywords, candidate.PatternName, candidate.Category, candidate.Source)
+		}
+		for _, evidence := range result.PatternAnalysis.MonthCommandEvidence {
+			keywords = append(keywords, evidence.CandidateNames...)
+			keywords = append(keywords, evidence.HiddenStem, evidence.HiddenTenGod, evidence.Source)
+		}
+		for _, relation := range result.GanZhiAnalysis.GanRelations {
+			if relation.Type != "五合" && relation.Type != "天干相冲" {
+				continue
+			}
+			keywords = append(keywords, relation.Type, relation.Subtype, strings.Join(uniqueStrings(relation.Stems), ""))
+			if relation.TargetElement != "" {
+				keywords = append(keywords, "化"+relation.TargetElement)
+			}
+		}
+		for _, relation := range result.GanZhiAnalysis.ZhiRelations {
+			keywords = append(keywords, relation.Type, relation.Subtype, strings.Join(uniqueStrings(relation.Branches), ""))
+			if relation.TargetElement != "" {
+				keywords = append(keywords, relation.TargetElement+"局")
+			}
+		}
 	case "tiaohou":
 		keywords = append(keywords, "调候", "用神", "寒", "暖", "燥", "湿", "丙", "癸", "辰月")
 		if result.Tiaohou != nil {
-			keywords = append(keywords, result.Tiaohou.Primary)
-			keywords = append(keywords, result.Tiaohou.Reasons...)
+			keywords = append(keywords, result.Tiaohou.TablePrimaryCandidate)
+			for _, rule := range result.Tiaohou.Rules {
+				keywords = append(keywords, rule.XiShen, rule.JiShen, rule.SourceText)
+			}
 		}
 	case "ten_gods":
 		keywords = append(keywords, "十神", "劫财", "比肩", "正官", "七杀", "食神", "伤官", "印", "财")
@@ -674,444 +789,110 @@ func buildEvidenceContent(result *bazipkg.BaziResult, focus string, points []evi
 
 func buildPatternEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
 	p := result.PatternAnalysis
-	pattern := firstNonEmpty(p.PatternName, p.PatternType, "当前格局")
-	dayStem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
-	pillars := pillarText(result)
+	explanation := []string{fmt.Sprintf(
+		"格局检测采用%s，共登记%d个古籍直接结构检测器；权威输入为四柱%s与月支%s。",
+		p.DetectorProfile,
+		p.DetectorCount,
+		pillarText(result),
+		p.Inputs.MonthBranch,
+	)}
+	if len(p.Candidates) > 0 {
+		explanation = append(explanation, "检测器命中记录按规则ID稳定排列，不表示格局优先级："+formatPatternCandidates(p.Candidates))
+	}
+	if len(p.MonthCommandEvidence) > 0 {
+		explanation = append(explanation, "月令藏干透出形成的普通格局候选："+formatMonthCommandPatternEvidence(p.MonthCommandEvidence)+"。这些记录用于收窄检索范围，不表示已经裁决成格、格局优先级或喜忌。")
+	}
 	evidenceText := formatEvidencePoints(points)
-	explanation := []string{}
-	explanation = append(explanation, patternOpening(result, pattern, dayStem, pillars, p.Description))
 	if evidenceText != "" {
-		explanation = append(explanation, evidenceLead(result, "pattern")+evidenceText)
+		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，不用于把候选升级为成立结论："+evidenceText)
 	}
-	dayElem := data.GanElement[result.DayPillar.Gan]
-	explanation = append(explanation, patternUsefulness(result, pattern, dayElem, p))
-	explanation = append(explanation, patternConclusion(result, pattern))
-	if strings.Contains(pattern, "羊刃") {
-		explanation = append(explanation, yangRenStyleAdvice(result))
-	}
+	explanation = append(explanation, fmt.Sprintf(
+		"整组候选的验证状态为%s，现实解释状态为%s；当前检测器条件尚未取得专家 Gold 裁决，候选不决定喜忌或现实结果。",
+		p.ValidationStatus,
+		p.InterpretationStatus,
+	))
 	return strings.Join(explanation, "\n\n")
 }
 
-func patternOpening(result *bazipkg.BaziResult, pattern, dayStem, pillars, description string) string {
-	desc := sentenceBody(firstNonEmpty(description, "格局要看月令、透干、根气与制化，不宜只看一个格名。"))
-	if strings.Contains(pattern, "羊刃") {
-		switch chartStyleIndex(result, "pattern-yangren", 3) {
-		case 0:
-			return fmt.Sprintf("这个盘不是柔和一路。%s，%s坐%s，月令%s，日支带刃，气先立起来了。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
-		case 1:
-			return fmt.Sprintf("这局先别急着论吉凶，先看一个“刃”字怎么安放。%s，%s坐%s，月令在%s，气势不虚。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
-		default:
-			return fmt.Sprintf("此造的关窍不在格名好不好听，而在刚气能不能成器。%s，日主%s，日支%s，月令%s，刃气已经见形。%s。", pillars, dayStem, result.DayPillar.Zhi, result.MonthPillar.Zhi, desc)
-		}
+func formatPatternCandidates(candidates []bazipkg.PatternCandidate) string {
+	parts := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		item := fmt.Sprintf(
+			"%s（%s，规则%s，来源%s）",
+			candidate.PatternName,
+			candidate.Category,
+			candidate.RuleID,
+			candidate.Source,
+		)
+		parts = append(parts, item)
 	}
-	if strings.Contains(pattern, "七杀") || strings.Contains(pattern, "偏官") {
-		if chartStyleIndex(result, "pattern-kill", 2) == 0 {
-			return fmt.Sprintf("这盘先看杀气有没有成器。%s，%s临%s月，%s。七杀不怕见，怕的是无制无化；制得住，是胆识和执行，制不住，就是压力和冲动。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-		}
-		return fmt.Sprintf("此局见杀，不能只当压力看。%s，%s生%s月，%s。杀有制化，反作担当与权柄；杀无去处，才成逼身之患。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-	}
-	if strings.Contains(pattern, "正官") {
-		if chartStyleIndex(result, "pattern-official", 2) == 0 {
-			return fmt.Sprintf("这个盘要先看规矩和承载。%s，%s生在%s月，%s。官星一路看的是秩序、名分和责任，不是只看有没有官字。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-		}
-		return fmt.Sprintf("此局官星的味道，要从月令和承载力上看。%s，日主%s，月令%s，%s。官不是一句“有职位”就完了，关键是清、稳、能否为我所任。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-	}
-	if isStrong(result.BodyStrength.Verdict) {
-		if chartStyleIndex(result, "pattern-strong", 2) == 0 {
-			return fmt.Sprintf("这盘底气不薄。%s，日主%s，月令%s，%s。身旺的盘，最怕只加力不疏通，关键是让旺气有用处。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-		}
-		return fmt.Sprintf("这个命局先看“气从哪里来，又往哪里去”。%s，日主%s，月令%s，%s。既然日主有力，后面就不再问够不够强，而问能不能泄、能不能制、能不能成事。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-	}
-	if chartStyleIndex(result, "pattern-weak", 2) == 0 {
-		return fmt.Sprintf("这盘要先看日主能不能接住格局。%s，日主%s，月令%s，%s。身不够时，喜忌不是摆设，先要有根气和帮扶，再谈发挥。", pillars, dayStem, result.MonthPillar.Zhi, desc)
-	}
-	return fmt.Sprintf("此局不能一上来就谈财官名利，要先问日主有没有承载。%s，%s生%s月，%s。根气接得住，格局才有用；接不住，好处也容易变成压力。", pillars, dayStem, result.MonthPillar.Zhi, desc)
+	return strings.Join(parts, "；")
 }
 
-func evidenceLead(result *bazipkg.BaziResult, focus string) string {
-	switch focus {
-	case "pattern":
-		if strings.Contains(result.PatternAnalysis.PatternName, "羊刃") {
-			return pickText(result, "pattern-evidence", []string{
-				"能借得上的古法，重点都落在“刃要制化”：",
-				"古书讲刃，多半不是叫人怕它，而是看谁来驾驭它：",
-				"这一段可借的经典意思，核心都在制刃、化刃：",
-			})
+func formatMonthCommandPatternEvidence(evidence []bazipkg.MonthCommandPatternEvidence) string {
+	parts := make([]string, 0, len(evidence))
+	for _, item := range evidence {
+		if len(item.CandidateNames) == 0 {
+			continue
 		}
-		return pickText(result, "pattern-evidence", []string{
-			"翻到典籍里，和这一路相近的说法是：",
-			"古法能用上的地方，在这几句里：",
-			"这里不硬套条文，只取和盘面贴得上的几句：",
-		})
-	case "tiaohou":
-		return pickText(result, "tiaohou-evidence", []string{
-			"调候上可借的依据是：",
-			"讲寒暖燥湿，典籍里这几句可以参看：",
-			"这一段先取能落到气候上的条文：",
-		})
-	case "ten_gods":
-		return pickText(result, "tengod-evidence", []string{
-			"十神组合可参的句子是：",
-			"看人事取象，下面几句比单看比例更有用：",
-			"这一段借经典，不是借名词，是借判断顺序：",
-		})
-	default:
-		return "可参考的依据是："
+		exposures := make([]string, 0, len(item.Exposures))
+		for _, exposure := range item.Exposures {
+			exposures = append(exposures, exposure.Pillar)
+		}
+		parts = append(parts, fmt.Sprintf(
+			"%s（月支%s藏%s，%s，透于%s）",
+			strings.Join(item.CandidateNames, "、"),
+			item.MonthBranch,
+			item.HiddenStem,
+			item.HiddenTenGod,
+			strings.Join(exposures, "、"),
+		))
 	}
-}
-
-func patternUsefulness(result *bazipkg.BaziResult, pattern, dayElem string, p bazipkg.PatternAnalysis) string {
-	strong := isStrong(result.BodyStrength.Verdict)
-	if strings.Contains(pattern, "羊刃") {
-		return fmt.Sprintf("所以这盘不能一味说旺就是好。%s，喜%s，忌%s；%s已经有劲，得让%s来立边界，让%s来出成果，再用%s去引财气。没有制化时，人会很能扛，但也容易扛成硬碰硬。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements), dayElem, roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星"))
-	}
-	if strong {
-		return fmt.Sprintf("此盘%s，喜%s，忌%s。身旺不缺劲，缺的是方向和出口；%s来能约束，%s来能疏泄，%s来才有可经营的财。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements), roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星"))
-	}
-	return fmt.Sprintf("此盘%s，喜%s，忌%s。身偏弱时，先看有没有印比扶住，再看财官食伤能不能为我所用；用得太急，反而成压力。", result.BodyStrength.Verdict, joinOrNone(p.FavorableElements), joinOrNone(p.UnfavorableElements))
-}
-
-func patternConclusion(result *bazipkg.BaziResult, pattern string) string {
-	if strings.Contains(pattern, "羊刃") {
-		return "这一格最怕“有刃无制”：人有锋芒，但锋芒若无人收束，就容易变成急躁、争执和财来财去。若行运见官杀、食伤得力，反而能把这股冲劲变成职位、作品、项目成果。"
-	}
-	if strings.Contains(pattern, "七杀") || strings.Contains(pattern, "偏官") {
-		return "这一路重在制杀化杀。能制，压力就是权柄；不能制，机会也会带着风险。看后运时，宜看印、食伤、合制是否接得上。"
-	}
-	if strings.Contains(pattern, "正官") {
-		return "正官一路讲清正和稳定。最怕伤官冲破、官杀混杂；最喜财印相扶，做事有章法，名分和责任自然能立起来。"
-	}
-	if isStrong(result.BodyStrength.Verdict) {
-		return "总的说，这盘不是怕没力，而是怕力气堆在局里不流动。能疏、能制、能转化，层次就出来。"
-	}
-	return "总的说，这盘先求承载，再求发挥。根气稳了，喜用接上，格局的好处才显。"
-}
-
-func yangRenStyleAdvice(result *bazipkg.BaziResult) string {
-	if result.TenGods["hour"] == "劫财" || strings.Contains(formatTopTenGods(topTenGodRatios(result.TenGodProportion, 2)), "劫财") {
-		return "性情上，多半不喜欢被人牵着走，自己拿主意的劲很强。这个劲用在创业、项目攻坚、技术突破上是好事；用在人际和钱财合作上，就要提前立规矩，否则容易出现“我出了力、别人分了财”的不平。"
-	}
-	return "日支见刃的人，遇事不太愿意退。这个性子用好了，是敢担当、能拍板；用偏了，就是急、硬、容易和人顶。后运最喜有官杀立边界，或食伤把刚气变成可见结果。"
+	return strings.Join(parts, "；")
 }
 
 func buildTiaohouEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
-	dayStem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
-	primary := "未定"
-	reason := "当前未取得完整调候条目"
+	explanation := []string{"当前未取得完整调候查表证据。"}
 	if result.Tiaohou != nil {
-		primary = result.Tiaohou.Primary
-		reason = strings.Join(result.Tiaohou.Reasons, "；")
-		if reason == "" {
-			reason = result.Tiaohou.Summary
+		explanation[0] = fmt.Sprintf(
+			"按日干%s与月支%s查表，共记录%d条规则；表首候选为%s。表序未经独立 Gold 裁决，候选不代表现实吉凶或行动建议。",
+			result.Tiaohou.Stem,
+			result.Tiaohou.Month,
+			len(result.Tiaohou.Rules),
+			result.Tiaohou.TablePrimaryCandidate,
+		)
+		depth := result.Tiaohou.DepthEvidence
+		if depth.Status == "observed" {
+			explanation = append(explanation, fmt.Sprintf(
+				"出生时刻位于%s至%s节令区间的%s，位置为%.1f%%；该深浅事实不改变候选顺序，解释状态未裁决。",
+				depth.StartTerm,
+				depth.EndTerm,
+				depth.Phase,
+				depth.Position*100,
+			))
+		} else {
+			explanation = append(explanation, "缺少可定位出生时刻，节令区间深浅不可用。")
 		}
 	}
 	evidenceText := formatEvidencePoints(points)
-	explanation := []string{tiaohouOpening(result, dayStem, primary, reason)}
 	if evidenceText != "" {
-		explanation = append(explanation, evidenceLead(result, "tiaohou")+evidenceText)
+		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，现实解释尚未裁决："+evidenceText)
 	}
-	explanation = append(explanation, tiaohouUsefulness(result, primary))
-	explanation = append(explanation, tiaohouPracticeAdvice(result, primary))
 	return strings.Join(explanation, "\n\n")
-}
-
-func tiaohouOpening(result *bazipkg.BaziResult, dayStem, primary, reason string) string {
-	month := result.MonthPillar.Zhi
-	climate := branchClimate(month)
-	reason = firstNonEmpty(reason, "以月令寒暖燥湿判断。")
-	switch chartStyleIndex(result, "tiaohou-open", 3) {
-	case 0:
-		return fmt.Sprintf("调候先看气候，不急着断富贵。%s生%s月，%s，日支又见%s，局里那股气要先分清冷暖燥湿。当前取%s，是为了把局中滞住的气调开：%s。", dayStem, month, climate, result.DayPillar.Zhi, primary, reason)
-	case 1:
-		return fmt.Sprintf("格局像骨架，调候像这副骨架所处的天气。%s在%s月，月令气象是%s；若气候不舒，喜神来了也未必好用。此处首取%s，重点不是堆五行，而是让盘面能运转：%s。", dayStem, month, climate, primary, reason)
-	default:
-		return fmt.Sprintf("这一盘调候要看得细一点。%s临%s月，%s，不是单说缺什么补什么。取%s，取的是温凉燥湿的平衡，也是让格局能落地的条件：%s。", dayStem, month, climate, primary, reason)
-	}
-}
-
-func tiaohouUsefulness(result *bazipkg.BaziResult, primary string) string {
-	primaryElem := firstStemElement(primary)
-	strong := isStrong(result.BodyStrength.Verdict)
-	switch primaryElem {
-	case "火":
-		if strong {
-			return fmt.Sprintf("%s在这里像炉火，不是越猛越好。它要暖土、化湿、提精神；但此盘%s，火土若再过，性子会更急，判断会更硬，所以还要有木来立规矩、金来开出口。", primary, result.BodyStrength.Verdict)
-		}
-		return fmt.Sprintf("%s在这里重在温养。日主若承载不足，先要把寒湿化开，再看印比根气是否接得住；火来得有情，是醒局，不是燥局。", primary)
-	case "水":
-		return fmt.Sprintf("%s在这里不是泛滥之水，而是润燥、通关、让财气有路。水若有源有去处，事情能流动；若只见水而无堤岸，也容易多想、多拖、多反复。", primary)
-	case "木":
-		return fmt.Sprintf("%s在这里带生发和约束两层意思。对%s日主来说，木为官杀，来得清，可以把局中的力气收成责任、名分和规则；来得杂，则压力也重。", primary, result.DayPillar.Gan+data.GanElement[result.DayPillar.Gan])
-	case "金":
-		return fmt.Sprintf("%s在这里重在开口泄秀。土气厚时，金能把闷住的力气化成技术、表达、成果；但金弱无根，只是想法多，未必真能成器。", primary)
-	default:
-		return fmt.Sprintf("%s不是单独拿来补的字。调候要和格局同看：一边看气候是否舒展，一边看喜忌是否接得上，二者合了，条文才算用到盘里。", primary)
-	}
-}
-
-func tiaohouPracticeAdvice(result *bazipkg.BaziResult, primary string) string {
-	if isStrong(result.BodyStrength.Verdict) {
-		return pickText(result, "tiaohou-advice-strong", []string{
-			"现实取象上，这类盘常见的问题不是没能力，而是推进方式偏重：想压住场面，也容易把自己压得太紧。把目标拆细、期限定死、成果交出来，局里的气就活。",
-			"用在做事上，要少靠硬顶，多靠流程和交付。该立边界时立边界，该交成果时交成果；这样调候的意思才不是纸上谈兵。",
-			fmt.Sprintf("所以%s只能算调气的钥匙，不能替代全局喜忌。身旺的盘尤其要防再添火土，越补越重；能有木金来制化疏泄，反而更见层次。", primary),
-		})
-	}
-	return pickText(result, "tiaohou-advice-weak", []string{
-		"现实里要先把节奏养稳。身弱或承载不足时，过早追财官，容易看着机会多，实际压力也多；先稳根气，再谈发挥。",
-		"这类盘不宜一下子把目标拉太满。先让状态、资源、节奏顺起来，再借喜用发力，反而更容易成。",
-		fmt.Sprintf("%s若得地，是把气候调顺；但人事上还要看帮扶是否到位。根气稳，条文里的好处才接得住。", primary),
-	})
-}
-
-func roleElementText(dayElem, role string) string {
-	switch role {
-	case "官杀":
-		return elementThatControls(dayElem) + "官杀"
-	case "食伤":
-		return elementProducedBy(dayElem) + "食伤"
-	case "财星":
-		return elementControlledBy(dayElem) + "财星"
-	default:
-		return role
-	}
-}
-
-func elementThatControls(elem string) string {
-	switch elem {
-	case "木":
-		return "金"
-	case "火":
-		return "水"
-	case "土":
-		return "木"
-	case "金":
-		return "火"
-	case "水":
-		return "土"
-	default:
-		return ""
-	}
-}
-
-func elementProducedBy(elem string) string {
-	switch elem {
-	case "木":
-		return "火"
-	case "火":
-		return "土"
-	case "土":
-		return "金"
-	case "金":
-		return "水"
-	case "水":
-		return "木"
-	default:
-		return ""
-	}
-}
-
-func elementControlledBy(elem string) string {
-	switch elem {
-	case "木":
-		return "土"
-	case "火":
-		return "金"
-	case "土":
-		return "水"
-	case "金":
-		return "木"
-	case "水":
-		return "火"
-	default:
-		return ""
-	}
-}
-
-func isStrong(verdict string) bool {
-	verdict = strings.TrimSpace(verdict)
-	if verdict == "" || strings.Contains(verdict, "弱") || strings.Contains(verdict, "衰") {
-		return false
-	}
-	return strings.Contains(verdict, "旺") || strings.Contains(verdict, "强")
-}
-
-func chartStyleIndex(result *bazipkg.BaziResult, salt string, size int) int {
-	if size <= 1 || result == nil {
-		return 0
-	}
-	key := pillarText(result) + "|" + result.BodyStrength.Verdict + "|" + result.PatternAnalysis.PatternName + "|" + salt
-	sum := 0
-	for i, r := range key {
-		sum += int(r) * (i + 1)
-	}
-	if sum < 0 {
-		sum = -sum
-	}
-	return sum % size
-}
-
-func pickText(result *bazipkg.BaziResult, salt string, options []string) string {
-	if len(options) == 0 {
-		return ""
-	}
-	return options[chartStyleIndex(result, salt, len(options))]
-}
-
-func branchClimate(branch string) string {
-	switch branch {
-	case "寅":
-		return "初春木气发动，余寒未尽"
-	case "卯":
-		return "仲春木旺，生发之气足"
-	case "辰":
-		return "季春湿土，木余而土湿"
-	case "巳":
-		return "初夏火起，燥热渐生"
-	case "午":
-		return "仲夏火旺，炎热最盛"
-	case "未":
-		return "季夏土燥夹暑"
-	case "申":
-		return "初秋金气初起，暑湿未尽"
-	case "酉":
-		return "仲秋金旺，肃杀偏燥"
-	case "戌":
-		return "季秋燥土，火余入墓"
-	case "亥":
-		return "初冬水旺，寒气渐重"
-	case "子":
-		return "仲冬水旺，寒冷最重"
-	case "丑":
-		return "季冬湿寒之土"
-	default:
-		return "月令气候需合全局细看"
-	}
-}
-
-func firstStemElement(stems string) string {
-	for _, r := range stems {
-		if elem := data.GanElement[string(r)]; elem != "" {
-			return elem
-		}
-	}
-	return ""
 }
 
 func buildTenGodEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
 	top := topTenGodRatios(result.TenGodProportion, 4)
 	topText := formatTopTenGods(top)
 	evidenceText := formatEvidencePoints(points)
-	dominant := dominantTenGod(top)
-	explanation := []string{tenGodOpening(result, topText, dominant)}
+	explanation := []string{fmt.Sprintf(
+		"按三处非日主透干与四支全部藏干等权计次，当前出现次数较高的项目为：%s。该占比不含藏干深浅、月令强度或成败裁决，不代表性格、职业、财富、关系或事件概率。",
+		topText,
+	)}
 	if evidenceText != "" {
-		explanation = append(explanation, evidenceLead(result, "ten_gods")+evidenceText)
-	}
-	explanation = append(explanation, tenGodUsefulness(result, dominant))
-	explanation = append(explanation, tenGodFlowAdvice(result, dominant))
-	if result.TenGodAnalysis != nil && result.TenGodAnalysis.Summary != "" {
-		explanation = append(explanation, pickText(result, "tengod-summary", []string{
-			"规则层面的提醒也留一条：" + result.TenGodAnalysis.Summary,
-			"再合程序的十神分析看：" + result.TenGodAnalysis.Summary,
-			"这和当前十神规则的结论能对上：" + result.TenGodAnalysis.Summary,
-		}))
+		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，尚未裁决其现实解释："+evidenceText)
 	}
 	return strings.Join(explanation, "\n\n")
-}
-
-func tenGodOpening(result *bazipkg.BaziResult, topText, dominant string) string {
-	stem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
-	switch tenGodGroup(dominant) {
-	case "peer":
-		return pickText(result, "tengod-open-peer", []string{
-			fmt.Sprintf("十神先看谁在局里最有声音。此盘较显的是%s，日主%s又见%s；这不是简单说“朋友多”或“竞争多”，而是自我、资源、分夺和担当都要一起看。四柱天干十神为%s。", topText, stem, result.BodyStrength.Verdict, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("这盘十神的气，先从比劫一路入手。%s最露，日主%s，说明命主做事不太愿意完全借别人手，凡事想自己掌控。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("若只看比例，会说%s；但师傅看盘还要问它落在哪里、是不是帮身过头。日主%s，身势为%s，四柱天干十神为%s。", topText, stem, result.BodyStrength.Verdict, formatTenGodMap(result.TenGods)),
-		})
-	case "output":
-		return pickText(result, "tengod-open-output", []string{
-			fmt.Sprintf("这盘十神要看输出之气。较显的是%s，日主%s，才华、表达、技术、作品都在这一层里看。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("食伤一路明显时，不能只说聪明，要看能不能变成成果。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-		})
-	case "wealth":
-		return pickText(result, "tengod-open-wealth", []string{
-			fmt.Sprintf("财星明显的盘，先看财有没有源、日主接不接得住。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("十神这里要看资源和经营。%s较显，日主%s，财不是只代表钱，也代表可调动的人事与机会。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-		})
-	case "authority":
-		return pickText(result, "tengod-open-authority", []string{
-			fmt.Sprintf("官杀显时，先看压力能不能化成权责。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("这段看职位、规则、约束与承担。%s较显，日主%s，若能成体系，就是责任；失衡时就是压力。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-		})
-	case "seal":
-		return pickText(result, "tengod-open-seal", []string{
-			fmt.Sprintf("印星明显，要看学识、凭借、保护，也要防想得多、动得慢。此盘较显%s，日主%s，四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-			fmt.Sprintf("这盘十神先看印的承托。%s较显，日主%s，印能生身，也能让人依赖旧经验。四柱天干十神为%s。", topText, stem, formatTenGodMap(result.TenGods)),
-		})
-	default:
-		return fmt.Sprintf("十神这段，不是看哪个百分比最大就完事，要看它在什么位置、能不能成事。此盘较显的是%s；四柱天干十神为%s。", topText, formatTenGodMap(result.TenGods))
-	}
-}
-
-func tenGodUsefulness(result *bazipkg.BaziResult, dominant string) string {
-	stem := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
-	switch tenGodGroup(dominant) {
-	case "peer":
-		if isStrong(result.BodyStrength.Verdict) {
-			return fmt.Sprintf("落到人事上，%s又%s，比劫重的一面是能扛、敢争、资源意识强；不好的一面是容易把事情抓在自己手里，钱财合作上也要防“分夺”之象。账目、权责、边界先说清，比临时讲情面更稳。", stem, result.BodyStrength.Verdict)
-		}
-		return fmt.Sprintf("比劫若为帮身，先看是不是帮得上。%s若根气不足，有同类来扶是好事；但扶过头，也会变成争执、合伙不清和资源消耗。", stem)
-	case "output":
-		return fmt.Sprintf("食伤的好处，是把命局里的力气讲出来、做出来、交付出来。对%s而言，输出若清，适合技术、内容、产品、方案；输出若杂，就容易嘴快、心急、和规则顶着来。", stem)
-	case "wealth":
-		return fmt.Sprintf("财星重，不等于财一定厚。还要看%s接不接得住、财有没有源、有没有官印护住。接得住，是经营和资源；接不住，就是机会多、消耗也多。", stem)
-	case "authority":
-		return fmt.Sprintf("官杀不是单纯的管束，它也代表职位、责任、规则和风险。%s若能任官杀，压力会变成身份；若任不住，就容易被制度、上级、项目节点推着走。", stem)
-	case "seal":
-		return "印星重，长处在学习、资格、贵人和系统性；短处是容易停在想、等、准备。若原局已经偏旺，印再多就不宜恋旧法，要借食伤把东西拿出来。"
-	default:
-		return fmt.Sprintf("落到人事上，要把%s和%s合看。十神只是角色，月令和身强身弱才决定这些角色是帮我，还是耗我、压我。", stem, result.BodyStrength.Verdict)
-	}
-}
-
-func tenGodFlowAdvice(result *bazipkg.BaziResult, dominant string) string {
-	dayElem := data.GanElement[result.DayPillar.Gan]
-	if isStrong(result.BodyStrength.Verdict) {
-		return pickText(result, "tengod-flow-strong", []string{
-			fmt.Sprintf("%s若成体系，就像给这股力套上规矩；%s若得用，就把硬气转成技术、表达、产品和输出；%s有路，才谈钱财流通。最怕只剩印比助身，人很能撑，但转化率不高。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星")),
-			fmt.Sprintf("这个盘后面看运，最要紧是看%s、%s有没有接力。来得清，就是职位、作品、项目成果；来得混，就会变成忙、累、硬顶，钱财还容易被人事牵走。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤")),
-			fmt.Sprintf("所以断十神不能只说性格，要落到用法：%s立边界，%s给出口，%s管流通。三者接上，原局的旺气才不只是脾气，而能成事。", roleElementText(dayElem, "官杀"), roleElementText(dayElem, "食伤"), roleElementText(dayElem, "财星")),
-		})
-	}
-	return pickText(result, "tengod-flow-weak", []string{
-		"若日主承载不足，十神越热闹，越要先分清哪些是助力，哪些是压力。先稳印比根气，再谈财官食伤的发挥。",
-		"这类盘看运，不怕机会少，怕机会来得太急。帮身运先把底盘稳住，再遇财官食伤，反而容易接得住。",
-		fmt.Sprintf("十神要回到日主能不能任事。%s若先稳住，财官食伤才有用；身弱而急追外物，多半先见压力。", result.DayPillar.Gan+data.GanElement[result.DayPillar.Gan]),
-	})
-}
-
-func dominantTenGod(ratios []bazipkg.TenGodRatio) string {
-	if len(ratios) == 0 {
-		return ""
-	}
-	return ratios[0].Name
-}
-
-func tenGodGroup(god string) string {
-	switch god {
-	case "比肩", "劫财":
-		return "peer"
-	case "食神", "伤官":
-		return "output"
-	case "正财", "偏财":
-		return "wealth"
-	case "正官", "七杀":
-		return "authority"
-	case "正印", "偏印":
-		return "seal"
-	default:
-		return ""
-	}
 }
 
 func formatEvidencePoints(points []evidencePoint) string {
@@ -1132,13 +913,6 @@ func pillarText(result *bazipkg.BaziResult) string {
 		result.DayPillar.Gan, result.DayPillar.Zhi,
 		result.HourPillar.Gan, result.HourPillar.Zhi,
 	)
-}
-
-func joinOrNone(values []string) string {
-	if len(values) == 0 {
-		return "未明"
-	}
-	return strings.Join(values, "、")
 }
 
 func topTenGodRatios(ratios []bazipkg.TenGodRatio, limit int) []bazipkg.TenGodRatio {
@@ -1193,26 +967,21 @@ func buildSummary(result *bazipkg.BaziResult, focus string, withCitations bool) 
 		source = "结合当前命盘规则与检索到的经典条文"
 	}
 	dayMaster := result.DayPillar.Gan + data.GanElement[result.DayPillar.Gan]
-	pattern := result.PatternAnalysis.PatternName
-	if pattern == "" {
-		pattern = result.PatternAnalysis.PatternType
-	}
-	if pattern == "" {
-		pattern = "正格"
-	}
+	candidateCount := len(result.PatternAnalysis.Candidates)
+	monthCommandCount := len(result.PatternAnalysis.MonthCommandEvidence)
 
 	switch focus {
 	case "pattern":
-		return fmt.Sprintf("%s，重点看月令%s与%s。此盘日主为%s，格局取向为%s，喜忌仍以命局全局平衡为准。", source, result.MonthPillar.Zhi, pattern, dayMaster, pattern)
+		return fmt.Sprintf("%s，记录月支%s与日主%s对应的%d个特殊结构候选、%d项月令藏干透出候选；候选不表示优先级或成立结论，未经专家 Gold 验证，现实解释未裁决。", source, result.MonthPillar.Zhi, dayMaster, candidateCount, monthCommandCount)
 	case "tiaohou":
 		if result.Tiaohou != nil {
-			return fmt.Sprintf("%s，重点看%s生%s月的寒暖燥湿。当前调候首取%s，需与格局喜忌合参。", source, result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.Primary)
+			return fmt.Sprintf("%s，记录%s生%s月的调候查表事实；表首候选%s，验证状态未验证，现实解释未裁决。", source, result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.TablePrimaryCandidate)
 		}
-		return fmt.Sprintf("%s，重点看日主%s与月令%s的寒暖燥湿，当前未取得完整调候规则。", source, dayMaster, result.MonthPillar.Zhi)
+		return fmt.Sprintf("%s，日主%s与月令%s的调候查表证据不可用。", source, dayMaster, result.MonthPillar.Zhi)
 	case "ten_gods":
-		return fmt.Sprintf("%s，重点看十神透藏与强弱。此盘日主%s，十神分布为%s，宜结合月令和身旺结论判断。", source, dayMaster, formatTenGodMap(result.TenGods))
+		return fmt.Sprintf("%s，重点记录日主%s对应的十神透藏映射。%s", source, dayMaster, buildTenGodContent(result))
 	default:
-		return fmt.Sprintf("%s，此盘四柱为%s%s、%s%s、%s%s、%s%s；日主%s，月令%s，格局为%s，身旺结论为%s。",
+		return fmt.Sprintf("%s，四柱为%s%s、%s%s、%s%s、%s%s；日主%s，月支%s，格局检测记录%d个特殊结构候选、%d项月令藏干透出候选，身强本地评分分段候选为%s。格局与身强分段均未经专家 Gold 验证，现实解释未裁决。",
 			source,
 			result.YearPillar.Gan, result.YearPillar.Zhi,
 			result.MonthPillar.Gan, result.MonthPillar.Zhi,
@@ -1220,8 +989,9 @@ func buildSummary(result *bazipkg.BaziResult, focus string, withCitations bool) 
 			result.HourPillar.Gan, result.HourPillar.Zhi,
 			dayMaster,
 			result.MonthPillar.Zhi,
-			pattern,
-			result.BodyStrength.Verdict,
+			candidateCount,
+			monthCommandCount,
+			result.BodyStrength.ScoreBandCandidate,
 		)
 	}
 }
@@ -1241,13 +1011,13 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 	switch focus {
 	case "pattern":
 		return []model.InterpretationSection{{
-			Title:     "格局与月令",
+			Title:     "格局规则候选",
 			Content:   buildPatternContent(result),
 			Citations: ids(3),
 		}}
 	case "tiaohou":
 		return []model.InterpretationSection{{
-			Title:     "调候用神",
+			Title:     "调候查表证据",
 			Content:   buildTiaohouContent(result),
 			Citations: ids(3),
 		}}
@@ -1259,8 +1029,8 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 		}}
 	default:
 		return []model.InterpretationSection{
-			{Title: "格局与月令", Content: buildPatternContent(result), Citations: ids(2)},
-			{Title: "调候与平衡", Content: buildTiaohouContent(result), Citations: ids(4)},
+			{Title: "格局规则候选", Content: buildPatternContent(result), Citations: ids(2)},
+			{Title: "调候查表证据", Content: buildTiaohouContent(result), Citations: ids(4)},
 			{Title: "十神结构", Content: buildTenGodContent(result), Citations: ids(5)},
 		}
 	}
@@ -1268,35 +1038,50 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 
 func buildPatternContent(result *bazipkg.BaziResult) string {
 	p := result.PatternAnalysis
-	if p.PatternName == "" && p.Description == "" {
-		return fmt.Sprintf("月令为%s，日主为%s，当前按普通格局与身旺喜忌综合判断。", result.MonthPillar.Zhi, result.DayPillar.Gan)
+	if len(p.Candidates) == 0 && len(p.MonthCommandEvidence) == 0 {
+		return fmt.Sprintf("月支%s、日主%s未取得完整格局候选证据。", result.MonthPillar.Zhi, result.DayPillar.Gan)
 	}
-	return fmt.Sprintf("%s属%s。%s 喜%s，忌%s。",
-		firstNonEmpty(p.PatternName, "当前格局"),
-		firstNonEmpty(p.PatternType, "格局判断"),
-		firstNonEmpty(p.Description, "需结合月令、透干与全局五行流通判断。"),
-		strings.Join(p.FavorableElements, "、"),
-		strings.Join(p.UnfavorableElements, "、"),
-	)
+	parts := []string{fmt.Sprintf(
+		"古籍规则依据四柱%s与月支%s记录%d个特殊结构候选、%d项月令藏干透出候选。",
+		pillarText(result),
+		p.Inputs.MonthBranch,
+		len(p.Candidates),
+		len(p.MonthCommandEvidence),
+	)}
+	if len(p.MonthCommandEvidence) > 0 {
+		parts = append(parts, "月令候选为"+formatMonthCommandPatternEvidence(p.MonthCommandEvidence)+"。")
+	}
+	parts = append(parts, fmt.Sprintf(
+		"所有候选只用于收窄规则检索，不表示优先级、成格结论或唯一格局。验证状态%s，现实解释状态%s；候选不决定喜忌或现实结果。",
+		p.ValidationStatus,
+		p.InterpretationStatus,
+	))
+	return strings.Join(parts, "")
 }
 
 func buildTiaohouContent(result *bazipkg.BaziResult) string {
 	if result.Tiaohou == nil {
-		return firstNonEmpty(result.DayStemTiaoHou, "当前未取得调候条目，先以月令寒暖燥湿与五行平衡合参。")
+		return "当前未取得完整调候查表证据。"
 	}
-	return result.Tiaohou.Summary
+	return fmt.Sprintf(
+		"按日干%s与月支%s查表，共记录%d条规则；表首候选%s。候选未经 Gold 验证，现实解释未裁决，节令区间深浅不改变候选顺序。",
+		result.Tiaohou.Stem,
+		result.Tiaohou.Month,
+		len(result.Tiaohou.Rules),
+		result.Tiaohou.TablePrimaryCandidate,
+	)
 }
 
 func buildTenGodContent(result *bazipkg.BaziResult) string {
-	if result.TenGodAnalysis != nil && result.TenGodAnalysis.Summary != "" {
-		return result.TenGodAnalysis.Summary
+	if result.TenGodAnalysis != nil && result.TenGodAnalysis.Status == "observed" {
+		return fmt.Sprintf(
+			"十神等权出现次数共%d；最高频项为%s（%.2f%%）。该统计未经 Gold 验证，解释状态为未裁决，不用于推断性格、职业、财富、关系或未来事件。",
+			result.TenGodAnalysis.TotalOccurrences,
+			strings.Join(result.TenGodAnalysis.DominantGods, "、"),
+			result.TenGodAnalysis.DominantPercent,
+		)
 	}
-	return fmt.Sprintf("十神分布：%s。当前日主%s，需结合月令%s与身旺结论%s合参。",
-		formatTenGodMap(result.TenGods),
-		result.DayPillar.Gan,
-		result.MonthPillar.Zhi,
-		result.BodyStrength.Verdict,
-	)
+	return "当前未取得完整十神等权计次数据，十神结构不可用。"
 }
 
 func cleanContent(s string) string {

@@ -12,12 +12,12 @@ import (
 // =============================================================================
 
 type branchRelationCase struct {
-	Name       string
-	YearPillar string
+	Name        string
+	YearPillar  string
 	MonthPillar string
-	DayPillar  string
-	HourPillar string
-	Gender     string
+	DayPillar   string
+	HourPillar  string
+	Gender      string
 	// Expected relation types that SHOULD appear in the output
 	ExpectContains []string
 }
@@ -29,42 +29,42 @@ func TestBranchRelations_LiuHe(t *testing.T) {
 			Name:       "子丑合",
 			YearPillar: "甲子", MonthPillar: "甲子",
 			DayPillar: "丙子", HourPillar: "乙丑",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 		{
 			Name:       "寅亥合",
 			YearPillar: "甲寅", MonthPillar: "丙寅",
 			DayPillar: "甲寅", HourPillar: "乙亥",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 		{
 			Name:       "卯戌合",
 			YearPillar: "乙卯", MonthPillar: "乙卯",
 			DayPillar: "丁卯", HourPillar: "丙戌",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 		{
 			Name:       "辰酉合",
 			YearPillar: "戊辰", MonthPillar: "庚辰",
 			DayPillar: "甲辰", HourPillar: "癸酉",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 		{
 			Name:       "巳申合",
 			YearPillar: "乙巳", MonthPillar: "乙巳",
 			DayPillar: "丁巳", HourPillar: "丙申",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 		{
 			Name:       "午未合",
 			YearPillar: "丙午", MonthPillar: "庚午",
 			DayPillar: "甲午", HourPillar: "辛未",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六合"},
 		},
 	}
@@ -72,7 +72,7 @@ func TestBranchRelations_LiuHe(t *testing.T) {
 	svc := &BaziService{}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				tc.YearPillar, tc.MonthPillar, tc.DayPillar, tc.HourPillar, tc.Gender,
 			)
 			if err != nil {
@@ -102,42 +102,42 @@ func TestBranchRelations_LiuChong(t *testing.T) {
 			Name:       "子午冲",
 			YearPillar: "甲子", MonthPillar: "甲子",
 			DayPillar: "丙子", HourPillar: "庚午",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 		{
 			Name:       "丑未冲",
 			YearPillar: "乙丑", MonthPillar: "乙丑",
 			DayPillar: "丁丑", HourPillar: "辛未",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 		{
 			Name:       "寅申冲",
 			YearPillar: "甲寅", MonthPillar: "丙寅",
 			DayPillar: "甲寅", HourPillar: "壬申",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 		{
 			Name:       "卯酉冲",
 			YearPillar: "乙卯", MonthPillar: "乙卯",
 			DayPillar: "丁卯", HourPillar: "癸酉",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 		{
 			Name:       "辰戌冲",
 			YearPillar: "戊辰", MonthPillar: "庚辰",
 			DayPillar: "甲辰", HourPillar: "丙戌",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 		{
 			Name:       "巳亥冲",
 			YearPillar: "乙巳", MonthPillar: "乙巳",
 			DayPillar: "丁巳", HourPillar: "丁亥",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"六冲"},
 		},
 	}
@@ -145,7 +145,7 @@ func TestBranchRelations_LiuChong(t *testing.T) {
 	svc := &BaziService{}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				tc.YearPillar, tc.MonthPillar, tc.DayPillar, tc.HourPillar, tc.Gender,
 			)
 			if err != nil {
@@ -179,63 +179,63 @@ func TestBranchRelations_SanXing(t *testing.T) {
 			Name:       "无礼刑_子卯",
 			YearPillar: "甲子", MonthPillar: "甲子",
 			DayPillar: "丙子", HourPillar: "乙卯",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "恃势刑_丑戌",
 			YearPillar: "乙丑", MonthPillar: "乙丑",
 			DayPillar: "丁丑", HourPillar: "丙戌",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "恃势刑_未丑",
 			YearPillar: "辛未", MonthPillar: "乙未",
 			DayPillar: "丁未", HourPillar: "乙丑",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "无恩刑_寅巳",
 			YearPillar: "甲寅", MonthPillar: "丙寅",
 			DayPillar: "甲寅", HourPillar: "乙巳",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "无恩刑_巳申",
 			YearPillar: "乙巳", MonthPillar: "乙巳",
 			DayPillar: "丁巳", HourPillar: "丙申",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "自刑_辰辰",
 			YearPillar: "戊辰", MonthPillar: "丙辰",
 			DayPillar: "甲辰", HourPillar: "戊辰",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "自刑_午午",
 			YearPillar: "丙午", MonthPillar: "庚午",
 			DayPillar: "甲午", HourPillar: "丙午",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "自刑_酉酉",
 			YearPillar: "辛酉", MonthPillar: "丁酉",
 			DayPillar: "甲午", HourPillar: "辛酉",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 		{
 			Name:       "自刑_亥亥",
 			YearPillar: "辛亥", MonthPillar: "丁亥",
 			DayPillar: "甲午", HourPillar: "癸亥",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"刑"},
 		},
 	}
@@ -243,7 +243,7 @@ func TestBranchRelations_SanXing(t *testing.T) {
 	svc := &BaziService{}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				tc.YearPillar, tc.MonthPillar, tc.DayPillar, tc.HourPillar, tc.Gender,
 			)
 			if err != nil {
@@ -273,42 +273,42 @@ func TestBranchRelations_LiuHai(t *testing.T) {
 			Name:       "子未害",
 			YearPillar: "甲子", MonthPillar: "甲子",
 			DayPillar: "丙子", HourPillar: "辛未",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 		{
 			Name:       "丑午害",
 			YearPillar: "乙丑", MonthPillar: "乙丑",
 			DayPillar: "丁丑", HourPillar: "庚午",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 		{
 			Name:       "寅巳害",
 			YearPillar: "甲寅", MonthPillar: "丙寅",
 			DayPillar: "甲寅", HourPillar: "乙巳",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 		{
 			Name:       "卯辰害",
 			YearPillar: "乙卯", MonthPillar: "乙卯",
 			DayPillar: "丁卯", HourPillar: "戊辰",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 		{
 			Name:       "申亥害",
 			YearPillar: "丙申", MonthPillar: "丙申",
 			DayPillar: "甲申", HourPillar: "丁亥",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 		{
 			Name:       "酉戌害",
 			YearPillar: "辛酉", MonthPillar: "丁酉",
 			DayPillar: "甲午", HourPillar: "丙戌",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"害"},
 		},
 	}
@@ -316,7 +316,7 @@ func TestBranchRelations_LiuHai(t *testing.T) {
 	svc := &BaziService{}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				tc.YearPillar, tc.MonthPillar, tc.DayPillar, tc.HourPillar, tc.Gender,
 			)
 			if err != nil {
@@ -347,28 +347,28 @@ func TestBranchRelations_SanHe(t *testing.T) {
 			Name:       "申子辰三合水",
 			YearPillar: "甲申", MonthPillar: "丙申",
 			DayPillar: "甲子", HourPillar: "戊辰",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"三合"},
 		},
 		{
 			Name:       "亥卯未三合木",
 			YearPillar: "丁亥", MonthPillar: "丁亥",
 			DayPillar: "己卯", HourPillar: "辛未",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"三合"},
 		},
 		{
 			Name:       "寅午戌三合火",
 			YearPillar: "甲寅", MonthPillar: "戊午",
 			DayPillar: "甲午", HourPillar: "丙戌",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"三合"},
 		},
 		{
 			Name:       "巳酉丑三合金",
 			YearPillar: "乙巳", MonthPillar: "乙巳",
 			DayPillar: "丁酉", HourPillar: "乙丑",
-			Gender:    "MALE",
+			Gender:         "MALE",
 			ExpectContains: []string{"三合"},
 		},
 	}
@@ -376,7 +376,7 @@ func TestBranchRelations_SanHe(t *testing.T) {
 	svc := &BaziService{}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(
+			result, err := svc.CalculateSyntheticPillars(
 				tc.YearPillar, tc.MonthPillar, tc.DayPillar, tc.HourPillar, tc.Gender,
 			)
 			if err != nil {
@@ -403,7 +403,7 @@ func TestBranchRelations_Negative(t *testing.T) {
 	// 负断言：不应存在的关系
 	// 测试: 没有冲合刑害关系的四柱
 	svc := &BaziService{}
-	result, err := svc.CalculateFromPillars("甲子", "丙寅", "甲子", "丁卯", "MALE")
+	result, err := svc.CalculateSyntheticPillars("甲子", "丙寅", "甲子", "丁卯", "MALE")
 	if err != nil {
 		t.Fatalf("计算失败: %v", err)
 	}

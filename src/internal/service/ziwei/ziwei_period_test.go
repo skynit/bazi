@@ -1,6 +1,11 @@
 package ziwei
 
 import (
+	"encoding/json"
+	"reflect"
+	"slices"
+	"sort"
+	"strings"
 	"testing"
 )
 
@@ -318,34 +323,355 @@ func TestDayun_StarPresence(t *testing.T) {
 			continue
 		}
 
-		// All main stars in the palace should be in the dayun stage's Stars
-		for _, ms := range palace.MainStars {
-			found := false
-			for _, ds := range stage.Stars {
-				if ds == ms {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("大限[%d] %s: 缺少主星 %s", i, stage.Palace, ms)
+		wantStars := make([]string, 0, len(palace.Stars))
+		for _, star := range palace.Stars {
+			if star.Name != "" {
+				wantStars = append(wantStars, star.Name)
 			}
 		}
-
-		// All aux stars in the palace should be in the dayun stage's Stars
-		for _, as := range palace.AuxStars {
-			found := false
-			for _, ds := range stage.Stars {
-				if ds == as {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("大限[%d] %s: 缺少辅星 %s", i, stage.Palace, as)
-			}
+		if !slices.Equal(stage.Stars, wantStars) {
+			t.Errorf("大限[%d] %s 星曜 = %v, want published stars %v", i, stage.Palace, stage.Stars, wantStars)
 		}
 	}
+}
+
+func TestDayun_JSONReplayMatchesFreshChart(t *testing.T) {
+	svc := NewZiWeiService()
+
+	tests := []struct {
+		name   string
+		year   int
+		gender string
+	}{
+		{name: "阳男顺行", year: 1984, gender: "男"},
+		{name: "阳女逆行", year: 1984, gender: "女"},
+		{name: "阴男逆行", year: 1985, gender: "男"},
+		{name: "阴女顺行", year: 1985, gender: "女"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chart, err := svc.CalculateChart(tt.year, 6, 15, 12, 0, tt.gender)
+			if err != nil {
+				t.Fatalf("CalculateChart failed: %v", err)
+			}
+			want := svc.CalculateDayun(chart)
+			if len(want) != len(chart.Palaces) {
+				t.Fatalf("fresh dayun stages = %d, want %d", len(want), len(chart.Palaces))
+			}
+			if want[0].StartAge == 0 || len(want[0].Stars) == 0 {
+				t.Fatalf("fresh dayun lacks bureau age or stars: %+v", want[0])
+			}
+			wantAnalysis := BuildDayunAnalysis(chart, want, 42)
+
+			payload, err := json.Marshal(chart)
+			if err != nil {
+				t.Fatalf("marshal chart: %v", err)
+			}
+			var replayed ZiWeiChart
+			if err := json.Unmarshal(payload, &replayed); err != nil {
+				t.Fatalf("unmarshal chart: %v", err)
+			}
+
+			got := svc.CalculateDayun(&replayed)
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("dayun changed after JSON replay:\n got: %#v\nwant: %#v", got, want)
+			}
+			gotAnalysis := BuildDayunAnalysis(&replayed, got, 42)
+			if !reflect.DeepEqual(gotAnalysis, wantAnalysis) {
+				t.Fatalf("dayun analysis changed after JSON replay:\n got: %#v\nwant: %#v", gotAnalysis, wantAnalysis)
+			}
+		})
+	}
+}
+
+func TestDayun_RejectsIncompletePublishedContract(t *testing.T) {
+	svc := NewZiWeiService()
+	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+
+	tests := []struct {
+		name   string
+		mutate func(*ZiWeiChart)
+	}{
+		{name: "invalid content hash", mutate: func(chart *ZiWeiChart) {
+			chart.ContentHash = ""
+		}},
+		{name: "invalid input fingerprint", mutate: func(chart *ZiWeiChart) {
+			chart.InputFingerprint = ""
+		}},
+		{name: "invalid calculation input", mutate: func(chart *ZiWeiChart) {
+			chart.CalculationInput.Basis = ""
+		}},
+		{name: "invalid five bureau", mutate: func(chart *ZiWeiChart) {
+			chart.FiveBureau = ""
+		}},
+		{name: "invalid soul branch", mutate: func(chart *ZiWeiChart) {
+			chart.EarthlyBranchOfSoulPalace = ""
+		}},
+		{name: "missing palace branch", mutate: func(chart *ZiWeiChart) {
+			chart.Palaces[1].Branch = chart.Palaces[0].Branch
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutated := *chart
+			tt.mutate(&mutated)
+			if got := svc.CalculateDayun(&mutated); got != nil {
+				t.Fatalf("CalculateDayun accepted incomplete published contract: %#v", got)
+			}
+		})
+	}
+}
+
+func TestTransitCharts_JSONReplayMatchesFreshChart(t *testing.T) {
+	svc := NewZiWeiService()
+	base, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+	replayed := replayZiWeiChartJSON(t, base)
+
+	tests := []struct {
+		name      string
+		calculate func(*ZiWeiChart) *ZiWeiChart
+	}{
+		{name: "流年", calculate: func(chart *ZiWeiChart) *ZiWeiChart {
+			return svc.CalculateLiunian(chart, 2026)
+		}},
+		{name: "流月", calculate: func(chart *ZiWeiChart) *ZiWeiChart {
+			return svc.CalculateLiuyueForDate(chart, 2026, 3, 15)
+		}},
+		{name: "流日", calculate: func(chart *ZiWeiChart) *ZiWeiChart {
+			return svc.CalculateLiuriForDate(chart, 2026, 3, 15)
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			want := tt.calculate(base)
+			got := tt.calculate(replayed)
+			if want == nil || got == nil {
+				t.Fatalf("transit calculation returned nil: fresh=%v replay=%v", want == nil, got == nil)
+			}
+			assertZiWeiJSONEqual(t, got, want)
+		})
+	}
+}
+
+func TestTransitInterpretation_JSONReplayMatchesFreshChart(t *testing.T) {
+	svc := NewZiWeiService()
+	base, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+	replayedBase := replayZiWeiChartJSON(t, base)
+
+	freshLiunian := svc.CalculateLiunian(base, 2026)
+	freshLiuyue := svc.CalculateLiuyueForDate(base, 2026, 3, 15)
+	freshLiuri := svc.CalculateLiuriForDate(base, 2026, 3, 15)
+	replayedLiunian := svc.CalculateLiunian(replayedBase, 2026)
+	replayedLiuyue := svc.CalculateLiuyueForDate(replayedBase, 2026, 3, 15)
+	replayedLiuri := svc.CalculateLiuriForDate(replayedBase, 2026, 3, 15)
+	if freshLiunian == nil || freshLiuyue == nil || freshLiuri == nil ||
+		replayedLiunian == nil || replayedLiuyue == nil || replayedLiuri == nil {
+		t.Fatal("valid transit chart returned nil")
+	}
+
+	tests := []struct {
+		name string
+		got  any
+		want any
+	}{
+		{
+			name: "流年结构解释",
+			got:  NewPeriodInterpreterFromChart(replayedBase).AnalyzeLiunian(replayedLiunian, 2026),
+			want: NewPeriodInterpreterFromChart(base).AnalyzeLiunian(freshLiunian, 2026),
+		},
+		{
+			name: "流月结构解释",
+			got:  NewPeriodInterpreterFromChart(replayedBase).AnalyzeLiuyue(replayedLiuyue, 2026, 3, 15),
+			want: NewPeriodInterpreterFromChart(base).AnalyzeLiuyue(freshLiuyue, 2026, 3, 15),
+		},
+		{
+			name: "流日结构解释",
+			got:  NewPeriodInterpreterFromChart(replayedBase).AnalyzeLiuri(replayedLiuri, 2026, 3, 15),
+			want: NewPeriodInterpreterFromChart(base).AnalyzeLiuri(freshLiuri, 2026, 3, 15),
+		},
+		{
+			name: "流年分析",
+			got:  BuildLiunianAnalysis(replayedBase, replayedLiunian, 2026),
+			want: BuildLiunianAnalysis(base, freshLiunian, 2026),
+		},
+		{
+			name: "流月分析",
+			got:  BuildLiuyueAnalysis(replayedBase, replayedLiuyue, 2026, 3, 15),
+			want: BuildLiuyueAnalysis(base, freshLiuyue, 2026, 3, 15),
+		},
+		{
+			name: "流日分析",
+			got:  BuildLiuriAnalysis(replayedBase, replayedLiuri, 2026, 3, 15),
+			want: BuildLiuriAnalysis(base, freshLiuri, 2026, 3, 15),
+		},
+		{
+			name: "流年叠盘解释",
+			got:  svc.AnalyzeLiunianOverlay(replayedBase, replayedLiunian, 2026),
+			want: svc.AnalyzeLiunianOverlay(base, freshLiunian, 2026),
+		},
+	}
+
+	freshInterpreter := NewPeriodInterpreterFromChart(base)
+	replayedInterpreter := NewPeriodInterpreterFromChart(replayedBase)
+	if freshInterpreter == nil || replayedInterpreter == nil {
+		t.Fatal("valid published chart did not restore period interpreter")
+	}
+	tests = append(tests, struct {
+		name string
+		got  any
+		want any
+	}{
+		name: "三层摘要",
+		got:  replayedInterpreter.SummarizeAll(replayedLiunian, replayedLiuyue, replayedLiuri, 2026, 3, 15),
+		want: freshInterpreter.SummarizeAll(freshLiunian, freshLiuyue, freshLiuri, 2026, 3, 15),
+	})
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.got == nil || tt.want == nil {
+				t.Fatalf("interpretation returned nil: got=%v want=%v", tt.got == nil, tt.want == nil)
+			}
+			if !reflect.DeepEqual(tt.got, tt.want) {
+				t.Fatalf("interpretation changed after JSON replay:\n got: %#v\nwant: %#v", tt.got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTransitConsumers_RejectInvalidPublishedContracts(t *testing.T) {
+	svc := NewZiWeiService()
+	base, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
+	if err != nil {
+		t.Fatalf("CalculateChart failed: %v", err)
+	}
+	liunian := svc.CalculateLiunian(base, 2026)
+	liuyue := svc.CalculateLiuyueForDate(base, 2026, 3, 15)
+	liuri := svc.CalculateLiuriForDate(base, 2026, 3, 15)
+	if liunian == nil || liuyue == nil || liuri == nil {
+		t.Fatal("valid transit chart returned nil")
+	}
+
+	invalidNatalCases := []struct {
+		name   string
+		mutate func(*ZiWeiChart)
+	}{
+		{name: "content hash", mutate: func(chart *ZiWeiChart) {
+			chart.ContentHash = ""
+		}},
+		{name: "input fingerprint", mutate: func(chart *ZiWeiChart) {
+			chart.InputFingerprint = ""
+			restampZiWeiChartContentHash(t, chart)
+		}},
+		{name: "calculation input", mutate: func(chart *ZiWeiChart) {
+			chart.CalculationInput.Basis = ""
+			chart.InputFingerprint = ziweiInputFingerprint(chart.CalculationInput)
+			restampZiWeiChartContentHash(t, chart)
+		}},
+	}
+	for _, tt := range invalidNatalCases {
+		t.Run("本命/"+tt.name, func(t *testing.T) {
+			invalidBase := *base
+			tt.mutate(&invalidBase)
+			if NewPeriodInterpreterFromChart(&invalidBase) != nil {
+				t.Fatal("period interpreter accepted invalid natal contract")
+			}
+			if svc.CalculateLiunian(&invalidBase, 2026) != nil ||
+				svc.CalculateLiuyueForDate(&invalidBase, 2026, 3, 15) != nil ||
+				svc.CalculateLiuriForDate(&invalidBase, 2026, 3, 15) != nil {
+				t.Fatal("transit calculation accepted invalid natal contract")
+			}
+			if BuildLiunianAnalysis(&invalidBase, liunian, 2026) != nil ||
+				BuildLiuyueAnalysis(&invalidBase, liuyue, 2026, 3, 15) != nil ||
+				BuildLiuriAnalysis(&invalidBase, liuri, 2026, 3, 15) != nil {
+				t.Fatal("transit analysis accepted invalid natal contract")
+			}
+			if svc.AnalyzeLiunianOverlay(&invalidBase, liunian, 2026) != nil {
+				t.Fatal("liunian overlay silently defaulted from invalid natal contract")
+			}
+		})
+	}
+
+	invalidLiunian := *liunian
+	invalidLiunian.DerivedContentHash = ""
+	invalidLiuyue := *liuyue
+	invalidLiuyue.DerivedContentHash = ""
+	invalidLiuri := *liuri
+	invalidLiuri.DerivedContentHash = ""
+	if BuildLiunianAnalysis(base, &invalidLiunian, 2026) != nil ||
+		BuildLiuyueAnalysis(base, &invalidLiuyue, 2026, 3, 15) != nil ||
+		BuildLiuriAnalysis(base, &invalidLiuri, 2026, 3, 15) != nil {
+		t.Fatal("transit analysis accepted invalid derived contract")
+	}
+	if svc.AnalyzeLiunianOverlay(base, &invalidLiunian, 2026) != nil {
+		t.Fatal("liunian overlay accepted invalid derived contract")
+	}
+
+	otherBase, err := svc.CalculateChart(1992, 9, 8, 9, 0, "女")
+	if err != nil {
+		t.Fatalf("CalculateChart other base failed: %v", err)
+	}
+	if BuildLiunianAnalysis(otherBase, liunian, 2026) != nil ||
+		BuildLiuyueAnalysis(otherBase, liuyue, 2026, 3, 15) != nil ||
+		BuildLiuriAnalysis(otherBase, liuri, 2026, 3, 15) != nil ||
+		svc.AnalyzeLiunianOverlay(otherBase, liunian, 2026) != nil {
+		t.Fatal("transit consumer accepted a derived chart bound to another natal chart")
+	}
+
+	unbound := &PeriodInterpreter{birthData: mustPublishedBirthData(t, base)}
+	if unbound.AnalyzeLiunian(liunian, 2026) != nil ||
+		unbound.AnalyzeLiuyue(liuyue, 2026, 3, 15) != nil ||
+		unbound.AnalyzeLiuri(liuri, 2026, 3, 15) != nil {
+		t.Fatal("period interpreter accepted an unbound birth context")
+	}
+}
+
+func replayZiWeiChartJSON(t *testing.T, chart *ZiWeiChart) *ZiWeiChart {
+	t.Helper()
+	payload, err := json.Marshal(chart)
+	if err != nil {
+		t.Fatalf("marshal chart: %v", err)
+	}
+	var replayed ZiWeiChart
+	if err := json.Unmarshal(payload, &replayed); err != nil {
+		t.Fatalf("unmarshal chart: %v", err)
+	}
+	return &replayed
+}
+
+func assertZiWeiJSONEqual(t *testing.T, got, want *ZiWeiChart) {
+	t.Helper()
+	gotJSON, err := json.Marshal(got)
+	if err != nil {
+		t.Fatalf("marshal got chart: %v", err)
+	}
+	wantJSON, err := json.Marshal(want)
+	if err != nil {
+		t.Fatalf("marshal want chart: %v", err)
+	}
+	if string(gotJSON) != string(wantJSON) {
+		t.Fatalf("public chart JSON changed after replay:\n got: %s\nwant: %s", gotJSON, wantJSON)
+	}
+}
+
+func restampZiWeiChartContentHash(t *testing.T, chart *ZiWeiChart) {
+	t.Helper()
+	hash, err := chartContentHash(chart)
+	if err != nil {
+		t.Fatalf("hash chart: %v", err)
+	}
+	chart.ContentHash = hash
 }
 
 // TestLiunian_Basic verifies that CalculateLiunian produces a valid overlay
@@ -505,18 +831,15 @@ func TestLiunianOverlayAnalysis_BuildsEvidence(t *testing.T) {
 	if len(analysis.FourHua) == 0 {
 		t.Fatal("FourHua should not be empty")
 	}
-	if len(analysis.AnnualStars) != 4 {
-		t.Fatalf("AnnualStars length=%d, want 4", len(analysis.AnnualStars))
+	if len(analysis.AnnualStars) != 11 {
+		t.Fatalf("AnnualStars length=%d, want 11", len(analysis.AnnualStars))
 	}
 	if len(analysis.FocusPalaces) == 0 {
 		t.Fatal("FocusPalaces should not be empty")
 	}
 }
 
-// TestLiunian_FourHuaInjection verifies that the liunian chart injects
-// four hua labels into the LiuNianStars for stars in the target year's
-// SiHuaTable.
-func TestLiunian_FourHuaInjection(t *testing.T) {
+func TestLiunian_SeparatesTransitStarsAndFourHua(t *testing.T) {
 	svc := NewZiWeiService()
 
 	chart, err := svc.CalculateChart(2003, 4, 15, 14, 0, "男")
@@ -524,41 +847,28 @@ func TestLiunian_FourHuaInjection(t *testing.T) {
 		t.Fatalf("CalculateChart failed: %v", err)
 	}
 
-	// 癸年 (year stem 9): 破军化禄, 巨门化权, 太阴化科, 贪狼化忌
-	// Target a 甲年 (year stem 0): 廉贞化禄, 破军化权, 武曲化科, 太阳化忌
 	targetYear := 1984 // 甲子年, stem=0
-
 	liunianChart := svc.CalculateLiunian(chart, targetYear)
-
-	// Check that the liunian chart's LiuNianStars contain hua labels
-	// for stars that exist in the original chart and match the 甲年 SiHuaTable
-	huaLabels := map[string]string{}
+	if liunianChart == nil {
+		t.Fatal("CalculateLiunian returned nil")
+	}
 	for _, stars := range liunianChart.LiuNianStars {
-		for _, s := range stars {
-			// Extract star name and label (e.g., "廉贞化禄")
-			for _, label := range []string{"化禄", "化权", "化科", "化忌"} {
-				idx := 0
-				for i := 0; i < len(s)-len(label)+1; i++ {
-					if s[i:i+len(label)] == label {
-						idx = i
-						break
-					}
-				}
-				if idx > 0 {
-					starName := s[:idx]
-					huaLabels[starName] = label
-				}
+		for _, star := range stars {
+			if strings.Contains(star, "化") {
+				t.Fatalf("four-hua label leaked into liu_nian_stars: %q", star)
 			}
 		}
 	}
-
-	// 甲年: 廉贞化禄, 破军化权, 武曲化科, 太阳化忌
-	// Some of these may or may not be in the chart — but we can verify
-	// the mechanism works by checking the chart's palaces
-	t.Logf("甲年流年四化注入结果: %v", huaLabels)
+	want := []string{"廉贞化禄", "破军化权", "武曲化科", "太阳化忌"}
+	got := flattenPeriodStars(liunianChart.LiuNianFourHua)
+	sort.Strings(got)
+	sort.Strings(want)
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("liu_nian_four_hua = %v, want %v", got, want)
+	}
 }
 
-// TestLiuyue_Basic verifies that CalculateLiuyue returns a valid overlay chart.
+// TestLiuyue_Basic verifies that CalculateLiuyueForDate returns a valid overlay chart.
 func TestLiuyue_Basic(t *testing.T) {
 	svc := NewZiWeiService()
 
@@ -567,11 +877,9 @@ func TestLiuyue_Basic(t *testing.T) {
 		t.Fatalf("CalculateChart failed: %v", err)
 	}
 
-	// Calculate liuyue for the 3rd lunar month
-	lunarMonth := 3
-	liuyueChart := svc.CalculateLiuyue(chart, lunarMonth)
+	liuyueChart := svc.CalculateLiuyueForDate(chart, 2026, 3, 15)
 	if liuyueChart == nil {
-		t.Fatal("CalculateLiuyue returned nil")
+		t.Fatal("CalculateLiuyueForDate returned nil")
 	}
 
 	// Verify LiuYueStars exists (length check instead of direct comparison)
@@ -587,7 +895,7 @@ func TestLiuyue_Basic(t *testing.T) {
 	}
 }
 
-// TestLiuri_Basic verifies that CalculateLiuri returns a valid overlay chart.
+// TestLiuri_Basic verifies that CalculateLiuriForDate returns a valid overlay chart.
 func TestLiuri_Basic(t *testing.T) {
 	svc := NewZiWeiService()
 
@@ -596,11 +904,9 @@ func TestLiuri_Basic(t *testing.T) {
 		t.Fatalf("CalculateChart failed: %v", err)
 	}
 
-	// Calculate liuri for the 15th lunar day
-	lunarDay := 15
-	liuriChart := svc.CalculateLiuri(chart, lunarDay)
+	liuriChart := svc.CalculateLiuriForDate(chart, 2026, 3, 15)
 	if liuriChart == nil {
-		t.Fatal("CalculateLiuri returned nil")
+		t.Fatal("CalculateLiuriForDate returned nil")
 	}
 
 	// Verify LiuriStars is a [12][]string
@@ -635,17 +941,17 @@ func TestLiunian_NilChart(t *testing.T) {
 // TestLiuyue_NilChart verifies nil handling.
 func TestLiuyue_NilChart(t *testing.T) {
 	svc := NewZiWeiService()
-	result := svc.CalculateLiuyue(nil, 3)
+	result := svc.CalculateLiuyueForDate(nil, 2026, 3, 15)
 	if result != nil {
-		t.Errorf("CalculateLiuyue(nil) = %v, want nil", result)
+		t.Errorf("CalculateLiuyueForDate(nil) = %v, want nil", result)
 	}
 }
 
 // TestLiuri_NilChart verifies nil handling.
 func TestLiuri_NilChart(t *testing.T) {
 	svc := NewZiWeiService()
-	result := svc.CalculateLiuri(nil, 15)
+	result := svc.CalculateLiuriForDate(nil, 2026, 3, 15)
 	if result != nil {
-		t.Errorf("CalculateLiuri(nil) = %v, want nil", result)
+		t.Errorf("CalculateLiuriForDate(nil) = %v, want nil", result)
 	}
 }

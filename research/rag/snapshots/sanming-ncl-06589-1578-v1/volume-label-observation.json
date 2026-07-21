@@ -1,0 +1,394 @@
+{
+  "schema": "sanming_ncl_volume_label_observation_v1",
+  "version": "2026-07-17.1",
+  "status": "single_operator_volume_mapping_candidates_not_gold",
+  "observed_at": "2026-07-17",
+  "candidate_id": "sanming-ncl-06589-1578-12vol-scan-v1",
+  "purpose": "Freeze page-addressable visual evidence and single-operator transcriptions for the twelve printed volume headings without promoting them to independently reviewed page-mapping Gold.",
+  "inputs": {
+    "snapshot_manifest": {
+      "path": "snapshot-manifest.json",
+      "sha256": "a0db6189460aa495122db8809d70a9837a7e92d30f209a11f7839859b3f6c2b3"
+    },
+    "physical_book_boundary_audit": {
+      "path": "book-boundary-audit.json",
+      "sha256": "bab12b9be839ce8205cc22705529cc6c9fcaab2168241338bba3aff48642f8e2"
+    }
+  },
+  "method": {
+    "evidence_renderer": "pdftoppm version 26.05.0",
+    "render_arguments": "-f physical_page -singlefile -jpeg -jpegopt quality=90 -r 144",
+    "reading_order": "vertical_columns_right_to_left",
+    "selection_rule": "first observed printed heading matching 三命通會卷之{Chinese volume numeral} inside each physical-book candidate",
+    "transcription_scope": "printed_volume_heading_only",
+    "mapping_manifest_scheme": "volume_tab_book_candidate_tab_part_tab_physical_page_tab_transcribed_heading_tab_evidence_sha256_lf_v1",
+    "mapping_manifest_sha256": "6a8fb60ee791c5b01dddbc5068cb1a58f1694626c686d5a82fd4ce2af25da1a5"
+  },
+  "review": {
+    "operator_count": 1,
+    "independent_reviewer_count": 0,
+    "adjudicator_count": 0,
+    "status": "single_operator_non_independent",
+    "disagreements": [],
+    "gold_eligible": false
+  },
+  "observations": [
+    {
+      "book_candidate": 1,
+      "volume_candidate": 1,
+      "printed_volume_numeral": "一",
+      "transcribed_heading": "三命通會卷之一",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 7,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 1,
+            "last_page": 98
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=7"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-01-part-1-page-0007.jpg",
+        "size_bytes": 295792,
+        "sha256": "87c5e5e321b1e3e2f21724ced9078ec484b4c2d468a1574799a5e121cab47666",
+        "width_pixels": 1684,
+        "height_pixels": 1192,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 2,
+      "volume_candidate": 2,
+      "printed_volume_numeral": "二",
+      "transcribed_heading": "三命通會卷之二",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 101,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 99,
+            "last_page": 190
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=101"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-02-part-1-page-0101.jpg",
+        "size_bytes": 274667,
+        "sha256": "24ed98506e6ddb943f222c3815f7aa8a66e552bcfeb961d16c076f011e013964",
+        "width_pixels": 1684,
+        "height_pixels": 1188,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 3,
+      "volume_candidate": 3,
+      "printed_volume_numeral": "三",
+      "transcribed_heading": "三命通會卷之三",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 193,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 191,
+            "last_page": 257
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=193"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-03-part-1-page-0193.jpg",
+        "size_bytes": 268936,
+        "sha256": "9e78d54651fef2d4d2c66dd9c93c806e4fededf2e4461da0205735f19c2d3465",
+        "width_pixels": 1684,
+        "height_pixels": 1198,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 4,
+      "volume_candidate": 4,
+      "printed_volume_numeral": "四",
+      "transcribed_heading": "三命通會卷之四",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 260,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 258,
+            "last_page": 334
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=260"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-04-part-1-page-0260.jpg",
+        "size_bytes": 279400,
+        "sha256": "cec1c461f08def66044691621a737a20ce4f8c0c909d38dd055076a79ce8af78",
+        "width_pixels": 1684,
+        "height_pixels": 1190,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 5,
+      "volume_candidate": 5,
+      "printed_volume_numeral": "五",
+      "transcribed_heading": "三命通會卷之五",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 337,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 335,
+            "last_page": 425
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=337"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-05-part-1-page-0337.jpg",
+        "size_bytes": 267516,
+        "sha256": "7c67b7e6706d3581f0129454ee183181c7502834e44c24b80ea8b61f85fe05be",
+        "width_pixels": 1684,
+        "height_pixels": 1186,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 6,
+      "volume_candidate": 6,
+      "printed_volume_numeral": "六",
+      "transcribed_heading": "三命通會卷之六",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 428,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 426,
+            "last_page": 523
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=428"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-06-part-1-page-0428.jpg",
+        "size_bytes": 266166,
+        "sha256": "6423f52d732d8886cf865da91350ba99b11260c4989c4fb670568677a7bb2937",
+        "width_pixels": 1684,
+        "height_pixels": 1174,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 7,
+      "volume_candidate": 7,
+      "printed_volume_numeral": "七",
+      "transcribed_heading": "三命通會卷之七",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 526,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 524,
+            "last_page": 639
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=526"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-07-part-1-page-0526.jpg",
+        "size_bytes": 261128,
+        "sha256": "92a4145507738768986c0d0f8e61f633fe3190f66e1d68b7d4452053968e28b9",
+        "width_pixels": 1684,
+        "height_pixels": 1174,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 8,
+      "volume_candidate": 8,
+      "printed_volume_numeral": "八",
+      "transcribed_heading": "三命通會卷之八",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 642,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 640,
+            "last_page": 759
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=642"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-08-part-1-page-0642.jpg",
+        "size_bytes": 261444,
+        "sha256": "868bb46a2f6103b43ea8d795823cebf37cfcf34048a2b7ba1435795e6f4e8fb2",
+        "width_pixels": 1684,
+        "height_pixels": 1164,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 9,
+      "volume_candidate": 9,
+      "printed_volume_numeral": "九",
+      "transcribed_heading": "三命通會卷之九",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 762,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 760,
+            "last_page": 876
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=762"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-09-part-1-page-0762.jpg",
+        "size_bytes": 264348,
+        "sha256": "e4b209fb789c9fde41d33538f5a4f1164ee85d5aa089840173c83b8dda14c49c",
+        "width_pixels": 1684,
+        "height_pixels": 1192,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 10,
+      "volume_candidate": 10,
+      "printed_volume_numeral": "十",
+      "transcribed_heading": "三命通會卷之十",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 879,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 877,
+            "last_page": 959
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=879"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-10-part-1-page-0879.jpg",
+        "size_bytes": 263655,
+        "sha256": "9b92bfe074ed47b57d8a4cad601b256a11ca4dbaec402762ec5428f56546860b",
+        "width_pixels": 1684,
+        "height_pixels": 1188,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 11,
+      "volume_candidate": 11,
+      "printed_volume_numeral": "十一",
+      "transcribed_heading": "三命通會卷之十一",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 1,
+        "physical_page": 962,
+        "physical_book_segments": [
+          {
+            "part": 1,
+            "first_page": 960,
+            "last_page": 1000
+          },
+          {
+            "part": 2,
+            "first_page": 1,
+            "last_page": 70
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page=962"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-11-part-1-page-0962.jpg",
+        "size_bytes": 261111,
+        "sha256": "71a6706d04f62ebbfc9a9f5f3287eae0e7a3a8d4cdd152945440d90a3e5fec7d",
+        "width_pixels": 1684,
+        "height_pixels": 1172,
+        "mime": "image/jpeg"
+      }
+    },
+    {
+      "book_candidate": 12,
+      "volume_candidate": 12,
+      "printed_volume_numeral": "十二",
+      "transcribed_heading": "三命通會卷之十二",
+      "transcription_status": "single_operator_visual_reading",
+      "source": {
+        "part": 2,
+        "physical_page": 73,
+        "physical_book_segments": [
+          {
+            "part": 2,
+            "first_page": 71,
+            "last_page": 187
+          }
+        ],
+        "commons_page_locator": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138043642?page=73"
+      },
+      "evidence": {
+        "path": "evidence/volume-labels/volume-12-part-2-page-0073.jpg",
+        "size_bytes": 260712,
+        "sha256": "4e89f2778c622dacbc1b9c0dfd54eca4cd81f589764b0a17d48c74d04e6a8dae",
+        "width_pixels": 1684,
+        "height_pixels": 1156,
+        "mime": "image/jpeg"
+      }
+    }
+  ],
+  "result": {
+    "physical_book_candidate_count": 12,
+    "printed_volume_heading_count": 12,
+    "unique_volume_candidate_count": 12,
+    "sequential_volume_candidates": true,
+    "book_to_volume_candidate_alignment": true,
+    "volume_one_front_matter_before_heading": {
+      "part": 1,
+      "first_page": 3,
+      "last_page": 6
+    },
+    "direct_printed_heading_observed_for_all_books": true
+  },
+  "boundaries": {
+    "printed_volume_labels_observed": true,
+    "single_operator_mapping_complete": true,
+    "provider_extent_consistent": true,
+    "independent_review_complete": false,
+    "bibliography_adjudicated": false,
+    "independent_primary_artifact_verified": false,
+    "complete_primary_text_verified": false,
+    "volume_mapping_verified": false,
+    "chapter_page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  }
+}

@@ -164,10 +164,10 @@ onUnmounted(() => {
                 v-for="el in wuxingCycle"
                 :key="el.key"
                 type="button"
-                @click="themeStore.setYongshen(el.key)"
+                @click="themeStore.setElementTheme(el.key)"
                 :class="[
                   'w-6 h-6 flex items-center justify-center rounded-full text-[var(--fs-2xs)] font-[family-name:var(--font-serif)] transition-all',
-                  themeStore.yongshen === el.key
+                  themeStore.elementTheme === el.key
                     ? 'bg-[var(--accent)] text-[var(--bg)] shadow-[0_0_10px_var(--brand-glow)]'
                     : 'text-[var(--text-muted)] hover:text-[var(--accent)]'
                 ]"

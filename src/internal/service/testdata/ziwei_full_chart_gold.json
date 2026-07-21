@@ -1,0 +1,10 @@
+{
+  "version": "0.1-draft",
+  "description": "紫微全盘 Gold 登记册。仅接受固定 Profile 下、来源可定位、双人独立复核并已冻结的完整十二宫案例；当前无合格案例。",
+  "profile_id": "ziwei-local-composite-v2",
+  "engine_version": "ziwei-local-go-2026-07-16.45",
+  "rule_version": "ziwei-rules-2026-07-16.45",
+  "frozen": false,
+  "dataset_hash": "",
+  "cases": []
+}

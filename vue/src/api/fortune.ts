@@ -11,84 +11,124 @@ export interface ScoreEvidence {
   impact: number
   description: string
   source: string
+  evidence_basis: 'empirical'
+  validation_status: 'not_validated'
+  interpretation_status: 'not_adjudicated'
+  is_outcome_conclusion: false
 }
 
 export interface FortuneScoreBreakdown {
   pipeline_version: string
+  score_kind: 'structural_relation_index'
+  evidence_basis: 'empirical'
+  validation_status: 'not_validated'
+  interpretation_status: 'not_adjudicated'
+  is_outcome_probability: false
   base_score: number
   relation_score: number
-  detail_score: number
   final_score: number
   evidence_completeness: number
   supporting_evidence: ScoreEvidence[]
   counter_evidence: ScoreEvidence[]
 }
 
-export interface FortuneGuideItem {
-  label: string
-  value: string
-  element?: string
-  reason: string
-  category?: string
-  priority?: number
-  intensity?: string
-  timing?: string
-  method?: string
-  source?: string
-  impact?: string
-}
-
-export interface ElementAsset {
-  id: number
-  key: string
+export interface TwelveStageEvidence {
+  rule_id: string
+  reference_stem: string
+  query_branch: string
   name: string
-  element: string
-  secondary_element?: string
-  url: string
-  thumbnail_url?: string
-  scene: string
-  orientation: 'landscape' | 'portrait' | 'square' | 'panorama' | string
-  tone: string
-  style: string
+  basis: string
+  status: 'observed' | 'unavailable'
+  interpretation_status: 'not_adjudicated'
+}
+
+export interface TraditionalCalendarEvidence {
+  rule_id: string
+  month_branch: string
+  query_branch: string
+  name: string
+  basis: string
+  status: 'observed' | 'unavailable'
+  interpretation_status: 'not_adjudicated'
+}
+
+export interface TenGodEvidence {
+  rule_id: string
+  reference_stem: string
+  query_stem: string
+  name: string
+  basis: string
+  status: 'observed' | 'unavailable'
+  interpretation_status: 'not_adjudicated'
+}
+
+export interface SeasonElementEvidence {
+  rule_id: string
+  reference_stem: string
+  reference_element: string
+  query_month_branch: string
   season: string
-  time_period: string
-  object_label?: string
-  description?: string
-  alt_text: string
-  dominant_color?: string
-  accent_color?: string
-  focal_x: number
-  focal_y: number
-  width: number
-  height: number
-  weight: number
-  sort_order: number
-  status: string
+  basis: string
+  status: 'observed' | 'unavailable'
+  interpretation_status: 'not_adjudicated'
 }
 
-export interface BlessingAssetSet {
-  hero?: ElementAsset
-  ritual: ElementAsset[]
-  actions: ElementAsset[]
-  gallery: ElementAsset[]
+export interface SeasonalStateEvidence {
+  rule_id: string
+  query_stem: string
+  query_element: string
+  query_month_branch: string
+  season: string
+  state: string
+  basis: string
+  status: 'observed' | 'unavailable'
+  interpretation_status: 'not_adjudicated'
 }
 
-export interface FortuneGuide {
-  precision_level: string
-  evidence_completeness: number
-  primary_element: string
-  secondary_element: string
-  avoid_element: string
-  lucky_colors: FortuneGuideItem[]
-  lucky_numbers: FortuneGuideItem[]
-  face_direction: FortuneGuideItem
-  wealth_direction: FortuneGuideItem
-  avoid_direction: FortuneGuideItem
-  recommended_actions: FortuneGuideItem[]
-  cautions: FortuneGuideItem[]
-  best_hours: FortuneGuideItem[]
-  analysis: string
-  strategy: string
+export interface ShengKeAnalysis {
+  day_stem_relation: string
+  day_branch_relation: string
+  summary: string
+}
+
+export interface HiddenStemGod {
+  rule_id: string
+  query_branch: string
+  reference_stem: string
+  stem: string
+  type: string
+  element: string
+  ten_god: string
+  basis: string
+  status: 'observed'
+  interpretation_status: 'not_adjudicated'
+}
+
+export interface StemRelation {
+  rule_id: string
+  query_stem: string
+  target_pillar: string
+  target_stem: string
+  type: string
+  name: string
+  combined_element?: string
+  basis: string
+  status: 'observed'
+  transformation_status: string
+  interpretation_status: 'not_adjudicated'
+}
+
+export interface BranchRelation {
+  rule_id: string
+  query_branch: string
+  target_pillar: string
+  target_branch: string
+  type: string
+  name: string
+  basis: string
+  status: 'observed'
+  transformation_status: string
+  interpretation_status: 'not_adjudicated'
 }
 
 /** Backend FortuneResponse — server JSON keys (snake_case). */
@@ -116,62 +156,45 @@ export interface FortuneDay {
   evidence_completeness: number
   supporting_evidence: ScoreEvidence[]
   counter_evidence: ScoreEvidence[]
-  lucky_color: string
-  lucky_number: number
-  wealth_direction: string
-  guide?: FortuneGuide
   clash_zodiac?: string
-  auspicious_hours?: string[]
-  yi?: string[]
-  ji?: string[]
   today_elements?: Record<string, number>
-  tiao_hou?: string
-  season_element_advice?: string
-  flow_impact?: string
-  today_ten_god?: string
-  ten_god_favorable?: boolean
-  ten_god_desc?: string
-  twelve_stage?: string
-  stage_favorable?: boolean
-  pattern_name?: string
-  pattern_type?: string
-  pattern_favorable?: string[]
-  pattern_unfavorable?: string[]
-  overall_verdict?: string
-  favor_score?: number
+  sheng_ke_analysis?: ShengKeAnalysis
+  season_element?: SeasonElementEvidence
+  ten_god?: TenGodEvidence
+  twelve_stage?: TwelveStageEvidence
+  jian_chu?: TraditionalCalendarEvidence
+  huang_dao?: TraditionalCalendarEvidence
+  hidden_stems?: HiddenStemGod[]
+  stem_relations?: StemRelation[]
+  branch_relations?: BranchRelation[]
   activated_shen_sha?: ShenShaActivation[]
+  seasonal_state?: SeasonalStateEvidence
   fortune_layers?: FortuneLayerSet
   element_images?: Array<{ element: string; image_url: string; description: string }>
-  blessing_assets?: BlessingAssetSet
 }
 
 export interface FortuneSummary {
-  best_day: string
-  worst_day: string
-  best_score: number
-  worst_score: number
-  peak_days: string[]
-  low_days: string[]
+  highest_index_day: string
+  lowest_index_day: string
+  highest_index: number
+  lowest_index: number
   element_distribution: Record<string, number> // keys 木 火 土 金 水
   dominant_element: string
   dominant_ten_god: string
-  good_streak: number
-  bad_streak: number
-  average_score: number
-  volatility: number
-  key_advice: string
+  average_index: number
+  index_standard_deviation: number
 }
 
 export interface WeeklyFortuneResponse {
   daily_fortunes: FortuneDay[]
-  weekly_score: number
+  structural_relation_index: number
   element_trend: string
   summary: FortuneSummary
 }
 
 export interface MonthlyFortuneResponse {
   daily_fortunes: FortuneDay[]
-  monthly_score: number
+  structural_relation_index: number
   element_trend: string
   summary: FortuneSummary
 }

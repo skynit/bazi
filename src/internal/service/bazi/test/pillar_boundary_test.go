@@ -15,20 +15,21 @@ import (
 // TestPillarBoundary_LiChun 验证 立春前后年柱/月柱变化
 //
 // 使用 tyme4go 库的实际 立春转换时间（已通过探测确定）:
-//   2024: 16:27→癸卯/乙丑, 16:28→甲辰/丙寅
-//   2025: 22:10→甲辰/丁丑, 22:11→乙巳/戊寅
-//   2026: between 03:30-04:30 (~04:25)
-//   2027: 09:46→丙午/辛丑, 09:47→丁未/壬寅
-//   2028: 15:31→丁未/癸丑, 15:32→戊申/甲寅
+//
+//	2024: 16:27→癸卯/乙丑, 16:28→甲辰/丙寅
+//	2025: 22:10→甲辰/丁丑, 22:11→乙巳/戊寅
+//	2026: 04:02:08
+//	2027: 09:46→丙午/辛丑, 09:47→丁未/壬寅
+//	2028: 15:31→丁未/癸丑, 15:32→戊申/甲寅
 func TestPillarBoundary_LiChun(t *testing.T) {
 	svc := &BaziService{}
 
 	tests := []struct {
-		name                    string
-		year, month, day        int
-		hour, min               int
-		wantYearPillar          string
-		wantMonthPillar         string
+		name             string
+		year, month, day int
+		hour, min        int
+		wantYearPillar   string
+		wantMonthPillar  string
 	}{
 		// 2024 立春：transition 16:27→16:28 (astronomical 16:26:53)
 		{"2024立春前-16:27", 2024, 2, 4, 16, 27, "癸卯", "乙丑"},
@@ -36,16 +37,16 @@ func TestPillarBoundary_LiChun(t *testing.T) {
 		// 2025 立春：transition 22:10→22:11 (astronomical 22:10:13)
 		{"2025立春前-22:10", 2025, 2, 3, 22, 10, "甲辰", "丁丑"},
 		{"2025立春后-22:11", 2025, 2, 3, 22, 11, "乙巳", "戊寅"},
-		// 2023 立春：astronomical 10:42:21, library ~10:43
+		// 2023 立春：10:42:33；分钟接口在 10:43 才进入新节令
 		{"2023立春前-10:42", 2023, 2, 4, 10, 42, "壬寅", "癸丑"},
 		{"2023立春后-10:43", 2023, 2, 4, 10, 43, "癸卯", "甲寅"},
-		// 2026 立春：transition ~04:25 (astronomical 04:25:06)
+		// 2026 立春：04:02:08（此处用宽边界断言；秒级断言见 external_silver_test.go）
 		{"2026立春前-03:30", 2026, 2, 4, 3, 30, "乙巳", "己丑"},
 		{"2026立春后-04:30", 2026, 2, 4, 4, 30, "丙午", "庚寅"},
-		// 2027 立春：transition 09:46→09:47 (astronomical 10:24:36)
+		// 2027 立春：09:46:18
 		{"2027立春前-09:46", 2027, 2, 4, 9, 46, "丙午", "辛丑"},
 		{"2027立春后-09:47", 2027, 2, 4, 9, 47, "丁未", "壬寅"},
-		// 2028 立春：transition 15:31→15:32 (astronomical 16:18:48)
+		// 2028 立春：15:31:13
 		{"2028立春前-15:31", 2028, 2, 4, 15, 31, "丁未", "癸丑"},
 		{"2028立春后-15:32", 2028, 2, 4, 15, 32, "戊申", "甲寅"},
 	}
@@ -89,9 +90,9 @@ func TestPillarBoundary_AllSolarTerms(t *testing.T) {
 	svc := &BaziService{}
 
 	type termCase struct {
-		name                         string
+		name                        string
 		year, month, day, hour, min int
-		wantMonthPillar              string
+		wantMonthPillar             string
 	}
 	cases := []termCase{
 		// 小寒前
@@ -154,7 +155,7 @@ func TestPillarBoundary_Hour(t *testing.T) {
 	// 2024-02-15 日柱为庚戌日（通过探测确定）
 	// 五鼠遁：乙庚丙作初 → 子时天干为丙
 	// 丙子, 丁丑, 戊寅, 己卯, 庚辰, 辛巳, 壬午, 癸未, 甲申, 乙酉, 丙戌, 丁亥
-	
+
 	t.Run("子时边界", func(t *testing.T) {
 		result, err := svc.Calculate(baseY, baseM, 15, 23, 0, "MALE")
 		if err != nil {
@@ -266,7 +267,7 @@ func TestPillarBoundary_Hour(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Calculate 23:00 失败: %v", err)
 		}
-		subDayStem := r.DayPillar.Gan // 庚
+		subDayStem := r.DayPillar.Gan       // 庚
 		subFirstGan := wuShuDun[subDayStem] // 丙
 		expectedZi := subFirstGan + "子"
 		hP := pillarStr(r.HourPillar)

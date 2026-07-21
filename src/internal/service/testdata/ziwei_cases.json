@@ -1,7 +1,17 @@
 {
-  "version": "1.0",
-  "description": "紫微斗数经典命例测试库 - 用于验证紫微算命算法精准度",
+  "version": "2.0",
+  "description": "Quarantined Ziwei pattern candidates with unsupported legacy descriptions isolated from evaluator assertions.",
   "source": "知识库 /home/skynit/Uni/ming/mingli/02-概念体系/紫微斗数/ + 经典格局",
+  "metadata": {
+    "tier": "bronze",
+    "source_name": "legacy ziwei pattern fixtures",
+    "license": "unknown",
+    "confidence": 0,
+    "review_status": "quarantined",
+    "reviewers": [],
+    "purpose": "ziwei_pattern_candidates",
+    "quarantine_reason": "Pattern and five-bureau candidates lack page-level evidence, independent adjudication, and an original declared Ziwei profile; all other legacy descriptions are non-assertive annotations."
+  },
   "cases": [
     {
       "id": "ziwei_001",
@@ -15,11 +25,17 @@
       "gender": "MALE",
       "expected": {
         "pattern": "紫府同宫",
-        "five_bureau": "木三局",
-        "key_palaces": {
-          "命宫": "紫微、天府同宫",
-          "财帛": "武曲",
-          "官禄": "廉贞"
+        "five_bureau": "木三局"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "紫府同宫",
+          "five_bureau": "木三局",
+          "key_palaces": {
+            "命宫": "紫微、天府同宫",
+            "财帛": "武曲",
+            "官禄": "廉贞"
+          }
         }
       }
     },
@@ -35,6 +51,11 @@
       "gender": "MALE",
       "expected": {
         "pattern": "紫破同宫"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "紫破同宫"
+        }
       }
     },
     {
@@ -48,9 +69,14 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "杀破狼格",
-        "key_palaces": {
-          "命宫或迁移": "七杀、破军、贪狼三方会照"
+        "pattern": "杀破狼格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "杀破狼格",
+          "key_palaces": {
+            "命宫或迁移": "七杀、破军、贪狼三方会照"
+          }
         }
       }
     },
@@ -65,8 +91,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "机月同梁格",
-        "occupation_tendency": "公家单位工作"
+        "pattern": "机月同梁格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "机月同梁格",
+          "occupation_tendency": "公家单位工作"
+        }
       }
     },
     {
@@ -81,6 +112,11 @@
       "gender": "FEMALE",
       "expected": {
         "pattern": "府相朝垣"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "府相朝垣"
+        }
       }
     },
     {
@@ -94,8 +130,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "七杀朝斗",
-        "occupation_tendency": "武职显达"
+        "pattern": "七杀朝斗"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "七杀朝斗",
+          "occupation_tendency": "武职显达"
+        }
       }
     },
     {
@@ -110,6 +151,11 @@
       "gender": "FEMALE",
       "expected": {
         "pattern": "日月并明"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "日月并明"
+        }
       }
     },
     {
@@ -123,8 +169,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "禄马交驰",
-        "wealth_tendency": "辛苦赚大钱"
+        "pattern": "禄马交驰"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "禄马交驰",
+          "wealth_tendency": "辛苦赚大钱"
+        }
       }
     },
     {
@@ -138,8 +189,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "巨日同宫",
-        "wealth_tendency": "大生意人、巨富"
+        "pattern": "巨日同宫"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "巨日同宫",
+          "wealth_tendency": "大生意人、巨富"
+        }
       }
     },
     {
@@ -153,8 +209,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "火贪格",
-        "occupation_tendency": "武职"
+        "pattern": "火贪格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "火贪格",
+          "occupation_tendency": "武职"
+        }
       }
     },
     {
@@ -169,6 +230,11 @@
       "gender": "MALE",
       "expected": {
         "pattern": "铃贪格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "铃贪格"
+        }
       }
     },
     {
@@ -183,6 +249,11 @@
       "gender": "MALE",
       "expected": {
         "pattern": "半空折翅格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "半空折翅格"
+        }
       }
     },
     {
@@ -196,8 +267,13 @@
       "minute": 0,
       "gender": "FEMALE",
       "expected": {
-        "pattern": "日月反背",
-        "life_tendency": "工作披星戴月、离开家乡"
+        "pattern": "日月反背"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "日月反背",
+          "life_tendency": "工作披星戴月、离开家乡"
+        }
       }
     },
     {
@@ -211,8 +287,13 @@
       "minute": 0,
       "gender": "MALE",
       "expected": {
-        "pattern": "科权禄三会",
-        "rank_tendency": "一方之主"
+        "pattern": "科权禄三会"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "科权禄三会",
+          "rank_tendency": "一方之主"
+        }
       }
     },
     {
@@ -225,9 +306,12 @@
       "hour": 12,
       "minute": 0,
       "gender": "MALE",
-      "expected": {
-        "main_star": "紫微在子或午",
-        "tendency": "帝星当令"
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "main_star": "紫微在子或午",
+          "tendency": "帝星当令"
+        }
       }
     },
     {
@@ -242,6 +326,11 @@
       "gender": "MALE",
       "expected": {
         "pattern": "武贪格"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "武贪格"
+        }
       }
     },
     {
@@ -256,6 +345,11 @@
       "gender": "FEMALE",
       "expected": {
         "pattern": "辅弼夹贵"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "辅弼夹贵"
+        }
       }
     },
     {
@@ -270,6 +364,11 @@
       "gender": "MALE",
       "expected": {
         "pattern": "文昌文曲同宫"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "pattern": "文昌文曲同宫"
+        }
       }
     },
     {
@@ -282,8 +381,11 @@
       "hour": 10,
       "minute": 0,
       "gender": "MALE",
-      "expected": {
-        "tendency": "善谈兵、谋略出众"
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "tendency": "善谈兵、谋略出众"
+        }
       }
     },
     {
@@ -296,9 +398,12 @@
       "hour": 14,
       "minute": 0,
       "gender": "FEMALE",
-      "expected": {
-        "main_star": "巨门",
-        "tendency": "口舌是非"
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "main_star": "巨门",
+          "tendency": "口舌是非"
+        }
       }
     },
     {
@@ -311,9 +416,12 @@
       "hour": 22,
       "minute": 0,
       "gender": "FEMALE",
-      "expected": {
-        "main_star": "天同",
-        "tendency": "福气深厚"
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "main_star": "天同",
+          "tendency": "福气深厚"
+        }
       }
     },
     {
@@ -326,9 +434,12 @@
       "hour": 12,
       "minute": 0,
       "gender": "MALE",
-      "expected": {
-        "main_star": "太阳在庙",
-        "tendency": "父星吉、贵人运"
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "main_star": "太阳在庙",
+          "tendency": "父星吉、贵人运"
+        }
       }
     }
   ]

@@ -1,7 +1,6 @@
 package fortune
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -9,8 +8,6 @@ import (
 	bazipkg "bazi/internal/service/bazi"
 	"bazi/internal/service/data"
 )
-
-var layerElementOrder = []string{"木", "火", "土", "金", "水"}
 
 // PeriodLayerCalculator calculates one fortune-period layer.
 type PeriodLayerCalculator interface {
@@ -58,8 +55,9 @@ func BuildFortuneLayers(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 
 func BuildFortuneLayersWithCalculators(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int, calculators []PeriodLayerCalculator) model.FortuneLayerSet {
 	layers := model.FortuneLayerSet{
-		RuleVersion: bazipkg.RuleVersion,
-		School:      bazipkg.RuleSchool,
+		RuleVersion:         bazipkg.RuleVersion,
+		School:              bazipkg.RuleSchool,
+		InterLayerRelations: []model.FortuneLayerRelation{},
 	}
 	for _, calculator := range calculators {
 		layer := calculator.Calculate(bazi, queryDate, birthYear)
@@ -74,7 +72,43 @@ func BuildFortuneLayersWithCalculators(bazi *bazipkg.BaziResult, queryDate time.
 			layers.XiaoYun = layer
 		}
 	}
+	layers.InterLayerRelations = coreInterLayerRelations(layers)
 	return layers
+}
+
+// coreInterLayerRelations records the deterministic 大运-流年-流月 chain.
+// It does not assign favorable/unfavorable meaning or change the score.
+func coreInterLayerRelations(layers model.FortuneLayerSet) []model.FortuneLayerRelation {
+	relations := make([]model.FortuneLayerRelation, 0, 6)
+	for _, pair := range []struct {
+		source model.FortuneLayer
+		target model.FortuneLayer
+	}{
+		{source: layers.LiuNian, target: layers.DaYun},
+		{source: layers.LiuYue, target: layers.LiuNian},
+		{source: layers.LiuYue, target: layers.DaYun},
+	} {
+		if pair.source.Status != "observed" || pair.target.Status != "observed" {
+			continue
+		}
+		stemRelations := layerStemRelations(
+			pair.source.Name+"天干", pair.source.Gan,
+			pair.target.Name+"天干", pair.target.Gan,
+		)
+		for i := range stemRelations {
+			stemRelations[i].Basis = "period_layer_stem_pair"
+		}
+		relations = append(relations, stemRelations...)
+		branchRelations := layerBranchRelations(
+			pair.source.Name+"地支", pair.source.Zhi,
+			pair.target.Name+"地支", pair.target.Zhi,
+		)
+		for i := range branchRelations {
+			branchRelations[i].Basis = "period_layer_branch_pair"
+		}
+		relations = append(relations, branchRelations...)
+	}
+	return relations
 }
 
 func buildDaYunLayer(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
@@ -82,14 +116,11 @@ func buildDaYunLayer(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear in
 	layer := baseLayer("dayun", "大运", influence.CurrentPillar, bazi, queryDate)
 	layer.StartAge = influence.StartAge
 	layer.EndAge = influence.EndAge
+	layer.StartAt = influence.StartAt
+	layer.EndAtExclusive = influence.EndAtExclusive
 	layer.Age = queryDate.Year() - birthYear
-	layer.TenGod = influence.TenGod
-	layer.Favorable = influence.Favorable
-	layer.Score += influence.Score
-	layer.Description = influence.Description
-	if influence.Relation != "" {
-		layer.Evidence = append(layer.Evidence, influence.Relation)
-	}
+	layer.Basis = influence.SelectionBasis
+	layer.Status = influence.Status
 	return layer
 }
 
@@ -98,13 +129,8 @@ func buildLiuNianLayer(bazi *bazipkg.BaziResult, queryDate time.Time) model.Fort
 	layer := baseLayer("liunian", "流年", pillar, bazi, queryDate)
 	influence := calcLiuNianInfluence(bazi, queryDate)
 	layer.Year = queryDate.Year()
-	layer.TenGod = influence.TenGod
-	layer.Favorable = influence.Favorable
-	layer.Score += influence.Score
-	layer.Description = influence.Description
-	if influence.TaiSuiRelation != "" {
-		layer.Evidence = append(layer.Evidence, influence.TaiSuiRelation)
-	}
+	layer.Basis = influence.SelectionBasis
+	layer.Status = influence.Status
 	return layer
 }
 
@@ -117,55 +143,45 @@ func buildLiuYueLayer(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear i
 	layer.Year = queryDate.Year()
 	layer.Month = int(queryDate.Month())
 	layer.Age = queryDate.Year() - birthYear
-	layer.Description = fmt.Sprintf("%d年%d月流月%s，对日主为%s。", layer.Year, layer.Month, layer.Pillar, layer.TenGod)
+	layer.Basis = "query_date_month_pillar_at_solar_term_boundary"
 	return layer
 }
 
 func buildXiaoYunLayer(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) model.FortuneLayer {
-	age := queryDate.Year() - birthYear
-	offset := age
+	nominalAge := queryDate.Year() - birthYear + 1
+	offset := nominalAge
 	if strings.Contains(bazi.DaYunInfo.Direction, "逆") {
-		offset = -age
+		offset = -nominalAge
 	}
 	pillar := offsetPillar(bazi.HourPillar, offset)
 	layer := baseLayer("xiaoyun", "小运", pillar, bazi, queryDate)
-	layer.Age = age
+	layer.RuleID = "fortune.layer.xiaoyun-v3"
+	layer.Age = nominalAge
 	layer.Year = queryDate.Year()
-	layer.Description = fmt.Sprintf("小运以时柱%s为起点，按%s推至%d岁为%s。", bazi.HourPillar.Gan+bazi.HourPillar.Zhi, bazi.DaYunInfo.Direction, age, layer.Pillar)
-	layer.Evidence = append(layer.Evidence, "小运用于补充流年以下的年龄层影响，权重低于大运与流年。")
+	layer.Basis = "tyme4go_fortune_hour_pillar_direction_and_nominal_age"
 	return layer
 }
 
 func baseLayer(key, name, pillar string, bazi *bazipkg.BaziResult, queryDate time.Time) model.FortuneLayer {
 	gan, zhi := splitPillar(pillar)
 	layer := model.FortuneLayer{
-		Key:              key,
-		Name:             name,
-		Pillar:           pillar,
-		Gan:              gan,
-		Zhi:              zhi,
-		ElementChange:    pillarElementChange(gan, zhi),
-		Relations:        layerRelations(gan, zhi, bazi, queryDate),
-		ActivatedShenSha: layerShenShaNames(gan, zhi, bazi),
-		ShenShaDetails:   layerShenShaDetails(gan, zhi, bazi),
+		RuleID:               "fortune.layer." + key + "-v2",
+		Key:                  key,
+		Name:                 name,
+		Pillar:               pillar,
+		Gan:                  gan,
+		Zhi:                  zhi,
+		Relations:            layerRelations(gan, zhi, bazi, queryDate),
+		ShenShaDetails:       layerShenShaDetails(gan, zhi, bazi),
+		Basis:                "period_pillar_and_natal_chart",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
 	if gan != "" {
-		layer.TenGod = bazipkg.ClassifyTenGod(gan, bazi.DayPillar.Gan, false)
-		like, _, _ := getEffectiveFavor(bazi)
-		layer.Favorable = isFavorableTenGodByFavor(layer.TenGod, like, bazi.DayPillar.Gan)
-		if layer.Favorable {
-			layer.Score += 8
-			layer.Evidence = append(layer.Evidence, fmt.Sprintf("%s天干%s为%s，落入喜用。", name, gan, layer.TenGod))
-		} else if layer.TenGod != "" {
-			layer.Score -= 8
-			layer.Evidence = append(layer.Evidence, fmt.Sprintf("%s天干%s为%s，非当前喜用。", name, gan, layer.TenGod))
-		}
+		layer.TenGod = observeTenGod(bazi.DayPillar.Gan, gan)
 	}
-	for _, rel := range layer.Relations {
-		layer.Score += rel.Score
-	}
-	if len(layer.ActivatedShenSha) > 0 {
-		layer.Evidence = append(layer.Evidence, fmt.Sprintf("引动神煞：%s。", strings.Join(layer.ActivatedShenSha, "、")))
+	if gan != "" && zhi != "" {
+		layer.Status = "observed"
 	}
 	return layer
 }
@@ -178,43 +194,12 @@ func splitPillar(pillar string) (string, string) {
 	return string(runes[0]), string(runes[1])
 }
 
-func pillarElementChange(gan, zhi string) map[string]int {
-	out := make(map[string]int, len(layerElementOrder))
-	for _, e := range layerElementOrder {
-		out[e] = 0
-	}
-	if elem := data.GanElement[gan]; elem != "" {
-		out[elem] += 5
-	}
-	if elem := data.ZhiElement[zhi]; elem != "" {
-		out[elem] += 3
-	}
-	return out
-}
-
 func layerRelations(gan, zhi string, bazi *bazipkg.BaziResult, queryDate time.Time) []model.FortuneLayerRelation {
 	var rels []model.FortuneLayerRelation
 	if gan != "" {
-		rel := stemRelation(bazi.DayPillar.Gan, gan)
-		if rel != "unknown" {
-			score := relationScore(rel)
-			rels = append(rels, model.FortuneLayerRelation{
-				Target: "日干",
-				Type:   stemRelLabel(rel, bazi.DayPillar.Gan, gan),
-				Detail: fmt.Sprintf("%s与日干%s形成%s。", gan, bazi.DayPillar.Gan, stemRelLabel(rel, bazi.DayPillar.Gan, gan)),
-				Score:  score,
-			})
-		}
+		rels = append(rels, layerStemRelations("周期天干", gan, "日干", bazi.DayPillar.Gan)...)
 		if todayGan := queryDateGan(queryDate); todayGan != "" {
-			rel := stemRelation(todayGan, gan)
-			if rel != "unknown" {
-				rels = append(rels, model.FortuneLayerRelation{
-					Target: "流日天干",
-					Type:   stemRelLabel(rel, todayGan, gan),
-					Detail: fmt.Sprintf("%s与流日天干%s形成%s。", gan, todayGan, stemRelLabel(rel, todayGan, gan)),
-					Score:  relationScore(rel) / 2,
-				})
-			}
+			rels = append(rels, layerStemRelations("周期天干", gan, "查询日干", todayGan)...)
 		}
 	}
 	if zhi != "" {
@@ -227,73 +212,111 @@ func layerRelations(gan, zhi string, bazi *bazipkg.BaziResult, queryDate time.Ti
 			{"日支", bazi.DayPillar.Zhi},
 			{"时支", bazi.HourPillar.Zhi},
 		}
+		if today, err := getDayPillar(queryDate.Year(), int(queryDate.Month()), queryDate.Day()); err == nil {
+			targets = append([]struct {
+				name string
+				zhi  string
+			}{{"查询日支", today.Zhi}}, targets...)
+		}
 		for _, target := range targets {
-			rel := branchRelation(target.zhi, zhi)
-			if rel == "neutral" || rel == "unknown" {
-				continue
-			}
-			rels = append(rels, model.FortuneLayerRelation{
-				Target: target.name,
-				Type:   branchRelLabel(rel),
-				Detail: fmt.Sprintf("%s与%s%s形成%s。", zhi, target.name, target.zhi, branchRelLabel(rel)),
-				Score:  relationScore(rel),
-			})
+			rels = append(rels, layerBranchRelations("周期地支", zhi, target.name, target.zhi)...)
 		}
 	}
 	return rels
 }
 
-func relationScore(rel string) int {
-	switch rel {
-	case "same":
-		return 4
-	case "shengWo":
-		return 8
-	case "woSheng":
-		return 3
-	case "woKe":
-		return 4
-	case "keWo":
-		return -8
-	case "combine":
-		return 6
-	case "banHe":
-		return 4
-	case "gongHe":
-		return 3
-	case "banHui":
-		return 3
-	case "sanHe":
-		return 8
-	case "sanHui":
-		return 10
-	case "clash":
-		return -12
-	case "punish":
-		return -9
-	case "harm":
-		return -7
-	case "break":
-		return -5
-	default:
-		return 0
+func layerStemRelations(source, sourceStem, target, targetStem string) []model.FortuneLayerRelation {
+	if data.GanIndex(sourceStem) < 0 || data.GanIndex(targetStem) < 0 {
+		return []model.FortuneLayerRelation{}
 	}
+	types := make([]string, 0, 2)
+	if isGanHe(sourceStem, targetStem) {
+		types = append(types, "five_combine")
+	}
+	if stemClashMap[sourceStem] == targetStem {
+		types = append(types, "clash")
+	}
+	if elementRelation := stemRelation(targetStem, sourceStem); elementRelation != "unknown" {
+		types = append(types, elementRelation)
+	}
+	relations := make([]model.FortuneLayerRelation, 0, len(types))
+	for _, relationType := range types {
+		relationName := stemRelLabel(relationType, targetStem, sourceStem)
+		switch relationType {
+		case "five_combine":
+			relationName = "天干五合"
+		case "clash":
+			relationName = "天干相冲"
+		}
+		relations = append(relations, model.FortuneLayerRelation{
+			RuleID:               "fortune.layer-relation.stem-v3." + relationType,
+			Source:               source,
+			SourceValue:          sourceStem,
+			Target:               target,
+			TargetValue:          targetStem,
+			Type:                 relationType,
+			Name:                 relationName,
+			Basis:                "period_stem_and_target_stem_all_structures",
+			Status:               "observed",
+			InterpretationStatus: "not_adjudicated",
+		})
+	}
+	return relations
 }
 
-func layerShenShaNames(gan, zhi string, bazi *bazipkg.BaziResult) []string {
-	if gan == "" || zhi == "" {
-		return nil
+func layerBranchRelations(source, sourceBranch, target, targetBranch string) []model.FortuneLayerRelation {
+	if data.ZhiIndex(sourceBranch) < 0 || data.ZhiIndex(targetBranch) < 0 {
+		return []model.FortuneLayerRelation{}
 	}
-	acts := calcShenShaActivation(gan, zhi, bazi)
-	names := make([]string, 0, len(acts))
-	seen := map[string]bool{}
-	for _, act := range acts {
-		if act.Name != "" && !seen[act.Name] {
-			names = append(names, act.Name)
-			seen[act.Name] = true
+	types := make([]string, 0, 4)
+	if sourceBranch == targetBranch {
+		types = append(types, "same")
+		if strings.Contains("辰午酉亥", sourceBranch) {
+			types = append(types, "punish")
+		}
+	} else {
+		if clashPairs[sourceBranch] == targetBranch {
+			types = append(types, "clash")
+		}
+		if punishPairs[sourceBranch+targetBranch] {
+			types = append(types, "punish")
+		}
+		if harmPairs[sourceBranch] == targetBranch {
+			types = append(types, "harm")
+		}
+		if breakPairs[sourceBranch] == targetBranch {
+			types = append(types, "break")
+		}
+		if combinePairs[sourceBranch] == targetBranch {
+			types = append(types, "combine")
+		}
+		if partial := partialSanHeRelation(sourceBranch, targetBranch); partial != "" {
+			types = append(types, partial)
+		}
+		if isInSameGroup(sanHuiGroups, sourceBranch, targetBranch) {
+			types = append(types, "banHui")
 		}
 	}
-	return names
+	relations := make([]model.FortuneLayerRelation, 0, len(types))
+	for _, relationType := range types {
+		relationName := branchRelLabel(relationType)
+		if relationType == "same" {
+			relationName = "同支"
+		}
+		relations = append(relations, model.FortuneLayerRelation{
+			RuleID:               "fortune.layer-relation.branch-v3." + relationType,
+			Source:               source,
+			SourceValue:          sourceBranch,
+			Target:               target,
+			TargetValue:          targetBranch,
+			Type:                 relationType,
+			Name:                 relationName,
+			Basis:                "period_branch_and_target_branch_all_structures",
+			Status:               "observed",
+			InterpretationStatus: "not_adjudicated",
+		})
+	}
+	return relations
 }
 
 func layerShenShaDetails(gan, zhi string, bazi *bazipkg.BaziResult) []model.ShenShaActivation {

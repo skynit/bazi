@@ -16,9 +16,8 @@ var tiaohouMonthOrder = [12]string{
 // TestTiaohouFull_All120 verifies all 120 调候 combinations (10 day stems × 12 month branches).
 // For each pair, it checks:
 //  1. AnalyzeTiaohou returns a non-nil result (no error)
-//  2. Primary is non-empty
-//  3. For pairs with exactly 1 rule: Primary matches the rule's XiShen
-//  4. For pairs with multiple rules: Primary is one of the XiShen values
+//  2. the table-first candidate matches the first source-table rule
+//  3. every result satisfies the auditable evidence contract
 func TestTiaohouFull_All120(t *testing.T) {
 	stems := data.Gans // 甲,乙,丙,丁,戊,己,庚,辛,壬,癸
 
@@ -36,48 +35,23 @@ func TestTiaohouFull_All120(t *testing.T) {
 					t.Fatal("AnalyzeTiaohou returned nil result without error")
 				}
 
-				// Step 2: Primary must be non-empty
-				if result.Primary == "" {
-					t.Error("Primary is empty (expected at least one 调候用神)")
+				if result.TablePrimaryCandidate == "" {
+					t.Error("table primary candidate is empty")
 				}
 
-				// Step 3-4: Validate Primary against the raw data rules
 				rules := data.GetTiaohou(stem, month)
 				if len(rules) == 0 {
 					t.Error("GetTiaohou returned empty rules (data integrity issue)")
 					return
 				}
 
-				// Collect all XiShen from rules
-				xishenSet := make(map[string]bool, len(rules))
-				for _, r := range rules {
-					if r.XiShen != "" {
-						xishenSet[r.XiShen] = true
-					}
+				if result.TablePrimaryCandidate != rules[0].XiShen {
+					t.Errorf("table candidate = %q, want first XiShen %q", result.TablePrimaryCandidate, rules[0].XiShen)
 				}
-
-				if len(rules) == 1 {
-					// Single-rule entry: Primary must exactly match XiShen
-					expected := rules[0].XiShen
-					if result.Primary != expected {
-						t.Errorf("单条规则: Primary = %q, 期望 XiShen = %q", result.Primary, expected)
-					}
-				} else {
-					// Multi-rule entry: Primary must be one of the XiShen values
-					if !xishenSet[result.Primary] {
-						t.Errorf("多条规则: Primary = %q 不在 XiShen 集合 %v 中", result.Primary, keysOfSet(xishenSet))
-					}
+				if !ValidTiaohouEvidence(result, stem, month) {
+					t.Errorf("invalid Tiaohou evidence: %+v", result)
 				}
 			})
 		}
 	}
-}
-
-// keysOfSet extracts the keys of a string set into a slice.
-func keysOfSet(m map[string]bool) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
 }

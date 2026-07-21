@@ -1,6 +1,11 @@
 package fortune
 
-import "testing"
+import (
+	"testing"
+
+	"bazi/internal/model"
+	bazipkg "bazi/internal/service/bazi"
+)
 
 func TestBranchRelationPartialGroups(t *testing.T) {
 	tests := []struct {
@@ -24,7 +29,31 @@ func TestBranchRelationPartialGroups(t *testing.T) {
 	}
 }
 
-func TestPartialBranchScoresAreBelowCompleteGroups(t *testing.T) {
+func TestBranchRelationPunishmentIsSymmetric(t *testing.T) {
+	for _, pair := range [][2]string{
+		{"丑", "戌"}, {"戌", "未"}, {"子", "卯"},
+	} {
+		if forward, reverse := branchRelation(pair[0], pair[1]), branchRelation(pair[1], pair[0]); forward != "punish" || reverse != "punish" {
+			t.Errorf("%s%s关系不对称: forward=%s reverse=%s", pair[0], pair[1], forward, reverse)
+		}
+	}
+}
+
+func TestBranchRelationDoesNotTreatSameBranchAsHalfMeeting(t *testing.T) {
+	for _, branch := range []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"} {
+		if got := branchRelation(branch, branch); got != "same" {
+			t.Errorf("branchRelation(%s, %s) = %s, want same", branch, branch, got)
+		}
+	}
+	if got := calcScore("unknown", "same", "", ""); got != 50 {
+		t.Fatalf("同支不应被误作半会加分: score=%d, want 50", got)
+	}
+	if label := branchRelLabel("same"); label != "同支" {
+		t.Fatalf("same label = %s, want 同支", label)
+	}
+}
+
+func TestPartialBranchRelationsHaveDistinctStructuralIndexes(t *testing.T) {
 	if got := calcScore("unknown", "banHe", "", ""); got != 56 {
 		t.Fatalf("半合 score=%d, want 56", got)
 	}
@@ -34,10 +63,34 @@ func TestPartialBranchScoresAreBelowCompleteGroups(t *testing.T) {
 	if got := calcScore("unknown", "banHui", "", ""); got != 55 {
 		t.Fatalf("半会 score=%d, want 55", got)
 	}
-	if !(relationScore("banHe") < relationScore("sanHe")) {
-		t.Fatalf("分层评分中半合必须低于完整三合")
+}
+
+func TestRikuyoBranchRelationsPreserveCompoundStructures(t *testing.T) {
+	chart := &bazipkg.BaziResult{DayPillar: model.Pillar{Zhi: "巳"}}
+	relations := calcBranchRelations("申", chart)
+	assertRikuyoRelationTypes(t, relations, "日支", []string{"punish", "break", "combine"})
+
+	chart.DayPillar.Zhi = "辰"
+	relations = calcBranchRelations("辰", chart)
+	assertRikuyoRelationTypes(t, relations, "日支", []string{"same", "punish"})
+}
+
+func assertRikuyoRelationTypes(t *testing.T, relations []BranchRelation, target string, want []string) {
+	t.Helper()
+	got := map[string]bool{}
+	for _, relation := range relations {
+		if relation.TargetPillar != target {
+			continue
+		}
+		got[relation.Type] = true
+		if relation.RuleID != "rikuyo.branch-relation-v3."+relation.Type ||
+			relation.Basis != "query_day_branch_and_natal_pillar_branch_all_structures" {
+			t.Fatalf("复合关系缺少可复核依据: %+v", relation)
+		}
 	}
-	if !(relationScore("banHui") < relationScore("sanHui")) {
-		t.Fatalf("分层评分中半会必须低于完整三会")
+	for _, relationType := range want {
+		if !got[relationType] {
+			t.Errorf("%s关系缺少%s: %+v", target, relationType, relations)
+		}
 	}
 }

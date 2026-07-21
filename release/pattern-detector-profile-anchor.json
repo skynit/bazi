@@ -1,0 +1,20 @@
+{
+  "schema": "pattern_detector_profile_release_anchor_v1",
+  "anchor_id": "bazi.pattern-detector-profile-release-anchor-v34",
+  "engine_version": "bazi-engine-2026-07-17.27",
+  "rule_version": "bazi-rules-2026-07-17.27",
+  "rule_id": "bazi.pattern-candidate-set-v34",
+  "schema_version": "pattern-candidates-2026-07-17.27",
+  "detector_profile": "classical_structural_detectors_v45",
+  "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+  "detector_profiles_sha256": "b00a44f1659cc578d1f6fcb321a19aa479e06c5c8ddcfb62682506a7fde0d1e1",
+  "ledger_id": "bazi.pattern-detector-profile-migrations",
+  "ledger_schema": "pattern_detector_profile_migration_ledger_v2",
+  "ledger_sha256": "a72422e12e07adae349c147b3581f8c4829368f134f00a4f229c9a1c29d21825",
+  "migration_count": 4,
+  "chain_scheme": "pattern_detector_profile_migration_chain_v1",
+  "chain_head_sha256": "07dc296ad9e5dd0f834e40256c1e0f6033eb0ded435d0c76be6a0602ae0113bd",
+  "verification_profile": "repository_ci_cross_check_v1",
+  "trust_boundary": "unsigned_repository_ci_artifact",
+  "claim_boundary": "digest_evidence_only"
+}

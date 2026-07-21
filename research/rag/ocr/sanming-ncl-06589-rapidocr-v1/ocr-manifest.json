@@ -1,0 +1,84 @@
+{
+  "schema": "sanming_ncl_page_ocr_snapshot_v1",
+  "version": "2026-07-17.1",
+  "status": "machine_ocr_silver_not_page_mapping_gold",
+  "generated_at": "2026-07-17",
+  "candidate_id": "sanming-ncl-06589-1578-12vol-scan-v1",
+  "purpose": "Freeze a complete page-addressable OCR observation for candidate mapping while preserving scan, transcription, and independent-review uncertainty.",
+  "inputs": {
+    "scan_snapshot_manifest": {
+      "path": "../../snapshots/sanming-ncl-06589-1578-v1/snapshot-manifest.json",
+      "sha256": "a0db6189460aa495122db8809d70a9837a7e92d30f209a11f7839859b3f6c2b3"
+    },
+    "volume_label_observation": {
+      "path": "../../snapshots/sanming-ncl-06589-1578-v1/volume-label-observation.json",
+      "sha256": "8dfe0d08345b2ded9b58b394e44576e72a8609d46208ac8d4908c05bb873ca31"
+    }
+  },
+  "rendering": {
+    "tool": "pdftoppm version 26.05.0",
+    "arguments": "-jpeg -jpegopt quality=90 -r 72",
+    "color_mode": "source RGB JPEG",
+    "page_identity": "part plus one-based physical PDF page"
+  },
+  "ocr": {
+    "package": "rapidocr-onnxruntime",
+    "package_version": "1.4.4",
+    "package_license": "Apache-2.0",
+    "onnxruntime_version": "1.27.0",
+    "opencv_python_version": "5.0.0.93",
+    "use_detection": true,
+    "use_classification": false,
+    "use_recognition": true,
+    "worker_processes": 4,
+    "intra_op_threads_per_session": 2,
+    "inter_op_threads_per_session": 1,
+    "recognition_batch_size": 6,
+    "text_score_threshold": 0.5,
+    "config_sha256": "bf94a1da4cba828e67b1d61e27cee14d9e7da27c9f272e04048a17e41ae97332",
+    "models": {
+      "detection": {
+        "name": "ch_PP-OCRv4_det_infer.onnx",
+        "sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9"
+      },
+      "recognition": {
+        "name": "ch_PP-OCRv4_rec_infer.onnx",
+        "sha256": "48fc40f24f6d2a207a2b1091d3437eb3cc3eb6b676dc3ef9c37384005483683b"
+      },
+      "classification_unused": {
+        "name": "ch_ppocr_mobile_v2.0_cls_infer.onnx",
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      }
+    }
+  },
+  "artifact": {
+    "path": "page-ocr.jsonl",
+    "size_bytes": 3232151,
+    "sha256": "c7fd70b653015a99949dd9926c07660efa6744560a0dd44c4c9a54d8f6d8c164",
+    "record_scheme": "part_physical_page_render_identity_and_ordered_line_boxes_text_score_v1"
+  },
+  "summary": {
+    "page_count": 1187,
+    "part_1_pages": 1000,
+    "part_2_pages": 187,
+    "empty_pages": 14,
+    "recognized_lines": 25247,
+    "score_basis_points_sum": 203304267,
+    "minimum_line_score_basis_points": 5000,
+    "maximum_line_score_basis_points": 10000
+  },
+  "boundaries": {
+    "complete_page_set_observed": true,
+    "machine_ocr_only": true,
+    "ocr_text_is_not_diplomatic_transcription": true,
+    "ocr_score_is_not_mapping_confidence": true,
+    "independent_review_complete": false,
+    "complete_primary_text_verified": false,
+    "volume_mapping_verified": false,
+    "chapter_page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  }
+}

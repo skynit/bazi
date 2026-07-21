@@ -3,11 +3,19 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import FortuneEvidencePanel from './FortuneEvidencePanel.vue'
 import InterpretationLevelSwitch from './InterpretationLevelSwitch.vue'
 import type {
-  FortuneGuide,
+  BranchRelation,
   FortuneScoreBreakdown,
+  HiddenStemGod,
   InterpretationLevel,
   ScoreEvidence,
+  SeasonElementEvidence,
+  SeasonalStateEvidence,
+  StemRelation,
+  TenGodEvidence,
+  TraditionalCalendarEvidence,
+  TwelveStageEvidence,
 } from '../api/fortune'
+import type { FortuneLayerSet, ShenShaActivation } from '../api/chart'
 
 interface ElementImage {
   element: string
@@ -19,114 +27,20 @@ interface ShengKeAnalysis {
   day_branch_relation?: string
   summary?: string
 }
-interface HiddenStemGod {
-  stem: string
-  type: string
-  element: string
-  ten_god: string
-  favorable: boolean
-}
-interface StemRelation {
-  type: string
-  target: string
-  detail: string
-  is_favorable: boolean
-  note?: string
-}
-interface BranchRelation {
-  type: string
-  target: string
-  detail: string
-  is_favorable: boolean
-}
-interface ShenShaActivation {
-  name: string
-  type: string
-  description: string
-  activation: string
-}
-interface DaYunInfluence {
-  current_pillar: string
-  start_age: number
-  end_age: number
-  ten_god: string
-  favorable: boolean
-  relation: string
-  score: number
-  description: string
-}
-interface LiuNianInfluence {
-  year_pillar: string
-  ten_god: string
-  favorable: boolean
-  relation: string
-  tai_sui_relation: string
-  score: number
-  description: string
-}
-interface AdvanceRetreat {
-  phase: string
-  phase_desc: string
-  element: string
-  score: number
-  description: string
-}
-interface YongShenImpact {
-  tiao_hou_element: string
-  tiao_hou_hit: boolean
-  tong_guan_element: string
-  tong_guan_hit: boolean
-  fu_yi_elements: string[]
-  fu_yi_hit: boolean
-  score: number
-  description: string
-}
-interface FortuneOverall {
-  score?: number
-  base_score?: number
-  detail_score?: number
-  stars?: string
-  level?: string
-  summary?: string
-  key_tip?: string
-}
-interface FortuneCategory {
-  name: string
-  score?: number
-  weight?: number
-  stars?: string
-  level?: string
-  trend?: string
-  keywords?: string[]
-  analysis?: string
-  advice?: string
-}
-
 interface Props {
   solarDate: string
   dayGanZhi: string
   weekDay?: string
   lunarDate?: string
   shengXiao?: string
-  yiJi?: string
-  chongSha?: string
   elementImages?: ElementImage[]
-  luckyColor?: string
-  luckyNumber?: number
-  wealthDir?: string
-  fortuneGuide?: FortuneGuide
-  fortuneScore?: number
-  fortuneOverall?: FortuneOverall
-  fortuneCategories?: FortuneCategory[]
   scoreBreakdown?: FortuneScoreBreakdown
   evidenceCompleteness?: number
   supportingEvidence?: ScoreEvidence[]
   counterEvidence?: ScoreEvidence[]
   engineVersion?: string
   ruleVersion?: string
-  auspiciousHours?: string[]
   todayElements?: Record<string, number>
-  tiaoHou?: string
   // 黄历字段
   jiShen?: string
   xiongShen?: string
@@ -136,54 +50,31 @@ interface Props {
   jieQi?: string
   // 分析字段
   shengKeAnalysis?: ShengKeAnalysis
-  flowImpact?: string
-  seasonElementAdvice?: string
+  seasonElement?: SeasonElementEvidence
   // 日课推算
-  todayTenGod?: string
-  tenGodFavorable?: boolean
-  tenGodDesc?: string
-  twelveStage?: string
-  stageFavorable?: boolean
-  stageDesc?: string
-  stageFlexible?: string
+  tenGod?: TenGodEvidence
+  twelveStage?: TwelveStageEvidence
+  jianChu?: TraditionalCalendarEvidence
+  huangDao?: TraditionalCalendarEvidence
   hiddenStems?: HiddenStemGod[]
   stemRelations?: StemRelation[]
   branchRelations?: BranchRelation[]
   activatedShenSha?: ShenShaActivation[]
-  dayunInfluence?: DaYunInfluence
-  liunianInfluence?: LiuNianInfluence
-  advanceRetreat?: AdvanceRetreat
-  yongshenImpact?: YongShenImpact
-  overallVerdict?: string
-  favorScore?: number
-  patternName?: string
-  patternType?: string
-  patternFavorable?: string[]
-  patternUnfavorable?: string[]
+  seasonalState?: SeasonalStateEvidence
+  fortuneLayers?: FortuneLayerSet
 }
 const props = withDefaults(defineProps<Props>(), {
   weekDay: '',
   lunarDate: '',
   shengXiao: '',
-  yiJi: '',
-  chongSha: '',
   elementImages: () => [],
-  luckyColor: '',
-  luckyNumber: 0,
-  wealthDir: '',
-  auspiciousHours: () => [],
   todayElements: () => ({}),
-  fortuneGuide: undefined,
-  fortuneScore: 0,
-  fortuneOverall: undefined,
-  fortuneCategories: () => [],
   scoreBreakdown: undefined,
   evidenceCompleteness: 0,
   supportingEvidence: () => [],
   counterEvidence: () => [],
   engineVersion: '',
   ruleVersion: '',
-  tiaoHou: '',
   jiShen: '',
   xiongShen: '',
   taiShen: '',
@@ -191,30 +82,18 @@ const props = withDefaults(defineProps<Props>(), {
   gua: '',
   jieQi: '',
   shengKeAnalysis: undefined,
-  flowImpact: '',
-  seasonElementAdvice: '',
+  seasonElement: undefined,
   // 日课推算
-  todayTenGod: '',
-  tenGodFavorable: false,
-  tenGodDesc: '',
-  twelveStage: '',
-  stageFavorable: false,
-  stageDesc: '',
-  stageFlexible: '',
+  tenGod: undefined,
+  twelveStage: undefined,
+  jianChu: undefined,
+  huangDao: undefined,
   hiddenStems: () => [],
   stemRelations: () => [],
   branchRelations: () => [],
   activatedShenSha: () => [],
-  dayunInfluence: undefined,
-  liunianInfluence: undefined,
-  advanceRetreat: undefined,
-  yongshenImpact: undefined,
-  overallVerdict: '',
-  favorScore: 0,
-  patternName: '',
-  patternType: '',
-  patternFavorable: () => [],
-  patternUnfavorable: () => [],
+  seasonalState: undefined,
+  fortuneLayers: undefined,
 })
 const showAiModal = ref(false)
 const activeTab = ref('overview')
@@ -239,8 +118,8 @@ onUnmounted(() => {
 const allDfTabs = [
   { key: 'overview', label: '今日概览', minimum: 'basic' },
   { key: 'almanac', label: '黄历', minimum: 'basic' },
-  { key: 'analysis', label: '运势分析', minimum: 'advanced' },
-  { key: 'elements', label: '五行吉时', minimum: 'advanced' },
+  { key: 'analysis', label: '结构分析', minimum: 'advanced' },
+  { key: 'elements', label: '五行结构', minimum: 'advanced' },
   { key: 'rikuyo', label: '日课推算', minimum: 'professional' },
 ]
 const levelRank: Record<InterpretationLevel, number> = { basic: 0, advanced: 1, professional: 2 }
@@ -276,45 +155,31 @@ function elPct(el: string) {
   return t ? Math.round(((n[el] || 0) / t) * 100) : 0
 }
 
-function guideEvidenceCompletenessLabel(value?: number) {
-  if (!value) return ''
-  if (value >= 80) return '依据较完整'
-  if (value >= 65) return '依据基本完整'
-  return '依据有限'
+function evidenceBasisLabel(evidence?: TwelveStageEvidence | TraditionalCalendarEvidence) {
+  if (!evidence) return ''
+  if ('reference_stem' in evidence) {
+    return `日主 ${evidence.reference_stem} · 查询日支 ${evidence.query_branch}`
+  }
+  return `查询月支 ${evidence.month_branch} · 查询日支 ${evidence.query_branch}`
 }
 
-function guidePrecisionLabel(level?: string) {
-  if (level === 'pattern-aware') return '格局感知'
-  if (level === 'legacy') return '旧版规则'
-  return '基础模式'
+function tenGodBasisLabel(evidence?: TenGodEvidence) {
+  if (!evidence) return ''
+  return `日主 ${evidence.reference_stem} · 查询日干 ${evidence.query_stem}`
 }
 
-function scoreWord(score: number) {
-  if (score >= 85) return '顺势明显'
-  if (score >= 70) return '良好'
-  if (score >= 55) return '平稳'
-  if (score >= 40) return '欠佳'
-  return '低迷'
+function seasonElementBasisLabel(evidence?: SeasonElementEvidence) {
+  if (!evidence) return ''
+  return `日主 ${evidence.reference_stem}${evidence.reference_element} · 查询月支 ${evidence.query_month_branch} · ${evidence.season}`
 }
 
-function starCount(stars?: string) {
-  return (stars?.match(/★/g) || []).length
-}
-
-function clampScore(score?: number) {
-  return Math.max(20, Math.min(100, score ?? 0))
-}
-
-function categoryScore(category: FortuneCategory) {
-  const fallback = starCount(category.stars) * 20 || 60
-  return clampScore(category.score ?? fallback)
-}
-
-function trendLabel(trend?: string) {
-  if (trend === 'up') return '走高'
-  if (trend === 'down') return '承压'
-  return '平稳'
-}
+const fortuneLayerList = computed(() => {
+  const layers = props.fortuneLayers
+  if (!layers) return []
+  return [layers.dayun, layers.liunian, layers.liuyue, layers.xiaoyun].filter(
+    (layer) => layer?.status === 'observed',
+  )
+})
 </script>
 
 <template>
@@ -351,204 +216,6 @@ function trendLabel(trend?: string) {
 
     <!-- ═══ Tab: 今日概览 ═══ -->
     <div v-show="activeTab === 'overview'" class="df-tab-content">
-      <div v-if="fortuneGuide" class="df-guide glass-card">
-        <div class="df-sec-header">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z"
-              stroke="currentColor"
-              stroke-width="1"
-              opacity="0.5"
-            />
-          </svg>
-          <span class="df-sec-title">今日概览</span>
-          <span class="guide-precision">{{
-            guidePrecisionLabel(fortuneGuide.precision_level)
-          }}</span>
-          <span v-if="fortuneGuide.evidence_completeness" class="guide-confidence"
-            >{{ guideEvidenceCompletenessLabel(fortuneGuide.evidence_completeness) }} ·
-            规则证据完整度 {{ fortuneGuide.evidence_completeness }}%</span
-          >
-        </div>
-
-        <div class="guide-hero">
-          <div class="guide-brief">
-            <div class="guide-axis">
-              <span>主 {{ fortuneGuide.primary_element || '—' }}</span>
-              <span>辅 {{ fortuneGuide.secondary_element || '—' }}</span>
-              <span>忌 {{ fortuneGuide.avoid_element || '—' }}</span>
-            </div>
-            <p v-if="fortuneGuide.strategy" class="guide-strategy">{{ fortuneGuide.strategy }}</p>
-          </div>
-
-          <div class="guide-essentials">
-            <div class="guide-item" v-if="fortuneGuide.lucky_colors?.[0]?.value">
-              <span class="guide-label">幸运色</span>
-              <span class="guide-value">
-                <span
-                  class="color-swatch"
-                  :style="{ background: fortuneGuide.lucky_colors?.[0]?.value }"
-                ></span>
-                {{ fortuneGuide.lucky_colors?.[0]?.value }}
-              </span>
-              <small class="guide-reason">{{ fortuneGuide.lucky_colors?.[0]?.reason }}</small>
-            </div>
-            <div class="guide-item" v-if="fortuneGuide.lucky_numbers?.[0]?.value">
-              <span class="guide-label">幸运数字</span>
-              <span class="guide-value guide-value-xl">{{
-                fortuneGuide.lucky_numbers?.[0]?.value
-              }}</span>
-              <small class="guide-reason">{{ fortuneGuide.lucky_numbers?.[0]?.reason }}</small>
-            </div>
-            <div class="guide-item" v-if="fortuneGuide.wealth_direction?.value">
-              <span class="guide-label">财位</span>
-              <span class="guide-value">{{ fortuneGuide.wealth_direction.value }}</span>
-              <small class="guide-reason">{{ fortuneGuide.wealth_direction.reason }}</small>
-            </div>
-            <div class="guide-item" v-if="fortuneGuide.face_direction?.value">
-              <span class="guide-label">朝向</span>
-              <span class="guide-value">{{ fortuneGuide.face_direction.value }}</span>
-              <small class="guide-reason">{{ fortuneGuide.face_direction.reason }}</small>
-            </div>
-          </div>
-        </div>
-
-        <div class="guide-action-grid">
-          <div v-if="fortuneGuide.recommended_actions?.length" class="guide-list">
-            <div class="guide-list-head">
-              <div>
-                <span class="guide-list-title">宜用</span>
-                <strong>优先执行</strong>
-              </div>
-              <span class="guide-list-count">{{ fortuneGuide.recommended_actions.length }} 项</span>
-            </div>
-            <article
-              v-for="item in fortuneGuide.recommended_actions.slice(0, 3)"
-              :key="`action-${item.label}-${item.value}`"
-              class="guide-mini"
-            >
-              <div class="guide-mini-top">
-                <span class="guide-mini-label">{{ item.category || item.label }}</span>
-                <strong>{{ item.value }}</strong>
-                <span v-if="item.intensity" class="guide-intensity">{{ item.intensity }}</span>
-              </div>
-              <small class="guide-mini-reason">{{ item.reason }}</small>
-              <details
-                v-if="item.timing || item.source || item.impact || item.method"
-                class="guide-more"
-              >
-                <summary>依据</summary>
-                <div class="guide-detail-row">
-                  <span v-if="item.timing">{{ item.timing }}</span>
-                  <span v-if="item.source">{{ item.source }}</span>
-                  <span v-if="item.impact">{{ item.impact }}</span>
-                </div>
-                <p v-if="item.method" class="guide-method">{{ item.method }}</p>
-              </details>
-            </article>
-            <details v-if="fortuneGuide.recommended_actions.length > 3" class="guide-extra">
-              <summary>展开其余 {{ fortuneGuide.recommended_actions.length - 3 }} 项</summary>
-              <div class="guide-extra-list">
-                <article
-                  v-for="item in fortuneGuide.recommended_actions.slice(3)"
-                  :key="`action-extra-${item.label}-${item.value}`"
-                  class="guide-mini guide-mini-secondary"
-                >
-                  <div class="guide-mini-top">
-                    <span class="guide-mini-label">{{ item.category || item.label }}</span>
-                    <strong>{{ item.value }}</strong>
-                    <span v-if="item.intensity" class="guide-intensity">{{ item.intensity }}</span>
-                  </div>
-                  <small class="guide-mini-reason">{{ item.reason }}</small>
-                </article>
-              </div>
-            </details>
-          </div>
-          <div v-if="fortuneGuide.cautions?.length" class="guide-list">
-            <div class="guide-list-head">
-              <div>
-                <span class="guide-list-title guide-list-warn">避忌</span>
-                <strong>先避风险</strong>
-              </div>
-              <span class="guide-list-count warn">{{ fortuneGuide.cautions.length }} 项</span>
-            </div>
-            <article
-              v-for="item in fortuneGuide.cautions.slice(0, 3)"
-              :key="`caution-${item.label}-${item.value}`"
-              class="guide-mini warn"
-            >
-              <div class="guide-mini-top">
-                <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
-                <strong>{{ item.value }}</strong>
-                <span v-if="item.intensity" class="guide-intensity warn">{{ item.intensity }}</span>
-              </div>
-              <small class="guide-mini-reason">{{ item.reason }}</small>
-              <details
-                v-if="item.timing || item.source || item.impact || item.method"
-                class="guide-more warn"
-              >
-                <summary>依据</summary>
-                <div class="guide-detail-row warn">
-                  <span v-if="item.timing">{{ item.timing }}</span>
-                  <span v-if="item.source">{{ item.source }}</span>
-                  <span v-if="item.impact">{{ item.impact }}</span>
-                </div>
-                <p v-if="item.method" class="guide-method">{{ item.method }}</p>
-              </details>
-            </article>
-            <details v-if="fortuneGuide.cautions.length > 3" class="guide-extra warn">
-              <summary>展开其余 {{ fortuneGuide.cautions.length - 3 }} 项</summary>
-              <div class="guide-extra-list">
-                <article
-                  v-for="item in fortuneGuide.cautions.slice(3)"
-                  :key="`caution-extra-${item.label}-${item.value}`"
-                  class="guide-mini warn guide-mini-secondary"
-                >
-                  <div class="guide-mini-top">
-                    <span class="guide-mini-label warn">{{ item.category || item.label }}</span>
-                    <strong>{{ item.value }}</strong>
-                    <span v-if="item.intensity" class="guide-intensity warn">{{
-                      item.intensity
-                    }}</span>
-                  </div>
-                  <small class="guide-mini-reason">{{ item.reason }}</small>
-                </article>
-              </div>
-            </details>
-          </div>
-        </div>
-
-        <div class="guide-footer">
-          <div v-if="fortuneGuide.best_hours?.length" class="guide-hours">
-            <span
-              v-for="item in fortuneGuide.best_hours.slice(0, 4)"
-              :key="`hour-${item.label}-${item.value}`"
-              >{{ item.value }}</span
-            >
-          </div>
-          <details v-if="fortuneGuide.analysis" class="guide-note">
-            <summary>取用逻辑</summary>
-            <p class="guide-analysis">{{ fortuneGuide.analysis }}</p>
-          </details>
-        </div>
-      </div>
-      <div v-else class="df-guide-empty glass-card">
-        <div class="df-sec-header">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1" opacity="0.35" />
-            <path
-              d="M7 4v3.4l2 1.2"
-              stroke="currentColor"
-              stroke-width="1"
-              stroke-linecap="round"
-              opacity="0.45"
-            />
-          </svg>
-          <span class="df-sec-title">今日概览</span>
-        </div>
-        <p>开运指南暂未生成，请稍后刷新今日运势。</p>
-      </div>
-
       <FortuneEvidencePanel
         :level="interpretationLevel"
         :completeness="evidenceCompleteness"
@@ -642,11 +309,11 @@ function trendLabel(trend?: string) {
     </div>
     <!-- /almanac tab -->
 
-    <!-- ═══ Tab: 运势分析 ═══ -->
+    <!-- ═══ Tab: 结构分析 ═══ -->
     <div v-show="activeTab === 'analysis'" class="df-tab-content">
       <!-- 生克分析 -->
       <div
-        v-if="shengKeAnalysis?.summary || flowImpact || seasonElementAdvice"
+        v-if="shengKeAnalysis?.summary || seasonElement?.status === 'observed'"
         class="df-analysis glass-card"
       >
         <div class="df-sec-header">
@@ -660,7 +327,7 @@ function trendLabel(trend?: string) {
               opacity="0.5"
             />
           </svg>
-          <span class="df-sec-title">运势分析</span>
+          <span class="df-sec-title">结构分析</span>
         </div>
         <div class="analysis-items">
           <div v-if="shengKeAnalysis?.day_stem_relation" class="analysis-item">
@@ -675,13 +342,10 @@ function trendLabel(trend?: string) {
             <span class="analysis-label">综合</span>
             <span class="analysis-value">{{ shengKeAnalysis.summary }}</span>
           </div>
-          <div v-if="flowImpact" class="analysis-item">
-            <span class="analysis-label">流通影响</span>
-            <span class="analysis-value">{{ flowImpact }}</span>
-          </div>
-          <div v-if="seasonElementAdvice" class="analysis-item">
-            <span class="analysis-label">季节建议</span>
-            <span class="analysis-value analysis-gold">{{ seasonElementAdvice }}</span>
+          <div v-if="seasonElement?.status === 'observed'" class="analysis-item">
+            <span class="analysis-label">月令季节</span>
+            <span class="analysis-value">{{ seasonElementBasisLabel(seasonElement) }}</span>
+            <span class="rikuyo-evidence-meta">结构命中 · 解释未裁决</span>
           </div>
         </div>
       </div>
@@ -692,77 +356,45 @@ function trendLabel(trend?: string) {
     <div v-show="activeTab === 'rikuyo'" class="df-tab-content">
       <!-- ═══ 日课推算 ═══ -->
 
-      <!-- 综合断语 + 评分 -->
-      <div v-if="overallVerdict" class="df-rikuyo-verdict glass-card">
+      <!-- 今日十神 + 传统日课结构证据 -->
+      <div
+        v-if="tenGod?.name || twelveStage?.name || jianChu?.name || huangDao?.name"
+        class="df-rikuyo-core glass-card"
+      >
         <div class="df-sec-header">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M7 1l1.8 3.6L13 5.3l-3 2.9.7 4.1L7 10.5l-3.7 1.8.7-4.1-3-2.9 4.2-.7L7 1z"
-              stroke="currentColor"
-              stroke-width="1"
-              opacity="0.5"
-            />
-          </svg>
-          <span class="df-sec-title">日课推算</span>
-          <span
-            v-if="favorScore"
-            class="rikuyo-score-badge"
-            :style="{ '--score-t': Math.max(0, Math.min(1, favorScore / 100)) }"
-            >{{ favorScore }}分</span
-          >
+          <span class="df-sec-title">日课规则命中</span>
         </div>
-        <p class="rikuyo-verdict-text">{{ overallVerdict }}</p>
-      </div>
-
-      <!-- 格局信息（特殊格局时显示） -->
-      <div v-if="patternName && patternType === '特殊格局'" class="df-pattern-info glass-card">
-        <div class="df-sec-header">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1" opacity="0.5" />
-            <path d="M7 4v3l2 1" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
-          </svg>
-          <span class="df-sec-title">格局喜忌</span>
-          <span class="pattern-badge">{{ patternName }}</span>
-        </div>
-        <div class="pattern-elements">
-          <span v-if="patternFavorable?.length" class="pattern-tag pattern-like"
-            >喜{{ patternFavorable.join('') }}</span
-          >
-          <span v-if="patternUnfavorable?.length" class="pattern-tag pattern-dislike"
-            >忌{{ patternUnfavorable.join('') }}</span
-          >
-        </div>
-      </div>
-
-      <!-- 今日十神 + 十二长生 -->
-      <div v-if="todayTenGod || twelveStage" class="df-rikuyo-core glass-card">
         <div class="rikuyo-core-grid">
           <!-- 十神 -->
-          <div v-if="todayTenGod" class="rikuyo-core-item">
+          <div v-if="tenGod?.name" class="rikuyo-core-item rikuyo-evidence-item">
             <span class="rikuyo-core-label">今日十神</span>
-            <span
-              class="rikuyo-core-value"
-              :class="{ 'val-fav': tenGodFavorable, 'val-dis': !tenGodFavorable }"
-              >{{ todayTenGod }}</span
-            >
-            <span v-if="tenGodDesc" class="rikuyo-core-desc">{{ tenGodDesc }}</span>
+            <span class="rikuyo-core-value rikuyo-evidence-value">{{ tenGod.name }}</span>
+            <span class="rikuyo-core-desc">{{ tenGodBasisLabel(tenGod) }}</span>
+            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
-          <!-- 十二长生 -->
-          <div v-if="twelveStage" class="rikuyo-core-item">
+          <div v-if="twelveStage?.name" class="rikuyo-core-item rikuyo-evidence-item">
             <span class="rikuyo-core-label">十二长生</span>
-            <span
-              class="rikuyo-core-value"
-              :class="{ 'val-fav': stageFavorable, 'val-dis': !stageFavorable }"
-              >{{ twelveStage }}</span
-            >
-            <span v-if="stageDesc" class="rikuyo-core-desc">{{ stageDesc }}</span>
-            <span v-if="stageFlexible" class="rikuyo-flexible">{{ stageFlexible }}</span>
+            <span class="rikuyo-core-value rikuyo-evidence-value">{{ twelveStage.name }}</span>
+            <span class="rikuyo-core-desc">{{ evidenceBasisLabel(twelveStage) }}</span>
+            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
+          </div>
+          <div v-if="jianChu?.name" class="rikuyo-core-item rikuyo-evidence-item">
+            <span class="rikuyo-core-label">建除十二神</span>
+            <span class="rikuyo-core-value rikuyo-evidence-value">{{ jianChu.name }}</span>
+            <span class="rikuyo-core-desc">{{ evidenceBasisLabel(jianChu) }}</span>
+            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
+          </div>
+          <div v-if="huangDao?.name" class="rikuyo-core-item rikuyo-evidence-item">
+            <span class="rikuyo-core-label">十二值神</span>
+            <span class="rikuyo-core-value rikuyo-evidence-value">{{ huangDao.name }}</span>
+            <span class="rikuyo-core-desc">{{ evidenceBasisLabel(huangDao) }}</span>
+            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
         </div>
       </div>
 
-      <!-- 进退气 -->
-      <div v-if="advanceRetreat" class="df-rikuyo-advance glass-card">
+      <!-- 月令状态 -->
+      <div v-if="seasonalState?.status === 'observed'" class="df-rikuyo-advance glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
@@ -782,19 +414,14 @@ function trendLabel(trend?: string) {
               opacity="0.3"
             />
           </svg>
-          <span class="df-sec-title">进退气</span>
-          <span
-            class="rikuyo-phase-tag"
-            :class="{
-              'phase-adv': advanceRetreat.phase === '进气',
-              'phase-peak': advanceRetreat.phase === '当令',
-              'phase-ret': advanceRetreat.phase === '退气',
-              'phase-dead': advanceRetreat.phase === '无气' || advanceRetreat.phase === '死',
-            }"
-            >{{ advanceRetreat.phase }}</span
-          >
+          <span class="df-sec-title">月令状态</span>
+          <span class="rikuyo-phase-tag">{{ seasonalState.state }}</span>
         </div>
-        <p class="rikuyo-advance-text">{{ advanceRetreat.description }}</p>
+        <p class="rikuyo-advance-text">
+          查询日干 {{ seasonalState.query_stem }}（{{ seasonalState.query_element }}） · 查询月支
+          {{ seasonalState.query_month_branch }} · {{ seasonalState.season }}季
+        </p>
+        <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
       </div>
 
       <!-- 藏干分析 -->
@@ -825,12 +452,7 @@ function trendLabel(trend?: string) {
           <span class="df-sec-title">地支藏干</span>
         </div>
         <div class="hidden-stems-grid">
-          <div
-            v-for="hs in hiddenStems"
-            :key="hs.stem + hs.type"
-            class="hidden-stem-card"
-            :class="{ 'hs-fav': hs.favorable, 'hs-dis': !hs.favorable }"
-          >
+          <div v-for="hs in hiddenStems" :key="hs.stem + hs.type" class="hidden-stem-card">
             <span class="hs-stem">{{ hs.stem }}</span>
             <span class="hs-type">{{ hs.type }}</span>
             <span class="hs-god">{{ hs.ten_god }}</span>
@@ -861,24 +483,20 @@ function trendLabel(trend?: string) {
           <span class="df-sec-title">干支关系</span>
         </div>
         <div class="relations-list">
-          <div
-            v-for="(sr, i) in stemRelations"
-            :key="'sr' + i"
-            class="relation-item"
-            :class="{ 'rel-fav': sr.is_favorable, 'rel-dis': !sr.is_favorable }"
-          >
-            <span class="rel-type-tag">{{ sr.type }}</span>
-            <span class="rel-detail">{{ sr.detail }}</span>
-            <span v-if="sr.note" class="rel-note">{{ sr.note }}</span>
+          <div v-for="(sr, i) in stemRelations" :key="'sr' + i" class="relation-item">
+            <span class="rel-type-tag">{{ sr.name }}</span>
+            <span class="rel-detail"
+              >查询日干 {{ sr.query_stem }} · {{ sr.target_pillar }} {{ sr.target_stem }}</span
+            >
+            <span v-if="sr.combined_element" class="rel-note"
+              >合化候选 {{ sr.combined_element }} · 未裁决</span
+            >
           </div>
-          <div
-            v-for="(br, i) in branchRelations"
-            :key="'br' + i"
-            class="relation-item"
-            :class="{ 'rel-fav': br.is_favorable, 'rel-dis': !br.is_favorable }"
-          >
-            <span class="rel-type-tag">{{ br.type }}</span>
-            <span class="rel-detail">{{ br.detail }}</span>
+          <div v-for="(br, i) in branchRelations" :key="'br' + i" class="relation-item">
+            <span class="rel-type-tag">{{ br.name }}</span>
+            <span class="rel-detail"
+              >查询日支 {{ br.query_branch }} · {{ br.target_pillar }} {{ br.target_branch }}</span
+            >
           </div>
         </div>
       </div>
@@ -897,143 +515,62 @@ function trendLabel(trend?: string) {
           <span class="df-sec-title">神煞引动</span>
         </div>
         <div class="shensha-list">
-          <div
-            v-for="ss in activatedShenSha"
-            :key="ss.name"
-            class="shensha-item"
-            :class="{ 'ss-ji': ss.type === '吉神', 'ss-xiong': ss.type !== '吉神' }"
-          >
+          <div v-for="ss in activatedShenSha" :key="ss.name" class="shensha-item">
             <span class="ss-name">{{ ss.name }}</span>
-            <span class="ss-type-tag">{{ ss.type }}</span>
-            <p class="ss-desc">{{ ss.description }}</p>
+            <span class="ss-type-tag">规则命中</span>
+            <p class="ss-desc">取法 · {{ ss.basis }}</p>
             <p class="ss-activation">{{ ss.activation }}</p>
           </div>
         </div>
       </div>
 
-      <!-- 大运流年叠加 -->
-      <div v-if="dayunInfluence || liunianInfluence" class="df-rikuyo-yun glass-card">
+      <!-- 周期层结构 -->
+      <div v-if="fortuneLayerList.length" class="df-rikuyo-yun glass-card">
         <div class="df-sec-header">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M1 7h12M7 1v12" stroke="currentColor" stroke-width="0.8" opacity="0.3" />
             <circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="0.8" opacity="0.25" />
           </svg>
-          <span class="df-sec-title">大运流年</span>
+          <span class="df-sec-title">周期层结构</span>
         </div>
         <div class="yun-grid">
-          <div v-if="dayunInfluence" class="yun-item">
-            <span class="yun-label">当前大运</span>
-            <span class="yun-pillar">{{ dayunInfluence.current_pillar }}</span>
-            <span
-              class="yun-god"
-              :class="{ 'val-fav': dayunInfluence.favorable, 'val-dis': !dayunInfluence.favorable }"
-              >{{ dayunInfluence.ten_god }}</span
+          <div v-for="layer in fortuneLayerList" :key="layer.key" class="yun-item">
+            <span class="yun-label">{{ layer.name }}</span>
+            <span class="yun-pillar">{{ layer.pillar }}</span>
+            <span v-if="layer.ten_god?.name" class="yun-god">十神 {{ layer.ten_god.name }}</span>
+            <span v-if="layer.start_age" class="yun-age"
+              >{{ layer.start_age }}-{{ layer.end_age }}岁</span
             >
-            <span class="yun-age"
-              >{{ dayunInfluence.start_age }}-{{ dayunInfluence.end_age }}岁</span
-            >
-            <p class="yun-desc">{{ dayunInfluence.description }}</p>
-          </div>
-          <div v-if="liunianInfluence" class="yun-item">
-            <span class="yun-label">流年</span>
-            <span class="yun-pillar">{{ liunianInfluence.year_pillar }}</span>
-            <span
-              class="yun-god"
-              :class="{
-                'val-fav': liunianInfluence.favorable,
-                'val-dis': !liunianInfluence.favorable,
-              }"
-              >{{ liunianInfluence.ten_god }}</span
-            >
-            <p v-if="liunianInfluence.tai_sui_relation" class="yun-taisui">
-              {{ liunianInfluence.tai_sui_relation }}
+            <p class="yun-desc">{{ layer.basis }} · 解释未裁决</p>
+            <p v-if="layer.relations?.length" class="yun-taisui">
+              <span
+                v-for="relation in layer.relations.slice(0, 4)"
+                :key="`${relation.source}-${relation.target}-${relation.type}`"
+              >
+                {{ relation.source_value }} {{ relation.name }} {{ relation.target
+                }}{{ relation.target_value }}
+              </span>
             </p>
-            <p class="yun-desc">{{ liunianInfluence.description }}</p>
           </div>
         </div>
-      </div>
-
-      <!-- 用神影响 -->
-      <div v-if="yongshenImpact" class="df-rikuyo-yongshen glass-card">
-        <div class="df-sec-header">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="0.6" opacity="0.2" />
-            <circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="0.8" opacity="0.35" />
-            <circle cx="7" cy="7" r="1" fill="currentColor" opacity="0.5" />
-          </svg>
-          <span class="df-sec-title">用神影响</span>
+        <div v-if="fortuneLayers?.inter_layer_relations?.length" class="yun-inter-layer-relations">
+          <strong>岁运月联动结构</strong>
+          <span
+            v-for="relation in fortuneLayers.inter_layer_relations"
+            :key="`${relation.source}-${relation.target}-${relation.type}`"
+          >
+            {{ relation.source }}{{ relation.source_value }} · {{ relation.name }} ·
+            {{ relation.target }}{{ relation.target_value }}
+          </span>
+          <small>仅记录干支结构，不进入当前未验证评分</small>
         </div>
-        <div class="yongshen-items">
-          <div
-            v-if="yongshenImpact.tiao_hou_element"
-            class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.tiao_hou_hit }"
-          >
-            <span class="ys-label">调候用神</span>
-            <span class="ys-elem">{{ yongshenImpact.tiao_hou_element }}</span>
-            <span class="ys-status">{{ yongshenImpact.tiao_hou_hit ? '得力' : '未触' }}</span>
-          </div>
-          <div
-            v-if="yongshenImpact.tong_guan_element"
-            class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.tong_guan_hit }"
-          >
-            <span class="ys-label">通关用神</span>
-            <span class="ys-elem">{{ yongshenImpact.tong_guan_element }}</span>
-            <span class="ys-status">{{ yongshenImpact.tong_guan_hit ? '得力' : '未触' }}</span>
-          </div>
-          <div
-            v-if="yongshenImpact.fu_yi_elements?.length"
-            class="yongshen-item"
-            :class="{ 'ys-hit': yongshenImpact.fu_yi_hit }"
-          >
-            <span class="ys-label">扶抑喜用</span>
-            <span class="ys-elem">{{ yongshenImpact.fu_yi_elements.join(' ') }}</span>
-            <span class="ys-status">{{ yongshenImpact.fu_yi_hit ? '得力' : '未触' }}</span>
-          </div>
-        </div>
-        <p v-if="yongshenImpact.description" class="yongshen-desc">
-          {{ yongshenImpact.description }}
-        </p>
       </div>
     </div>
     <!-- /rikuyo tab -->
 
-    <!-- ═══ Tab: 五行吉时 ═══ -->
+    <!-- ═══ Tab: 五行结构 ═══ -->
     <div v-show="activeTab === 'elements'" class="df-tab-content">
-      <!-- Hours + Elements -->
       <div class="df-bottom-row">
-        <div v-if="auspiciousHours.length" class="df-hours glass-card">
-          <div class="df-sec-header">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" opacity="0.4" />
-              <line
-                x1="7"
-                y1="3"
-                x2="7"
-                y2="7"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-              <line
-                x1="7"
-                y1="7"
-                x2="10"
-                y2="9"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-            <span class="df-sec-title">吉时</span>
-          </div>
-          <div class="df-hours-list">
-            <span v-for="h in auspiciousHours" :key="h" class="df-hour-chip">
-              <span class="df-hour-dot"></span>{{ h }}
-            </span>
-          </div>
-        </div>
         <div class="df-elems glass-card">
           <div class="df-sec-header">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1068,63 +605,6 @@ function trendLabel(trend?: string) {
       </button>
     </div>
     <!-- /elements tab -->
-
-    <section
-      v-if="fortuneCategories.length && interpretationLevel !== 'basic'"
-      class="dimension-panel"
-      aria-label="分项运势"
-    >
-      <div class="dimension-head">
-        <div>
-          <span class="dimension-eyebrow">九维刻度</span>
-          <h2 class="dimension-title">先看强弱，再展开细节</h2>
-        </div>
-        <div class="score-disclaimer">传统规则倾向分，表示规则匹配强弱，不是事件发生概率。</div>
-        <div class="score-breakdown" v-if="fortuneOverall">
-          <span>细项 {{ fortuneOverall.detail_score ?? fortuneScore }}</span>
-          <span>基础 {{ fortuneOverall.base_score ?? fortuneScore }}</span>
-          <strong>{{ fortuneOverall.level || scoreWord(fortuneScore || 0) }}</strong>
-        </div>
-      </div>
-
-      <div class="dimension-grid">
-        <details
-          v-for="(c, ci) in fortuneCategories"
-          :key="c.name"
-          class="dimension-card"
-          :class="`trend-${c.trend || 'flat'}`"
-          :style="{ animationDelay: ci * 42 + 'ms' }"
-        >
-          <summary class="dimension-summary">
-            <span class="dimension-rank">{{ String(ci + 1).padStart(2, '0') }}</span>
-            <span class="dimension-main">
-              <span class="dimension-name">{{ c.name }}</span>
-              <span class="dimension-keyword">{{ c.keywords?.[0] || trendLabel(c.trend) }}</span>
-            </span>
-            <span class="dimension-meter" aria-hidden="true">
-              <span :style="{ width: `${categoryScore(c)}%` }"></span>
-            </span>
-            <span class="dimension-score">{{ categoryScore(c) }}</span>
-            <span class="dimension-state">{{ c.level || scoreWord(categoryScore(c)) }}</span>
-          </summary>
-
-          <div class="dimension-detail">
-            <div class="dimension-meta-row">
-              <span>{{ trendLabel(c.trend) }}</span>
-              <span>权重 {{ c.weight ?? 0 }}%</span>
-              <span>{{ c.stars }}</span>
-            </div>
-
-            <p class="dimension-analysis" v-if="c.analysis">{{ c.analysis }}</p>
-            <p class="dimension-advice" v-if="c.advice">{{ c.advice }}</p>
-
-            <div v-if="c.keywords?.length" class="dimension-tags">
-              <span v-for="kw in c.keywords.slice(0, 4)" :key="`${c.name}-${kw}`">{{ kw }}</span>
-            </div>
-          </div>
-        </details>
-      </div>
-    </section>
 
     <!-- Modal -->
     <Teleport to="body">
@@ -1356,456 +836,6 @@ function trendLabel(trend?: string) {
   text-align: right;
 }
 
-/* Guide */
-.df-guide {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
-}
-
-.df-guide-empty {
-  padding: 0.9rem;
-  color: var(--text-muted);
-}
-
-.df-guide-empty p {
-  margin: 0;
-  font-size: var(--fs-xs);
-  line-height: 1.65;
-}
-
-.guide-precision {
-  margin-left: auto;
-  font-size: var(--fs-2xs);
-  color: rgba(var(--jade-accent-rgb), 1);
-  background: rgba(var(--jade-accent-rgb), 0.08);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.18);
-  padding: 0.14rem 0.45rem;
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.guide-confidence {
-  font-size: var(--fs-2xs);
-  color: var(--text-soft);
-  letter-spacing: 0.08em;
-}
-
-.guide-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.guide-brief {
-  display: grid;
-  align-content: start;
-  gap: 0.6rem;
-  min-width: 0;
-  padding: 0.72rem;
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
-  border-radius: 10px;
-  background:
-    linear-gradient(135deg, rgba(var(--jade-accent-rgb), 0.07), transparent 58%), var(--glass-bg);
-}
-
-.guide-axis {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0;
-}
-
-.guide-axis span {
-  padding: 0.16rem 0.45rem;
-  border-radius: 999px;
-  border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-}
-
-.guide-essentials {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem;
-  min-width: 0;
-}
-
-.guide-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.16rem;
-  min-height: 66px;
-  padding: 0.5rem 0.55rem;
-  background: var(--glass-bg);
-  border-radius: 8px;
-  border: 1px solid var(--line-subtle);
-  transition: background 0.25s;
-}
-
-.guide-item:hover {
-  background: var(--glass-bg-hover);
-}
-
-.guide-label {
-  font-size: var(--fs-2xs);
-  color: var(--text-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.guide-value {
-  font-size: var(--fs-sm);
-  color: var(--text);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-}
-
-.guide-value-xl {
-  color: var(--accent);
-  font-size: var(--fs-lg);
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-shadow: 0 0 20px var(--accent-glow);
-}
-
-.color-swatch {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  flex-shrink: 0;
-}
-
-.guide-reason {
-  font-size: var(--fs-2xs);
-  line-height: 1.5;
-  color: var(--text-soft);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.guide-strategy {
-  margin: 0;
-  color: var(--accent);
-  border-left: 2px solid var(--line-focus);
-  padding-left: 0.55rem;
-  font-size: var(--fs-xs);
-  line-height: 1.75;
-}
-
-.guide-action-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 0;
-}
-
-.guide-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.46rem;
-  min-width: 0;
-  padding: 0.66rem;
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.17);
-  border-radius: 10px;
-  background: rgba(var(--jade-accent-rgb), 0.035);
-}
-
-.guide-list:has(.guide-list-warn) {
-  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
-  background: color-mix(in oklab, var(--crimson) 4%, transparent);
-}
-
-.guide-list-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.guide-list-head > div {
-  display: grid;
-  gap: 0.12rem;
-  min-width: 0;
-}
-
-.guide-list-title {
-  font-size: var(--fs-2xs);
-  color: rgba(var(--jade-accent-rgb), 1);
-  letter-spacing: 0.12em;
-}
-
-.guide-list-head strong {
-  color: var(--text);
-  font-size: var(--fs-sm);
-  line-height: 1.2;
-}
-
-.guide-list-warn {
-  color: var(--crimson);
-}
-
-.guide-list-count {
-  font-size: var(--fs-2xs);
-  color: rgba(var(--jade-accent-rgb), 0.82);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
-  background: rgba(var(--jade-accent-rgb), 0.06);
-  border-radius: 999px;
-  padding: 0.08rem 0.38rem;
-}
-
-.guide-list-count.warn {
-  color: var(--crimson);
-  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
-  background: color-mix(in oklab, var(--crimson) 5%, transparent);
-}
-
-.guide-mini {
-  display: flex;
-  flex-direction: column;
-  gap: 0.32rem;
-  min-height: 0;
-  padding: 0.58rem 0.62rem;
-  border-radius: 8px;
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.16);
-  background: color-mix(in oklab, var(--surface-1) 78%, rgba(var(--jade-accent-rgb), 0.06));
-}
-
-.guide-mini.warn {
-  border-color: color-mix(in oklab, var(--crimson) 16%, transparent);
-  background: color-mix(
-    in oklab,
-    var(--surface-1) 78%,
-    color-mix(in oklab, var(--crimson) 7%, transparent)
-  );
-}
-
-.guide-mini-secondary {
-  padding: 0.48rem 0.54rem;
-  opacity: 0.92;
-}
-
-.guide-mini-top {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.38rem;
-}
-
-.guide-mini-label {
-  font-size: var(--fs-2xs);
-  color: rgba(var(--jade-accent-rgb), 1);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.18);
-  background: rgba(var(--jade-accent-rgb), 0.08);
-  border-radius: 5px;
-  padding: 0.08rem 0.28rem;
-  white-space: nowrap;
-}
-
-.guide-mini-label.warn {
-  color: var(--crimson);
-  border-color: color-mix(in oklab, var(--crimson) 18%, transparent);
-  background: color-mix(in oklab, var(--crimson) 6%, transparent);
-}
-
-.guide-mini-top strong {
-  color: var(--text);
-  font-size: var(--fs-sm);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.guide-intensity {
-  font-size: var(--fs-2xs);
-  color: var(--text-soft);
-  border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
-  border-radius: 999px;
-  padding: 0.06rem 0.3rem;
-  white-space: nowrap;
-}
-
-.guide-intensity.warn {
-  color: var(--crimson);
-}
-
-.guide-mini-reason {
-  color: var(--text-soft);
-  line-height: 1.55;
-  font-size: var(--fs-2xs);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.guide-more,
-.guide-extra {
-  border: 1px solid var(--line-subtle);
-  border-radius: 7px;
-  background: color-mix(in oklab, var(--surface-1) 70%, transparent);
-}
-
-.guide-more summary,
-.guide-extra summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.34rem 0.45rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  list-style: none;
-}
-
-.guide-more summary::-webkit-details-marker,
-.guide-extra summary::-webkit-details-marker {
-  display: none;
-}
-
-.guide-more summary::after,
-.guide-extra summary::after {
-  content: '+';
-  color: var(--accent);
-  font-size: var(--fs-xs);
-}
-
-.guide-more[open] summary::after,
-.guide-extra[open] summary::after {
-  content: '-';
-}
-
-.guide-more.warn summary::after,
-.guide-extra.warn summary::after {
-  color: var(--crimson);
-}
-
-.guide-more .guide-detail-row,
-.guide-more .guide-method {
-  margin: 0 0.45rem 0.45rem;
-}
-
-.guide-extra-list {
-  display: grid;
-  gap: 0.4rem;
-  padding: 0 0.45rem 0.45rem;
-}
-
-.guide-detail-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.24rem;
-}
-
-.guide-detail-row span {
-  min-width: 0;
-  max-width: 100%;
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.12);
-  background: rgba(var(--jade-accent-rgb), 0.04);
-  color: var(--text-muted);
-  border-radius: 999px;
-  padding: 0.08rem 0.34rem;
-  font-size: var(--fs-2xs);
-  line-height: 1.25;
-}
-
-.guide-detail-row.warn span {
-  border-color: color-mix(in oklab, var(--crimson) 13%, transparent);
-  background: color-mix(in oklab, var(--crimson) 4%, transparent);
-}
-
-.guide-method {
-  margin: 0;
-  padding-left: 0.45rem;
-  border-left: 2px solid rgba(var(--jade-accent-rgb), 0.2);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.guide-mini.warn .guide-method {
-  border-left-color: color-mix(in oklab, var(--crimson) 22%, transparent);
-}
-
-.guide-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.55rem;
-}
-
-.guide-hours {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.guide-hours span {
-  padding: 0.24rem 0.55rem;
-  border-radius: 999px;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-}
-
-.guide-note {
-  border: 1px solid var(--line-subtle);
-  border-radius: 8px;
-  background: var(--glass-bg);
-}
-
-.guide-note summary {
-  padding: 0.45rem 0.6rem;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  list-style: none;
-}
-
-.guide-note summary::-webkit-details-marker {
-  display: none;
-}
-
-.guide-note summary::after {
-  content: '+';
-  float: right;
-  color: var(--accent);
-}
-
-.guide-note[open] summary::after {
-  content: '-';
-}
-
-.guide-note .guide-analysis {
-  margin: 0;
-  padding: 0 0.6rem 0.6rem;
-  border-top: 1px solid var(--line-subtle);
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
-  line-height: 1.55;
-}
-
 /* Hours + Elements */
 .df-bottom-row {
   display: grid;
@@ -1983,7 +1013,7 @@ function trendLabel(trend?: string) {
   color: #dc2626;
 }
 
-/* Analysis 运势分析 */
+/* Structural analysis */
 .df-analysis {
   padding: 0.9rem;
 }
@@ -2013,10 +1043,6 @@ function trendLabel(trend?: string) {
 
 .analysis-value {
   color: var(--text-muted);
-}
-
-.analysis-gold {
-  color: var(--accent);
 }
 
 /* Dimension matrix */
@@ -2442,83 +1468,6 @@ function trendLabel(trend?: string) {
 
 /* ═══ 日课推算样式 ═══ */
 
-/* 综合断语 */
-.df-rikuyo-verdict {
-  padding: 1rem;
-  position: relative;
-}
-
-.df-rikuyo-verdict::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-}
-
-.rikuyo-score-badge {
-  margin-left: auto;
-  font-size: var(--fs-xs);
-  font-weight: 800;
-  padding: 0.15rem 0.6rem;
-  border-radius: 20px;
-  letter-spacing: 0.5px;
-  --score-t: 0.5;
-  color: color-mix(in oklab, var(--jade-accent) calc(58% + var(--score-t) * 42%), var(--text));
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.25);
-}
-
-.rikuyo-verdict-text {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-  line-height: 1.8;
-  margin: 0.5rem 0 0;
-  white-space: pre-wrap;
-}
-
-/* 格局信息 */
-.df-pattern-info {
-  padding: 0.8rem 1rem;
-}
-
-.pattern-badge {
-  font-size: var(--fs-xs);
-  color: var(--accent);
-  background: var(--accent-dim);
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  margin-left: auto;
-}
-
-.pattern-elements {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
-}
-
-.pattern-tag {
-  font-size: var(--fs-xs);
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.pattern-like {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.24);
-}
-
-.pattern-dislike {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-  border: 1px solid rgba(220, 38, 38, 0.2);
-}
-
 /* 十神 + 长生核心区 */
 .df-rikuyo-core {
   padding: 1rem;
@@ -2526,8 +1475,9 @@ function trendLabel(trend?: string) {
 
 .rikuyo-core-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.75rem;
+  margin-top: 0.65rem;
 }
 
 .rikuyo-core-item {
@@ -2555,34 +1505,28 @@ function trendLabel(trend?: string) {
   line-height: 1.2;
 }
 
-.val-fav {
-  color: rgba(var(--jade-accent-rgb), 1);
-  text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.28);
-}
-
-.val-dis {
-  color: var(--text-soft);
-  text-shadow: 0 0 12px color-mix(in oklab, var(--text-soft) 20%, transparent);
-}
-
 .rikuyo-core-desc {
   font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
 }
 
-.rikuyo-flexible {
+.rikuyo-evidence-meta {
   font-size: var(--fs-xs);
-  color: var(--accent);
-  font-style: italic;
+  color: var(--text-soft);
   padding: 0.3rem 0.5rem;
-  background: var(--accent-dim);
+  background: var(--glass-bg);
   border-radius: 4px;
-  border-left: 2px solid var(--line-focus);
+  border: 1px solid var(--line-subtle);
   margin-top: 0.25rem;
 }
 
-/* 进退气 */
+.rikuyo-evidence-value {
+  color: var(--text);
+  text-shadow: none;
+}
+
+/* 月令状态 */
 .df-rikuyo-advance {
   padding: 0.9rem;
 }
@@ -2594,26 +1538,8 @@ function trendLabel(trend?: string) {
   padding: 0.1rem 0.5rem;
   border-radius: 10px;
   letter-spacing: 0.5px;
-}
-
-.phase-adv {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-.phase-peak {
   background: var(--accent-dim);
   color: var(--accent);
-}
-
-.phase-ret {
-  background: rgba(194, 65, 12, 0.1);
-  color: #c2410c;
-}
-
-.phase-dead {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
 }
 
 .rikuyo-advance-text {
@@ -2647,16 +1573,6 @@ function trendLabel(trend?: string) {
   transition: all 0.25s;
 }
 
-.hs-fav {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-  background: rgba(var(--jade-accent-rgb), 0.04);
-}
-
-.hs-dis {
-  border-color: rgba(220, 38, 38, 0.12);
-  background: rgba(220, 38, 38, 0.03);
-}
-
 .hs-stem {
   font-family: var(--font-serif);
   font-size: var(--fs-2xl);
@@ -2672,14 +1588,7 @@ function trendLabel(trend?: string) {
 .hs-god {
   font-size: var(--fs-2xs);
   font-weight: 700;
-}
-
-.hs-fav .hs-god {
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-.hs-dis .hs-god {
-  color: #dc2626;
+  color: var(--text-muted);
 }
 
 .hs-elem {
@@ -2708,14 +1617,6 @@ function trendLabel(trend?: string) {
   border: 1px solid var(--line-subtle);
 }
 
-.rel-fav {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-}
-
-.rel-dis {
-  border-color: rgba(220, 38, 38, 0.12);
-}
-
 .rel-type-tag {
   font-size: var(--fs-2xs);
   font-weight: 700;
@@ -2723,16 +1624,8 @@ function trendLabel(trend?: string) {
   border-radius: 3px;
   flex-shrink: 0;
   letter-spacing: 0.5px;
-}
-
-.rel-fav .rel-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.1);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-.rel-dis .rel-type-tag {
-  background: rgba(220, 38, 38, 0.08);
-  color: #dc2626;
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
 .rel-detail {
@@ -2765,14 +1658,6 @@ function trendLabel(trend?: string) {
   background: var(--glass-bg);
 }
 
-.ss-ji {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-}
-
-.ss-xiong {
-  border-color: rgba(220, 38, 38, 0.12);
-}
-
 .ss-name {
   font-size: var(--fs-sm);
   font-weight: 800;
@@ -2784,16 +1669,8 @@ function trendLabel(trend?: string) {
   font-size: var(--fs-2xs);
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
-}
-
-.ss-ji .ss-type-tag {
   background: rgba(var(--jade-accent-rgb), 0.1);
   color: rgba(var(--jade-accent-rgb), 1);
-}
-
-.ss-xiong .ss-type-tag {
-  background: rgba(220, 38, 38, 0.08);
-  color: #dc2626;
 }
 
 .ss-desc {
@@ -2857,10 +1734,36 @@ function trendLabel(trend?: string) {
 }
 
 .yun-taisui {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   font-size: var(--fs-2xs);
-  color: var(--crimson);
+  color: var(--text-soft);
   margin: 0.2rem 0 0;
-  font-style: italic;
+}
+
+.yun-inter-layer-relations {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.yun-inter-layer-relations strong {
+  color: var(--text);
+  font-size: var(--fs-xs);
+}
+
+.yun-inter-layer-relations span {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+}
+
+.yun-inter-layer-relations small {
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
 }
 
 .yun-desc {
@@ -2870,192 +1773,13 @@ function trendLabel(trend?: string) {
   margin: 0.2rem 0 0;
 }
 
-/* 用神影响 */
-.df-rikuyo-yongshen {
-  padding: 0.9rem;
-}
-
-.yongshen-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.yongshen-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.7rem;
-  border-radius: 6px;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  transition: all 0.25s;
-}
-
-.ys-hit {
-  border-color: rgba(var(--jade-accent-rgb), 0.22);
-  background: rgba(var(--jade-accent-rgb), 0.07);
-}
-
-.ys-label {
-  font-size: var(--fs-2xs);
-  color: var(--text-soft);
-  min-width: 56px;
-  flex-shrink: 0;
-}
-
-.ys-elem {
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  color: var(--text);
-}
-
-.ys-status {
-  font-size: var(--fs-2xs);
-  margin-left: auto;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
-}
-
-.ys-hit .ys-status {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-.yongshen-desc {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  margin: 0.5rem 0 0;
-  line-height: 1.5;
-}
-
 /* ═══ Dark mode overrides ═══ */
-:global(.dark) .guide-precision {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-  border-color: rgba(var(--jade-accent-rgb), 0.24);
-}
-
-:global(.dark) .guide-axis span,
-:global(.dark) .guide-item,
-:global(.dark) .guide-mini,
-:global(.dark) .guide-note {
-  background: var(--glass-bg);
-}
-
 :global(.dark) .almanac-ji {
   color: rgba(var(--jade-accent-rgb), 1);
 }
 
 :global(.dark) .almanac-xiong {
   color: #f08080;
-}
-
-:global(.dark) .rikuyo-score-badge {
-  color: color-mix(in oklab, var(--jade-accent) calc(58% + var(--score-t) * 42%), var(--text));
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  border-color: rgba(var(--jade-accent-rgb), 0.25);
-}
-
-:global(.dark) .pattern-like {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-  border-color: rgba(var(--jade-accent-rgb), 0.24);
-}
-
-:global(.dark) .pattern-dislike {
-  background: rgba(251, 113, 133, 0.1);
-  color: #fb7185;
-  border-color: rgba(251, 113, 133, 0.2);
-}
-
-:global(.dark) .val-fav {
-  color: rgba(var(--jade-accent-rgb), 1);
-  text-shadow: 0 0 15px rgba(var(--jade-accent-rgb), 0.3);
-}
-
-:global(.dark) .val-dis {
-  color: var(--text-soft);
-  text-shadow: 0 0 15px color-mix(in oklab, var(--text-soft) 20%, transparent);
-}
-
-:global(.dark) .phase-adv {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-:global(.dark) .phase-ret {
-  background: rgba(255, 165, 0, 0.1);
-  color: #ffa500;
-}
-
-:global(.dark) .phase-dead {
-  background: rgba(251, 113, 133, 0.1);
-  color: #fb7185;
-}
-
-:global(.dark) .hs-fav {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-  background: rgba(var(--jade-accent-rgb), 0.04);
-}
-
-:global(.dark) .hs-dis {
-  border-color: rgba(251, 113, 133, 0.12);
-  background: rgba(251, 113, 133, 0.03);
-}
-
-:global(.dark) .hs-fav .hs-god {
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-:global(.dark) .hs-dis .hs-god {
-  color: #fb7185;
-}
-
-:global(.dark) .rel-fav {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-}
-
-:global(.dark) .rel-dis {
-  border-color: rgba(251, 113, 133, 0.08);
-}
-
-:global(.dark) .rel-fav .rel-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.1);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-:global(.dark) .rel-dis .rel-type-tag {
-  background: rgba(251, 113, 133, 0.08);
-  color: #fb7185;
-}
-
-:global(.dark) .ss-ji {
-  border-color: rgba(var(--jade-accent-rgb), 0.18);
-}
-
-:global(.dark) .ss-xiong {
-  border-color: rgba(251, 113, 133, 0.1);
-}
-
-:global(.dark) .ss-ji .ss-type-tag {
-  background: rgba(var(--jade-accent-rgb), 0.1);
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-:global(.dark) .ss-xiong .ss-type-tag {
-  background: rgba(251, 113, 133, 0.08);
-  color: #fb7185;
-}
-
-:global(.dark) .ys-hit {
-  border-color: rgba(var(--jade-accent-rgb), 0.22);
-  background: rgba(var(--jade-accent-rgb), 0.07);
-}
-
-:global(.dark) .ys-hit .ys-status {
-  background: rgba(var(--jade-accent-rgb), 0.12);
-  color: rgba(var(--jade-accent-rgb), 1);
 }
 
 :global(.dark) .df-pillar-val {
@@ -3072,31 +1796,6 @@ function trendLabel(trend?: string) {
     font-size: var(--fs-stat-lg);
   }
 
-  .guide-essentials {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .guide-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .guide-list-head {
-    align-items: flex-start;
-  }
-
-  .guide-action-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .guide-mini-top {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .guide-intensity {
-    grid-column: 1 / -1;
-    justify-self: start;
-  }
-
   .dimension-panel {
     padding: 0.85rem;
     border-radius: 12px;
@@ -3111,8 +1810,6 @@ function trendLabel(trend?: string) {
     justify-content: flex-start;
     max-width: none;
   }
-
-  .guide-action-grid,
   .df-bottom-row,
   .dimension-grid,
   .rikuyo-core-grid,
@@ -3143,19 +1840,8 @@ function trendLabel(trend?: string) {
     align-items: flex-start;
   }
 
-  .guide-essentials,
   .almanac-grid {
     grid-template-columns: 1fr;
-  }
-
-  .guide-brief,
-  .guide-list {
-    padding: 0.56rem;
-  }
-
-  .guide-more summary,
-  .guide-extra summary {
-    padding: 0.3rem 0.38rem;
   }
 }
 </style>

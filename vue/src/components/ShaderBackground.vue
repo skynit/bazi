@@ -12,11 +12,11 @@ import {
 } from '../composables/useWuxingThemes'
 
 const props = withDefaults(defineProps<{
-  yongshen?: WuxingKey
+  elementTheme?: WuxingKey
   shaderType?: ShaderType
   overlayOpacity?: number
 }>(), {
-  yongshen: 'mu',
+  elementTheme: 'mu',
   shaderType: 'grainGradient',
   overlayOpacity: 0.4
 })
@@ -52,7 +52,7 @@ async function mountHalftoneCmyk() {
   shaderMount = null
   loaded.value = false
 
-  const src = bgImages[props.yongshen]
+  const src = bgImages[props.elementTheme]
   currentImage = await loadImage(src)
 
   if (!shaderHost.value) return
@@ -60,7 +60,7 @@ async function mountHalftoneCmyk() {
   shaderMount = new ShaderMount(
     shaderHost.value,
     getShaderFragment(props.shaderType),
-    createShaderUniforms(props.shaderType, props.yongshen, currentImage, themeMode.value),
+    createShaderUniforms(props.shaderType, props.elementTheme, currentImage, themeMode.value),
     shaderMountConfig,
     getShaderSpeed(props.shaderType),
     0,
@@ -75,7 +75,7 @@ function mountShader() {
   shaderMount = new ShaderMount(
     shaderHost.value,
     getShaderFragment(props.shaderType),
-    createShaderUniforms(props.shaderType, props.yongshen, undefined, themeMode.value),
+    createShaderUniforms(props.shaderType, props.elementTheme, undefined, themeMode.value),
     shaderMountConfig,
     getShaderSpeed(props.shaderType),
     0,
@@ -105,11 +105,11 @@ onUnmounted(() => {
   shaderMount = null
 })
 
-watch([() => props.yongshen, themeMode], () => {
+watch([() => props.elementTheme, themeMode], () => {
   if (props.shaderType === 'halftoneCmyk') {
     mountHalftoneCmyk()
   } else {
-    shaderMount?.setUniforms(createShaderUniforms(props.shaderType, props.yongshen, undefined, themeMode.value))
+    shaderMount?.setUniforms(createShaderUniforms(props.shaderType, props.elementTheme, undefined, themeMode.value))
   }
 })
 

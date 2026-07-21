@@ -11,18 +11,22 @@ interface SavedChart {
   id: number
   name: string
   gender: string
+  zi_hour_policy: 'late_zi_next_day' | 'late_zi_same_day'
   birth_year: number
   birth_month: number
   birth_day: number
   birth_hour: number
   birth_min: number
+  birth_sec: number
   calendar_type?: string
   lunar_leap_month?: boolean
   birth_place?: string
   timezone?: string
+  birth_utc_offset_seconds?: number
   longitude?: number
   use_true_solar_time?: boolean
   time_uncertain?: boolean
+  uncertainty_seconds?: number
 }
 
 const route = useRoute()
@@ -79,14 +83,19 @@ function cacheLastBirthFromChart(chart: any) {
       day: Number(chart.birth_day),
       hour: Number.isFinite(birthHour) ? birthHour : 8,
       minute: Number(chart.birth_min) || 0,
+      second: Number(chart.birth_sec) || 0,
       calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
       lunarLeapMonth: Boolean(chart.lunar_leap_month),
       gender: genderRaw === 'female' || genderRaw === '女' ? 'FEMALE' : 'MALE',
+      ziHourPolicy:
+        chart.zi_hour_policy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day',
       birthPlace: chart.birth_place || '',
       timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      birthUTCOffsetSeconds: chart.birth_utc_offset_seconds,
       longitude: chart.longitude,
       useTrueSolarTime: Boolean(chart.use_true_solar_time),
       timeUncertain: Boolean(chart.time_uncertain),
+      uncertaintySeconds: Number(chart.uncertainty_seconds) || 0,
       chartId: chart.id,
     }),
   )
@@ -120,15 +129,20 @@ async function selectChart(chart: SavedChart) {
         day: chart.birth_day,
         hour: chart.birth_hour,
         minute: chart.birth_min || 0,
+        second: chart.birth_sec || 0,
         calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
         lunarLeapMonth: Boolean(chart.lunar_leap_month),
         gender:
           chart.gender.toLowerCase() === 'female' || chart.gender === '女' ? 'FEMALE' : 'MALE',
+        ziHourPolicy:
+          chart.zi_hour_policy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day',
         birthPlace: chart.birth_place || '',
         timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        birthUTCOffsetSeconds: chart.birth_utc_offset_seconds,
         longitude: chart.longitude,
         useTrueSolarTime: Boolean(chart.use_true_solar_time),
         timeUncertain: Boolean(chart.time_uncertain),
+        uncertaintySeconds: Number(chart.uncertainty_seconds) || 0,
         chartId: chart.id,
       }),
     )
@@ -147,7 +161,8 @@ function formatBirth(c: SavedChart): string {
   const d = String(c.birth_day).padStart(2, '0')
   const h = String(c.birth_hour).padStart(2, '0')
   const min = String(c.birth_min || 0).padStart(2, '0')
-  return `${c.birth_year}-${m}-${d} ${h}:${min}`
+  const sec = String(c.birth_sec || 0).padStart(2, '0')
+  return `${c.birth_year}-${m}-${d} ${h}:${min}:${sec}`
 }
 
 async function loadChart() {

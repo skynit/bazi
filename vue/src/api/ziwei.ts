@@ -63,7 +63,7 @@ export interface ZiWeiChartRequest {
   calendar_type?: string
   gender?: string
   name?: string
-  algorithm?: 'default' | 'zhongzhou'
+  profile?: string
 }
 
 export interface ZiWeiPeriodRequest {
@@ -76,52 +76,136 @@ export interface ZiWeiPeriodRequest {
   chart_id2?: number
 }
 
-export interface ZiWeiOverlayRequest {
-  chart_id: number
+export interface ZiWeiDerivationInput {
+  calendar_type: 'SOLAR' | 'LUNAR_YEAR'
   year: number
+  month: number
+  day: number
+  basis:
+    | 'target_lunar_year_label'
+    | 'target_solar_date_resolved_to_lunar_month'
+    | 'target_solar_date_resolved_to_lunar_day'
+  boundary_policy: 'iztro_normal_lunar_boundaries_fix_leap_day_15'
+  resolved_lunar_date: {
+    year: number
+    month: number
+    day: number
+    is_leap_month: boolean
+  }
+  period_gan_zhi: string
 }
 
-export interface ZiWeiPeriodHighlight {
+export interface ZiWeiDerivedChartContract {
+  derivation_type: 'liunian' | 'liuyue' | 'liuri'
+  derivation_input: ZiWeiDerivationInput
+  derivation_fingerprint: string
+  base_content_hash: string
+  derived_content_hash: string
+}
+
+export interface ZiWeiTransitLayers {
+  liu_nian_stars: string[][]
+  liu_yue_stars: string[][]
+  liu_ri_stars: string[][]
+  liu_nian_four_hua: string[][]
+  liu_yue_four_hua: string[][]
+  liu_ri_four_hua: string[][]
+  liu_nian_palaces: string[]
+  liu_yue_palaces: string[]
+  liu_ri_palaces: string[]
+}
+
+export interface ZiWeiOverlayRequest {
+  chart_id: number
+  year?: number
+}
+
+export interface ZiWeiSihuaProjectionSemantics {
+  rule_id: 'ziwei.sihua.ten-stem.iztro-v1'
+  source_tier: 'silver_external'
+  placement_basis: 'deterministic_rule_projection'
+  validation_status: 'cross_checked_not_gold'
+  is_outcome_conclusion: false
+}
+
+export interface ZiWeiSihuaProjectionItem extends ZiWeiSihuaProjectionSemantics {
+  transformed_star: string
+  hua_type: '化禄' | '化权' | '化科' | '化忌'
+  target_palace: string
+  source_palace?: string
+  source_palace_stem?: string
+  flight_scope?: 'same_palace' | 'cross_palace'
+  is_self_mutagen?: boolean
+}
+
+export interface ZiWeiSihuaProjectionResult extends ZiWeiSihuaProjectionSemantics {
+  analysis_kind: 'natal_year_stem_four_hua_projection' | 'direct_palace_stem_four_hua_flights'
+  hua_lu: ZiWeiSihuaProjectionItem[]
+  hua_quan: ZiWeiSihuaProjectionItem[]
+  hua_ke: ZiWeiSihuaProjectionItem[]
+  hua_ji: ZiWeiSihuaProjectionItem[]
+}
+
+export interface ZiWeiSelfMutagen extends ZiWeiSihuaProjectionSemantics {
+  palace: string
+  palace_stem: string
+  transformed_star: string
+  hua_type: '化禄' | '化权' | '化科' | '化忌'
+  structure_status: 'same_palace_transformation'
+  is_self_mutagen: true
+}
+
+export interface ZiWeiPeriodEvidenceSemantics {
+  placement_basis: 'deterministic_rule_projection' | string
+  interpretation_basis: 'traditional_rule_labels' | string
+  interpretation_status: 'not_adjudicated' | string
+  is_outcome_conclusion: boolean
+}
+
+export interface ZiWeiPeriodHighlight extends ZiWeiPeriodEvidenceSemantics {
   label: string
   value: string
   note: string
 }
 
-export interface ZiWeiPeriodEvidence {
+export interface ZiWeiPeriodEvidence extends ZiWeiPeriodEvidenceSemantics {
   type: string
   label: string
   value: string
-  impact: string
+  basis: string
 }
 
-export interface ZiWeiPeriodPalaceFocus {
+export interface ZiWeiPeriodPalaceFocus extends ZiWeiPeriodEvidenceSemantics {
   palace: string
+  period_palace: string
   branch: string
-  score: number
-  level: string
   main_stars: string[]
   aux_stars: string[]
   period_stars: string[]
   four_hua: string[]
   sanfang: string[]
   reason: string
-  suggestion: string
+  review_note: string
 }
 
-export interface ZiWeiDayunStageAnalysis {
+export interface ZiWeiDayunStageAnalysis extends ZiWeiPeriodEvidenceSemantics {
   start_age: number
   end_age: number
   palace: string
   branch: string
-  score: number
-  tone: string
+  heavenly_stem: string
+  earthly_branch: string
+  gan_zhi: string
   main_stars: string[]
   aux_stars: string[]
+  period_stars: string[]
   four_hua: string[]
   sanfang: string[]
   summary: string
-  advice: string[]
+  review_notes: string[]
   current: boolean
+  nominal_age?: number
+  age_basis?: string
 }
 
 export interface ZiWeiPeriodAnalysis {
@@ -131,16 +215,22 @@ export interface ZiWeiPeriodAnalysis {
   title: string
   time_label: string
   gan_zhi?: string
-  score: number
-  tone: string
   summary: string
   method: string[]
   highlights: ZiWeiPeriodHighlight[]
   focus_palaces: ZiWeiPeriodPalaceFocus[]
   evidence: ZiWeiPeriodEvidence[]
-  recommendations: string[]
-  risks: string[]
+  cross_layer_relations: ZiWeiPeriodLayerRelation[]
+  review_notes: string[]
+  limitations: string[]
+  evidence_basis: 'mixed_deterministic_projection_and_unadjudicated_traditional_labels' | string
+  placement_basis: 'deterministic_rule_projection' | string
+  interpretation_basis: 'traditional_rule_labels' | string
+  interpretation_status: 'not_adjudicated' | string
+  validation_status: 'not_adjudicated' | string
+  is_outcome_conclusion: boolean
   dayun_stages?: ZiWeiDayunStageAnalysis[]
+  dayun_context?: ZiWeiDayunStageAnalysis
 }
 
 export interface ZiWeiPeriodResponse<T = unknown> {
@@ -149,32 +239,110 @@ export interface ZiWeiPeriodResponse<T = unknown> {
   year?: number
   month?: number
   day?: number
+  target_date?: string
+  nominal_age?: number
+  age_basis?: string
+  boundary_policy?: string
   period_key?: string
   [key: string]: unknown
 }
 
-export interface ZiWeiOverlayMethodStep {
+export interface ZiWeiOverlayMethodStep extends ZiWeiPeriodEvidenceSemantics {
   label: string
   value: string
   meaning: string
 }
 
-export interface ZiWeiOverlayTrigger {
+export interface ZiWeiOverlayTrigger extends ZiWeiPeriodEvidenceSemantics {
   type: string
   star?: string
   palace: string
   branch: string
   meaning: string
-  polarity: 'good' | 'watch' | 'movement' | 'neutral' | string
+  polarity: 'resource' | 'constraint' | 'movement' | 'neutral' | string
 }
 
-export interface ZiWeiOverlayFocusPalace {
+export interface ZiWeiOverlayFocusPalace extends ZiWeiPeriodEvidenceSemantics {
   palace: string
   branch: string
-  score: number
   triggers: ZiWeiOverlayTrigger[]
   main_stars: string[]
-  advice: string
+  review_note: string
+}
+
+export interface ZiWeiPeriodBranchRelation {
+  period_branch: string
+  natal_pillar: 'year' | 'month' | 'day' | 'hour' | string
+  natal_branch: string
+  relation: string
+  subtype?: string
+  rule_id: string
+  structural_status: 'observed' | 'complete' | string
+  transformation_status: 'not_applicable' | 'unadjudicated' | string
+  target_element?: string
+  evidence_basis: 'deterministic_rule_projection' | string
+  interpretation_status: 'not_adjudicated' | string
+  is_outcome_conclusion: boolean
+}
+
+export interface ZiWeiHourBlock {
+  stem: string
+  branch: string
+  stem_branch: string
+  interval_start_hour: number
+  interval_end_hour_exclusive: number
+  interval_label: string
+  crosses_midnight: boolean
+  day_stem_basis: 'period_derivation_day_stem'
+  boundary_policy: 'traditional_two_hour_branch_slots_no_civil_date_assignment'
+  rule_id: 'ziwei.period.hour-stem.five-rat-v1'
+  shi_shen: string
+  relation_to_ming: string
+  relation_evidence: ZiWeiPeriodBranchRelation[]
+  structural_summary: string
+  evidence_basis: 'deterministic_rule_projection'
+  validation_status: 'not_adjudicated'
+  is_outcome_conclusion: false
+}
+
+export interface ZiWeiPeriodSummaryItem {
+  gan_zhi: string
+  shi_shen: string
+  relation: string
+  relation_evidence: ZiWeiPeriodBranchRelation[]
+  structural_summary: string
+}
+
+export interface ZiWeiPeriodLayerRelation {
+  source_layer: 'liuyue' | 'liuri'
+  source_gan_zhi: string
+  source_branch: string
+  target_layer: 'liunian' | 'liuyue'
+  target_gan_zhi: string
+  target_branch: string
+  relation: string
+  subtype?: string
+  rule_id: string
+  structural_status: string
+  transformation_status: string
+  target_element?: string
+  evidence_basis: 'deterministic_rule_projection'
+  interpretation_status: 'not_adjudicated'
+  is_outcome_conclusion: false
+}
+
+export interface ZiWeiPeriodSummary {
+  liunian: ZiWeiPeriodSummaryItem
+  liuyue: ZiWeiPeriodSummaryItem
+  liuri: ZiWeiPeriodSummaryItem
+  review_notes: {
+    liunian: string[]
+    liuyue: string[]
+    liuri: string[]
+  }
+  evidence_basis: 'deterministic_rule_projection'
+  validation_status: 'not_adjudicated'
+  is_outcome_conclusion: false
 }
 
 export interface ZiWeiOverlayAnalysis {
@@ -183,14 +351,21 @@ export interface ZiWeiOverlayAnalysis {
   stem: string
   branch: string
   shi_shen?: string
-  score: number
-  tone: string
-  key_tips: string
+  relation_to_ming: string
+  relation_evidence: ZiWeiPeriodBranchRelation[]
+  review_note: string
   summary: string
   method: ZiWeiOverlayMethodStep[]
   four_hua: ZiWeiOverlayTrigger[]
   annual_stars: ZiWeiOverlayTrigger[]
   focus_palaces: ZiWeiOverlayFocusPalace[]
+  dayun_context?: ZiWeiDayunStageAnalysis
+  evidence_basis: 'mixed_deterministic_projection_and_unadjudicated_traditional_labels' | string
+  placement_basis: 'deterministic_rule_projection' | string
+  interpretation_basis: 'traditional_rule_labels' | string
+  interpretation_status: 'not_adjudicated' | string
+  validation_status: 'not_adjudicated' | string
+  is_outcome_conclusion: boolean
 }
 
 export async function fetchZiWeiChart(payload: ZiWeiChartRequest) {

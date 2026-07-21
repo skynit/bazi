@@ -1,0 +1,332 @@
+{
+  "schema": "sanming_ncl_physical_book_boundary_audit_v1",
+  "version": "2026-07-17.1",
+  "status": "physical_book_candidates_not_volume_mapping",
+  "observed_at": "2026-07-17",
+  "candidate_id": "sanming-ncl-06589-1578-12vol-scan-v1",
+  "snapshot_manifest": {
+    "path": "snapshot-manifest.json",
+    "sha256": "a0db6189460aa495122db8809d70a9837a7e92d30f209a11f7839859b3f6c2b3"
+  },
+  "method": {
+    "renderer": "pdftoppm version 26.05.0",
+    "render_arguments": "-jpeg -jpegopt quality=50 -r 20",
+    "measurement_tool": "Version: ImageMagick 7.1.2-27 Q16-HDRI x86_64 e4c2b403b:20260705 https://imagemagick.org",
+    "measurement": "normalized mean luminance",
+    "candidate_rule": "mean_luminance < threshold",
+    "threshold": 0.30
+  },
+  "observed_cover_candidates": [
+    {
+      "part": 1,
+      "physical_page": 1,
+      "mean_luminance": 0.248763,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 98,
+      "mean_luminance": 0.237684,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 99,
+      "mean_luminance": 0.244895,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 190,
+      "mean_luminance": 0.230387,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 191,
+      "mean_luminance": 0.25058,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 257,
+      "mean_luminance": 0.253532,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 258,
+      "mean_luminance": 0.252664,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 334,
+      "mean_luminance": 0.253145,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 335,
+      "mean_luminance": 0.242335,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 425,
+      "mean_luminance": 0.244791,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 426,
+      "mean_luminance": 0.242187,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 523,
+      "mean_luminance": 0.247971,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 524,
+      "mean_luminance": 0.241021,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 639,
+      "mean_luminance": 0.239257,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 640,
+      "mean_luminance": 0.250744,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 759,
+      "mean_luminance": 0.238113,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 760,
+      "mean_luminance": 0.251199,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 876,
+      "mean_luminance": 0.241571,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 877,
+      "mean_luminance": 0.260108,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 959,
+      "mean_luminance": 0.244467,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 1,
+      "physical_page": 960,
+      "mean_luminance": 0.246703,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 2,
+      "physical_page": 70,
+      "mean_luminance": 0.244092,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 2,
+      "physical_page": 71,
+      "mean_luminance": 0.249308,
+      "classification": "dark_outer_cover_candidate"
+    },
+    {
+      "part": 2,
+      "physical_page": 187,
+      "mean_luminance": 0.253473,
+      "classification": "dark_outer_cover_candidate"
+    }
+  ],
+  "physical_book_candidate_ranges": [
+    {
+      "book_candidate": 1,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 1,
+          "last_page": 98
+        }
+      ]
+    },
+    {
+      "book_candidate": 2,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 99,
+          "last_page": 190
+        }
+      ]
+    },
+    {
+      "book_candidate": 3,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 191,
+          "last_page": 257
+        }
+      ]
+    },
+    {
+      "book_candidate": 4,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 258,
+          "last_page": 334
+        }
+      ]
+    },
+    {
+      "book_candidate": 5,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 335,
+          "last_page": 425
+        }
+      ]
+    },
+    {
+      "book_candidate": 6,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 426,
+          "last_page": 523
+        }
+      ]
+    },
+    {
+      "book_candidate": 7,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 524,
+          "last_page": 639
+        }
+      ]
+    },
+    {
+      "book_candidate": 8,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 640,
+          "last_page": 759
+        }
+      ]
+    },
+    {
+      "book_candidate": 9,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 760,
+          "last_page": 876
+        }
+      ]
+    },
+    {
+      "book_candidate": 10,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 877,
+          "last_page": 959
+        }
+      ]
+    },
+    {
+      "book_candidate": 11,
+      "segments": [
+        {
+          "part": 1,
+          "first_page": 960,
+          "last_page": 1000
+        },
+        {
+          "part": 2,
+          "first_page": 1,
+          "last_page": 70
+        }
+      ]
+    },
+    {
+      "book_candidate": 12,
+      "segments": [
+        {
+          "part": 2,
+          "first_page": 71,
+          "last_page": 187
+        }
+      ]
+    }
+  ],
+  "visual_spot_check": {
+    "status": "single_operator_non_independent",
+    "sampled_ranges": [
+      {
+        "part": 1,
+        "first_page": 96,
+        "last_page": 101,
+        "observation": "text end, inner cover, paired dark outer covers, inner cover, next text"
+      },
+      {
+        "part": 2,
+        "first_page": 68,
+        "last_page": 74,
+        "observation": "text end, inner cover, paired dark outer covers, inner cover, next text"
+      }
+    ],
+    "independent_review": false
+  },
+  "result": {
+    "dark_cover_candidate_count": 24,
+    "physical_book_candidate_count": 12,
+    "cross_pdf_book_candidate": 11,
+    "final_book_candidate_start": {
+      "part": 2,
+      "physical_page": 71
+    },
+    "provider_extent_consistent_with_observation": true
+  },
+  "boundaries": {
+    "cover_detection_is_not_volume_label_reading": true,
+    "sequence_number_is_a_candidate_not_verified_volume_number": true,
+    "complete_structure_observed": true,
+    "complete_primary_text_verified": false,
+    "volume_mapping_verified": false,
+    "chapter_page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schema": "sanming_complete_scan_discovery_audit_v1",
+  "version": "2026-07-17.1",
+  "status": "selected_for_research_snapshot_not_runtime_ingestion",
+  "observed_at": "2026-07-17",
+  "work": "三命通會",
+  "purpose": "Freeze the exact Commons discovery observation and the fail-closed selection of a licensed, bibliographically addressable complete scan candidate.",
+  "query": {
+    "provider": "commons.wikimedia.org",
+    "api": "https://commons.wikimedia.org/w/api.php",
+    "action": "query",
+    "list": "search",
+    "search": "intitle:\"三命通會\"",
+    "namespaces": [
+      6,
+      14
+    ],
+    "limit": 500,
+    "response_path": "evidence/commons-title-search.json",
+    "response_size_bytes": 61069,
+    "response_sha256": "74d454268323b4fc1f34573add6a701467a7b20edea7c36f9d61e5ce12139dd6"
+  },
+  "observation": {
+    "total_hits": 91,
+    "returned_hits": 91,
+    "file_hits": 89,
+    "category_hits": 2,
+    "selected_titles": [
+      "File:NCL-06589 1 三命通會.pdf",
+      "File:NCL-06589 2 三命通會.pdf"
+    ]
+  },
+  "candidate_matrix": [
+    {
+      "candidate": "NCL-06589",
+      "title_hits": 2,
+      "edition": "明萬曆戊寅(六年, 1578)刊本",
+      "structure": "十二卷十二冊 in two PDFs",
+      "license": "PD-scan|PD-old",
+      "source_identity": "National Central Library call number 306.5 06589",
+      "decision": "selected_for_research_snapshot"
+    },
+    {
+      "candidate": "Harvard-drs-53262215",
+      "title_hits": 12,
+      "edition": "清雍正十三年候選",
+      "structure": "twelve PDFs",
+      "license": "Public domain",
+      "source_identity": "Harvard IIIF drs:53262215",
+      "decision": "retained_as_large_alternative_not_fetched"
+    },
+    {
+      "candidate": "SSID-13035018-13035029",
+      "title_hits": 12,
+      "edition": "上海江左書林 1909 改良本",
+      "structure": "twelve-volume scan set",
+      "license": "PD-scan|PD-old",
+      "source_identity": "SSID identifiers",
+      "decision": "retained_as_later_adapted_alternative_not_fetched"
+    },
+    {
+      "candidate": "CADAL-060660-and-060564",
+      "title_hits": 24,
+      "edition": "欽定四庫全書本",
+      "structure": "two twelve-volume scan sets",
+      "license": "Commons PD-scan metadata; archive.org records separately lack rights/licenseurl",
+      "source_identity": "CADAL identifiers",
+      "decision": "retained_as_siku_alternative_not_fetched"
+    }
+  ],
+  "selection": {
+    "candidate_id": "sanming-ncl-06589-1578-12vol-scan-v1",
+    "reasons": [
+      "earliest precisely identified edition among the audited complete candidates",
+      "institution and call number are explicit",
+      "twelve-volume and twelve-book structure are explicit",
+      "Commons file pages explicitly apply PD-scan|PD-old",
+      "two stable PDF file identities provide physical-page locators"
+    ]
+  },
+  "boundaries": {
+    "provider_metadata_is_not_final_bibliographic_adjudication": true,
+    "title_level_completeness_is_not_page_level_completeness": true,
+    "local_snapshot_does_not_imply_runtime_ingestion": true,
+    "bibliography_adjudicated": false,
+    "complete_primary_text_verified": false,
+    "page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  }
+}

@@ -1,6 +1,8 @@
 package fortune
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,13 +49,13 @@ func TestCalcScore_BranchRelations_Baseline(t *testing.T) {
 		branchRel string
 		want      int
 	}{
-		{"clash", 30},    // 50-30+10=30
-		{"harm", 45},     // 50-15+10=45
-		{"punish", 40},   // 50-20+10=40
-		{"break", 50},    // 50-10+10=50
-		{"combine", 68},  // 50+8+10=68
-		{"sanHe", 75},    // 50+15+10=75
-		{"sanHui", 80},   // 50+20+10=80
+		{"clash", 30},   // 50-30+10=30
+		{"harm", 45},    // 50-15+10=45
+		{"punish", 40},  // 50-20+10=40
+		{"break", 50},   // 50-10+10=50
+		{"combine", 68}, // 50+8+10=68
+		{"sanHe", 75},   // 50+15+10=75
+		{"sanHui", 80},  // 50+20+10=80
 	}
 	for _, tt := range tests {
 		got := calcScore("same", tt.branchRel, "", "")
@@ -114,10 +116,10 @@ func TestCalcScore_Boundary_Ceiling(t *testing.T) {
 // TestCalcScore_GanHe_Effect 验证天干五合加分
 func TestCalcScore_GanHe_Effect(t *testing.T) {
 	tests := []struct {
-		name   string
-		userG  string
-		dayG   string
-		want   int // 五合+12
+		name  string
+		userG string
+		dayG  string
+		want  int // 五合+12
 	}{
 		{"甲己合", "甲", "己", 62}, // 50+12=62
 		{"乙庚合", "乙", "庚", 62}, // 50+12=62
@@ -137,13 +139,13 @@ func TestCalcScore_GanHe_Effect(t *testing.T) {
 // TestCalcScore_ExtremeCombos 极端组合测试
 func TestCalcScore_ExtremeCombos(t *testing.T) {
 	combo := []struct {
-		name     string
-		stemRel  string
+		name      string
+		stemRel   string
 		branchRel string
-		userGan  string
-		dayGan   string
-		wantMin  int
-		wantMax  int
+		userGan   string
+		dayGan    string
+		wantMin   int
+		wantMax   int
 	}{
 		{"全凶(keWo+clash)", "keWo", "clash", "", "", 0, 10},
 		{"全凶(keWo+punish)", "keWo", "punish", "", "", 0, 15},
@@ -188,26 +190,8 @@ func TestCalculateDaily_OutputStructure(t *testing.T) {
 	if result.Score < 0 || result.Score > 100 {
 		t.Errorf("Score = %d, 不在 [0,100] 范围内", result.Score)
 	}
-	if result.LuckyColor == "" {
-		t.Error("LuckyColor 为空")
-	}
-	if len(result.LuckyNumbers) == 0 {
-		t.Error("LuckyNumbers 为空")
-	}
-	if result.WealthDir == "" {
-		t.Error("WealthDir 为空")
-	}
 	if result.ClashZodiac == "" {
 		t.Error("ClashZodiac 为空")
-	}
-	if len(result.AuspiciousHours) == 0 {
-		t.Error("AuspiciousHours 为空")
-	}
-	if len(result.Yi) == 0 {
-		t.Error("Yi 为空")
-	}
-	if len(result.Ji) == 0 {
-		t.Error("Ji 为空")
 	}
 	if result.ShengKe.DayStemRelation == "" {
 		t.Error("ShengKe.DayStemRelation 为空")
@@ -221,11 +205,38 @@ func TestCalculateDaily_OutputStructure(t *testing.T) {
 	if len(result.TodayElements) == 0 {
 		t.Error("TodayElements 为空")
 	}
-	if result.FlowImpact == "" {
-		t.Error("FlowImpact 为空")
+	if result.SeasonElement.Status != "observed" || result.SeasonElement.InterpretationStatus != "not_adjudicated" {
+		t.Errorf("SeasonElement 不是可审计未裁决证据: %+v", result.SeasonElement)
 	}
 	if result.Rikuyo == nil {
 		t.Error("Rikuyo 为 nil")
+	}
+	payload, err := json.Marshal(result)
+	if err != nil {
+		t.Fatalf("marshal DailyFortune: %v", err)
+	}
+	for _, forbidden := range []string{
+		`"lucky_color"`, `"lucky_numbers"`, `"wealth_dir"`, `"auspicious_hours"`,
+		`"guide"`, `"yi"`, `"ji"`, `"flow_impact"`, `"season_element_advice"`,
+		`"today_ten_god"`, `"ten_god_favorable"`, `"ten_god_desc"`,
+	} {
+		if strings.Contains(string(payload), forbidden) {
+			t.Fatalf("DailyFortune must not expose unadjudicated guidance field %s: %s", forbidden, payload)
+		}
+	}
+}
+
+func TestObserveSeasonElement_ReturnsStructureOnly(t *testing.T) {
+	evidence := observeSeasonElement("甲", "未")
+	if evidence.ReferenceElement != "木" || evidence.Season != "夏" || evidence.Status != "observed" {
+		t.Fatalf("unexpected season evidence: %+v", evidence)
+	}
+	if evidence.InterpretationStatus != "not_adjudicated" {
+		t.Fatalf("season interpretation must remain unadjudicated: %+v", evidence)
+	}
+	invalid := observeSeasonElement("甲", "invalid")
+	if invalid.Status != "unavailable" || invalid.Season != "" {
+		t.Fatalf("invalid month branch must be unavailable: %+v", invalid)
 	}
 }
 

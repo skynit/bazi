@@ -120,7 +120,7 @@ func main() {
 		ch := &handler.ChartHandler{Parser: parser, Bazi: baziSvc, Store: cs}
 		api.POST("/chart/preview", ch.Preview)
 		api.POST("/chart", ch.Chart)
-		fh := &handler.FortuneHandler{Engine: engine, ChartStore: cs, Assets: elementAssetSvc}
+		fh := &handler.FortuneHandler{Engine: engine, ChartStore: cs}
 		api.POST("/fortune", fh.CalculateDaily)
 		handler.RegisterElementAssetRoutes(api, elementAssetSvc, elementAssetStore, us, cfg.AdminUsername, cfg.ElementAssetDir)
 		wh := &handler.WeeklyFortuneHandler{Engine: engine, Charts: cs}

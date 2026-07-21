@@ -306,11 +306,13 @@ func TestZiWeiGoldenMatchesIztro(t *testing.T) {
 				if want.name != "" && p.Name != want.name {
 					t.Errorf("%s palace name = %s, want %s", branch, p.Name, want.name)
 				}
-				if !sameStringSet(p.MainStars, want.main) {
-					t.Errorf("%s main stars = %v, want %v", branch, p.MainStars, want.main)
+				mainStars := palaceMainStars(*p)
+				if !sameStringSet(mainStars, want.main) {
+					t.Errorf("%s main stars = %v, want %v", branch, mainStars, want.main)
 				}
-				if !sameStringSet(p.AuxStars, want.aux) {
-					t.Errorf("%s aux stars = %v, want %v", branch, p.AuxStars, want.aux)
+				auxStars := palaceAuxStars(*p)
+				if !sameStringSet(auxStars, want.aux) {
+					t.Errorf("%s aux stars = %v, want %v", branch, auxStars, want.aux)
 				}
 			}
 		})

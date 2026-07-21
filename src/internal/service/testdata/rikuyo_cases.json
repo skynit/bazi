@@ -1,7 +1,17 @@
 {
-  "version": "1.0",
-  "description": "日课推算与运势精度测试库",
+  "version": "2.0",
+  "description": "Quarantined Rikuyo structural candidates with outcome judgments isolated from evaluator assertions.",
   "source": "知识库 /home/skynit/Uni/ming/mingli/05-专题研究/日课推算/",
+  "metadata": {
+    "tier": "bronze",
+    "source_name": "legacy rikuyo fixtures",
+    "license": "unknown",
+    "confidence": 0,
+    "review_status": "quarantined",
+    "reviewers": [],
+    "purpose": "rikuyo_rule_candidates",
+    "quarantine_reason": "Only exact month-branch and query-stem labels remain evaluator candidates; ambiguous or outcome-bearing legacy expectations are non-assertive annotations without page-level adjudication."
+  },
   "cases": [
     {
       "id": "riku_001",
@@ -13,9 +23,14 @@
       "birth_hour": 12,
       "query_date": "2024-02-04",
       "expected": {
-        "jian_chu_should_be": "建或除",
-        "month_zhi": "寅",
-        "favorable": true
+        "month_branch": "寅"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "jian_chu_should_be": "建或除",
+          "month_zhi": "寅",
+          "favorable": true
+        }
       }
     },
     {
@@ -27,9 +42,12 @@
       "birth_day": 1,
       "birth_hour": 12,
       "query_date": "2024-05-01",
-      "expected": {
-        "huang_dao_or_hei_dao": "黄道",
-        "favorable": true
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "huang_dao_or_hei_dao": "黄道",
+          "favorable": true
+        }
       }
     },
     {
@@ -42,8 +60,13 @@
       "birth_hour": 12,
       "query_date": "2024-03-14",
       "expected": {
-        "today_gan": "甲",
-        "pengzu_gan_taboo": "甲不开仓财物耗散"
+        "query_stem": "甲"
+      },
+      "legacy_annotations": {
+        "original_expected": {
+          "today_gan": "甲",
+          "pengzu_gan_taboo": "甲不开仓财物耗散"
+        }
       }
     },
     {
@@ -55,8 +78,11 @@
       "birth_day": 1,
       "birth_hour": 12,
       "query_date": "2024-06-01",
-      "expected": {
-        "overall_verdict_should_be_favorable": true
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "overall_verdict_should_be_favorable": true
+        }
       }
     },
     {
@@ -68,8 +94,11 @@
       "birth_day": 15,
       "birth_hour": 12,
       "query_date": "2024-07-15",
-      "expected": {
-        "favorable": false
+      "expected": {},
+      "legacy_annotations": {
+        "original_expected": {
+          "favorable": false
+        }
       }
     }
   ]

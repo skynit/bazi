@@ -1,72 +1,96 @@
 package bazi
 
-// ShenShaMeta describes display and ranking metadata for one shen-sha item.
+// ShenShaMeta records only which lookup rule produced a traditional name.
+// It deliberately contains no polarity, ranking, personality, or event claim.
 type ShenShaMeta struct {
-	Name        string `json:"name"`
-	Category    string `json:"category"`
-	Polarity    string `json:"polarity"`
-	Priority    int    `json:"priority"`
-	Source      string `json:"source"`
-	Description string `json:"description"`
+	Name                 string `json:"name"`
+	RuleID               string `json:"rule_id"`
+	Basis                string `json:"basis"`
+	Status               string `json:"status"`
+	InterpretationStatus string `json:"interpretation_status"`
 }
 
-var shenShaMetaCatalog = map[string]ShenShaMeta{
-	"天乙贵人": {Name: "天乙贵人", Category: "贵人", Polarity: "吉", Priority: 1, Source: "日干/年干贵人位", Description: "主贵人扶助、遇难得解。"},
-	"太极贵人": {Name: "太极贵人", Category: "贵人", Polarity: "吉", Priority: 2, Source: "年干/日干取支", Description: "主聪慧、悟性、宗教玄学缘。"},
-	"文昌贵人": {Name: "文昌贵人", Category: "才学", Polarity: "吉", Priority: 1, Source: "日干取支", Description: "主学习、文书、表达与考试。"},
-	"福星贵人": {Name: "福星贵人", Category: "福德", Polarity: "吉", Priority: 2, Source: "日干取支", Description: "主福气、照拂与顺遂。"},
-	"国印贵人": {Name: "国印贵人", Category: "权印", Polarity: "吉", Priority: 2, Source: "日干取支", Description: "主印信、资质、名誉与制度资源。"},
-	"天德贵人": {Name: "天德贵人", Category: "福德", Polarity: "吉", Priority: 1, Source: "月令取干支", Description: "主化解、德荫、逢凶减轻。"},
-	"月德贵人": {Name: "月德贵人", Category: "福德", Polarity: "吉", Priority: 1, Source: "月令取干", Description: "主和气、解厄、贵人照应。"},
-	"禄神":   {Name: "禄神", Category: "财禄", Polarity: "吉", Priority: 1, Source: "日干禄位", Description: "主衣禄、职位、资源与稳定收益。"},
-	"金舆":   {Name: "金舆", Category: "财禄", Polarity: "吉", Priority: 2, Source: "日干取支", Description: "主享受、车舆、伴侣助力。"},
-	"学堂":   {Name: "学堂", Category: "才学", Polarity: "吉", Priority: 2, Source: "日干取支", Description: "主学习能力、传承与文凭。"},
-	"词馆":   {Name: "词馆", Category: "才学", Polarity: "吉", Priority: 2, Source: "日干取支", Description: "主文辞、表达、写作与声名。"},
-	"天厨食禄": {Name: "天厨食禄", Category: "财禄", Polarity: "吉", Priority: 3, Source: "日干取支", Description: "主饮食、口福、资源供给。"},
-	"驿马":   {Name: "驿马", Category: "动象", Polarity: "中", Priority: 2, Source: "三合局取冲位", Description: "主移动、出差、变动、消息。"},
-	"华盖":   {Name: "华盖", Category: "才艺", Polarity: "中", Priority: 2, Source: "三合局墓位", Description: "主才艺、孤高、宗教玄学缘。"},
-	"桃花":   {Name: "桃花", Category: "人缘", Polarity: "中", Priority: 2, Source: "三合局咸池", Description: "主人缘、审美、感情与社交吸引。"},
-	"咸池":   {Name: "咸池", Category: "人缘", Polarity: "中", Priority: 2, Source: "三合局桃花位", Description: "主人缘桃花，也需防情感扰动。"},
-	"红鸾":   {Name: "红鸾", Category: "婚恋", Polarity: "吉", Priority: 2, Source: "年支取位", Description: "主婚恋喜庆、人际和合。"},
-	"天喜":   {Name: "天喜", Category: "婚恋", Polarity: "吉", Priority: 2, Source: "年支取位", Description: "主喜庆、婚恋、社交顺意。"},
-	"羊刃":   {Name: "羊刃", Category: "刚烈", Polarity: "凶", Priority: 1, Source: "阳干刃位", Description: "主刚猛、竞争、冲动，宜有制化。"},
-	"飞刃":   {Name: "飞刃", Category: "刚烈", Polarity: "凶", Priority: 2, Source: "羊刃对冲", Description: "主急切、伤损、冲突风险。"},
-	"劫煞":   {Name: "劫煞", Category: "风险", Polarity: "凶", Priority: 1, Source: "三合局取位", Description: "主损耗、争夺、突发阻碍。"},
-	"灾煞":   {Name: "灾煞", Category: "风险", Polarity: "凶", Priority: 1, Source: "年支/三合局取位", Description: "主灾扰、意外、计划受阻。"},
-	"岁破":   {Name: "岁破", Category: "风险", Polarity: "凶", Priority: 1, Source: "年支对冲", Description: "主冲破、变动、外部压力。"},
-	"大耗":   {Name: "大耗", Category: "耗损", Polarity: "凶", Priority: 1, Source: "年支取位", Description: "主破财、耗费、资源流失。"},
-	"小耗":   {Name: "小耗", Category: "耗损", Polarity: "凶", Priority: 2, Source: "年支取位", Description: "主小额耗费、精力消耗。"},
-	"白虎":   {Name: "白虎", Category: "风险", Polarity: "凶", Priority: 1, Source: "年支取位", Description: "主伤病、口舌、冲突。"},
-	"官符":   {Name: "官符", Category: "是非", Polarity: "凶", Priority: 1, Source: "年支取位", Description: "主文书、规则压力、官非是非。"},
-	"病符":   {Name: "病符", Category: "健康", Polarity: "凶", Priority: 2, Source: "年支取位", Description: "主健康波动、疲劳与病气。"},
-	"死符":   {Name: "死符", Category: "风险", Polarity: "凶", Priority: 2, Source: "年支取位", Description: "主停滞、低迷、谨慎守成。"},
-	"丧门":   {Name: "丧门", Category: "风险", Polarity: "凶", Priority: 1, Source: "年支取位", Description: "主忧烦、家宅不宁、低落气象。"},
-	"吊客":   {Name: "吊客", Category: "风险", Polarity: "凶", Priority: 1, Source: "年支取位", Description: "主奔波、吊问、情绪耗损。"},
-	"孤辰":   {Name: "孤辰", Category: "孤寡", Polarity: "凶", Priority: 2, Source: "三会方取位", Description: "主独立、孤高、关系疏离。"},
-	"寡宿":   {Name: "寡宿", Category: "孤寡", Polarity: "凶", Priority: 2, Source: "三会方取位", Description: "主情感孤独、婚恋迟滞。"},
-	"空亡":   {Name: "空亡", Category: "空转", Polarity: "中", Priority: 2, Source: "旬空", Description: "主落空、延迟、需看冲合填实。"},
-	"四大空亡": {Name: "四大空亡", Category: "空转", Polarity: "凶", Priority: 1, Source: "旬空纳音", Description: "主某类五行力量虚浮或落空。"},
-	"魁罡":   {Name: "魁罡", Category: "刚烈", Polarity: "中", Priority: 2, Source: "日柱特格", Description: "主刚正、决断，也忌过刚。"},
-	"红艳煞":  {Name: "红艳煞", Category: "人缘", Polarity: "中", Priority: 3, Source: "日干取支", Description: "主魅力、桃色、人际吸引。"},
-	"流霞":   {Name: "流霞", Category: "风险", Polarity: "凶", Priority: 3, Source: "年干取支", Description: "主血光、意外、情绪波动。"},
-	"血刃":   {Name: "血刃", Category: "健康", Polarity: "凶", Priority: 2, Source: "年干取支", Description: "主刀伤血光，宜谨慎运动与器械。"},
-	"血忌":   {Name: "血忌", Category: "健康", Polarity: "凶", Priority: 2, Source: "年干取支", Description: "主健康禁忌、血气不稳。"},
-	"元辰":   {Name: "元辰", Category: "风险", Polarity: "凶", Priority: 2, Source: "年支与性别取位", Description: "主反复、阻隔、不顺心。"},
-	"勾绞煞":  {Name: "勾绞煞", Category: "是非", Polarity: "凶", Priority: 2, Source: "年支与性别取位", Description: "主纠缠、口舌、文书牵连。"},
+var shenShaBasisCatalog = map[string]string{
+	"天乙贵人": "当前Profile只按日干查目标支并逐柱落位：甲戊庚丑未、乙己子申、丙丁亥酉、辛寅午、壬癸卯巳（《三命通会》PDF第97-98页）；《渊海子平》PDF第63页原歌把庚与辛同列寅午，当前不混表；昼夜贵、冬夏至分治及年时互换贵均未实现",
+	"太极贵人": "只以生年干查目标支并逐柱落位：甲乙子午、丙丁卯酉、戊己辰戌丑未、庚辛寅亥、壬癸巳申（《渊海子平》PDF第67页“其法以生年为主，取别干则非也”）；《三命通会》PDF第104-105页另有戊己喜生申并取四库的解释差异，当前Profile不混入申",
+	"国印贵人": "年干禄宫顺数第九位并逐柱落位：甲戌、乙亥、丙丑、丁寅、戊丑、己寅、庚辰、辛巳、壬未、癸申（《渊海子平》PDF第733页）",
+	"天官贵人": "以生年干查目标支并逐柱落位：甲未、乙辰、丙巳、丁酉、戊戌、己卯、庚亥、辛申、壬寅、癸午（《渊海子平》PDF第65页“其法以生年干论”）",
+	"天德贵人": "月令查天德干支，逐项匹配四柱天干或地支（《渊海子平》第75页）",
+	"天德合":  "天德为干取五合、为支取六合，逐项匹配四柱（《三命通会》第103页）",
+	"月德贵人": "月令查月德天干，只在日干取用（《渊海子平》第71页“亦须在日上见之”）",
+	"月德合":  "月令查月德合干，只在日干取用；当前Profile继承月德日柱限定（《渊海子平》第73页）",
+	"月厌":   "以月支对应传统月序查目标支：寅戌、卯酉、辰申、巳未、午午、未巳、申辰、酉卯、戌寅、亥丑、子子、丑亥；当前Profile逐柱匹配目标支（《三命通会》PDF第103页、书内第100页原页影像）",
+	"月煞":   "以月支三合组查目标支：寅午戌丑、亥卯未戌、申子辰未、巳酉丑辰；当前Profile逐柱匹配目标支（《三命通会》PDF第103页、书内第100页原页影像）",
+	"德秀贵人": "月令查四柱天干并标明德/秀角色；当前Profile取《三命通会》第108页完整专章表，《渊海子平》第666页简表差异待裁决",
+	"禄神":   "只以日干查规范十干禄位并逐柱匹配目标支：甲寅、乙卯、丙戊巳、丁己午、庚申、辛酉、壬亥、癸子（《渊海子平》PDF第81页；《三命通会》PDF第85-86页）；该表是神煞输出、建禄/专禄/归禄候选、暗禄交禄和身强禄加成共同消费的唯一Profile；只记录传统结构名称，不生成爵禄、财富或现实事件结论",
+	"金舆":   "日干禄位顺数第二支并逐柱落位：甲辰、乙巳、丙戊未、丁己申、庚戌、辛亥、壬丑、癸寅（《三命通会》PDF第91页；《渊海子平》PDF第93页）",
+	"学堂":   "生年纳音五行查长生正位，并要求目标柱纳音同类的完整干支：金辛巳、木己亥、水甲申、火丙寅、土戊申（《三命通会》PDF第105-106页、书内第102-103页）",
+	"词馆":   "生年纳音五行查临官正位，并要求目标柱纳音同类的完整干支：金壬申、木庚寅、水癸亥、火乙巳、土丁亥（《三命通会》PDF第105-106页、书内第102-103页）",
+	"天厨贵人": "当前Profile只按日干查目标支并逐柱落位：甲丙巳、乙丁午、戊申、己酉、庚亥、辛子、壬寅、癸卯（《渊海子平》PDF第76页）；年干主键口径待裁决，不与该书PDF第91页十干食禄混名",
+	"将星":   "年支或日支所属三合组取三合旺位并逐柱落位：寅午戌午、巳酉丑酉、申子辰子、亥卯未卯（《三命通会》PDF第80页“三合中位谓之将星”）；只记录传统结构名称，不生成职位、权力或现实事件结论",
+	"驿马":   "年支或日支所属三合组取首支对冲位并逐柱落位：寅午戌申、申子辰寅、巳酉丑亥、亥卯未巳（《三命通会》PDF第92页“论驿马”封闭表；《渊海子平》PDF第665页记录岁马与日辰马并见口径）；只记录传统结构名称，不生成迁移、升职或现实事件结论",
+	"华盖":   "年支或日支所属三合组取三合墓库位并逐柱落位：寅午戌戌、巳酉丑丑、申子辰辰、亥卯未未（《三命通会》PDF第80-81页“三合底处得库谓之华盖”）",
+	"咸池":   "年支或日支所属三合组查五行沐浴位并逐柱落位：寅午戌卯、巳酉丑午、申子辰酉、亥卯未子（《三命通会》PDF第81页）；原文称一名桃花煞，正式输出统一使用原名咸池且不生成情感、性格、疾病或现实事件结论",
+	"攀鞍":   "年支三合组取驿马前一辰（《渊海子平》第635页）",
+	"羊刃":   "当前Profile只以日干采用子平五阳干表并逐柱匹配目标支：甲卯、丙午、戊午、庚酉、壬子；乙丁己辛癸五阴不取（《渊海子平》PDF第205页“五阳有刃，五阴无刃”；《三命通会》PDF第108页及第226页）；《渊海子平》PDF第119页另列十干羊刃表，当前不混入五阴目标；只记录传统结构名称，不生成刑伤或现实事件结论",
+	"飞刃":   "当前Profile取五阳干羊刃目标的六冲支并逐柱匹配：甲酉、丙子、戊子、庚卯、壬午；乙丁己辛癸五阴不取（《渊海子平》PDF第205页、《三命通会》PDF第108页及第226页五阳Profile）；《渊海子平》PDF第119页另列十干飞刃表，当前不混入五阴目标；只记录传统结构名称，不生成刑伤或现实事件结论",
+	"劫煞":   "年支或日支所属三合组查五行绝处并逐柱落位：申子辰巳、寅午戌亥、巳酉丑寅、亥卯未申（《三命通会》PDF第108页；《渊海子平》PDF第665页“亡劫须参太岁”及第668页“年家亡劫”）",
+	"亡神":   "年支或日支所属三合组查五行临官/泄气位并逐柱落位：申子辰亥、寅午戌巳、巳酉丑申、亥卯未寅（《三命通会》PDF第108-109页；《渊海子平》PDF第665页“亡劫须参太岁”；《渊海子平》PDF第668页“年家亡劫”）",
+	"灾煞":   "年支或日支所属三合组取将星对冲支并逐柱落位：申子辰午、寅午戌子、巳酉丑卯、亥卯未酉（《三命通会》PDF第116页“冲破将星，谓之灾煞”）；只记录传统结构名称，不生成伤亡、疾病或现实事件结论",
+	"六厄":   "以生年支所属三合组查五行死位并逐柱落位：申子辰卯、寅午戌酉、亥卯未午、巳酉丑子（《三命通会》PDF第117页“死而不生谓之厄”）；只记录传统结构名称，不生成仕途、困境或现实事件结论",
+	"官符":   "以生年支为太岁，取太岁前五辰并逐柱落位；十二宫含本位计数，目标为子辰、丑巳、寅午、卯未、辰申、巳酉、午戌、未亥、申子、酉丑、戌寅、亥卯（《三命通会》PDF第122页）",
+	"病符":   "以生年支为太岁，取太岁后一辰并逐柱落位：子亥、丑子、寅丑、卯寅、辰卯、巳辰、午巳、未午、申未、酉申、戌酉、亥戌（《三命通会》PDF第122页）；只记录传统规则名称，不生成疾病或健康结论",
+	"死符":   "以生年支查病符目标的对冲支：子巳、丑午、寅未、卯申、辰酉、巳戌、午亥、未子、申丑、酉寅、戌卯、亥辰（《三命通会》PDF第122页“死符煞，取病符对冲”）；名称因高风险解释在正式输出层屏蔽",
+	"丧门":   "以生年支为命，取命前二辰并逐柱落位：子寅、丑卯、寅辰、卯巳、辰午、巳未、午申、未酉、申戌、酉亥、戌子、亥丑（《三命通会》PDF第122页；《渊海子平》PDF第631-633页同式）",
+	"吊客":   "以生年支取命后二辰并逐柱落位：子戌、丑亥、寅子、卯丑、辰寅、巳卯、午辰、未巳、申午、酉未、戌申、亥酉（《三命通会》PDF第122页）",
+	"破宅煞":  "以生年支为命，取命后一辰并逐柱落位：子丑、丑寅、寅卯、卯辰、辰巳、巳午、午未、未申、申酉、酉戌、戌亥、亥子（《渊海子平》PDF第688页“命后一辰为破宅煞”）",
+	"孤辰":   "只以生年支所在三会方进前一辰并逐柱落位：亥子丑寅、寅卯辰巳、巳午未申、申酉戌亥（《三命通会》PDF第118页；《渊海子平》PDF第632、744页）；只记录传统结构名称，不生成亲属、婚姻或现实事件结论",
+	"寡宿":   "只以生年支所在三会方退后一辰并逐柱落位：亥子丑戌、寅卯辰丑、巳午未辰、申酉戌未（《三命通会》PDF第118页；《渊海子平》PDF第632、744页）；只记录传统结构名称，不生成亲属、婚姻或现实事件结论",
+	"空亡":   "当前Profile只以日柱完整六十甲子所属旬取两个旬空地支：甲子旬戌亥、甲戌旬申酉、甲申旬午未、甲午旬辰巳、甲辰旬寅卯、甲寅旬子丑，并逐柱匹配年、月、时支（《渊海子平》PDF第105页；《三命通会》PDF第108-110页）；《三命通会》另引《珞琭子》按阳日干只取阳空、阴日干只取阴亡的单支轻重异表，当前不缩减为单支；合法日柱自身不可能落入本旬缺支，只记录传统结构名称，不生成吉凶或现实事件结论",
+	"四大空亡": "日柱属甲子/甲午旬见纳音水，或属甲申/甲寅旬见纳音金（《渊海子平》第109页）",
+	"暗禄":   "四柱无日干明禄，见禄位六合支（《渊海子平》第97页）",
+	"交禄":   "两柱地支互为对方天干禄位（《渊海子平》第96页）",
+	"拱禄":   "固定五组日时虚拱禄位且四柱不填实（《三命通会》第181-182页；《渊海子平》第546页）",
+	"拱贵":   "固定五组日时虚拱官贵/天乙位且四柱不填实（《三命通会》第181-182页；《渊海子平》第546页）",
+	"挂剑煞":  "四支为巳酉丑申纯全，或巳酉丑齐见且其中一支重见（《三命通会》PDF第121页、书内第118页）",
+	"雷霆煞":  "月令按正七子、二八寅、三九辰、四十午、五十一申、六十二戌查目标支并逐柱匹配（《三命通会》PDF第122页、书内第119页）",
+	"天赦":   "春戊寅、夏甲午、秋戊申、冬甲子日（《三命通会》PDF第103-104页、书内第100-101页）",
+	"四废":   "春庚申、夏壬子、秋甲寅、冬丙午日；每季只取一日（《渊海子平》PDF第113页）",
+	"天罗":   "生年纳音火且四支戌亥成对（《渊海子平》PDF第117页；《三命通会》PDF第119-120页、书内第116-117页）",
+	"地网":   "生年纳音水或土且四支辰巳成对（《渊海子平》PDF第117页；《三命通会》PDF第119-120页、书内第116-117页）",
+	"三奇":   "四干相邻三柱顺布乙丙丁或甲戊庚；倒序及人间三奇争议序列不纳入当前Profile（《三命通会》PDF第100-102页、书内第97-99页）",
+	"金神":   "只取时柱癸酉、己巳、乙丑三时；火局、制伏与行运条件未裁决（《渊海子平》PDF第221页）",
+	"截路空亡": "当前Profile只以日干查时支：甲己申酉、乙庚午未、丙辛辰巳、丁壬寅卯、戊癸子丑，并只落时柱（《渊海子平》PDF第107页）；《三命通会》PDF第113页前四组相同但戊癸作戌亥，当前不混表；只记录传统结构名称，不生成出行、求财、官职、婚姻或现实事件结论",
+	"十恶大败": "只取日柱甲辰、乙巳、壬申、丙申、丁亥、庚辰、戊戌、癸亥、辛巳、乙丑十日；年日细分为另一口径（《渊海子平》PDF第111页；《三命通会》PDF第120-121页、书内第117-118页）",
+	"九丑日":  "只取日柱壬子、壬午、戊子、戊午、己酉、己卯、乙卯、辛酉、辛卯九日（《三命通会》PDF第124页、书内第121页）",
+	"八专":   "日柱或时柱为甲寅、乙卯、己未、丁未、庚申、辛酉、戊戌、癸丑时命中（《三命通会》PDF第124页、书内第121页分别记“日上”“时上”；lunisolar char8ex 541bd5ea 同取日时柱）",
+	"孤鸾煞":  "只取日柱乙巳、丁巳、辛亥、戊申、甲寅、丙午、戊午、壬子八日（《三命通会》PDF第124页、书内第121页）",
+	"阴差阳错": "只取日柱丙子、丁丑、戊寅、辛卯、壬辰、癸巳、丙午、丁未、戊申、辛酉、壬戌、癸亥十二日；原文名阴阳差错煞（《三命通会》PDF第124页、书内第121页）",
+	"日德":   "只取日柱甲寅、丙辰、戊辰、庚辰、壬戌五日（《三命通会》PDF第185-186页、书内第182-183页；《渊海子平》PDF第516页）",
+	"魁罡":   "只取日柱庚辰、壬辰、戊戌、庚戌四日（《三命通会》PDF第186-187页、书内第183-184页）",
+	"福德秀气": "当前Profile取五阴干乙、丁、己、辛、癸各配巳、酉、丑的十五日；《渊海子平》PDF第209页只列乙丁己癸十二日，当前采用《三命通会》含辛组三日的完整表（PDF第188-189页、书内第185-186页）",
+	"红艳煞":  "日干查目标支并逐柱落位：甲乙午、丙寅、丁未、戊子、己辰、庚戌、辛酉、壬巳、癸申（《三命通会》PDF第125页、书内第122页）",
+	"元辰":   "只以生年支六冲位、生年干阴阳与性别分组查目标支并逐柱落位：阳男阴女取六冲支顺行一辰（甲子取未），阴男阳女取六冲支逆行一辰（乙丑男取午）（《三命通会》PDF第114页）；只记录传统结构名称，不生成健康、灾祸或现实事件结论",
+	"勾煞":   "只以生年支、生年干阴阳与性别分组查目标支并逐柱落位：阳男阴女取生年支顺行三辰，阴男阳女取逆行三辰（《三命通会》PDF第117页）；《渊海子平》PDF第635页另按阳命/阴命取位且不含性别分组，当前Profile不混表；只记录传统结构名称，不生成刑狱、伤亡或现实事件结论",
+	"绞煞":   "只以生年支、生年干阴阳与性别分组查目标支并逐柱落位：阳男阴女取生年支逆行三辰，阴男阳女取顺行三辰（《三命通会》PDF第117页）；《渊海子平》PDF第635页另按阳命/阴命取位且不含性别分组，当前Profile不混表；只记录传统结构名称，不生成刑狱、伤亡或现实事件结论",
+	"天刑煞":  "只以生年支查时柱天干：子丑乙、寅庚、卯辰辛、巳壬、午未癸、申丙、酉戌丁、亥戊；只在时干匹配时落入时柱（《三命通会》PDF第122页、书内第119页）；只记录传统结构名称，不生成刑狱、疾病或现实事件结论",
 }
 
-// LookupShenShaMeta returns catalog metadata with a neutral fallback.
 func LookupShenShaMeta(name string) ShenShaMeta {
-	if meta, ok := shenShaMetaCatalog[name]; ok {
-		return meta
+	basis, registered := shenShaBasisCatalog[name]
+	status := "observed"
+	interpretationStatus := "not_adjudicated"
+	if !registered || basis == "" {
+		basis = "未登记可审计查法依据"
+		status = "unregistered"
+		interpretationStatus = "not_available"
 	}
 	return ShenShaMeta{
-		Name:        name,
-		Category:    "提示",
-		Polarity:    "中",
-		Priority:    3,
-		Source:      "内置神煞规则",
-		Description: "按当前神煞规则触发，需结合原局旺衰、喜忌与刑冲合害综合判断。",
+		Name:                 name,
+		RuleID:               "shensha." + name,
+		Basis:                basis,
+		Status:               status,
+		InterpretationStatus: interpretationStatus,
 	}
 }
 
@@ -77,10 +101,24 @@ func LookupShenShaMetaFromItem(item string) ShenShaMeta {
 func BuildShenShaDetails(items []string) []ShenShaMeta {
 	details := make([]ShenShaMeta, 0, len(items))
 	for _, item := range items {
-		if item == "" {
-			continue
+		if item != "" {
+			details = append(details, LookupShenShaMetaFromItem(item))
 		}
-		details = append(details, LookupShenShaMetaFromItem(item))
 	}
 	return details
+}
+
+// ValidShenShaDetails verifies that persisted metadata exactly matches the raw
+// rule hits and contains the current evidence-only schema.
+func ValidShenShaDetails(items []string, details []ShenShaMeta) bool {
+	want := BuildShenShaDetails(items)
+	if len(details) != len(want) {
+		return false
+	}
+	for i := range want {
+		if details[i] != want[i] {
+			return false
+		}
+	}
+	return true
 }

@@ -1,0 +1,276 @@
+{
+  "schema": "sanming_wikisource_transcription_provenance_audit_v1",
+  "version": "2026-07-17.1",
+  "status": "bulk_imported_transcription_upstream_archive_unidentified",
+  "observed_at": "2026-07-17",
+  "candidate_id": "sanming-siku-wikisource-12vol-v1",
+  "purpose": "Determine whether the frozen Wikisource transcription can be promoted to an independent, scan-addressable primary artifact.",
+  "inputs": {
+    "snapshot_manifest_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/snapshot-manifest.json",
+    "snapshot_manifest_sha256": "38a03d0ee048a097620de3765f2793e9f0a5383a3238748fcd583ac79bb26974",
+    "cross_source_comparison_path": "research/rag/sanming-wikisource-markdown-comparison-v1.json",
+    "cross_source_comparison_sha256": "ce7ee55bd4c6b68c488f3326b9b3725860b5ebea0c679ee12d156f330a180b7f",
+    "revision_history_path": "revision-history.json",
+    "revision_history_sha256": "3516ebd04d36c2b8d896868bada8921963092fe48ecf68135317326c11e10f54"
+  },
+  "method": {
+    "fixed_revision_api": "MediaWiki action=query revids plus revisions content",
+    "history_api": "MediaWiki action=query single page rvdir=newer rvendid=frozen_revision",
+    "local_marker_scan": "ripgrep exact patterns over frozen raw wikitext",
+    "excludes_current_template_render": true,
+    "excludes_unlicensed_scan_downloads": true
+  },
+  "license": {
+    "underlying_work": "PD-old",
+    "digital_contributions": "CC BY-SA 4.0 and GFDL",
+    "license_url": "https://zh.wikisource.org/wiki/Wikisource:版权信息",
+    "attribution_required": true
+  },
+  "fixed_evidence": [
+    {
+      "role": "work_page",
+      "title": "三命通會 (四庫全書本)",
+      "page_id": "260853",
+      "revision_id": 657391,
+      "parent_id": 631739,
+      "timestamp": "2016-10-15T11:19:12Z",
+      "user": "維基小霸王",
+      "user_id": 20996,
+      "comment": "导入1个版本",
+      "remote_size": 2492,
+      "remote_sha1": "0fd68ff5e57220d21be67716a6294fdc6b0ddc63",
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260853&oldid=657391",
+      "artifact_path": "evidence/work-page-rev657391.wikitext",
+      "local_size": 2492,
+      "local_sha256": "4c9923df0ab644fe7b675796f41195746cc2a07273826116ab8d02ed442bb650"
+    },
+    {
+      "role": "import_guideline_active_at_bulk_import",
+      "title": "Wikisource:四庫全書原文",
+      "page_id": "205610",
+      "revision_id": 513112,
+      "parent_id": 0,
+      "timestamp": "2016-09-21T12:28:20Z",
+      "user": "維基小霸王",
+      "user_id": 20996,
+      "comment": "创建页面，内容为“    文本通過css樣式以楷體豎排顯示，還原四庫全書的樣式。請勿添加標點符號。如果用戶有意添加，請單獨建立條目。  年份...”",
+      "remote_size": 1522,
+      "remote_sha1": "27341a89cb4b7235381862c09317be4694ef4e1b",
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=205610&oldid=513112",
+      "artifact_path": "evidence/import-guideline-rev513112.wikitext",
+      "local_size": 1522,
+      "local_sha256": "5c04db3a9967f07bbc0f3cbb30219036698d781f60ac01e20e8748f274af328c"
+    },
+    {
+      "role": "import_plan_active_at_bulk_import",
+      "title": "User:維基小霸王/录入四库全书计划",
+      "page_id": "204146",
+      "revision_id": 534259,
+      "parent_id": 521165,
+      "timestamp": "2016-10-03T13:37:37Z",
+      "user": "維基小霸王",
+      "user_id": 20996,
+      "comment": "",
+      "remote_size": 4564,
+      "remote_sha1": "b6c7b33884b7f09db30d367334e8707aa574743b",
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=204146&oldid=534259",
+      "artifact_path": "evidence/import-plan-rev534259.wikitext",
+      "local_size": 4564,
+      "local_sha256": "e799578008b9b8963c17a1f17281ee301a163b56dd79e4f5a6f4a44dfdad8f6f"
+    }
+  ],
+  "history_summary": {
+    "pages": 13,
+    "revisions": 61,
+    "first_revision_importer": "維基小霸王",
+    "first_revision_importer_user_id": 20996,
+    "pages_with_content_hash_changed_since_first": 8,
+    "fixed_revision_by_importer": 5,
+    "fixed_revision_by_wmr_bot": 6,
+    "fixed_revision_by_crowley_bot": 2,
+    "fixed_comment_classes": [
+      "bulk_import",
+      "template_repair",
+      "single_text_correction"
+    ],
+    "fixed_comment_examples": [
+      "导入1个版本",
+      "repair templates",
+      "辛西→辛酉（[[Special:permalink/2082153|本批详情]]）"
+    ]
+  },
+  "import_provenance_observation": {
+    "upstream_description": "网上看到的一个包含四库全书书籍的文本压缩包",
+    "upstream_url": "",
+    "upstream_identifier": "",
+    "upstream_hash": "",
+    "scan_edition_identifier": "",
+    "library_catalog_identifier": "",
+    "plan_direct_external_urls": [
+      "https://www.w3.org/International/articles/css3-text/",
+      "https://www.w3.org/TR/jlreq/#inline_cutting_note"
+    ],
+    "plan_upstream_archive_url_count": 0,
+    "plan_states_only_text_without_images_or_tables": true,
+    "plan_states_ia_scans_are_future_manual_inputs": true,
+    "guideline_states_images_and_tables_require_future_scan_comparison": true,
+    "guideline_states_3951_rare_characters_require_manual_identification": true
+  },
+  "frozen_volume_observations": [
+    {
+      "volume": 1,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-01.wikitext",
+      "artifact_sha256": "9b9f86a4f1f859dc9da60db672a00b37a5956c3ea141132f6f879c3a1a172c07",
+      "scan_notice_count": 1,
+      "skchar_count": 2,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 2,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-02.wikitext",
+      "artifact_sha256": "748da85cc60441c0e0ffe783644db152b70b4320b134650d80a086bb27987273",
+      "scan_notice_count": 1,
+      "skchar_count": 65,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 3,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-03.wikitext",
+      "artifact_sha256": "a3fed515e8167657e7fbc2be7bf95dbb5d356d18b608c9bd260e006a66fd6ebe",
+      "scan_notice_count": 1,
+      "skchar_count": 21,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 4,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-04.wikitext",
+      "artifact_sha256": "8919d99f6d48b0c420b0c885534b3988c5039a296acc0ad056723c8255387d76",
+      "scan_notice_count": 1,
+      "skchar_count": 5,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 5,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-05.wikitext",
+      "artifact_sha256": "1268b6c220a88d06d49e8b8709b94cf19c2fdceef87ac897e7621af202d58f00",
+      "scan_notice_count": 1,
+      "skchar_count": 18,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 6,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-06.wikitext",
+      "artifact_sha256": "af1c6faccc1e42d224b86e2216a130eadfd2510abd8da46f47f6cb36450acf0c",
+      "scan_notice_count": 1,
+      "skchar_count": 15,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 7,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-07.wikitext",
+      "artifact_sha256": "df2002e56bf3f96b43b8ce3e6972863682948207cea0cb4aa680efee3d543372",
+      "scan_notice_count": 1,
+      "skchar_count": 49,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 8,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-08.wikitext",
+      "artifact_sha256": "2bf8df667cb92d371d5d01c09ef6919be019d4f6da619a525bb5a872871a74d4",
+      "scan_notice_count": 1,
+      "skchar_count": 77,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 9,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-09.wikitext",
+      "artifact_sha256": "08716c6eb49c8ccb2e51d749b950060b0063d725bfee7886a02ffb9f109861d7",
+      "scan_notice_count": 1,
+      "skchar_count": 14,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 10,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-10.wikitext",
+      "artifact_sha256": "0a20dc53a4156211b5c8ba89dbb6a8f07f056fde573e37699e28b021b6d026b6",
+      "scan_notice_count": 1,
+      "skchar_count": 58,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 11,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-11.wikitext",
+      "artifact_sha256": "d1bd610ac7878b19cc5270ccd17ffb213cd3e219611317d0d1621bbb0a09698d",
+      "scan_notice_count": 1,
+      "skchar_count": 52,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    },
+    {
+      "volume": 12,
+      "artifact_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/volumes/volume-12.wikitext",
+      "artifact_sha256": "089270bfb30b00a359ce69b282c5184c752f1cf56417db8fb42dc5946005d163",
+      "scan_notice_count": 1,
+      "skchar_count": 62,
+      "direct_file_links": 0,
+      "direct_page_links": 0,
+      "direct_external_urls": 0
+    }
+  ],
+  "aggregate_content_markers": {
+    "volumes_with_scan_comparison_notice": 12,
+    "unresolved_skchar_placeholders": 438,
+    "direct_file_links": 0,
+    "direct_page_namespace_links": 0,
+    "direct_external_urls": 0
+  },
+  "decision": {
+    "artifact_kind": "bulk_imported_plain_text_transcription",
+    "provenance_status": "upstream_text_compressed_archive_unidentified",
+    "independence_status": "not_adjudicated_against_local_markdown",
+    "scan_identity_status": "no_scan_identity_or_page_links_in_frozen_pages",
+    "scan_proofreading_status": "not_scan_proofread",
+    "coverage_status": "complete_twelve_volume_text_structure_observed",
+    "promotion_result": "blocked"
+  },
+  "boundaries": {
+    "fixed_revision_identity_verified": true,
+    "complete_text_structure_observed": true,
+    "bibliographic_provenance_verified": false,
+    "independent_primary_artifact_verified": false,
+    "scan_artifact_verified": false,
+    "page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  },
+  "limitations": [
+    "A versioned transcription is not a published scan or publisher digital edition.",
+    "The import plan names an online compressed text archive but records no URL, identifier, hash, institution, or edition.",
+    "The import guideline says images, tables, dates, links, and rare characters still require manual work against scans.",
+    "Textual overlap with the local Markdown corpus does not establish independence, page identity, or claim support.",
+    "Internet Archive scan candidates remain excluded because their provider rights and license metadata are unresolved."
+  ]
+}

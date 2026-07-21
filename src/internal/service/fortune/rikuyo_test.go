@@ -1,12 +1,98 @@
 package fortune
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
+	"time"
 
 	"bazi/internal/model"
 	bazipkg "bazi/internal/service/bazi"
 	"bazi/internal/service/data"
+	"github.com/6tail/tyme4go/tyme"
 )
+
+func TestTraditionalCalendarEvidenceUsesQueryMonthBranch(t *testing.T) {
+	jianInYinMonth := observeJianChu("寅", "寅")
+	jianInMaoMonth := observeJianChu("卯", "寅")
+	if jianInYinMonth.Name != "建" || jianInMaoMonth.Name != "闭" {
+		t.Fatalf("JianChu must rotate from query month branch: yin=%+v mao=%+v", jianInYinMonth, jianInMaoMonth)
+	}
+	qingLongInZiMonth := observeHuangDao("子", "申")
+	qingLongInChouMonth := observeHuangDao("丑", "申")
+	if qingLongInZiMonth.Name != "青龙" || qingLongInChouMonth.Name != "司命" {
+		t.Fatalf("twelve officers must rotate from query month branch: zi=%+v chou=%+v", qingLongInZiMonth, qingLongInChouMonth)
+	}
+	for _, evidence := range []model.TraditionalCalendarEvidence{jianInYinMonth, jianInMaoMonth, qingLongInZiMonth, qingLongInChouMonth} {
+		if evidence.Status != "observed" || evidence.InterpretationStatus != "not_adjudicated" || evidence.MonthBranch == "" || evidence.QueryBranch == "" {
+			t.Fatalf("traditional calendar evidence metadata is incomplete: %+v", evidence)
+		}
+	}
+}
+
+func TestObserveHuangDaoUsesCanonicalQingLongStartBranches(t *testing.T) {
+	starts := map[string]string{
+		"子": "申", "午": "申",
+		"丑": "戌", "未": "戌",
+		"寅": "子", "申": "子",
+		"卯": "寅", "酉": "寅",
+		"辰": "辰", "戌": "辰",
+		"巳": "午", "亥": "午",
+	}
+	for monthBranch, dayBranch := range starts {
+		got := observeHuangDao(monthBranch, dayBranch)
+		if got.Name != "青龙" || got.RuleID != "rikuyo.twelve-star.tyme4go-v2" ||
+			got.Basis != "tyme4go_sixty_cycle_day_twelve_star_formula" {
+			t.Errorf("month=%s day=%s twelve star = %+v, want 青龙", monthBranch, dayBranch, got)
+		}
+	}
+}
+
+func TestCalcRikuyoHuangDaoMatchesTymeForOrdinaryDates(t *testing.T) {
+	chart, err := (&bazipkg.BaziService{}).Calculate(1990, 6, 15, 8, 0, "MALE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for month := 1; month <= 12; month++ {
+		date := time.Date(2025, time.Month(month), 15, 12, 0, 0, 0, time.UTC)
+		solarDay, err := tyme.SolarDay{}.FromYmd(date.Year(), month, date.Day())
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := solarDay.GetLunarDay().GetTwelveStar().GetName()
+		got := CalcRikuyo(chart, date).HuangDao
+		if got.Name != want {
+			t.Errorf("date=%s monthBranch=%s dayBranch=%s twelve star=%s, want tyme4go %s",
+				date.Format("2006-01-02"), got.MonthBranch, got.QueryBranch, got.Name, want)
+		}
+	}
+}
+
+func TestRikuyoJSONDoesNotReintroduceLegacyJudgments(t *testing.T) {
+	payload, err := json.Marshal(RikuyoResult{
+		TwelveStage: observeTwelveStage("甲", "午"),
+		JianChu:     observeJianChu("未", "午"),
+		HuangDao:    observeHuangDao("未", "午"),
+	})
+	if err != nil {
+		t.Fatalf("marshal Rikuyo result: %v", err)
+	}
+	text := string(payload)
+	for _, forbidden := range []string{
+		`"stage_favorable"`, `"stage_desc"`, `"stage_flexible"`,
+		`"overall_verdict"`, `"favor_score"`, `"pengzu_gan_taboo"`,
+		"百事皆宜", "大事不宜", "必见灾殃",
+	} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("Rikuyo JSON contains prohibited legacy output %q: %s", forbidden, text)
+		}
+	}
+	for _, required := range []string{`"twelve_stage"`, `"jian_chu"`, `"huang_dao"`, `"not_adjudicated"`} {
+		if !strings.Contains(text, required) {
+			t.Fatalf("Rikuyo JSON missing evidence marker %q: %s", required, text)
+		}
+	}
+}
 
 // ── 十二长生速查表验证 ──────────────────────────────────────────
 // 来源：每日干支与用神的关系速查.md 表二
@@ -44,66 +130,24 @@ func TestTwelveStageTable(t *testing.T) {
 		{"壬", "巳", "绝"}, {"壬", "午", "胎"}, {"壬", "未", "养"},
 	}
 	for _, tt := range tests {
-		stage, _, _ := calcTwelveStage(tt.dayGan, tt.branch)
-		if stage != tt.expected {
-			t.Errorf("calcTwelveStage(%s, %s) = %s, want %s", tt.dayGan, tt.branch, stage, tt.expected)
+		evidence := observeTwelveStage(tt.dayGan, tt.branch)
+		if evidence.Name != tt.expected {
+			t.Errorf("observeTwelveStage(%s, %s).Name = %s, want %s", tt.dayGan, tt.branch, evidence.Name, tt.expected)
+		}
+		if evidence.RuleID != "rikuyo.twelve-stage-v1" || evidence.Status != "observed" || evidence.InterpretationStatus != "not_adjudicated" {
+			t.Errorf("unexpected evidence metadata for %s/%s: %+v", tt.dayGan, tt.branch, evidence)
 		}
 	}
 }
 
-// ── 十二长生吉凶判断验证 ──────────────────────────────────────────
-
-func TestTwelveStageFavorability(t *testing.T) {
-	tests := []struct {
-		dayGan  string
-		branch  string
-		favWant bool
-		desc    string
-	}{
-		// 吉位：长生/冠带/临官/帝旺
-		{"甲", "亥", true, "甲木长生在亥=吉"},
-		{"甲", "丑", true, "甲木冠带在丑=吉"},
-		{"甲", "寅", true, "甲木临官在寅=吉"},
-		{"甲", "卯", true, "甲木帝旺在卯=吉"},
-		// 半吉：沐浴/胎/养
-		{"甲", "子", false, "甲木沐浴在子=半吉→favorable=false"}, // 半吉返回false
-		{"甲", "酉", false, "甲木胎在酉=半吉→favorable=false"},
-		{"甲", "戌", false, "甲木养在戌=半吉→favorable=false"},
-		// 凶位：衰/病/死/墓/绝
-		{"甲", "辰", false, "甲木衰在辰=半凶"},
-		{"甲", "巳", false, "甲木病在巳=凶"},
-		{"甲", "午", false, "甲木死在午=凶"},
-		{"甲", "未", false, "甲木墓在未=半凶"},
-		{"甲", "申", false, "甲木绝在申=凶"},
-	}
-	for _, tt := range tests {
-		_, fav, _ := calcTwelveStage(tt.dayGan, tt.branch)
-		if fav != tt.favWant {
-			t.Errorf("%s: got favorable=%v, want %v", tt.desc, fav, tt.favWant)
+func TestTwelveStageEvidenceUnavailableForInvalidInput(t *testing.T) {
+	for _, tc := range []struct{ gan, zhi string }{{"", "子"}, {"甲", ""}, {"X", "子"}, {"甲", "X"}} {
+		evidence := observeTwelveStage(tc.gan, tc.zhi)
+		if evidence.Status != "unavailable" || evidence.Name != "" {
+			t.Fatalf("invalid input %q/%q should be unavailable: %+v", tc.gan, tc.zhi, evidence)
 		}
-	}
-}
-
-// ── 活法修正验证 ──────────────────────────────────────────
-// 丙火绝于亥，亥中藏甲木（偏印），木能生火 → 有救
-
-func TestFlexibleRescue(t *testing.T) {
-	tests := []struct {
-		dayGan    string
-		branch    string
-		wantRescue bool
-		desc      string
-	}{
-		{"丙", "亥", true, "丙火绝于亥，亥藏甲木生火→有救"},
-		{"庚", "丑", true, "庚金墓于丑，丑藏己土生金→有救"},
-		{"壬", "巳", true, "壬水绝于巳，巳藏庚金生水→有救"},
-		{"甲", "午", false, "甲木死于午，午藏丁己无木水→无救"},
-	}
-	for _, tt := range tests {
-		rescue := checkFlexibleRescue(tt.dayGan, tt.branch)
-		got := rescue != ""
-		if got != tt.wantRescue {
-			t.Errorf("%s: got rescue=%v (\"%s\"), want %v", tt.desc, got, rescue, tt.wantRescue)
+		if evidence.InterpretationStatus != "not_adjudicated" {
+			t.Fatalf("invalid input must remain uninterpreted: %+v", evidence)
 		}
 	}
 }
@@ -141,39 +185,17 @@ func TestTenGodClassification(t *testing.T) {
 	}
 }
 
-// ── 十神喜忌判断验证 ──────────────────────────────────────────
-
-func TestTenGodFavorability(t *testing.T) {
-	tests := []struct {
-		tenGod  string
-		isStrong bool
-		want    bool
-		desc    string
-	}{
-		// 身弱喜生扶：正印/偏印/比肩/劫财为喜
-		{"正印", false, true, "身弱正印=喜"},
-		{"偏印", false, true, "身弱偏印=喜"},
-		{"比肩", false, true, "身弱比肩=喜"},
-		{"劫财", false, true, "身弱劫财=喜"},
-		{"食神", false, false, "身弱食神=忌"},
-		{"伤官", false, false, "身弱伤官=忌"},
-		{"正财", false, false, "身弱正财=忌"},
-		{"七杀", false, false, "身弱七杀=忌"},
-		// 身旺喜克泄耗：正官/七杀/食神/伤官/正财/偏财为喜
-		{"正官", true, true, "身旺正官=喜"},
-		{"七杀", true, true, "身旺七杀=喜"},
-		{"食神", true, true, "身旺食神=喜"},
-		{"伤官", true, true, "身旺伤官=喜"},
-		{"正财", true, true, "身旺正财=喜"},
-		{"偏财", true, true, "身旺偏财=喜"},
-		{"正印", true, false, "身旺正印=忌"},
-		{"比肩", true, false, "身旺比肩=忌"},
+func TestObserveTenGod_ReturnsStructureOnly(t *testing.T) {
+	evidence := observeTenGod("甲", "丙")
+	if evidence.Name != "食神" || evidence.Status != "observed" {
+		t.Fatalf("unexpected ten-god evidence: %+v", evidence)
 	}
-	for _, tt := range tests {
-		got := isFavorableTenGodByStrength(tt.tenGod, tt.isStrong)
-		if got != tt.want {
-			t.Errorf("%s: got %v, want %v", tt.desc, got, tt.want)
-		}
+	if evidence.ReferenceStem != "甲" || evidence.QueryStem != "丙" || evidence.InterpretationStatus != "not_adjudicated" {
+		t.Fatalf("ten-god evidence is not auditable: %+v", evidence)
+	}
+	invalid := observeTenGod("甲", "invalid")
+	if invalid.Status != "unavailable" || invalid.Name != "" {
+		t.Fatalf("invalid query stem must be unavailable: %+v", invalid)
 	}
 }
 
@@ -181,10 +203,10 @@ func TestTenGodFavorability(t *testing.T) {
 
 func TestHiddenStemMap(t *testing.T) {
 	tests := []struct {
-		branch   string
-		benQi    string
-		zhongQi  string
-		yuQi     string
+		branch  string
+		benQi   string
+		zhongQi string
+		yuQi    string
 	}{
 		{"子", "癸", "", ""},
 		{"丑", "己", "癸", "辛"},
@@ -218,7 +240,7 @@ func TestHiddenStemMap(t *testing.T) {
 
 func TestStemCombine(t *testing.T) {
 	tests := []struct {
-		a, b   string
+		a, b    string
 		element string
 	}{
 		{"甲", "己", "土"}, {"己", "甲", "土"},
@@ -389,26 +411,26 @@ func TestLuShen(t *testing.T) {
 // ── 进退气验证 ──────────────────────────────────────────
 // 春：木旺/火相/水休/金囚/土死
 
-func TestAdvanceRetreat(t *testing.T) {
+func TestObserveSeasonalState(t *testing.T) {
 	tests := []struct {
 		todayGan  string
 		monthZhi  string
-		wantPhase string
+		wantState string
 		desc      string
 	}{
-		{"甲", "卯", "当令", "甲木春天=旺=当令"},
-		{"丙", "卯", "进气", "丙火春天=相=进气"},
-		{"壬", "卯", "退气", "壬水春天=休=退气"},
-		{"庚", "卯", "无气", "庚金春天=囚=无气"},
-		{"戊", "卯", "绝灭", "戊土春天=死=绝灭"},
-		{"庚", "酉", "当令", "庚金秋天=旺=当令"},
-		{"壬", "酉", "进气", "壬水秋天=相=进气"},
-		{"丙", "子", "绝灭", "丙火冬天=死=绝灭"},
+		{"甲", "卯", "旺", "甲木春天=旺"},
+		{"丙", "卯", "相", "丙火春天=相"},
+		{"壬", "卯", "休", "壬水春天=休"},
+		{"庚", "卯", "囚", "庚金春天=囚"},
+		{"戊", "卯", "死", "戊土春天=死"},
+		{"庚", "酉", "旺", "庚金秋天=旺"},
+		{"壬", "酉", "相", "壬水秋天=相"},
+		{"丙", "子", "死", "丙火冬天=死"},
 	}
 	for _, tt := range tests {
-		result := calcAdvanceRetreat(tt.todayGan, "", tt.monthZhi)
-		if result.Phase != tt.wantPhase {
-			t.Errorf("%s: got phase=%s, want %s", tt.desc, result.Phase, tt.wantPhase)
+		result := observeSeasonalState(tt.todayGan, tt.monthZhi)
+		if result.State != tt.wantState || result.Status != "observed" || result.InterpretationStatus != "not_adjudicated" {
+			t.Errorf("%s: got %+v", tt.desc, result)
 		}
 	}
 }
@@ -420,15 +442,15 @@ func TestGetYearGanZhi(t *testing.T) {
 		year, month, day int
 		want             string
 	}{
-		{2024, 6, 1, "甲辰"},    // 立春后
-		{2025, 3, 1, "乙巳"},    // 立春后
-		{2026, 1, 15, "乙巳"},   // 立春前，应属上一年乙巳
-		{2026, 6, 1, "丙午"},    // 立春后
-		{1990, 8, 15, "庚午"},   // 立春后
-		{2000, 2, 1, "己卯"},    // 立春前，1999=己卯
-		{2000, 3, 1, "庚辰"},    // 立春后
-		{2025, 2, 3, "甲辰"},    // 立春前，2024=甲辰
-		{2025, 2, 5, "乙巳"},    // 立春后
+		{2024, 6, 1, "甲辰"},  // 立春后
+		{2025, 3, 1, "乙巳"},  // 立春后
+		{2026, 1, 15, "乙巳"}, // 立春前，应属上一年乙巳
+		{2026, 6, 1, "丙午"},  // 立春后
+		{1990, 8, 15, "庚午"}, // 立春后
+		{2000, 2, 1, "己卯"},  // 立春前，1999=己卯
+		{2000, 3, 1, "庚辰"},  // 立春后
+		{2025, 2, 3, "甲辰"},  // 立春前，2024=甲辰
+		{2025, 2, 5, "乙巳"},  // 立春后
 	}
 	for _, tt := range tests {
 		got := getYearGanZhi(tt.year, tt.month, tt.day)
@@ -463,14 +485,14 @@ func TestSolarDateToJieQiMonth(t *testing.T) {
 		month, day int
 		want       int
 	}{
-		{1, 5, 12},   // 小寒前属上一年子月(12月)
-		{1, 7, 1},    // 小寒后属丑月(1月)
-		{2, 3, 1},    // 立春前属丑月(1月)
-		{2, 5, 2},    // 立春后属寅月(2月)
-		{6, 5, 5},    // 芒种前属巳月(5月)
-		{6, 7, 6},    // 芒种后属午月(6月)
-		{12, 6, 11},  // 大雪前属亥月(11月)
-		{12, 8, 12},  // 大雪后属子月(12月)
+		{1, 5, 12},  // 小寒前属上一年子月(12月)
+		{1, 7, 1},   // 小寒后属丑月(1月)
+		{2, 3, 1},   // 立春前属丑月(1月)
+		{2, 5, 2},   // 立春后属寅月(2月)
+		{6, 5, 5},   // 芒种前属巳月(5月)
+		{6, 7, 6},   // 芒种后属午月(6月)
+		{12, 6, 11}, // 大雪前属亥月(11月)
+		{12, 8, 12}, // 大雪后属子月(12月)
 	}
 	for _, tt := range tests {
 		got := solarDateToJieQiMonth(tt.month, tt.day)
@@ -485,14 +507,14 @@ func TestSolarDateToJieQiMonth(t *testing.T) {
 func TestCalcHiddenStemGods(t *testing.T) {
 	// 寅中藏甲(本气)、丙(中气)、戊(余气)
 	// 日主为庚金：甲=偏财, 丙=七杀, 戊=偏印
-	stems := calcHiddenStemGods("寅", "庚", []string{"土", "水"}, "庚")
+	stems := calcHiddenStemGods("寅", "庚")
 	if len(stems) != 3 {
 		t.Fatalf("寅藏干数量: got %d, want 3", len(stems))
 	}
 	expected := []struct {
-		stem   string
-		typ    string
-		god    string
+		stem string
+		typ  string
+		god  string
 	}{
 		{"甲", "本气", "偏财"},
 		{"丙", "中气", "七杀"},
@@ -505,7 +527,7 @@ func TestCalcHiddenStemGods(t *testing.T) {
 		if stems[i].Type != exp.typ {
 			t.Errorf("寅藏干[%d] type: got %s, want %s", i, stems[i].Type, exp.typ)
 		}
-		if stems[i].TenGod != exp.god {
+		if stems[i].TenGod != exp.god || stems[i].Status != "observed" || stems[i].InterpretationStatus != "not_adjudicated" {
 			t.Errorf("寅藏干[%d] ten_god: got %s, want %s", i, stems[i].TenGod, exp.god)
 		}
 	}
@@ -531,21 +553,21 @@ func TestShenShaActivation(t *testing.T) {
 		t.Error("甲日主遇丑支应引动天乙贵人，但未找到")
 	}
 
-	// 日主甲木，日支午 → 桃花在卯
-	// 今日地支卯 → 应引动桃花
+	// 日主甲木，日支午 → 咸池在卯
+	// 今日地支卯 → 应引动咸池
 	bazi2 := &bazipkg.BaziResult{
 		DayPillar: model.Pillar{Gan: "甲", Zhi: "午"},
 	}
 	sha2 := calcShenShaActivation("丙", "卯", bazi2)
 	found2 := false
 	for _, s := range sha2 {
-		if s.Name == "桃花" {
+		if s.Name == "咸池" {
 			found2 = true
 			break
 		}
 	}
 	if !found2 {
-		t.Error("甲午日遇卯支应引动桃花，但未找到")
+		t.Error("甲午日遇卯支应引动咸池，但未找到")
 	}
 
 	// 日主甲木，日支寅 → 禄神在寅
@@ -569,8 +591,7 @@ func TestShenShaActivation(t *testing.T) {
 // ── 经典示例验证：甲木身弱 + 壬子日 ──────────────────────────
 // 来源：日课推算法.md 示例一
 // 壬水=偏印（生我者），子水=偏印根气 → 印绶生身，利于用神
-// 甲木长生在亥，子水为沐浴 → 半吉
-// 综合：吉
+// 甲木长生在亥，子水查表为沐浴；这里只验证结构标签，不解释吉凶。
 
 func TestClassicExample1_JiaMuWeak_RenZiDay(t *testing.T) {
 	// 十神验证：壬对甲 = 偏印
@@ -580,25 +601,17 @@ func TestClassicExample1_JiaMuWeak_RenZiDay(t *testing.T) {
 	}
 
 	// 长生验证：甲木在子 = 沐浴
-	stage, fav, _ := calcTwelveStage("甲", "子")
-	if stage != "沐浴" {
-		t.Errorf("甲木在子长生: got %s, want 沐浴", stage)
-	}
-	if fav {
-		t.Error("沐浴应为半吉(favorable=false)")
+	stage := observeTwelveStage("甲", "子")
+	if stage.Name != "沐浴" || stage.InterpretationStatus != "not_adjudicated" {
+		t.Errorf("甲木在子长生证据: got %+v, want 沐浴且未裁决", stage)
 	}
 
-	// 偏印对身弱=喜
-	favGod := isFavorableTenGodByStrength("偏印", false)
-	if !favGod {
-		t.Error("身弱偏印应为喜")
-	}
 }
 
 // ── 经典示例验证：甲木身旺 + 庚午日 ──────────────────────────
 // 来源：日课推算法.md 示例二
 // 庚金=七杀（克我者），午火=伤官根气
-// 甲木死在午 → 凶位
+// 甲木在午查表为死；这里只验证结构标签，不解释吉凶。
 // 庚金克甲木为"战"，压力明显
 // 综合：身旺者能扛反吉
 
@@ -610,15 +623,9 @@ func TestClassicExample2_JiaMuStrong_GengWuDay(t *testing.T) {
 	}
 
 	// 长生验证：甲木在午 = 死
-	stage, _, _ := calcTwelveStage("甲", "午")
-	if stage != "死" {
-		t.Errorf("甲木在午长生: got %s, want 死", stage)
-	}
-
-	// 七杀对身旺=喜
-	favGod := isFavorableTenGodByStrength("七杀", true)
-	if !favGod {
-		t.Error("身旺七杀应为喜")
+	stage := observeTwelveStage("甲", "午")
+	if stage.Name != "死" || stage.InterpretationStatus != "not_adjudicated" {
+		t.Errorf("甲木在午长生证据: got %+v, want 死且未裁决", stage)
 	}
 
 	// 天干关系：庚克甲 = 相冲（庚甲相冲）
@@ -630,9 +637,7 @@ func TestClassicExample2_JiaMuStrong_GengWuDay(t *testing.T) {
 // ── 经典示例验证：丙火身弱 + 庚寅日 ──────────────────────────
 // 来源：日课推算法.md 示例三
 // 庚金=偏财（我克者），寅木=偏印根气
-// 丙火长生在寅 → 大吉
-// 寅木生丙火 → 好
-// 综合：有惊无险
+// 丙火在寅查表为长生；这里只验证结构标签，不解释吉凶。
 
 func TestClassicExample3_BingHuoWeak_GengYinDay(t *testing.T) {
 	// 十神验证：庚对丙 = 偏财
@@ -642,16 +647,13 @@ func TestClassicExample3_BingHuoWeak_GengYinDay(t *testing.T) {
 	}
 
 	// 长生验证：丙火在寅 = 长生
-	stage, fav, _ := calcTwelveStage("丙", "寅")
-	if stage != "长生" {
-		t.Errorf("丙火在寅长生: got %s, want 长生", stage)
-	}
-	if !fav {
-		t.Error("长生应为吉(favorable=true)")
+	stage := observeTwelveStage("丙", "寅")
+	if stage.Name != "长生" || stage.InterpretationStatus != "not_adjudicated" {
+		t.Errorf("丙火在寅长生证据: got %+v, want 长生且未裁决", stage)
 	}
 
 	// 寅中藏甲木（偏印）→ 木生火，对丙火有利
-	stems := calcHiddenStemGods("寅", "丙", []string{"木", "火"}, "丙")
+	stems := calcHiddenStemGods("寅", "丙")
 	if len(stems) == 0 {
 		t.Fatal("寅应有藏干")
 	}
@@ -663,10 +665,7 @@ func TestClassicExample3_BingHuoWeak_GengYinDay(t *testing.T) {
 	}
 }
 
-// ── 贪合忘克验证 ──────────────────────────────────────────
-// 今日乙庚合，庚金本克甲木，但乙合住庚 → 贪合忘克
-
-func TestTanHeWangKe(t *testing.T) {
+func TestStemRelationFiveCombineRemainsUnadjudicated(t *testing.T) {
 	bazi := &bazipkg.BaziResult{
 		DayPillar:   model.Pillar{Gan: "甲", Zhi: "寅"},
 		YearPillar:  model.Pillar{Gan: "庚", Zhi: "申"},
@@ -675,19 +674,55 @@ func TestTanHeWangKe(t *testing.T) {
 	}
 	// 今日乙干，与年干庚合
 	rels := calcStemRelations("乙", bazi)
-	found := false
+	found := map[string]bool{}
 	for _, r := range rels {
-		if r.Type == "五合" && r.Target == "庚" {
-			found = true
-			if r.Note == "" {
-				t.Error("乙庚合应检测到贪合忘克（庚克甲），但Note为空")
+		if r.TargetStem == "庚" {
+			found[r.Type] = true
+			if r.RuleID != "rikuyo.stem-relation-v3."+r.Type ||
+				r.Basis != "query_day_stem_and_natal_pillar_stem_all_structures" {
+				t.Fatalf("unexpected compound stem evidence: %+v", r)
 			}
-			t.Logf("贪合忘克: %s", r.Note)
-			break
+			if r.Type == "five_combine" && (r.CombinedElement != "金" || r.TransformationStatus != "not_adjudicated" || r.InterpretationStatus != "not_adjudicated") {
+				t.Fatalf("unexpected five-combine evidence: %+v", r)
+			}
 		}
 	}
-	if !found {
-		t.Error("乙与庚应形成五合关系")
+	for _, relationType := range []string{"five_combine", "target_overcomes_query"} {
+		if !found[relationType] {
+			t.Errorf("乙庚缺少%s关系: %+v", relationType, rels)
+		}
+	}
+}
+
+func TestStemRelationClashPreservesElementControl(t *testing.T) {
+	bazi := &bazipkg.BaziResult{YearPillar: model.Pillar{Gan: "庚"}}
+	rels := calcStemRelations("甲", bazi)
+	found := map[string]bool{}
+	for _, relation := range rels {
+		if relation.TargetPillar == "年干" {
+			found[relation.Type] = true
+		}
+	}
+	for _, relationType := range []string{"clash", "target_overcomes_query"} {
+		if !found[relationType] {
+			t.Errorf("甲庚缺少%s关系: %+v", relationType, rels)
+		}
+	}
+}
+
+func TestStemRelationsIncludeNatalDayStem(t *testing.T) {
+	bazi := &bazipkg.BaziResult{DayPillar: model.Pillar{Gan: "庚"}}
+	rels := calcStemRelations("乙", bazi)
+	found := map[string]bool{}
+	for _, relation := range rels {
+		if relation.TargetPillar == "日干" {
+			found[relation.Type] = true
+		}
+	}
+	for _, relationType := range []string{"five_combine", "target_overcomes_query"} {
+		if !found[relationType] {
+			t.Errorf("流日乙与日干庚缺少%s关系: %+v", relationType, rels)
+		}
 	}
 }
 
@@ -701,92 +736,23 @@ func TestBranchRelationsComprehensive(t *testing.T) {
 		HourPillar:  model.Pillar{Gan: "戊", Zhi: "卯"},
 	}
 
-	// 今日午支 → 与年支子冲，与月支午自刑(午午)，与日支寅三合(寅午戌)
-	rels := calcBranchRelations("午", bazi, nil, nil)
+	// 今日午支 → 与年支子冲、与月支同支、与日支形成两支组合。
+	rels := calcBranchRelations("午", bazi)
 	t.Logf("午支关系数量: %d", len(rels))
 	for _, r := range rels {
-		t.Logf("  %s: %s (favorable=%v)", r.Type, r.Detail, r.IsFavorable)
+		t.Logf("  %s: %s", r.Type, r.Name)
 	}
 
 	// 验证子午冲
 	foundClash := false
 	for _, r := range rels {
-		if r.Type == "六冲" && r.Target == "子" {
+		if r.Type == "clash" && r.TargetBranch == "子" {
 			foundClash = true
 			break
 		}
 	}
 	if !foundClash {
 		t.Error("午与子应形成六冲关系")
-	}
-}
-
-// ── 地支关系喜忌个性化验证 ──────────────────────────────────────────
-// 验证同一日课对不同喜忌的用户产生不同的吉凶判断
-
-func TestBranchRelationFavorPersonalized(t *testing.T) {
-	bazi := &bazipkg.BaziResult{
-		YearPillar:  model.Pillar{Gan: "甲", Zhi: "子"},
-		MonthPillar: model.Pillar{Gan: "丙", Zhi: "午"},
-		DayPillar:   model.Pillar{Gan: "庚", Zhi: "寅"},
-		HourPillar:  model.Pillar{Gan: "戊", Zhi: "卯"},
-	}
-
-	// 场景1：喜木忌金的用户 → 水生木为喜神，子午冲冲去水(喜神) → 凶
-	likeWood := []string{"木", "水"} // 水生木(生我)为喜神
-	dislikeWood := []string{"金"}    // 金克木(克我)为忌神
-	rels := calcBranchRelations("午", bazi, likeWood, dislikeWood)
-	for _, r := range rels {
-		if r.Type == "六冲" && r.Target == "子" {
-			// 子属水，水在喜用列表中 → 冲去喜神 → IsFavorable应为false
-			if r.IsFavorable {
-				t.Error("喜木用户：子午冲冲去水(喜神)，应为凶")
-			}
-		}
-	}
-
-	// 场景2：喜金忌水的用户 → 子(水)为忌神，子午冲冲去水(忌神) → 吉
-	likeMetal := []string{"金", "土"}
-	dislikeMetal := []string{"水", "木"}
-	rels2 := calcBranchRelations("午", bazi, likeMetal, dislikeMetal)
-	for _, r := range rels2 {
-		if r.Type == "六冲" && r.Target == "子" {
-			// 子属水，水在忌神列表中 → 冲去忌神 → IsFavorable应为true
-			if !r.IsFavorable {
-				t.Error("喜金用户：子午冲冲去水(忌神)，应为吉")
-			}
-		}
-	}
-
-	// 场景3：验证六合喜忌 -- 今日午与未六合
-	bazi2 := &bazipkg.BaziResult{
-		YearPillar:  model.Pillar{Gan: "甲", Zhi: "未"},
-		MonthPillar: model.Pillar{Gan: "丙", Zhi: "午"},
-		DayPillar:   model.Pillar{Gan: "庚", Zhi: "寅"},
-		HourPillar:  model.Pillar{Gan: "戊", Zhi: "卯"},
-	}
-	// 喜土用户 → 未(土)为喜神 → 六合合住喜神 → 凶
-	likeEarth := []string{"土", "金"}
-	rels3 := calcBranchRelations("午", bazi2, likeEarth, nil)
-	for _, r := range rels3 {
-		if r.Type == "六合" && r.Target == "未" {
-			// 未属土，土在喜用列表中 → 合住喜神 → IsFavorable应为false
-			if r.IsFavorable {
-				t.Error("喜土用户：午未六合合住土(喜神)，应为凶")
-			}
-		}
-	}
-	// 忌土用户 → 未(土)为忌神 → 六合合住忌神 → 吉
-	dislikeEarth := []string{"土", "火"}
-	rels4 := calcBranchRelations("午", bazi2, nil, dislikeEarth)
-	for _, r := range rels4 {
-		if r.Type == "六合" && r.Target == "未" {
-			// 未属土，但这里用 !isFavorableElement(like) 判断
-			// like=nil → 不在喜用中 → 合住非喜神 → IsFavorable应为true
-			if !r.IsFavorable {
-				t.Error("忌土用户(无喜用)：午未六合合住非喜神，应为吉")
-			}
-		}
 	}
 }
 
@@ -821,211 +787,36 @@ func TestTaiSuiDirection(t *testing.T) {
 
 func TestElementCycle(t *testing.T) {
 	// 相生：木→火→土→金→水→木
-	if elementGeneratesMap["木"] != "火" { t.Error("木生火") }
-	if elementGeneratesMap["火"] != "土" { t.Error("火生土") }
-	if elementGeneratesMap["土"] != "金" { t.Error("土生金") }
-	if elementGeneratesMap["金"] != "水" { t.Error("金生水") }
-	if elementGeneratesMap["水"] != "木" { t.Error("水生木") }
+	if elementGeneratesMap["木"] != "火" {
+		t.Error("木生火")
+	}
+	if elementGeneratesMap["火"] != "土" {
+		t.Error("火生土")
+	}
+	if elementGeneratesMap["土"] != "金" {
+		t.Error("土生金")
+	}
+	if elementGeneratesMap["金"] != "水" {
+		t.Error("金生水")
+	}
+	if elementGeneratesMap["水"] != "木" {
+		t.Error("水生木")
+	}
 
 	// 相克：木→土→水→火→金→木
-	if elementOvercomesMap["木"] != "土" { t.Error("木克土") }
-	if elementOvercomesMap["土"] != "水" { t.Error("土克水") }
-	if elementOvercomesMap["水"] != "火" { t.Error("水克火") }
-	if elementOvercomesMap["火"] != "金" { t.Error("火克金") }
-	if elementOvercomesMap["金"] != "木" { t.Error("金克木") }
-}
-
-// ── 综合断语评分范围验证 ──────────────────────────────────────────
-
-func TestOverallVerdictScoreRange(t *testing.T) {
-	// 极端有利情况
-	v1, s1 := calcOverallVerdict(
-		"正印", true, "长生", true,
-		[]HiddenStemGod{{Favorable: true}, {Favorable: true}},
-		[]StemRelation{{IsFavorable: true}},
-		[]BranchRelation{{IsFavorable: true}, {IsFavorable: true}},
-		[]ShenShaActivation{{Type: "吉神"}},
-		DaYunInfluence{Score: 5},
-		LiuNianInfluence{Score: 3},
-		AdvanceRetreat{Score: 8},
-		YongShenImpact{Score: 15},
-		false, nil,
-	)
-	t.Logf("极端有利: score=%d, verdict=%s", s1, v1)
-	if s1 < 60 || s1 > 100 {
-		t.Errorf("极端有利评分应在60-100之间，got %d", s1)
+	if elementOvercomesMap["木"] != "土" {
+		t.Error("木克土")
 	}
-
-	// 极端不利情况
-	v2, s2 := calcOverallVerdict(
-		"七杀", false, "绝", false,
-		[]HiddenStemGod{{Favorable: false}, {Favorable: false}},
-		[]StemRelation{{IsFavorable: false}},
-		[]BranchRelation{{IsFavorable: false}, {IsFavorable: false}},
-		[]ShenShaActivation{{Type: "凶煞"}},
-		DaYunInfluence{Score: -5},
-		LiuNianInfluence{Score: -8},
-		AdvanceRetreat{Score: -8},
-		YongShenImpact{Score: 0},
-		false, nil,
-	)
-	t.Logf("极端不利: score=%d, verdict=%s", s2, v2)
-	if s2 < 0 || s2 > 40 {
-		t.Errorf("极端不利评分应在0-40之间，got %d", s2)
+	if elementOvercomesMap["土"] != "水" {
+		t.Error("土克水")
 	}
-}
-
-// ── 格局喜忌覆盖测试 ──────────────────────────────────────────
-
-func TestSpecialPatternFavorOverride(t *testing.T) {
-	// 稼穑格：戊土日主，辰月，全局土旺
-	// 格局喜忌：喜火土，忌木水
-	// 身旺喜忌：喜木金水，忌火土
-	// 验证：getEffectiveFavor 应返回格局喜忌而非身旺喜忌
-
-	t.Run("getEffectiveFavor returns pattern favor for special pattern", func(t *testing.T) {
-		bazi := &bazipkg.BaziResult{
-			DayPillar: model.Pillar{Gan: "戊", Zhi: "辰"},
-			BodyStrength: bazipkg.BodyStrengthResult{
-				Verdict: "身旺",
-				Like:    []string{"木", "金", "水"},   // 身旺喜克泄耗
-				Dislike: []string{"火", "土"},         // 身旺忌生扶
-			},
-			PatternAnalysis: bazipkg.PatternAnalysis{
-				PatternType:         "特殊格局",
-				PatternName:         "稼穑格（从强格）",
-				FavorableElements:   []string{"火", "土"}, // 从强格喜生扶
-				UnfavorableElements: []string{"木", "水"}, // 从强格忌克破
-			},
-		}
-
-		like, dislike, isSpecial := getEffectiveFavor(bazi)
-
-		if !isSpecial {
-			t.Error("应识别为特殊格局")
-		}
-		if !isFavorableElement("火", like) {
-			t.Error("稼穑格应喜火，got dislike")
-		}
-		if !isFavorableElement("土", like) {
-			t.Error("稼穑格应喜土，got dislike")
-		}
-		if isFavorableElement("木", like) {
-			t.Error("稼穑格应忌木，got like")
-		}
-		if isFavorableElement("水", like) {
-			t.Error("稼穑格应忌水，got like")
-		}
-		_ = dislike
-	})
-
-	t.Run("getEffectiveFavor falls back to body strength for normal pattern", func(t *testing.T) {
-		bazi := &bazipkg.BaziResult{
-			DayPillar: model.Pillar{Gan: "甲", Zhi: "寅"},
-			BodyStrength: bazipkg.BodyStrengthResult{
-				Verdict: "身旺",
-				Like:    []string{"金", "水", "土"},
-				Dislike: []string{"木", "火"},
-			},
-			PatternAnalysis: bazipkg.PatternAnalysis{
-				PatternType:       "正格",
-				PatternName:       "正官格",
-				FavorableElements: []string{"金", "水"},
-			},
-		}
-
-		like, _, isSpecial := getEffectiveFavor(bazi)
-
-		if isSpecial {
-			t.Error("正格不应识别为特殊格局")
-		}
-		if !isFavorableElement("金", like) {
-			t.Error("身旺应喜金")
-		}
-		if !isFavorableElement("水", like) {
-			t.Error("身旺应喜水")
-		}
-	})
-
-	t.Run("isFavorableTenGodByFavor for special pattern", func(t *testing.T) {
-		// 稼穑格戊土：喜火土，忌木水
-		like := []string{"火", "土"}
-		dayGan := "戊"
-
-		// 正印（火，生我）→ 喜
-		if !isFavorableTenGodByFavor("正印", like, dayGan) {
-			t.Error("稼穑格戊土，正印(火)应为喜")
-		}
-		// 偏印（火）→ 喜
-		if !isFavorableTenGodByFavor("偏印", like, dayGan) {
-			t.Error("稼穑格戊土，偏印(火)应为喜")
-		}
-		// 比肩（土，同我）→ 喜
-		if !isFavorableTenGodByFavor("比肩", like, dayGan) {
-			t.Error("稼穑格戊土，比肩(土)应为喜")
-		}
-		// 劫财（土）→ 喜
-		if !isFavorableTenGodByFavor("劫财", like, dayGan) {
-			t.Error("稼穑格戊土，劫财(土)应为喜")
-		}
-		// 七杀（木，克我）→ 忌
-		if isFavorableTenGodByFavor("七杀", like, dayGan) {
-			t.Error("稼穑格戊土，七杀(木)应为忌")
-		}
-		// 正官（木）→ 忌
-		if isFavorableTenGodByFavor("正官", like, dayGan) {
-			t.Error("稼穑格戊土，正官(木)应为忌")
-		}
-		// 正财（水，我克）→ 忌
-		if isFavorableTenGodByFavor("正财", like, dayGan) {
-			t.Error("稼穑格戊土，正财(水)应为忌")
-		}
-		// 偏财（水）→ 忌
-		if isFavorableTenGodByFavor("偏财", like, dayGan) {
-			t.Error("稼穑格戊土，偏财(水)应为忌")
-		}
-		// 食神（金，我生）→ 忌（不在喜用列表中）
-		if isFavorableTenGodByFavor("食神", like, dayGan) {
-			t.Error("稼穑格戊土，食神(金)应为忌")
-		}
-	})
-
-	t.Run("calcOverallVerdict includes pattern name for special pattern", func(t *testing.T) {
-		bazi := &bazipkg.BaziResult{
-			DayPillar: model.Pillar{Gan: "戊", Zhi: "辰"},
-			PatternAnalysis: bazipkg.PatternAnalysis{
-				PatternType:         "特殊格局",
-				PatternName:         "稼穑格（从强格）",
-				FavorableElements:   []string{"火", "土"},
-				UnfavorableElements: []string{"木", "水"},
-			},
-		}
-
-		v, _ := calcOverallVerdict(
-			"正印", true, "长生", true,
-			[]HiddenStemGod{{Favorable: true}},
-			nil, nil, nil,
-			DaYunInfluence{Score: 5},
-			LiuNianInfluence{Score: 3},
-			AdvanceRetreat{Score: 8},
-			YongShenImpact{Score: 15},
-			true, bazi,
-		)
-
-		if !strContains(v, "稼穑格") {
-			t.Errorf("断语应包含格局名称，got: %s", v)
-		}
-		if !strContains(v, "喜") || !strContains(v, "忌") {
-			t.Logf("断语: %s", v)
-		}
-	})
-}
-
-func strContains(s, sub string) bool {
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
+	if elementOvercomesMap["水"] != "火" {
+		t.Error("水克火")
 	}
-	return false
+	if elementOvercomesMap["火"] != "金" {
+		t.Error("火克金")
+	}
+	if elementOvercomesMap["金"] != "木" {
+		t.Error("金克木")
+	}
 }

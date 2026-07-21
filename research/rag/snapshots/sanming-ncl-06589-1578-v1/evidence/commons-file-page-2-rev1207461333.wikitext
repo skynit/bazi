@@ -1,0 +1,66 @@
+=={{int:filedesc}}==
+{{Book
+ |Author           =萬民英
+ |Translator       =
+ |Editor           =
+ |Illustrator      =
+ |Title            =三命通會
+ |Subtitle         =
+ |Series title     =
+ |Volume           =
+ |Edition          =明萬曆戊寅(六年, 1578)刊本
+ |Publisher        =
+ |Printer          =
+ |Publication date =1578
+明萬曆6年
+ |City             =
+ |Language         =
+ |Description      =卷數：十二卷
+
+裝訂：線裝
+
+數量：12冊
+
+其它題名：三命會通
+
+索書號：306.5 06589
+
+四部類目：子部-術數類-命相之屬
+
+序跋者：萬民英
+
+序跋：「萬曆六年戊寅季秋吉日前進士楚江易水育吾山人萬民英」
+
+收藏印記：「國立中央/圖書館/藏書」朱文方印「李子/□□」朱文方印
+
+版本行款：10行, 行22字, 雙欄, 版心白口, 單魚尾, 上方記「三命會通」, 下方記刻工
+
+高廣：(匡21.4 x 14.7公分)
+
+刻工：刻工名「敬才春升儒丁劉張肖義陳王乃春位□文大位科(或作位科)太九魁明魏應科(或作科魏)等」
+
+附註項：朱筆圈點
+ |Source           ={{Institution:National Central Library ROC}}
+ https://rbook.ncl.edu.tw/NCLSearch
+ |Permission       =
+ |Image            =
+ |Image page       =
+ |Pageoverview     =
+ |Wikisource       =
+ |Homecat          =
+ |Other_versions   =
+ |ISBN             =
+ |LCCN             =
+ |OCLC             =
+ |References       =
+ |Linkback         =
+ |Wikidata         =
+ |noimage          =
+}}
+
+== {{int:license-header}} ==
+
+{{PD-scan|PD-old}}
+
+[[Category:Scans from the Rare Books & Special Collections, National Central Library]]
+[[Category:三命通會]]

@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
 )
 
-// FromPillarsTestCase 来自 testdata/classical_cases.json 的结构（仅使用干支字段）
+// FromPillarsTestCase 来自日期候选 fixture，仅用于验证两个计算入口的一致性。
 type FromPillarsTestCase struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
@@ -24,7 +23,7 @@ type FromPillarsTestCase struct {
 
 // TestCalculateFromPillarsCase001 验证 case_001：四柱"壬辰 壬寅 甲寅 庚午" 身旺或偏旺
 // 经典命例源自《滴天髓阐微》：甲木生于寅月（得令），壬水双透（印旺），庚金七杀被印制，
-// 整体日主得令得势，BodyStrength.Verdict 预期为"身旺"或邻近的"偏旺"。
+// 整体日主得令得势，本地 BodyStrength 分段候选预期为"身旺"或邻近的"偏旺"。
 func TestCalculateFromPillarsCase001(t *testing.T) {
 	svc := &BaziService{}
 	result, err := svc.CalculateFromPillars("壬辰", "壬寅", "甲寅", "庚午", "MALE")
@@ -52,21 +51,13 @@ func TestCalculateFromPillarsCase001(t *testing.T) {
 	}
 
 	// 校验身强：case_001 预期为"身旺"，允许"偏旺"作为算法边界容差
-	verdict := result.BodyStrength.Verdict
-	t.Logf("case_001 身强判定: %s (总评分 %.3f, 得令 %.2f, 得地 %.2f, 得势 %.2f, 得生 %.2f)",
-		verdict, result.BodyStrength.TotalScore,
+	band := result.BodyStrength.ScoreBandCandidate
+	t.Logf("case_001 本地身强分段候选: %s (总评分 %.3f, 得令 %.2f, 得地 %.2f, 得势 %.2f, 得生 %.2f)",
+		band, result.BodyStrength.TotalScore,
 		result.BodyStrength.LingScore, result.BodyStrength.DiScore,
 		result.BodyStrength.ShiScore, result.BodyStrength.ShengScore)
-	if verdict != "身旺" && verdict != "偏旺" {
-		t.Errorf("身强判定不符: 期望 身旺/偏旺, 实际 %s", verdict)
-	}
-
-	// 校验喜忌非空
-	if len(result.BodyStrength.Like) == 0 {
-		t.Error("BodyStrength.Like 应非空")
-	}
-	if len(result.BodyStrength.Dislike) == 0 {
-		t.Error("BodyStrength.Dislike 应非空")
+	if band != "身旺" && band != "偏旺" {
+		t.Errorf("本地身强分段候选不符: 期望 身旺/偏旺, 实际 %s", band)
 	}
 
 	// 校验十神
@@ -97,8 +88,8 @@ func TestCalculateFromPillarsCase001(t *testing.T) {
 		t.Error("调候用神应非空")
 	}
 
-	t.Logf("命宫: %s, 调候: %s, 喜用: %v, 忌: %v",
-		result.MingGong.GanZhi, result.Tiaohou.Primary, result.BodyStrength.Like, result.BodyStrength.Dislike)
+	t.Logf("命宫: %s, 调候表首候选: %s, 身强分段候选: %s",
+		result.MingGong.GanZhi, result.Tiaohou.TablePrimaryCandidate, result.BodyStrength.ScoreBandCandidate)
 }
 
 // TestCalculateFromPillarsInvalidInput 校验入参解析错误
@@ -106,7 +97,7 @@ func TestCalculateFromPillarsInvalidInput(t *testing.T) {
 	svc := &BaziService{}
 
 	cases := []struct {
-		desc           string
+		desc                           string
 		year, month, day, hour, gender string
 	}{
 		{"年柱长度不足", "壬", "壬寅", "甲寅", "庚午", "MALE"},
@@ -139,7 +130,7 @@ func TestCalculateFromPillarsInvalidInput(t *testing.T) {
 // 两个入口应得到相同的四柱、身强判定、十神、五行总分等核心分析结果。
 // 使用日期先回算干支再传入，避免硬编码"期望干支"与实际公历-干支转换不一致的干扰。
 func TestCalculateFromPillarsConsistency(t *testing.T) {
-	data, err := loadFromPillarsTestData("../../testdata/classical_cases.json")
+	data, err := loadFromPillarsTestData("../../testdata/bazi_date_gold_candidates.json")
 	if err != nil {
 		t.Fatalf("加载测试数据失败: %v", err)
 	}
@@ -193,9 +184,9 @@ func TestCalculateFromPillarsConsistency(t *testing.T) {
 			stats.pillarMatch++
 		}
 
-		// 身强判定应一致
-		if dateResult.BodyStrength.Verdict != pillarResult.BodyStrength.Verdict {
-			t.Errorf("[%s] 身强判定不一致: date=%s pillar=%s", tc.ID, dateResult.BodyStrength.Verdict, pillarResult.BodyStrength.Verdict)
+		// 本地评分及分段候选应一致
+		if dateResult.BodyStrength.ScoreBandCandidate != pillarResult.BodyStrength.ScoreBandCandidate {
+			t.Errorf("[%s] 身强分段候选不一致: date=%s pillar=%s", tc.ID, dateResult.BodyStrength.ScoreBandCandidate, pillarResult.BodyStrength.ScoreBandCandidate)
 		} else {
 			stats.bodyMatch++
 		}

@@ -41,6 +41,7 @@ interface Props {
     palaces: PalaceData[]
     year: number
     liu_nian_stars?: string[][]
+    liu_nian_four_hua?: string[][]
     overlay_analysis?: ZiWeiOverlayAnalysis
   }
   overlayAnalysis?: ZiWeiOverlayAnalysis
@@ -116,6 +117,7 @@ watch(() => props.liunianChart?.year, (year) => {
 }, { immediate: true })
 
 const analysis = computed(() => props.overlayAnalysis || props.liunianChart?.overlay_analysis)
+const dayunContext = computed(() => analysis.value?.dayun_context)
 
 const baseLookup = computed<Record<string, PalaceData>>(() => {
   const map: Record<string, PalaceData> = {}
@@ -200,9 +202,9 @@ const dayunLabelByBranch = computed<Record<string, string>>(() => {
 })
 
 const overlaySideTabs = computed(() => [
-  { key: 'four_hua' as const, label: '四化飞星', count: fourHuaTargets.value.length },
+  { key: 'four_hua' as const, label: '流年四化', count: fourHuaTargets.value.length },
   { key: 'annual_stars' as const, label: '流禄羊陀马', count: annualStarTargets.value.length },
-  { key: 'focus_palaces' as const, label: '重点宫位', count: focusPalaces.value.length },
+  { key: 'focus_palaces' as const, label: '触发宫位', count: focusPalaces.value.length },
 ])
 
 const centerTitle = computed(() => (
@@ -210,7 +212,13 @@ const centerTitle = computed(() => (
 ))
 
 const centerSubtitle = computed(() => {
-  if (mode.value === 'overlay') return `${selectedYear.value}年流年叠盘`
+  if (mode.value === 'overlay') {
+    const context = dayunContext.value
+    if (context) {
+      return `${selectedYear.value}年流年叠盘 · ${context.gan_zhi}大限 ${context.start_age}-${context.end_age}岁`
+    }
+    return `${selectedYear.value}年流年叠盘`
+  }
   const soulPalace = props.baseChart.earthly_branch_of_soul_palace || '—'
   const bodyPalace = props.baseChart.earthly_branch_of_body_palace || '—'
   return `命宫 ${soulPalace} · 身宫 ${bodyPalace}`
@@ -333,16 +341,16 @@ function palaceHighlightClass(branch: string): string {
 function overlayImpactClass(branch: string): string {
   if (mode.value !== 'overlay') return ''
   const triggers = triggerChipsAt(branch)
-  if (triggers.some((trigger) => trigger.polarity === 'watch' || trigger.type === '化忌')) return 'zw-impact-watch'
-  if (triggers.some((trigger) => trigger.polarity === 'good')) return 'zw-impact-good'
+  if (triggers.some((trigger) => trigger.polarity === 'constraint' || trigger.type === '化忌')) return 'zw-impact-watch'
+  if (triggers.some((trigger) => trigger.polarity === 'resource')) return 'zw-impact-good'
   if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'zw-impact-move'
   if (triggers.length) return 'zw-impact-neutral'
   return ''
 }
 
 function triggerClass(trigger: ZiWeiOverlayTrigger): string {
-  if (trigger.polarity === 'watch' || trigger.type === '化忌') return 'is-watch'
-  if (trigger.polarity === 'good') return 'is-good'
+  if (trigger.polarity === 'constraint' || trigger.type === '化忌') return 'is-watch'
+  if (trigger.polarity === 'resource') return 'is-good'
   if (trigger.polarity === 'movement') return 'is-move'
   return 'is-neutral'
 }
@@ -360,21 +368,14 @@ function fallbackChipClass(label: string): string {
 
 function focusPalaceClass(item: ZiWeiOverlayFocusPalace): string {
   const triggers = list(item.triggers)
-  if (triggers.some((trigger) => trigger.polarity === 'watch' || trigger.type === '化忌')) return 'is-watch'
-  if (triggers.some((trigger) => trigger.polarity === 'good')) return 'is-good'
+  if (triggers.some((trigger) => trigger.polarity === 'constraint' || trigger.type === '化忌')) return 'is-watch'
+  if (triggers.some((trigger) => trigger.polarity === 'resource')) return 'is-good'
   if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'is-move'
   return 'is-neutral'
 }
 
-function scoreClass(score?: number): string {
-  if (!score && score !== 0) return 'score-neutral'
-  if (score >= 70) return 'score-good'
-  if (score < 45) return 'score-watch'
-  return 'score-neutral'
-}
-
 function overlaySummary(): string {
-  return analysis.value?.summary || `${selectedYear.value}年叠盘会标出流年四化、流禄、流羊、流陀和流马落宫，用来判断本年哪些宫位被时间层触发。`
+  return analysis.value?.summary || `${selectedYear.value}年叠盘会标出流年四化、流禄、流羊、流陀和流马落宫，记录被时间层触发的宫位结构。`
 }
 </script>
 
@@ -405,17 +406,21 @@ function overlaySummary(): string {
         <span class="zw-kicker">年度叠盘依据</span>
         <div class="zw-guide-title-row">
           <h3>{{ selectedYear }}年 <span>{{ analysis?.gan_zhi || '流年' }}</span></h3>
-          <div class="zw-score" :class="scoreClass(analysis?.score)">
-            <strong>{{ analysis?.score ?? '—' }}</strong>
-            <span>年势分</span>
+          <div class="zw-contract-status">
+            <strong>结构</strong>
+            <span>未裁决</span>
           </div>
         </div>
         <div class="zw-guide-reading">
           <p class="zw-guide-summary">{{ overlaySummary() }}</p>
           <div class="zw-guide-meta">
             <span v-if="analysis?.shi_shen">十神：{{ analysis.shi_shen }}</span>
-            <span v-if="analysis?.tone">{{ analysis.tone }}</span>
-            <span v-if="analysis?.key_tips">{{ analysis.key_tips }}</span>
+            <span v-if="analysis?.relation_to_ming">命局关系：{{ analysis.relation_to_ming }}</span>
+            <span v-if="dayunContext">
+              大限：{{ dayunContext.gan_zhi }} · {{ dayunContext.palace }} · 虚岁
+              {{ dayunContext.nominal_age }}
+            </span>
+            <span v-if="analysis?.review_note">{{ analysis.review_note }}</span>
           </div>
         </div>
       </div>
@@ -464,7 +469,9 @@ function overlaySummary(): string {
                 {{ star.name }}
               </span>
               <span v-if="hiddenStarCount(basePalaceAt(branch))" class="zw-more-star">+{{ hiddenStarCount(basePalaceAt(branch)) }}</span>
-              <span v-for="hua in palaceSihua(basePalaceAt(branch))" :key="hua" class="zw-sihua-tag">{{ hua }}</span>
+              <span v-for="hua in palaceSihua(basePalaceAt(branch))" :key="hua" class="zw-sihua-tag">
+                {{ mode === 'overlay' ? `本命·${hua}` : hua }}
+              </span>
             </div>
 
             <div v-if="basePalaceAt(branch)?.changsheng_12" class="zw-twelve">
@@ -480,7 +487,7 @@ function overlaySummary(): string {
                   :class="triggerClass(trigger)"
                   :title="trigger.meaning"
                 >
-                  {{ triggerLabel(trigger) }}
+                  流年·{{ triggerLabel(trigger) }}
                 </span>
               </template>
               <template v-else-if="liunianStarsAt(branch).length">
@@ -490,7 +497,7 @@ function overlaySummary(): string {
                   class="zw-trigger-chip"
                   :class="fallbackChipClass(star)"
                 >
-                  {{ star }}
+                  流年·{{ star }}
                 </span>
               </template>
               <span v-else class="zw-no-trigger">本年未重点触发</span>
@@ -512,7 +519,7 @@ function overlaySummary(): string {
 
           <div class="zw-center" :class="{ 'zw-center-overlay': mode === 'overlay' }">
             <div class="zw-center-head">
-              <span class="zw-center-kicker">{{ mode === 'overlay' ? '年度判读' : '命宫核心' }}</span>
+              <span class="zw-center-kicker">{{ mode === 'overlay' ? '年度结构' : '命宫核心' }}</span>
               <strong class="zw-center-title">{{ centerTitle }}</strong>
               <span class="zw-center-subtitle">{{ centerSubtitle }}</span>
             </div>
@@ -619,14 +626,14 @@ function overlaySummary(): string {
             >
               <header>
                 <strong>{{ item.palace }}</strong>
-                <span>{{ item.branch }}宫 · 权重 {{ item.score }}</span>
+                <span>{{ item.branch }}宫 · {{ list(item.triggers).length }} 项触发</span>
               </header>
               <div v-if="list(item.main_stars).length" class="zw-mini-tags">
                 <span v-for="star in list(item.main_stars)" :key="star">{{ star }}</span>
               </div>
-              <p>{{ item.advice }}</p>
+              <p>{{ item.review_note }}</p>
             </article>
-            <p v-if="!focusPalaces.length" class="zw-empty-line">本年没有明显集中触发的重点宫位。</p>
+            <p v-if="!focusPalaces.length" class="zw-empty-line">本年未记录流年四化或流禄羊陀马触发宫位。</p>
           </div>
         </section>
       </aside>
@@ -634,8 +641,8 @@ function overlaySummary(): string {
 
     <div class="zw-legend">
       <span><i class="swatch base"></i>本命星曜</span>
-      <span v-if="mode === 'overlay'"><i class="swatch good"></i>助力</span>
-      <span v-if="mode === 'overlay'"><i class="swatch watch"></i>注意</span>
+      <span v-if="mode === 'overlay'"><i class="swatch good"></i>资源触发</span>
+      <span v-if="mode === 'overlay'"><i class="swatch watch"></i>约束触发</span>
       <span v-if="mode === 'overlay'"><i class="swatch move"></i>移动变化</span>
       <span><i class="swatch focus"></i>悬停三方四正</span>
       <div class="zw-brightness-legend" aria-label="星曜亮度：庙、旺、得、利、平、不、陷">
@@ -818,7 +825,7 @@ function overlaySummary(): string {
   color: #86efac;
 }
 
-.zw-score {
+.zw-contract-status {
   display: grid;
   place-items: center;
   min-width: 104px;
@@ -828,21 +835,17 @@ function overlaySummary(): string {
   background: var(--surface-1);
 }
 
-.zw-score strong {
+.zw-contract-status strong {
   color: var(--text);
   font-size: var(--fs-stat);
   line-height: 1;
 }
 
-.zw-score span {
+.zw-contract-status span {
   color: var(--text-dim);
   font-size: var(--fs-xs);
   font-weight: 700;
 }
-
-.score-good { border-color: rgba(34, 197, 94, 0.35); }
-.score-watch { border-color: rgba(244, 63, 94, 0.35); }
-.score-neutral { border-color: rgba(14, 165, 233, 0.28); }
 
 .zw-guide-summary {
   margin: 0;

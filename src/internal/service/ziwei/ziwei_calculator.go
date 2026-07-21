@@ -41,9 +41,9 @@ type BirthData struct {
 
 // ──────────── Chart Calculation Entry Point ────────────
 
-// CalculateZiWeiChart computes a complete ZiWei Dou Shu chart from birth data.
-// This is the self-contained replacement for ziwei-zenith's BuildChart.
-func CalculateZiWeiChart(birth *BirthData) (*ZiWeiChart, error) {
+// calculateZiWeiChart computes the core chart after the service has normalized
+// and validated all public birth input.
+func calculateZiWeiChart(birth *BirthData) (*ZiWeiChart, error) {
 	if birth == nil {
 		return nil, fmt.Errorf("birth data is nil")
 	}
@@ -75,7 +75,7 @@ func CalculateZiWeiChart(birth *BirthData) (*ZiWeiChart, error) {
 	suiQian12, jiangQian12 := placeYearly12(birth.YearBranch)
 
 	// 9. Assemble chart
-	chart := assembleChart(birth, soulBranch, bodyBranch, soulStem, juValue,
+	chart := assembleChart(birth, soulBranch, bodyBranch, juValue,
 		majorStars, auxStars, fourHua, adjectiveStars,
 		changSheng12, boShi12, suiQian12, jiangQian12)
 
@@ -133,31 +133,29 @@ func calcSoulAndBody(birth *BirthData) (soulBranch, bodyBranch, soulStem int) {
 	//      辰←子, 卯←丑, 寅←寅, 丑←卯, 子←辰, 亥←巳, 戌←午, 酉←未
 	//   3. 命宫在酉(9) ✓
 
-	monthBranch := (2 + birth.LunarMonth - 1) % 12 // 寅(2)起正月
+	monthBranch := (2 + effectiveLunarMonth(birth) - 1) % 12 // 寅(2)起正月
 
 	// 命宫: 从月支位置逆数时辰
 	// 时间子时从月支开始，0=子, 1=丑, ..., 7=未
 	soulBranch = fixIndex(monthBranch - birth.HourBranch)
 
-	// Handle 闰月 (leap month): 闰月时命宫需要调整
-	// iztro: if isLeapMonth && lunarDay >= 16, monthBranch += 1
-	if birth.IsLeapMonth && birth.LunarDay >= 16 {
-		adjustedMonthBranch := (monthBranch + 1) % 12
-		soulBranch = fixIndex(adjustedMonthBranch - birth.HourBranch)
-	}
-
 	// 身宫: 从月支位置顺数时辰
 	bodyBranch = fixIndex(monthBranch + birth.HourBranch)
-
-	if birth.IsLeapMonth && birth.LunarDay >= 16 {
-		adjustedMonthBranch := (monthBranch + 1) % 12
-		bodyBranch = fixIndex(adjustedMonthBranch + birth.HourBranch)
-	}
 
 	// 命宫天干: 用五虎遁从寅宫起始天干推算
 	soulStem = GetPalaceStem(birth.YearStem, soulBranch)
 
 	return soulBranch, bodyBranch, soulStem
+}
+
+// effectiveLunarMonth implements this profile's fixLeap convention: the first
+// 15 days of a leap month use that month, and day 16 onward uses the next one.
+func effectiveLunarMonth(birth *BirthData) int {
+	month := birth.LunarMonth
+	if birth.IsLeapMonth && birth.LunarDay > 15 {
+		month++
+	}
+	return fixIndex(month-1) + 1
 }
 
 // ──────────── 2. Five Element Bureau (五行局) ────────────
@@ -258,13 +256,14 @@ func getStarBrightness(starName string, branchIdx int) string {
 
 func placeAuxStars(birth *BirthData) [12][]StarInfo {
 	var stars [12][]StarInfo
+	month := effectiveLunarMonth(birth)
 
 	// 左辅: 辰上顺正寻左辅
-	zuofuIdx := ZuofuIndex(birth.LunarMonth)
+	zuofuIdx := ZuofuIndex(month)
 	stars[zuofuIdx] = append(stars[zuofuIdx], StarInfo{Name: "左辅", Brightness: getStarBrightness("左辅", zuofuIdx)})
 
 	// 右弼: 戌上逆正右弼当
-	youbiIdx := YoubiIndex(birth.LunarMonth)
+	youbiIdx := YoubiIndex(month)
 	stars[youbiIdx] = append(stars[youbiIdx], StarInfo{Name: "右弼", Brightness: getStarBrightness("右弼", youbiIdx)})
 
 	// 文昌: from 戌(10) 逆数时辰
@@ -347,42 +346,65 @@ func applyFourHua(majorStars [12][]StarInfo, auxStars [12][]StarInfo, yearStem i
 
 func placeAdjectiveStars(birth *BirthData) [12][]string {
 	var stars [12][]string
+	month := effectiveLunarMonth(birth)
+	monthIndex := month - 1
+	dayIndex := birth.LunarDay - 1
+	soulBranch, bodyBranch, _ := calcSoulAndBody(birth)
 
-	// 红鸾天喜: 按年支
-	hongluanIdx := HongLuanIndex(birth.YearBranch)
-	tianxiIdx := TianXiIndex(birth.YearBranch)
-	stars[hongluanIdx] = append(stars[hongluanIdx], "红鸾")
-	stars[tianxiIdx] = append(stars[tianxiIdx], "天喜")
+	addAdjectiveStar(&stars, HongLuanIndex(birth.YearBranch), "红鸾")
+	addAdjectiveStar(&stars, TianXiIndex(birth.YearBranch), "天喜")
+	addAdjectiveStar(&stars, TianYaoIndex(month), "天姚")
+	addAdjectiveStar(&stars, XianChiBranch[birth.YearBranch], "咸池")
+	addAdjectiveStar(&stars, YueJieBranchByMonth[monthIndex], "解神")
 
-	// 咸池华盖: 按年支
-	stars[XianChiBranch[birth.YearBranch]] = append(stars[XianChiBranch[birth.YearBranch]], "咸池")
-	stars[HuaGaiBranch[birth.YearBranch]] = append(stars[HuaGaiBranch[birth.YearBranch]], "华盖")
+	addAdjectiveStar(&stars, ZuofuIndex(month)+dayIndex, "三台")
+	addAdjectiveStar(&stars, YoubiIndex(month)-dayIndex, "八座")
+	addAdjectiveStar(&stars, WenchangIndex(birth.HourBranch)+dayIndex-1, "恩光")
+	addAdjectiveStar(&stars, WenquIndex(birth.HourBranch)+dayIndex-1, "天贵")
 
-	// 天姚天刑: 按月
-	stars[TianYaoIndex(birth.LunarMonth)] = append(stars[TianYaoIndex(birth.LunarMonth)], "天姚")
-	stars[TianXingIndex(birth.LunarMonth)] = append(stars[TianXingIndex(birth.LunarMonth)], "天刑")
+	addAdjectiveStar(&stars, 4+birth.YearBranch, "龙池")
+	addAdjectiveStar(&stars, 10-birth.YearBranch, "凤阁")
+	addAdjectiveStar(&stars, soulBranch+birth.YearBranch, "天才")
+	addAdjectiveStar(&stars, bodyBranch+birth.YearBranch, "天寿")
+	addAdjectiveStar(&stars, 6+birth.HourBranch, "台辅")
+	addAdjectiveStar(&stars, 2+birth.HourBranch, "封诰")
+	addAdjectiveStar(&stars, TianWuBranchByMonth[monthIndex], "天巫")
 
-	// 破碎: 按年支
-	stars[PoSuiBranch[birth.YearBranch]] = append(stars[PoSuiBranch[birth.YearBranch]], "破碎")
+	addAdjectiveStar(&stars, HuaGaiBranch[birth.YearBranch], "华盖")
+	addAdjectiveStar(&stars, TianGuanBranchByStem[birth.YearStem], "天官")
+	addAdjectiveStar(&stars, TianFuAdjectiveBranchByStem[birth.YearStem], "天福")
+	addAdjectiveStar(&stars, TianChuBranchByStem[birth.YearStem], "天厨")
+	addAdjectiveStar(&stars, TianYueBranchByMonth[monthIndex], "天月")
+	addAdjectiveStar(&stars, 9+birth.YearBranch, "天德")
+	addAdjectiveStar(&stars, 5+birth.YearBranch, "月德")
+	addAdjectiveStar(&stars, birth.YearBranch+1, "天空")
 
-	// 飞廉: 按年支
-	stars[FeiLianBranch[birth.YearBranch]] = append(stars[FeiLianBranch[birth.YearBranch]], "飞廉")
+	xunkongBranch := fixIndex(birth.YearBranch + 10 - birth.YearStem)
+	if birth.YearBranch%2 != xunkongBranch%2 {
+		xunkongBranch = fixIndex(xunkongBranch + 1)
+	}
+	addAdjectiveStar(&stars, xunkongBranch, "旬空")
+	addAdjectiveStar(&stars, JieLuBranchByStem[birth.YearStem], "截路")
+	addAdjectiveStar(&stars, KongWangBranchByStem[birth.YearStem], "空亡")
 
-	// 阴煞: 按月
-	stars[YinShaBranch[(birth.LunarMonth-1)%12]] = append(stars[YinShaBranch[(birth.LunarMonth-1)%12]], "阴煞")
-
-	// 天空: 按时
-	stars[TianKongIndex(birth.HourBranch)] = append(stars[TianKongIndex(birth.HourBranch)], "天空")
-
-	// 龙池凤阁: 按年支
-	// 龙池 from 辰(4) + yearBranch
-	longchiIdx := fixIndex(4 + birth.YearBranch)
-	stars[longchiIdx] = append(stars[longchiIdx], "龙池")
-	// 凤阁 from 戌(10) - yearBranch
-	fenggeIdx := fixIndex(10 - birth.YearBranch)
-	stars[fenggeIdx] = append(stars[fenggeIdx], "凤阁")
+	addAdjectiveStar(&stars, GuChenBranch[birth.YearBranch], "孤辰")
+	addAdjectiveStar(&stars, GuaSuBranch[birth.YearBranch], "寡宿")
+	addAdjectiveStar(&stars, FeiLianBranch[birth.YearBranch], "蜚廉")
+	addAdjectiveStar(&stars, PoSuiBranch[birth.YearBranch], "破碎")
+	addAdjectiveStar(&stars, TianXingIndex(month), "天刑")
+	addAdjectiveStar(&stars, YinShaBranch[monthIndex], "阴煞")
+	addAdjectiveStar(&stars, 6-birth.YearBranch, "天哭")
+	addAdjectiveStar(&stars, 6+birth.YearBranch, "天虚")
+	addAdjectiveStar(&stars, soulBranch+7, "天使")
+	addAdjectiveStar(&stars, soulBranch+5, "天伤")
+	addAdjectiveStar(&stars, NianJieBranch[birth.YearBranch], "年解")
 
 	return stars
+}
+
+func addAdjectiveStar(stars *[12][]string, branch int, name string) {
+	branch = fixIndex(branch)
+	stars[branch] = append(stars[branch], name)
 }
 
 // ──────────── 8. Twelve Shen ────────────
@@ -468,7 +490,7 @@ func getJiangXingStartBranch(yearBranch int) int {
 
 func assembleChart(
 	birth *BirthData,
-	soulBranch, bodyBranch, soulStem, juValue int,
+	soulBranch, bodyBranch, juValue int,
 	majorStars [12][]StarInfo,
 	auxStars [12][]StarInfo,
 	fourHua map[string]string,
@@ -484,13 +506,6 @@ func assembleChart(
 		LunarMonth:                birth.LunarMonth,
 		EarthlyBranchOfSoulPalace: BranchNames[soulBranch],
 		EarthlyBranchOfBodyPalace: BranchNames[bodyBranch],
-		SoulBranch:                soulBranch,
-		BodyBranch:                bodyBranch,
-		SoulStem:                  soulStem,
-		JuValue:                   juValue,
-		YearStem:                  birth.YearStem,
-		YearBranch:                birth.YearBranch,
-		birthData:                 birth,
 	}
 
 	// Apply four hua to stars
@@ -507,9 +522,6 @@ func assembleChart(
 			HeavenlyStem:   StemNames[palaceStem],
 			IsBodyPalace:   branchIdx == bodyBranch,
 			Stars:          append(starInfosToOutput(majorStars[branchIdx], "major"), starInfosToOutput(auxStars[branchIdx], "aux")...),
-			MainStars:      starInfosToNames(majorStars[branchIdx]),
-			AuxStars:       starInfosToNames(auxStars[branchIdx]),
-			Brightness:     starInfosToBrightness(majorStars[branchIdx], auxStars[branchIdx]),
 			FourHua:        getFourHuaInPalace(majorStars[branchIdx], auxStars[branchIdx], fourHua),
 			AdjectiveStars: adjectiveStars[branchIdx],
 			Changsheng12:   changSheng12[branchIdx],
@@ -522,21 +534,13 @@ func assembleChart(
 	}
 
 	for i := 0; i < 12; i++ {
-		chart.SanfangSizheng[i] = *GetChartPalaceSanfang(chart, i)
+		chart.SanfangSizheng[i] = *getChartPalaceSanfang(chart, i)
 	}
 
 	// Detect patterns
 	chart.Patterns = DetectLocalPatterns(chart)
 
 	return chart
-}
-
-func starInfosToNames(infos []StarInfo) []string {
-	names := make([]string, 0, len(infos))
-	for _, info := range infos {
-		names = append(names, info.Name)
-	}
-	return names
 }
 
 func starInfosToOutput(infos []StarInfo, starType string) []StarOutput {
@@ -569,21 +573,6 @@ func starAuxType(name string) string {
 	default:
 		return "soft"
 	}
-}
-
-func starInfosToBrightness(major, aux []StarInfo) map[string]string {
-	m := make(map[string]string)
-	for _, info := range major {
-		if info.Brightness != "" && info.Brightness != "平" {
-			m[info.Name] = info.Brightness
-		}
-	}
-	for _, info := range aux {
-		if info.Brightness != "" && info.Brightness != "平" {
-			m[info.Name] = info.Brightness
-		}
-	}
-	return m
 }
 
 func getFourHuaInPalace(major, aux []StarInfo, huaMap map[string]string) []string {

@@ -36,9 +36,9 @@ import { computed } from 'vue'
 type WuxingKey = 'mu' | 'huo' | 'tu' | 'jin' | 'shui'
 
 const props = withDefaults(defineProps<{
-  yongshen?: WuxingKey
+  elementTheme?: WuxingKey
 }>(), {
-  yongshen: 'mu' as WuxingKey
+  elementTheme: 'mu' as WuxingKey
 })
 
 const nebulaOverrides: Record<string, string> = {
@@ -48,5 +48,5 @@ const nebulaOverrides: Record<string, string> = {
   shui: 'from-[#011316] via-[#044058] to-[#22d3ee]'
 }
 
-const nebulaClass = computed(() => nebulaOverrides[props.yongshen] || '')
+const nebulaClass = computed(() => nebulaOverrides[props.elementTheme] || '')
 </script>

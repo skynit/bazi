@@ -1,0 +1,300 @@
+{
+  "schema": "fortune_calculation_profile_manifest_v1",
+  "manifest_version": "2026-07-17.1",
+  "profile_id": "ziwei-sanhe-v1",
+  "system": "ziwei",
+  "title": "紫微斗数三合 v1 研究 Profile",
+  "status": "draft_not_selectable",
+  "runtime_selectable": false,
+  "activation_policy": "explicit_runtime_registration_after_gold_gate_only",
+  "runtime_binding": {
+    "kind": "research_only_with_composite_reference",
+    "registered_profile_id": "",
+    "reference_profile_id": "ziwei-local-composite-v2",
+    "engine_version": "ziwei-local-go-2026-07-16.47",
+    "rule_version": "ziwei-rules-2026-07-16.47",
+    "school": "紫微斗数-本地综合规则-v2",
+    "equivalence_status": "reference_runtime_is_not_sanhe_profile"
+  },
+  "calculation_scope": [
+    "lunar_input_and_leap_month",
+    "life_and_body_palaces",
+    "twelve_palaces_and_heavenly_stems",
+    "five_bureau",
+    "fourteen_main_stars",
+    "core_auxiliary_stars",
+    "birth_year_four_transformations",
+    "star_brightness",
+    "changsheng_boshi_jiangqian_suiqian",
+    "major_periods",
+    "sanfang_sizheng_findings",
+    "natal_transit_layering"
+  ],
+  "rule_modules": [
+    {
+      "rule_id": "ziwei.calendar.leap-month-normalization",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "农历输入、闰月十五/十六分界与日期规范化",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["ziwei_iztro_silver_v1_1"],
+      "limitations": ["当前证据复现 iztro 固定提交，不证明三合派唯一口径"]
+    },
+    {
+      "rule_id": "ziwei.chart.life-body-palaces",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "命宫、身宫、十二宫顺序与宫干",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["ziwei_iztro_silver_v1_1"],
+      "limitations": ["尚无三合 Profile 双专家 Gold"]
+    },
+    {
+      "rule_id": "ziwei.chart.five-bureau-and-fourteen-main-stars",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "五行局与十四主星逐宫安置",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["ziwei_iztro_silver_v1_1"],
+      "limitations": ["与外部算法一致只能报告 agreement，不得报告准确率"]
+    },
+    {
+      "rule_id": "ziwei.chart.core-auxiliary-stars",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "核心辅星、煞星与杂曜的安置集合",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["ziwei_iztro_silver_v1_1"],
+      "limitations": ["星表边界必须逐星列明，不能从本地综合 Profile 自动继承"]
+    },
+    {
+      "rule_id": "ziwei.sihua.birth-year-ten-stem",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "生年十干四化表及星曜落宫",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["iztro_heavenly_stems_pinned"],
+      "limitations": ["飞星、钦天与宫干四化不得混入生年四化模块"]
+    },
+    {
+      "rule_id": "ziwei.star-brightness",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "星曜亮度表",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["iztro_stars_pinned"],
+      "limitations": ["亮度表属于争议表，必须由三合 Profile 独立冻结"]
+    },
+    {
+      "rule_id": "ziwei.period.major-and-transit",
+      "status": "reference_implementation_only_not_profile_adjudicated",
+      "scope": "大限顺逆、起限与流年流月流日结构层",
+      "evidence_tier": "silver_external",
+      "evidence_refs": ["ziwei_iztro_silver_v1_1", "iztro_period_pinned", "iztro_transit_stars_pinned"],
+      "limitations": ["运限必须保持 Overlay，不得覆盖本命盘", "起限与流转口径尚无三合专家 Gold"]
+    },
+    {
+      "rule_id": "ziwei.sanhe.sanfang-sizheng-v1",
+      "status": "draft_unimplemented",
+      "scope": "三方四正、会照、夹拱、必要星曜、四化与否决条件的规则图",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["ziwei_sanhe_primary_source_gap"],
+      "limitations": ["本地没有可定位且许可明确的三合派主资料", "当前本地综合算法不得冒充三合 Profile"]
+    },
+    {
+      "rule_id": "ziwei.sanhe.pattern-interpretation-v1",
+      "status": "draft_unimplemented",
+      "scope": "只在基础盘 Gold 一致后计算的三合格局与结构化解释",
+      "evidence_tier": "not_available",
+      "evidence_refs": ["ziwei_sanhe_primary_source_gap", "ziwei_full_chart_gold_empty"],
+      "limitations": ["基础盘 Gold 为零时禁止发布三合格局准确率或事件断语"]
+    }
+  ],
+  "source_evidence": [
+    {
+      "id": "ziwei_iztro_silver_v1_1",
+      "tier": "silver_external",
+      "kind": "local_fixture",
+      "artifact_path": "src/internal/service/testdata/ziwei_iztro_silver.json",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "",
+      "sha256": "e7537048cb9ba140b6bda16ef097329b146e47e66e13747a05e35dc51a2a3db2",
+      "license_scope": "MIT",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 37,
+      "limitations": ["publishable_accuracy=false", "外部算法不是人工 Gold 或三合派权威"]
+    },
+    {
+      "id": "iztro_heavenly_stems_pinned",
+      "tier": "silver_external",
+      "kind": "pinned_repository_file",
+      "artifact_path": "",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "src/data/heavenlyStems.ts",
+      "sha256": "f50a96b4fda42f834b2ff7aea36533a38bd5bcee94b74d5ecc1deb22ee07279c",
+      "license_scope": "MIT",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 0,
+      "limitations": ["只作为差分来源"]
+    },
+    {
+      "id": "iztro_stars_pinned",
+      "tier": "silver_external",
+      "kind": "pinned_repository_file",
+      "artifact_path": "",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "src/data/stars.ts",
+      "sha256": "87d2fdbb4501db7b6aa054237cba4de38210e7b3dbd97e849ce1936c0f735b95",
+      "license_scope": "MIT",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 0,
+      "limitations": ["只作为差分来源"]
+    },
+    {
+      "id": "iztro_period_pinned",
+      "tier": "silver_external",
+      "kind": "pinned_repository_file",
+      "artifact_path": "",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "src/astro/FunctionalAstrolabe.ts",
+      "sha256": "1748e1c8210a19aac1da7479e50237b30b160ac694d3ecbef5bb8ba4a0822f27",
+      "license_scope": "MIT",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 0,
+      "limitations": ["只作为差分来源"]
+    },
+    {
+      "id": "iztro_transit_stars_pinned",
+      "tier": "silver_external",
+      "kind": "pinned_repository_file",
+      "artifact_path": "",
+      "repository": "https://github.com/SylarLong/iztro",
+      "commit": "2dfe3ecb41d725b2bea1084bbdfe4dd655e37b13",
+      "source_path": "src/star/horoscopeStar.ts",
+      "sha256": "0cce679f149711bee610f62cdeabbbc12697a242847f297275cc846669bf29f8",
+      "license_scope": "MIT",
+      "review_status": "cross_checked_not_gold",
+      "case_count": 0,
+      "limitations": ["只作为差分来源"]
+    },
+    {
+      "id": "ziwei_full_chart_gold_empty",
+      "tier": "gold_registry",
+      "kind": "local_fixture",
+      "artifact_path": "src/internal/service/testdata/ziwei_full_chart_gold.json",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "922afe892d3b1471485c3443675927ec592a83c8812bba36ffbf19c36956f993",
+      "license_scope": "repository_fixture",
+      "review_status": "empty_not_frozen",
+      "case_count": 0,
+      "limitations": ["version=0.1-draft", "frozen=false", "没有合格 Gold 案例"]
+    },
+    {
+      "id": "ziwei_sanhe_primary_source_gap",
+      "tier": "not_available",
+      "kind": "evidence_gap",
+      "artifact_path": "",
+      "repository": "",
+      "commit": "",
+      "source_path": "",
+      "sha256": "",
+      "license_scope": "not_available",
+      "review_status": "missing_primary_source",
+      "case_count": 0,
+      "limitations": ["library 目录当前没有紫微三合派主资料", "不得用 iztro 源码替代门派原始依据"]
+    }
+  ],
+  "unsupported_rules": [
+    {
+      "rule_id": "ziwei.sanhe.sanfang-sizheng-v1",
+      "reason": "尚无可定位主资料与专家 Gold",
+      "required_evidence": "许可明确的三合主资料、逐规则引用和至少 60 例门派差异 Gold"
+    },
+    {
+      "rule_id": "ziwei.flying-star",
+      "reason": "飞星体系不属于本 Profile 的隐式扩展",
+      "required_evidence": "独立 Profile"
+    },
+    {
+      "rule_id": "ziwei.qintian-four-transformations",
+      "reason": "钦天四化不得与三合生年四化混写",
+      "required_evidence": "独立 Profile"
+    },
+    {
+      "rule_id": "ziwei.nihaixia",
+      "reason": "倪海厦口径由 ziwei-nihaixia-v1 独立管理",
+      "required_evidence": "不得跨 Profile 继承"
+    }
+  ],
+  "disputed_conventions": [
+    {
+      "id": "leap_month_placement",
+      "question": "闰月十五/十六及整月如何安命身宫与星曜",
+      "options": ["previous_month", "next_month", "split_day_policy"],
+      "selected": "unadjudicated_for_sanhe",
+      "status": "expert_review_required",
+      "resolution_gate": "三合主资料定位与边界 Gold"
+    },
+    {
+      "id": "four_transformations_scope",
+      "question": "只取生年四化还是加入宫干、自化与飞化",
+      "options": ["birth_year_only", "school_specific_extensions"],
+      "selected": "birth_year_only_until_separate_profile",
+      "status": "fixed_profile_policy",
+      "resolution_gate": "扩展必须创建新 Profile"
+    },
+    {
+      "id": "brightness_table",
+      "question": "星曜庙旺利陷表采用哪一版本",
+      "options": ["pinned_profile_table"],
+      "selected": "unadjudicated_for_sanhe",
+      "status": "expert_review_required",
+      "resolution_gate": "逐星表冻结与专家复核"
+    },
+    {
+      "id": "auxiliary_star_boundary",
+      "question": "三合基础盘纳入哪些辅煞杂曜",
+      "options": ["core_star_allowlist", "extended_star_allowlist"],
+      "selected": "unadjudicated",
+      "status": "expert_review_required",
+      "resolution_gate": "Profile 星曜白名单与 Gold 字段定义同时冻结"
+    }
+  ],
+  "gold_gates": [
+    {
+      "gate_id": "ziwei_sanhe_full_chart_gold",
+      "minimum_cases": 240,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_gold",
+      "admission_scope": "命身宫、十二宫、五行局、十四主星、核心辅煞、生年四化与大限"
+    },
+    {
+      "gate_id": "ziwei_sanhe_profile_difference_gold",
+      "minimum_cases": 60,
+      "current_qualified_cases": 0,
+      "independent_reviewers": 2,
+      "requires_third_reviewer_for_disputes": true,
+      "frozen_test_required": true,
+      "status": "blocked_missing_gold",
+      "admission_scope": "同盘多 Profile 独立标注，差异不得合并"
+    }
+  ],
+  "mixing_policy": {
+    "fallback": "prohibited",
+    "cross_profile_rule_import": "prohibited_without_new_profile_id",
+    "silent_default": "prohibited",
+    "missing_rule_behavior": "return_unavailable",
+    "interpretation_mixing": "sanhe_flying_star_qintian_nihaixia_findings_must_not_be_merged"
+  },
+  "claim_boundary": {
+    "publishable_accuracy": false,
+    "traditional_correctness_proven": false,
+    "predictive_validity_proven": false,
+    "event_probability_allowed": false,
+    "allowed_claims": ["研究清单已定义", "iztro Silver 一致性或差异", "缺失证据和待裁决口径"],
+    "prohibited_claims": ["运行时可选择", "已经实现三合派", "iztro 等于三合 Gold", "紫微全盘准确率", "现实事件预测概率"]
+  }
+}

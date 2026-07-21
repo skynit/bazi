@@ -115,13 +115,11 @@ var RiZhuDesc map[string]string
 
 // MingGongDetail holds the complete Ming Gong (命宫) analysis result.
 type MingGongDetail struct {
-	GanZhi      string `json:"gan_zhi"`
-	Gan         string `json:"gan"`
-	Zhi         string `json:"zhi"`
-	ShenSha     string `json:"shen_sha"`
-	ShenShaDesc string `json:"shen_sha_desc"`
-	ZhiDetail   string `json:"zhi_detail"`
-	Nayin       string `json:"nayin"`
+	GanZhi  string `json:"gan_zhi"`
+	Gan     string `json:"gan"`
+	Zhi     string `json:"zhi"`
+	ShenSha string `json:"shen_sha"`
+	Nayin   string `json:"nayin"`
 }
 
 // MingGongShenShaByZhi maps branch index (0=子...11=亥) to its fixed shensha name.
@@ -130,37 +128,6 @@ var MingGongShenShaByZhi = [12]string{
 	"天贵", "天厄", "天权", "天赦",
 	"天如", "天文", "天福", "天驿",
 	"天孤", "天秘", "天艺", "天寿",
-}
-
-// MingGongShenShaDesc maps shensha name to its description.
-var MingGongShenShaDesc = map[string]string{
-	"天贵": "志气不凡，富裕清吉，近权贵，易得官方助力或社会名望。",
-	"天厄": "先难后吉，离祖劳心，早年多磨，晚年转吉。宜行善积德化解困厄。",
-	"天权": "聪明大器，中年有权柄，有领导力，能决断，适合创业或管理。",
-	"天赦": "慷慨疏财，逢凶化吉，得权时须谦逊，有逢赦之福。",
-	"天如": "事多翻覆，机谋多能，需防变动反复，以韧性与变通应对。",
-	"天文": "文章振发，聪慧好学，女命有好夫，宜文教、学术、创作之路。",
-	"天福": "荣华吉命，福寿双全，一生少灾，得享祖荫，晚景安逸。",
-	"天驿": "一生劳碌，离祖始安，奔波异乡方得成就，动中求财。",
-	"天孤": "不宜早婚，女命妨夫，六亲缘薄，多修身养性以化解孤意。",
-	"天秘": "性情刚直，时有是非，内心深沉不轻露，宜防口舌之争。",
-	"天艺": "心性平和，艺道有名，多才多艺，创作领域易成功。",
-	"天寿": "心慈明悟，克己助人，长寿健康，晚景安康，福寿绵长。",
-}
-// MingGongZhiDetail maps branch to its life-palace interpretation.
-var MingGongZhiDetail = map[string]string{
-	"子": "聪明多智，但桃花重，感情需稳定。若为天贵、天福则贵气。",
-	"丑": "稳重踏实，有福气，但性格固执。得吉星则能聚财。",
-	"寅": "活力和开拓性强，适合离家发展，易掌权。",
-	"卯": "思虑细密，人缘佳，但易感情用事，需防桃花劫。",
-	"辰": "豁达大度，有领导力，财运旺，但自刑难免内心矛盾。",
-	"巳": "热情多变，驿马星动，一生奔波，晚年转安。",
-	"午": "好胜心强，光明磊落，午为帝旺，带吉星则大贵，带凶则冲动。",
-	"未": "敦厚诚实，有艺术天分，易得贵人，但未为木库，注意库中杂气。",
-	"申": "机敏灵活，交际广，易获信息之利，但申为传送，劳碌命。",
-	"酉": "秀气多才，重信义，酉为自刑，需防自我设限。",
-	"戌": "忠诚仗义，戌为火库，内心热情，但辰戌冲动荡。",
-	"亥": "聪慧仁慈，亥为天门，得吉星则福寿绵长，水旺亦主桃花。",
 }
 
 // isValidGan checks if the given string is a valid heavenly stem.
@@ -197,12 +164,17 @@ func CalcMingGong(yearGan, monthZhi, hourZhi string) (string, error) {
 		return "", fmt.Errorf("无效年干: %s", yearGan)
 	}
 
-	// Month number: 寅=1, 卯=2, ..., 丑=12
-	monthNum := (ZhiIndex(monthZhi) - 2 + 12) % 12 + 1
-	hourIdx := ZhiIndex(hourZhi)
-
-	// Ming Gong branch index: (12 - (monthNum - 1) + hourIdx) % 12
-	mingGongZhiIdx := (12 - (monthNum - 1) + hourIdx) % 12
+	// Both month and hour use the month-branch order: 寅=1, 卯=2, ..., 丑=12.
+	// This is the numeric form of "寅为一，卯为二，辰为三，数至丑为十二；
+	// 月支之数与时支之数相加，未满十四用十四减，超过十四用二十六减".
+	monthNum := (ZhiIndex(monthZhi)-2+12)%12 + 1
+	hourNum := (ZhiIndex(hourZhi)-2+12)%12 + 1
+	sum := monthNum + hourNum
+	mingGongMonthNum := 14 - sum
+	if sum >= 14 {
+		mingGongMonthNum = 26 - sum
+	}
+	mingGongZhiIdx := (mingGongMonthNum + 1) % 12
 	mingGongZhi := Zhis[mingGongZhiIdx]
 
 	// Ming Gong stem using 五虎遁 (year-up search)
@@ -241,16 +213,6 @@ func GetMingGongShenSha(zhi string) string {
 	return MingGongShenShaByZhi[ZhiIndex(zhi)]
 }
 
-// GetMingGongShenShaDesc returns the description for a shensha name.
-func GetMingGongShenShaDesc(shenSha string) string {
-	return MingGongShenShaDesc[shenSha]
-}
-
-// GetMingGongZhiDetail returns the branch-level interpretation for a Ming Gong branch.
-func GetMingGongZhiDetail(zhi string) string {
-	return MingGongZhiDetail[zhi]
-}
-
 // BuildMingGongDetail builds the full MingGongDetail from a calculated stem-branch.
 func BuildMingGongDetail(mingGongGanZhi string) MingGongDetail {
 	runes := []rune(mingGongGanZhi)
@@ -260,18 +222,14 @@ func BuildMingGongDetail(mingGongGanZhi string) MingGongDetail {
 	gan := string(runes[0])
 	zhi := string(runes[1])
 	shenSha := GetMingGongShenSha(zhi)
-	shenShaDesc := GetMingGongShenShaDesc(shenSha)
-	zhiDetail := GetMingGongZhiDetail(zhi)
 	nayin := Nayin[GanIndex(gan)][ZhiIndex(zhi)]
 
 	return MingGongDetail{
-		GanZhi:      mingGongGanZhi,
-		Gan:         gan,
-		Zhi:         zhi,
-		ShenSha:     shenSha,
-		ShenShaDesc: shenShaDesc,
-		ZhiDetail:   zhiDetail,
-		Nayin:       nayin,
+		GanZhi:  mingGongGanZhi,
+		Gan:     gan,
+		Zhi:     zhi,
+		ShenSha: shenSha,
+		Nayin:   nayin,
 	}
 }
 

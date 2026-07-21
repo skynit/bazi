@@ -15,71 +15,58 @@ import (
 // FortuneEngine computes daily, weekly, and monthly fortunes by comparing
 // a user's BaZi chart pillars against the query date's pillars.
 type FortuneEngine struct {
-	bazi       *bazipkg.BaziService
-	auspicious *data.AuspiciousData
+	bazi *bazipkg.BaziService
 }
 
 // NewFortuneEngine creates a ready-to-use FortuneEngine.
 func NewFortuneEngine() *FortuneEngine {
 	return &FortuneEngine{
-		bazi:       &bazipkg.BaziService{},
-		auspicious: data.NewAuspiciousData(),
+		bazi: &bazipkg.BaziService{},
 	}
 }
 
 // DailyFortune is a single-day fortune result.
 type DailyFortune struct {
-	Date                string                      `json:"date"`
-	DayPillar           model.Pillar                `json:"day_pillar"`
-	Score               int                         `json:"score"`
-	ScoreBreakdown      model.FortuneScoreBreakdown `json:"score_breakdown"`
-	Analysis            *model.FortuneAnalysis      `json:"analysis"`
-	LuckyColor          string                      `json:"lucky_color"`
-	LuckyNumbers        []int                       `json:"lucky_numbers"`
-	WealthDir           string                      `json:"wealth_dir"`
-	Guide               *model.FortuneGuide         `json:"guide,omitempty"`
-	ClashZodiac         string                      `json:"clash_zodiac"`
-	AuspiciousHours     []string                    `json:"auspicious_hours"`
-	Yi                  []model.YiJiItem            `json:"yi"`
-	Ji                  []model.YiJiItem            `json:"ji"`
-	ShengKe             ShengKeAnalysis             `json:"sheng_ke"`
-	ElementImages       []model.ElementImage        `json:"element_images"`
-	TodayElements       map[string]int              `json:"today_elements"`
-	SeasonElementAdvice string                      `json:"season_element_advice"`
-	FlowImpact          string                      `json:"flow_impact"`
-	Rikuyo              *RikuyoResult               `json:"rikuyo"`
-	Layers              model.FortuneLayerSet       `json:"fortune_layers"`
-	LunarDate           string                      `json:"lunar_date"`
-	WeekDay             string                      `json:"week_day"`
-	ShengXiao           string                      `json:"sheng_xiao"`
-	JiShen              string                      `json:"ji_shen"`
-	XiongShen           string                      `json:"xiong_shen"`
-	TaiShen             string                      `json:"tai_shen"`
-	WuXing              string                      `json:"wu_xing"`
-	PengZu              string                      `json:"peng_zu"`
-	Gua                 string                      `json:"gua"`
-	JieQi               string                      `json:"jie_qi"`
+	Date           string                      `json:"date"`
+	DayPillar      model.Pillar                `json:"day_pillar"`
+	Score          int                         `json:"score"`
+	ScoreBreakdown model.FortuneScoreBreakdown `json:"score_breakdown"`
+	ClashZodiac    string                      `json:"clash_zodiac"`
+	ShengKe        ShengKeAnalysis             `json:"sheng_ke"`
+	ElementImages  []model.ElementImage        `json:"element_images"`
+	TodayElements  map[string]int              `json:"today_elements"`
+	SeasonElement  model.SeasonElementEvidence `json:"season_element"`
+	Rikuyo         *RikuyoResult               `json:"rikuyo"`
+	Layers         model.FortuneLayerSet       `json:"fortune_layers"`
+	LunarDate      string                      `json:"lunar_date"`
+	WeekDay        string                      `json:"week_day"`
+	ShengXiao      string                      `json:"sheng_xiao"`
+	JiShen         string                      `json:"ji_shen"`
+	XiongShen      string                      `json:"xiong_shen"`
+	TaiShen        string                      `json:"tai_shen"`
+	WuXing         string                      `json:"wu_xing"`
+	PengZu         string                      `json:"peng_zu"`
+	Gua            string                      `json:"gua"`
+	JieQi          string                      `json:"jie_qi"`
 }
 
 // WeeklyFortune aggregates seven daily fortunes.
 type WeeklyFortune struct {
-	WeekStart      string               `json:"week_start"`
-	DailyFortunes  []DailyFortune       `json:"daily_fortunes"`
-	OverallSummary string               `json:"overall_summary"`
-	WeeklyScore    int                  `json:"weekly_score"`
-	ElementTrend   []ElementTrendPoint  `json:"element_trend"`
-	Summary        model.FortuneSummary `json:"summary"`
+	WeekStart               string               `json:"week_start"`
+	DailyFortunes           []DailyFortune       `json:"daily_fortunes"`
+	StructuralRelationIndex int                  `json:"structural_relation_index"`
+	ElementTrend            []ElementTrendPoint  `json:"element_trend"`
+	Summary                 model.FortuneSummary `json:"summary"`
 }
 
 // MonthlyFortune aggregates a full calendar month of daily fortunes.
 type MonthlyFortune struct {
-	Year           int                  `json:"year"`
-	Month          int                  `json:"month"`
-	DailyFortunes  []DailyFortune       `json:"daily_fortunes"`
-	OverallSummary string               `json:"overall_summary"`
-	MonthlyScore   int                  `json:"monthly_score"`
-	ElementTrend   []ElementTrendPoint  `json:"element_trend"`
-	Summary        model.FortuneSummary `json:"summary"`
+	Year                    int                  `json:"year"`
+	Month                   int                  `json:"month"`
+	DailyFortunes           []DailyFortune       `json:"daily_fortunes"`
+	StructuralRelationIndex int                  `json:"structural_relation_index"`
+	ElementTrend            []ElementTrendPoint  `json:"element_trend"`
+	Summary                 model.FortuneSummary `json:"summary"`
 }
 
 // ElementTrendPoint is a single data point for element-trend charts.
@@ -138,8 +125,8 @@ var combinePairs = map[string]string{
 // 三刑：寅巳申（无恩之刑）、丑戌未（恃势之刑）、子卯（无礼之刑）
 // 注意：此处punishPairs仅做两两配对判断，完整三刑名称见rikuyo.go
 var punishPairs = map[string]bool{
-	"寅巳": true, "巳申": true, "申寅": true,
-	"丑戌": true, "戌未": true, "未丑": true,
+	"寅巳": true, "巳寅": true, "巳申": true, "申巳": true, "申寅": true, "寅申": true,
+	"丑戌": true, "戌丑": true, "戌未": true, "未戌": true, "未丑": true, "丑未": true,
 	"子卯": true, "卯子": true,
 }
 
@@ -169,28 +156,6 @@ var sanHuiGroups = [][]string{
 	{"亥", "子", "丑"},
 }
 
-// 协纪辨方书·宜事（扩展版）
-var allYiActs = []string{
-	"嫁娶", "出行", "入学", "开市", "会友", "祭祀", "求医", "纳采",
-	"裁衣", "竖柱", "祈福", "求嗣", "牧养", "宴饮", "修造", "移徙",
-	"安床", "开光", "针灸", "解除", "栽种", "纳财", "交易", "创作",
-}
-
-// 协纪辨方书·忌事（扩展版）
-var allJiActs = []string{
-	"动土", "安葬", "行丧", "开渠", "伐木", "破土", "词讼", "远行",
-	"乘船", "渡水", "造屋", "上梁", "掘井", "安门", "作灶",
-}
-
-// 十神维度宜事推荐：根据日干与流日天干的十神关系，推荐对应活动
-var tenGodYiActs = map[string][]string{
-	"same":    {"会友", "结盟", "合作"},
-	"shengWo": {"祈福", "入学", "修造"},
-	"woSheng": {"宴饮", "创作", "开光"},
-	"keWo":    {"祭祀", "求医", "解除"},
-	"woKe":    {"开市", "交易", "纳财"},
-}
-
 // CalculateDaily computes the fortune for a single date.
 func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate time.Time, birthYear int) *DailyFortune {
 	qYear := queryDate.Year()
@@ -208,14 +173,7 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 	stemRel := stemRelation(userDayStem, dayPillar.Gan)
 	branchRel := branchRelation(userDayBranch, dayPillar.Zhi)
 
-	// 获取用户喜用神（格局优先）
-	like, _, _ := getEffectiveFavor(userChart)
-
-	luckyColor := e.auspicious.GetLuckyColor(like)
-	luckyNumbers := e.auspicious.GetLuckyNumbers(like)
-	wealthDir := e.auspicious.GetWealthDirection(dayPillar.Gan)
-	clashZodiac := e.auspicious.GetClashZodiac(dayPillar.Zhi)
-	auspHours := e.auspicious.GetAuspiciousHours(dayPillar.Zhi)
+	clashZodiac := data.NewAuspiciousData().GetClashZodiac(dayPillar.Zhi)
 
 	// compute today's five-element distribution
 	ec, _ := getDayEightChar(qYear, qMonth, qDay)
@@ -227,77 +185,63 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 	}
 
 	// 日课推算
-	rikuyo := CalcRikuyo(userChart, queryDate, birthYear)
-	analysis := AnalyzeDailyFortuneWithBaseScore(userChart, dayPillar.Gan, dayPillar.Zhi, 0)
-	scoreBreakdown := buildScorePipeline(userChart, stemRel, branchRel, userDayStem, dayPillar.Gan, analysis, rikuyo)
+	rikuyo := CalcRikuyo(userChart, queryDate)
+	scoreBreakdown := buildScorePipeline(userChart, stemRel, branchRel, userDayStem, dayPillar.Gan)
 	score := scoreBreakdown.FinalScore
-	yi, ji := pickYiJi(score, stemRel)
-	guide := BuildFortuneGuide(userChart, dayPillar, score, stemRel, branchRel, luckyColor, luckyNumbers, wealthDir, auspHours, yi, ji, rikuyo, scoreBreakdown.EvidenceCompleteness)
 
 	shengKe := ShengKeAnalysis{
 		DayStemRelation:   stemRelLabel(stemRel, userDayStem, dayPillar.Gan),
 		DayBranchRelation: branchRelLabel(branchRel),
-		Summary:           shengKeSummary(stemRel, branchRel, score),
+		Summary:           shengKeSummary(stemRel, branchRel),
 	}
 
 	// 黄历数据（通过 tyme4go 获取）
 	almanac := getAlmanacData(qYear, qMonth, qDay)
 
 	return &DailyFortune{
-		Date:                queryDate.Format("2006-01-02"),
-		DayPillar:           dayPillar,
-		Score:               score,
-		ScoreBreakdown:      scoreBreakdown,
-		Analysis:            analysis,
-		LuckyColor:          luckyColor,
-		LuckyNumbers:        luckyNumbers,
-		WealthDir:           wealthDir,
-		Guide:               guide,
-		ClashZodiac:         clashZodiac,
-		AuspiciousHours:     auspHours,
-		Yi:                  yi,
-		Ji:                  ji,
-		ShengKe:             shengKe,
-		ElementImages:       fixedElementImages(),
-		TodayElements:       filtered,
-		SeasonElementAdvice: getSeasonElementAdvice(userChart.DayPillar.Gan, ec.GetMonth().GetEarthBranch().GetName()),
-		FlowImpact:          analyzeDayFlowImpact(userChart, dayPillar),
-		Rikuyo:              rikuyo,
-		Layers:              BuildFortuneLayers(userChart, queryDate, birthYear),
-		LunarDate:           almanac.LunarDate,
-		WeekDay:             almanac.WeekDay,
-		ShengXiao:           almanac.ShengXiao,
-		JiShen:              almanac.JiShen,
-		XiongShen:           almanac.XiongShen,
-		TaiShen:             almanac.TaiShen,
-		WuXing:              almanac.WuXing,
-		PengZu:              almanac.PengZu,
-		Gua:                 almanac.Gua,
-		JieQi:               almanac.JieQi,
+		Date:           queryDate.Format("2006-01-02"),
+		DayPillar:      dayPillar,
+		Score:          score,
+		ScoreBreakdown: scoreBreakdown,
+		ClashZodiac:    clashZodiac,
+		ShengKe:        shengKe,
+		ElementImages:  fixedElementImages(),
+		TodayElements:  filtered,
+		SeasonElement:  observeSeasonElement(userChart.DayPillar.Gan, ec.GetMonth().GetEarthBranch().GetName()),
+		Rikuyo:         rikuyo,
+		Layers:         BuildFortuneLayers(userChart, queryDate, birthYear),
+		LunarDate:      almanac.LunarDate,
+		WeekDay:        almanac.WeekDay,
+		ShengXiao:      almanac.ShengXiao,
+		JiShen:         almanac.JiShen,
+		XiongShen:      almanac.XiongShen,
+		TaiShen:        almanac.TaiShen,
+		WuXing:         almanac.WuXing,
+		PengZu:         almanac.PengZu,
+		Gua:            almanac.Gua,
+		JieQi:          almanac.JieQi,
 	}
 }
 
-func getSeasonElementAdvice(dayGan string, monthZhi string) string {
-	dayElem := stemToElement[dayGan]
-	season := monthZhiToSeason(monthZhi)
-	key := dayElem
-	entries, ok := data.WuxingSeasonKnowledge[key]
-	if !ok {
-		return ""
+func observeSeasonElement(dayGan, monthZhi string) model.SeasonElementEvidence {
+	evidence := model.SeasonElementEvidence{
+		RuleID:               "fortune.season-element.month-branch-v1",
+		ReferenceStem:        dayGan,
+		ReferenceElement:     stemToElement[dayGan],
+		QueryMonthBranch:     monthZhi,
+		Basis:                "reference_day_stem_element_and_query_month_branch",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-	for _, e := range entries {
-		if e.Season == season {
-			advice := e.Favor
-			if e.Taboo != "" {
-				advice += "。忌" + e.Taboo
-			}
-			if e.Judgment != "" {
-				advice += "。断语：" + e.Judgment
-			}
-			return advice
-		}
+	if evidence.ReferenceElement == "" || data.ZhiIndex(monthZhi) < 0 {
+		return evidence
 	}
-	return ""
+	evidence.Season = monthZhiToSeason(monthZhi)
+	if evidence.Season == "" {
+		return evidence
+	}
+	evidence.Status = "observed"
+	return evidence
 }
 
 // CalculateWeekly computes fortunes for 7 consecutive days starting from weekStart.
@@ -318,12 +262,11 @@ func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart
 	avg := totalScore / 7
 
 	return &WeeklyFortune{
-		WeekStart:      weekStart.Format("2006-01-02"),
-		DailyFortunes:  fortunes,
-		OverallSummary: periodSummary(avg, "本周"),
-		WeeklyScore:    avg,
-		ElementTrend:   trends,
-		Summary:        computeSummary(fortunes),
+		WeekStart:               weekStart.Format("2006-01-02"),
+		DailyFortunes:           fortunes,
+		StructuralRelationIndex: avg,
+		ElementTrend:            trends,
+		Summary:                 computeSummary(fortunes),
 	}
 }
 
@@ -345,13 +288,12 @@ func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, mo
 	avg := totalScore / days
 
 	return &MonthlyFortune{
-		Year:           year,
-		Month:          month,
-		DailyFortunes:  fortunes,
-		OverallSummary: periodSummary(avg, "本月"),
-		MonthlyScore:   avg,
-		ElementTrend:   trends,
-		Summary:        computeSummary(fortunes),
+		Year:                    year,
+		Month:                   month,
+		DailyFortunes:           fortunes,
+		StructuralRelationIndex: avg,
+		ElementTrend:            trends,
+		Summary:                 computeSummary(fortunes),
 	}
 }
 
@@ -400,6 +342,12 @@ func stemRelation(userStem, queryStem string) string {
 }
 
 func branchRelation(userBranch, queryBranch string) string {
+	if data.ZhiIndex(userBranch) < 0 || data.ZhiIndex(queryBranch) < 0 {
+		return "unknown"
+	}
+	if userBranch == queryBranch {
+		return "same"
+	}
 	if clashPairs[userBranch] == queryBranch {
 		return "clash"
 	}
@@ -453,6 +401,9 @@ func partialSanHeRelation(a, b string) string {
 
 // isInSameGroup checks if two branches belong to the same group.
 func isInSameGroup(groups [][]string, a, b string) bool {
+	if a == b {
+		return false
+	}
 	for _, g := range groups {
 		hasA, hasB := false, false
 		for _, z := range g {
@@ -498,6 +449,8 @@ func stemRelLabel(rel, userStem, queryStem string) string {
 
 func branchRelLabel(rel string) string {
 	switch rel {
+	case "same":
+		return "同支"
 	case "clash":
 		return "六冲"
 	case "harm":
@@ -523,7 +476,7 @@ func branchRelLabel(rel string) string {
 	}
 }
 
-func shengKeSummary(stemRel, branchRel string, score int) string {
+func shengKeSummary(stemRel, branchRel string) string {
 	var parts []string
 	if stemRel != "unknown" {
 		parts = append(parts, fmt.Sprintf("日干关系: %s", stemRelLabel(stemRel, "", "")))
@@ -537,196 +490,7 @@ func shengKeSummary(stemRel, branchRel string, score int) string {
 		base = "干支平和"
 	}
 
-	switch {
-	case score >= 80:
-		return base + "。运势大吉，诸事顺遂。"
-	case score >= 60:
-		return base + "。运势良好，宜积极进取。"
-	case score >= 40:
-		return base + "。运势平平，宜守不宜攻。"
-	default:
-		return base + "。运势欠佳，凡事小心为宜。"
-	}
-}
-
-func periodSummary(avgScore int, period string) string {
-	switch {
-	case avgScore >= 70:
-		return fmt.Sprintf("%s整体运势良好，适合积极行动，把握机会。", period)
-	case avgScore >= 50:
-		return fmt.Sprintf("%s整体运势平稳，按部就班即可，不必过于强求。", period)
-	default:
-		return fmt.Sprintf("%s整体运势偏低，建议多注意细节，避免冲动决策。", period)
-	}
-}
-
-func pickYiJi(score int, stemRel string) (yi, ji []model.YiJiItem) {
-	// 根据评分动态决定宜忌数量：分高多宜少忌，分低少宜多忌
-	var yiCount, jiCount int
-	switch {
-	case score >= 80:
-		yiCount, jiCount = 5, 2
-	case score >= 60:
-		yiCount, jiCount = 4, 3
-	case score >= 40:
-		yiCount, jiCount = 3, 4
-	default:
-		yiCount, jiCount = 2, 5
-	}
-
-	// 宜：优先插入十神维度推荐（最多2项），再用协纪辨方书列表补齐
-	yi = make([]model.YiJiItem, 0, yiCount)
-	added := make(map[string]bool)
-	if godActs, ok := tenGodYiActs[stemRel]; ok {
-		for i := 0; i < len(godActs) && len(yi) < yiCount && len(yi) < 2; i++ {
-			act := godActs[i]
-			yi = append(yi, model.YiJiItem{Activity: act, Reason: yiReason(act, score, stemRel)})
-			added[act] = true
-		}
-	}
-	for _, act := range allYiActs {
-		if len(yi) >= yiCount {
-			break
-		}
-		if !added[act] {
-			yi = append(yi, model.YiJiItem{Activity: act, Reason: yiReason(act, score, stemRel)})
-		}
-	}
-
-	// 忌：从协纪辨方书列表依次取
-	ji = make([]model.YiJiItem, 0, jiCount)
-	for i := 0; i < jiCount && i < len(allJiActs); i++ {
-		ji = append(ji, model.YiJiItem{Activity: allJiActs[i], Reason: jiReason(allJiActs[i], score, stemRel)})
-	}
-	return
-}
-
-func yiReason(activity string, score int, stemRel string) string {
-	reasons := map[string]string{
-		// 协纪辨方书通用宜事
-		"出行": "天时地利，出行顺利",
-		"会友": "人际关系和谐，适合社交",
-		"嫁娶": "阴阳调和，适合婚嫁",
-		"祭祀": "吉星高照，适合祭祀祈福",
-		"入学": "文昌显耀，学业有成",
-		"开市": "财星显现，开市大吉",
-		"求医": "贵人相助，求医有门",
-		"纳采": "和合之气，纳采吉",
-		"裁衣": "气运通达，裁衣顺遂",
-		"竖柱": "根基稳固，竖柱大吉",
-		"祈福": "神明庇佑，祈福灵验",
-		"求嗣": "子星旺盛，求嗣有望",
-		"牧养": "生机蓬勃，牧养得利",
-		"宴饮": "和气生财，宴饮尽欢",
-		"修造": "气运亨通，修造顺利",
-		"移徙": "方位吉利，移徙安康",
-		"安床": "阴阳调和，安床吉祥",
-		"开光": "灵光显现，开光有应",
-		"针灸": "气血调和，针灸见效",
-		"解除": "煞气消散，解除有效",
-		"栽种": "木气旺盛，栽种易活",
-		"纳财": "财源广进，纳财有道",
-		"交易": "诚信互利，交易顺遂",
-		"创作": "灵感涌现，创作有成",
-		// 十神维度
-		"结盟": "比肩助力，结盟互利",
-		"合作": "同心协力，合作有成",
-	}
-	r, ok := reasons[activity]
-	if !ok {
-		r = "今日宜" + activity
-	}
-
-	// 根据十神关系补充说明
-	var godNote string
-	switch stemRel {
-	case "shengWo":
-		godNote = "印星生扶"
-	case "woSheng":
-		godNote = "食伤泄秀"
-	case "keWo":
-		godNote = "官杀当值"
-	case "woKe":
-		godNote = "财星照临"
-	case "same":
-		godNote = "比和助力"
-	}
-
-	// 根据评分调整语气
-	var mood string
-	switch {
-	case score >= 80:
-		mood = "，大吉"
-	case score >= 60:
-		mood = "，吉利"
-	case score >= 40:
-		mood = "，尚可"
-	default:
-		mood = "，宜慎行"
-	}
-
-	if godNote != "" {
-		return r + "（" + godNote + mood + "）"
-	}
-	return r + mood
-}
-
-func jiReason(activity string, score int, stemRel string) string {
-	reasons := map[string]string{
-		// 协纪辨方书通用忌事
-		"动土": "冲煞较重，不宜动土",
-		"安葬": "阴气较重，不宜安葬",
-		"行丧": "凶星当值，不宜行丧",
-		"开渠": "水气不利，不宜开渠",
-		"伐木": "木气受损，不宜伐木",
-		"破土": "地气不稳，不宜破土",
-		"词讼": "口舌是非，不宜词讼",
-		"远行": "路途多阻，不宜远行",
-		"乘船": "水厄之象，不宜乘船",
-		"渡水": "水势不顺，不宜渡水",
-		"造屋": "根基不稳，不宜造屋",
-		"上梁": "气运不济，不宜上梁",
-		"掘井": "水脉受损，不宜掘井",
-		"安门": "方位不利，不宜安门",
-		"作灶": "火气不顺，不宜作灶",
-	}
-	r, ok := reasons[activity]
-	if !ok {
-		r = "今日忌" + activity
-	}
-
-	// 根据十神关系补充说明
-	var godNote string
-	switch stemRel {
-	case "shengWo":
-		godNote = "虽有印星生扶"
-	case "woSheng":
-		godNote = "食伤泄气"
-	case "keWo":
-		godNote = "官杀压身"
-	case "woKe":
-		godNote = "财星耗气"
-	case "same":
-		godNote = "比劫争财"
-	}
-
-	// 根据评分调整严重程度
-	var severity string
-	switch {
-	case score >= 80:
-		severity = "，小忌可解"
-	case score >= 60:
-		severity = "，宜慎行"
-	case score >= 40:
-		severity = "，切忌强为"
-	default:
-		severity = "，万不可为"
-	}
-
-	if godNote != "" {
-		return r + "（" + godNote + severity + "）"
-	}
-	return r + severity
+	return base + "。仅记录干支结构，现实结果未裁决。"
 }
 
 func (e *FortuneEngine) elementTrend(date time.Time, score int) ElementTrendPoint {
@@ -768,9 +532,13 @@ func fixedElementImages() []model.ElementImage {
 func (e *FortuneEngine) fallbackDaily(queryDate time.Time) *DailyFortune {
 	breakdown := model.FortuneScoreBreakdown{
 		PipelineVersion:      FortuneScorePipelineVersion,
+		ScoreKind:            "structural_relation_index",
+		EvidenceBasis:        "empirical",
+		ValidationStatus:     "not_validated",
+		InterpretationStatus: "not_adjudicated",
+		IsOutcomeProbability: false,
 		BaseScore:            50,
 		RelationScore:        50,
-		DetailScore:          50,
 		FinalScore:           50,
 		EvidenceCompleteness: 20,
 		SupportingEvidence:   []model.ScoreEvidence{},
@@ -782,93 +550,12 @@ func (e *FortuneEngine) fallbackDaily(queryDate time.Time) *DailyFortune {
 		Score:          50,
 		ScoreBreakdown: breakdown,
 		ElementImages:  fixedElementImages(),
-		Guide: &model.FortuneGuide{
-			PrecisionLevel:       "fallback",
-			EvidenceCompleteness: 20,
-			Analysis:             "未能取得有效日柱，开运指南暂按平稳守成为准。",
-			Strategy:             "今日先保持作息和节奏稳定，重大事项等日课恢复后再定。",
-		},
+		SeasonElement:  observeSeasonElement("", ""),
 		ShengKe: ShengKeAnalysis{
 			Summary: "无法计算日柱，使用默认运势。",
 		},
-		FlowImpact: "无法计算",
 	}
 }
-
-// analyzeDayFlowImpact 分析流日对日主的流通影响
-// 经典依据：滴天髓"地支藏干亦当论"——增加藏干分析
-func analyzeDayFlowImpact(userChart *bazipkg.BaziResult, dayPillar model.Pillar) string {
-	dayElem := data.GanElement[dayPillar.Gan]
-	dayZhiElem := data.ZhiElement[dayPillar.Zhi]
-	userDayElem := data.GanElement[userChart.DayPillar.Gan]
-
-	var parts []string
-
-	// 天干关系
-	if dayElem == bazipkg.ShengWo(userDayElem) {
-		parts = append(parts, fmt.Sprintf("天干%s（印星）生扶日主，得长辈或贵人助力", dayPillar.Gan))
-	} else if dayElem == bazipkg.KeWo(userDayElem) {
-		parts = append(parts, fmt.Sprintf("天干%s（官杀）克制日主，有压力或管制之象", dayPillar.Gan))
-	} else if dayElem == bazipkg.WoKe(userDayElem) {
-		parts = append(parts, fmt.Sprintf("天干%s（财星）为日主所克，有求财之机", dayPillar.Gan))
-	} else if dayElem == bazipkg.WoSheng(userDayElem) {
-		parts = append(parts, fmt.Sprintf("天干%s（食伤）泄日主之气，利创意表达但耗精力", dayPillar.Gan))
-	} else if dayElem == userDayElem {
-		parts = append(parts, fmt.Sprintf("天干%s（比劫）与日主同类，竞争或合作之象", dayPillar.Gan))
-	}
-
-	// 地支关系
-	if dayZhiElem == bazipkg.ShengWo(userDayElem) {
-		parts = append(parts, fmt.Sprintf("地支%s（印星）根基生扶，底层有贵人暗助", dayPillar.Zhi))
-	} else if dayZhiElem == bazipkg.KeWo(userDayElem) {
-		parts = append(parts, fmt.Sprintf("地支%s（官杀）暗中克身，需注意潜在压力", dayPillar.Zhi))
-	} else if dayZhiElem == bazipkg.WoKe(userDayElem) {
-		parts = append(parts, fmt.Sprintf("地支%s（财星）暗藏财机，有暗财或投资机会", dayPillar.Zhi))
-	} else if dayZhiElem == bazipkg.WoSheng(userDayElem) {
-		parts = append(parts, fmt.Sprintf("地支%s（食伤）才华暗泄，灵感丰富但精力分散", dayPillar.Zhi))
-	} else if dayZhiElem == userDayElem {
-		parts = append(parts, fmt.Sprintf("地支%s（比劫）同类帮身，根基稳固有依靠", dayPillar.Zhi))
-	}
-
-	// 藏干分析（经典：滴天髓"地支藏干亦当论"）
-	zhiIdx := data.ZhiIndex(dayPillar.Zhi)
-	if zhiIdx >= 0 {
-		for _, s := range hiddenStemMap[zhiIdx] {
-			if s == "" {
-				continue
-			}
-			sElem := data.GanElement[s]
-			if sElem == bazipkg.ShengWo(userDayElem) {
-				parts = append(parts, fmt.Sprintf("藏干%s（印星）暗中助力，有隐性贵人", s))
-			} else if sElem == bazipkg.KeWo(userDayElem) {
-				parts = append(parts, fmt.Sprintf("藏干%s（官杀）暗中施压，需防暗中阻力", s))
-			} else if sElem == bazipkg.WoKe(userDayElem) {
-				parts = append(parts, fmt.Sprintf("藏干%s（财星）暗藏财机，有意外之财", s))
-			} else if sElem == bazipkg.WoSheng(userDayElem) {
-				parts = append(parts, fmt.Sprintf("藏干%s（食伤）暗中泄秀，潜藏才华可发掘", s))
-			} else if sElem == userDayElem {
-				parts = append(parts, fmt.Sprintf("藏干%s（比劫）暗中帮身，有隐形助力", s))
-			}
-		}
-	}
-
-	// 天干五合检测（经典：《三命通会》"天干五合论"）
-	userDayGan := userChart.DayPillar.Gan
-	if isGanHe(userDayGan, dayPillar.Gan) {
-		huaElem := ganHeHuaElem(userDayGan, dayPillar.Gan)
-		if huaElem != "" {
-			parts = append(parts, fmt.Sprintf("日主%s与流日%s天干五合化%s，气机交融，运势有特殊变化", userDayGan, dayPillar.Gan, huaElem))
-		}
-	}
-
-	if len(parts) == 0 {
-		return "今日流通平稳，无明显增减，宜按部就班"
-	}
-	return strings.Join(parts, "；")
-}
-
-// 五行生克辅助函数已统一至 bazi/wuxing.go（ShengWo/WoSheng/WoKe/KeWo），
-// 本文件通过 bazipkg.ShengWo 等导出函数调用，不再重复定义。
 
 func toDateStart(t time.Time) time.Time {
 	y, m, d := t.Date()

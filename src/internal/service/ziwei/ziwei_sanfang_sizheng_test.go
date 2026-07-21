@@ -74,7 +74,7 @@ func TestComputeSanfangSizheng_AllPalaces(t *testing.T) {
 
 		t.Run(exp.PalaceName, func(t *testing.T) {
 			// Test pure index computation
-			sf := ComputeSanfangSizheng(palaceIdx)
+			sf := computeSanfangSizheng(palaceIdx)
 			// sf[0] = opposite, sf[1] = trine1, sf[2] = trine2
 
 			oppositeName := ZIWEI_PALACE_NAMES[sf[0]]
@@ -148,7 +148,7 @@ func TestSanfangSizheng_Formula(t *testing.T) {
 			wantTrine1 := (palaceIdx + 4) % 12
 			wantTrine2 := (palaceIdx + 8) % 12
 
-			sf := ComputeSanfangSizheng(palaceIdx)
+			sf := computeSanfangSizheng(palaceIdx)
 
 			if sf[0] != wantOpposite {
 				t.Errorf("对宫索引 = %d, 公式期望 %d (i+6 mod12)", sf[0], wantOpposite)
@@ -204,8 +204,8 @@ func TestSanfangSizheng_ChartIntegration(t *testing.T) {
 func TestGetPalaceSanfang(t *testing.T) {
 	for i := 0; i < 12; i++ {
 		t.Run(ZIWEI_PALACE_NAMES[i], func(t *testing.T) {
-			result := GetPalaceSanfang(i)
-			expected := ComputeSanfangSizheng(i)
+			result := getPalaceSanfang(i)
+			expected := computeSanfangSizheng(i)
 
 			if result.Opposite != ZIWEI_PALACE_NAMES[expected[0]] {
 				t.Errorf("Opposite = %s, 期望 %s", result.Opposite, ZIWEI_PALACE_NAMES[expected[0]])
@@ -225,10 +225,10 @@ func TestGetPalaceSanfang(t *testing.T) {
 // Trine relationship is also symmetric (if A trines B, then B trines A).
 func TestSanfangSizheng_Symmetry(t *testing.T) {
 	for i := 0; i < 12; i++ {
-		sf := ComputeSanfangSizheng(i)
+		sf := computeSanfangSizheng(i)
 
 		// Opposite symmetry
-		oppositeSF := ComputeSanfangSizheng(sf[0])
+		oppositeSF := computeSanfangSizheng(sf[0])
 		if oppositeSF[0] != i {
 			t.Errorf("%s的对宫是%s, 但%s的对宫是%s",
 				ZIWEI_PALACE_NAMES[i], ZIWEI_PALACE_NAMES[sf[0]],
@@ -237,7 +237,7 @@ func TestSanfangSizheng_Symmetry(t *testing.T) {
 
 		// Trine symmetry: if j is in i's trine, then i is in j's trine
 		for _, triIdx := range []int{sf[1], sf[2]} {
-			triSF := ComputeSanfangSizheng(triIdx)
+			triSF := computeSanfangSizheng(triIdx)
 			if triSF[1] != i && triSF[2] != i {
 				t.Errorf("%s的三合是%s, 但%s的三合不含%s",
 					ZIWEI_PALACE_NAMES[i], ZIWEI_PALACE_NAMES[triIdx],

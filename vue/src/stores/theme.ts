@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { wuxingThemes, type WuxingKey } from '../composables/useWuxingThemes'
 
-const STORAGE_KEY = 'bazi_yongshen'
+const STORAGE_KEY = 'bazi_element_theme'
 const VALID_KEYS: WuxingKey[] = ['mu', 'huo', 'tu', 'jin', 'shui']
 
 function readStoredKey(): WuxingKey {
@@ -52,36 +52,36 @@ export function applyWuxingToRoot(key: WuxingKey) {
 }
 
 export const useThemeStore = defineStore('theme', () => {
-  const yongshen = ref<WuxingKey>(readStoredKey())
+  const elementTheme = ref<WuxingKey>(readStoredKey())
 
-  function setYongshen(key: WuxingKey) {
-    if (yongshen.value === key) return
-    yongshen.value = key
+  function setElementTheme(key: WuxingKey) {
+    if (elementTheme.value === key) return
+    elementTheme.value = key
     localStorage.setItem(STORAGE_KEY, key)
     applyWuxingToRoot(key)
   }
 
   /** Re-apply current theme — call after dark/light toggle so --primary picks up the new mode. */
   function refresh() {
-    applyWuxingToRoot(yongshen.value)
+    applyWuxingToRoot(elementTheme.value)
   }
 
   // Initial sync (the inline head script handles FOUC; this is the SPA-side source of truth)
-  applyWuxingToRoot(yongshen.value)
+  applyWuxingToRoot(elementTheme.value)
 
   // Cross-tab sync
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY && e.newValue && (VALID_KEYS as string[]).includes(e.newValue)) {
-      yongshen.value = e.newValue as WuxingKey
-      applyWuxingToRoot(yongshen.value)
+      elementTheme.value = e.newValue as WuxingKey
+      applyWuxingToRoot(elementTheme.value)
     }
   })
 
   // Re-apply --primary when dark/light class flips
   const observer = new MutationObserver(() => {
-    applyWuxingToRoot(yongshen.value)
+    applyWuxingToRoot(elementTheme.value)
   })
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
-  return { yongshen, setYongshen, refresh }
+  return { elementTheme, setElementTheme, refresh }
 })

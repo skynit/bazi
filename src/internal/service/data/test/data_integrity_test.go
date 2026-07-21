@@ -145,17 +145,26 @@ func TestCalcMingGong(t *testing.T) {
 	cases := []struct {
 		yearGan, monthZhi, hourZhi, expected string
 	}{
-		{"壬", "寅", "午", "癸"}, // 需要至少返回干支
+		// Exact cases pinned from 6tail/lunar-javascript v1.7.7 EightChar tests.
+		{"乙", "子", "辰", "己丑"},
+		{"戊", "午", "寅", "辛酉"},
+		{"乙", "子", "巳", "戊子"},
+		{"癸", "丑", "巳", "癸亥"},
+		{"己", "卯", "辰", "甲戌"},
+		{"己", "卯", "丑", "丁丑"},
+		{"丙", "寅", "辰", "己亥"},
+		{"壬", "亥", "巳", "癸丑"},
 	}
 	for _, c := range cases {
-		got, err := CalcMingGong(c.yearGan, c.monthZhi, c.hourZhi)
-		if err != nil {
-			t.Errorf("CalcMingGong(%s,%s,%s) 错误: %v", c.yearGan, c.monthZhi, c.hourZhi, err)
-			continue
-		}
-		if got == "" {
-			t.Errorf("CalcMingGong 返回空, 期望非空")
-		}
+		t.Run(c.yearGan+c.monthZhi+c.hourZhi, func(t *testing.T) {
+			got, err := CalcMingGong(c.yearGan, c.monthZhi, c.hourZhi)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != c.expected {
+				t.Fatalf("CalcMingGong(%s,%s,%s) = %s, want %s", c.yearGan, c.monthZhi, c.hourZhi, got, c.expected)
+			}
+		})
 	}
 }
 

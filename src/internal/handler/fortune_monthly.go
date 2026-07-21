@@ -50,43 +50,35 @@ func (h *MonthlyFortuneHandler) HandleMonthly(c *gin.Context) {
 		return
 	}
 
-	gender := normalizeGender(chart.Gender)
-
 	baziSvc := &bazi.BaziService{}
-	baziResult, err := baziSvc.Calculate(
-		chart.BirthYear,
-		chart.BirthMonth,
-		chart.BirthDay,
-		chart.BirthHour,
-		chart.BirthMin,
-		gender,
-	)
+	resolved, err := resolveChartBazi(baziSvc, chart)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to calculate birth chart")
 		return
 	}
+	baziResult := resolved.Result
 
-	monthlyFortune := h.Engine.CalculateMonthly(baziResult, req.Year, req.Month, chart.BirthYear)
-	resp := mapMonthlyFortuneToResponse(monthlyFortune)
+	monthlyFortune := h.Engine.CalculateMonthly(baziResult, req.Year, req.Month, resolved.BirthYear)
+	resp := mapMonthlyFortuneToResponse(monthlyFortune, resolved)
 
 	respondJSON(c, http.StatusOK, resp)
 }
 
 // mapMonthlyFortuneToResponse converts a fortune.MonthlyFortune
 // to the API DTO model.MonthlyFortuneResponse.
-func mapMonthlyFortuneToResponse(mf *fortune.MonthlyFortune) model.MonthlyFortuneResponse {
+func mapMonthlyFortuneToResponse(mf *fortune.MonthlyFortune, resolved *resolvedChartBazi) model.MonthlyFortuneResponse {
 	dailyFortunes := make([]model.FortuneResponse, len(mf.DailyFortunes))
 	for i, df := range mf.DailyFortunes {
-		dailyFortunes[i] = dailyFortuneToResponse(df)
+		dailyFortunes[i] = dailyFortuneToResponse(df, resolved)
 	}
 
 	trendJSON, _ := json.Marshal(mf.ElementTrend)
 
 	return model.MonthlyFortuneResponse{
-		DailyFortunes: dailyFortunes,
-		MonthlyScore:  mf.MonthlyScore,
-		ElementTrend:  string(trendJSON),
-		Summary:       mf.Summary,
+		DailyFortunes:           dailyFortunes,
+		StructuralRelationIndex: mf.StructuralRelationIndex,
+		ElementTrend:            string(trendJSON),
+		Summary:                 mf.Summary,
 	}
 }
 

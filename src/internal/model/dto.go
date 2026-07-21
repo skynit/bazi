@@ -39,20 +39,25 @@ type RegisterResponse struct {
 // --- Chart DTOs ---
 
 type ChartRequest struct {
-	BirthYear        int      `json:"birth_year"`
-	BirthMonth       int      `json:"birth_month"`
-	BirthDay         int      `json:"birth_day"`
-	BirthHour        int      `json:"birth_hour"`
-	BirthMin         int      `json:"birth_min"`
-	CalendarType     string   `json:"calendar_type"`
-	LunarLeapMonth   bool     `json:"lunar_leap_month"`
-	Gender           string   `json:"gender"`
-	Name             string   `json:"name"`
-	BirthPlace       string   `json:"birth_place"`
-	Timezone         string   `json:"timezone"`
-	Longitude        *float64 `json:"longitude"`
-	UseTrueSolarTime bool     `json:"use_true_solar_time"`
-	TimeUncertain    bool     `json:"time_uncertain"`
+	BirthYear             int      `json:"birth_year"`
+	BirthMonth            int      `json:"birth_month"`
+	BirthDay              int      `json:"birth_day"`
+	BirthHour             int      `json:"birth_hour"`
+	BirthMin              int      `json:"birth_min"`
+	BirthSec              int      `json:"birth_sec"`
+	CalendarType          string   `json:"calendar_type"`
+	LunarLeapMonth        bool     `json:"lunar_leap_month"`
+	Gender                string   `json:"gender"`
+	ZiHourPolicy          string   `json:"zi_hour_policy"`
+	Name                  string   `json:"name"`
+	BirthPlace            string   `json:"birth_place"`
+	Timezone              string   `json:"timezone"`
+	BirthUTCOffsetSeconds *int     `json:"birth_utc_offset_seconds"`
+	Longitude             *float64 `json:"longitude"`
+	UseTrueSolarTime      bool     `json:"use_true_solar_time"`
+	TimeUncertain         bool     `json:"time_uncertain"`
+	UncertaintySeconds    int      `json:"uncertainty_seconds"`
+	CandidateID           string   `json:"candidate_id"`
 }
 
 type Pillar struct {
@@ -60,25 +65,22 @@ type Pillar struct {
 	Zhi string `json:"zhi"`
 }
 
-// NaYinInfo is the JSON-serializable na-yin detail.
+// NaYinInfo is factual evidence for a sixty-cycle na-yin mapping.
 type NaYinInfo struct {
-	Name        string   `json:"name"`
-	Element     string   `json:"element"`
-	ImageDesc   string   `json:"image_desc"`
-	Personality string   `json:"personality"`
-	EnergyStage string   `json:"energy_stage"`
-	ModernExt   string   `json:"modern_ext"`
-	Judgments   []string `json:"judgments"`
+	RuleID  string `json:"rule_id"`
+	GanZhi  string `json:"gan_zhi"`
+	Name    string `json:"name"`
+	Element string `json:"element"`
+	Basis   string `json:"basis"`
+	Status  string `json:"status"`
 }
 
 type MingGongDTO struct {
-	GanZhi      string `json:"gan_zhi"`
-	Gan         string `json:"gan"`
-	Zhi         string `json:"zhi"`
-	ShenSha     string `json:"shen_sha"`
-	ShenShaDesc string `json:"shen_sha_desc"`
-	ZhiDetail   string `json:"zhi_detail"`
-	Nayin       string `json:"nayin"`
+	GanZhi  string `json:"gan_zhi"`
+	Gan     string `json:"gan"`
+	Zhi     string `json:"zhi"`
+	ShenSha string `json:"shen_sha"`
+	Nayin   string `json:"nayin"`
 }
 
 type ChartResponse struct {
@@ -89,7 +91,6 @@ type ChartResponse struct {
 	FiveElements map[string]int       `json:"five_elements"`
 	NaYin        map[string]NaYinInfo `json:"na_yin"`
 	MingGong     MingGongDTO          `json:"ming_gong"`
-	RiZhuDesc    string               `json:"ri_zhu_desc"`
 }
 
 // --- Fortune DTOs ---
@@ -105,50 +106,19 @@ type ElementImage struct {
 	Description string `json:"description"`
 }
 
-type FortuneGuideItem struct {
-	Label     string `json:"label"`
-	Value     string `json:"value"`
-	Element   string `json:"element,omitempty"`
-	Reason    string `json:"reason"`
-	Category  string `json:"category,omitempty"`
-	Priority  int    `json:"priority,omitempty"`
-	Intensity string `json:"intensity,omitempty"`
-	Timing    string `json:"timing,omitempty"`
-	Method    string `json:"method,omitempty"`
-	Source    string `json:"source,omitempty"`
-	Impact    string `json:"impact,omitempty"`
-}
-
-type FortuneGuide struct {
-	PrecisionLevel       string             `json:"precision_level"`
-	EvidenceCompleteness int                `json:"evidence_completeness"`
-	PrimaryElement       string             `json:"primary_element"`
-	SecondaryElement     string             `json:"secondary_element"`
-	AvoidElement         string             `json:"avoid_element"`
-	LuckyColors          []FortuneGuideItem `json:"lucky_colors"`
-	LuckyNumbers         []FortuneGuideItem `json:"lucky_numbers"`
-	FaceDirection        FortuneGuideItem   `json:"face_direction"`
-	WealthDirection      FortuneGuideItem   `json:"wealth_direction"`
-	AvoidDirection       FortuneGuideItem   `json:"avoid_direction"`
-	RecommendedActions   []FortuneGuideItem `json:"recommended_actions"`
-	Cautions             []FortuneGuideItem `json:"cautions"`
-	BestHours            []FortuneGuideItem `json:"best_hours"`
-	Analysis             string             `json:"analysis"`
-	Strategy             string             `json:"strategy"`
-}
-
 type FortuneResponse struct {
-	EngineVersion string   `json:"engine_version"`
-	RuleVersion   string   `json:"rule_version,omitempty"`
-	School        string   `json:"school,omitempty"`
-	RuleMeta      RuleMeta `json:"rule_meta,omitempty"`
+	EngineVersion        string   `json:"engine_version"`
+	BaziEngineVersion    string   `json:"bazi_engine_version"`
+	BaziResolutionSource string   `json:"bazi_resolution_source"`
+	RuleVersion          string   `json:"rule_version,omitempty"`
+	School               string   `json:"school,omitempty"`
+	RuleMeta             RuleMeta `json:"rule_meta,omitempty"`
 	// almanac day fields
 	SolarDate            string                `json:"solar_date"`
 	LunarDate            string                `json:"lunar_date"`
 	DayGanZhi            string                `json:"day_gan_zhi"`
 	WeekDay              string                `json:"week_day"`
 	ShengXiao            string                `json:"sheng_xiao"`
-	YiJi                 string                `json:"yi_ji"`
 	JiShen               string                `json:"ji_shen"`
 	XiongShen            string                `json:"xiong_shen"`
 	ChongSha             string                `json:"chong_sha"`
@@ -158,52 +128,27 @@ type FortuneResponse struct {
 	Gua                  string                `json:"gua"`
 	JieQi                string                `json:"jie_qi"`
 	ElementImages        []ElementImage        `json:"element_images"`
-	BlessingAssets       *BlessingAssetSet     `json:"blessing_assets,omitempty"`
 	Score                int                   `json:"score"`
 	ScoreBreakdown       FortuneScoreBreakdown `json:"score_breakdown"`
 	EvidenceCompleteness int                   `json:"evidence_completeness"`
 	SupportingEvidence   []ScoreEvidence       `json:"supporting_evidence"`
 	CounterEvidence      []ScoreEvidence       `json:"counter_evidence"`
-	LuckyColor           string                `json:"lucky_color"`
-	LuckyNumber          int                   `json:"lucky_number"`
-	WealthDir            string                `json:"wealth_direction"`
 	ClashZodiac          string                `json:"clash_zodiac"`
-	AuspiciousHours      []string              `json:"auspicious_hours"`
-	Guide                *FortuneGuide         `json:"guide,omitempty"`
-	Analysis             *FortuneAnalysis      `json:"analysis"`
-	YiItems              []string              `json:"yi"`
-	JiItems              []string              `json:"ji"`
 	TodayElements        map[string]int        `json:"today_elements"`
-	TiaoHou              string                `json:"tiao_hou"`
-	SeasonElementAdvice  string                `json:"season_element_advice"`
-	FlowImpact           string                `json:"flow_impact"`
+	SeasonElement        SeasonElementEvidence `json:"season_element"`
 	ShengKeAnalysis      ShengKeAnalysis       `json:"sheng_ke_analysis"`
 
 	// 日课推算结果
-	TodayTenGod      string              `json:"today_ten_god"`
-	TenGodFavorable  bool                `json:"ten_god_favorable"`
-	TenGodDesc       string              `json:"ten_god_desc"`
-	TwelveStage      string              `json:"twelve_stage"`
-	StageFavorable   bool                `json:"stage_favorable"`
-	StageDesc        string              `json:"stage_desc"`
-	StageFlexible    string              `json:"stage_flexible"`
-	HiddenStems      []HiddenStemGod     `json:"hidden_stems"`
-	StemRelations    []StemRelation      `json:"stem_relations"`
-	BranchRelations  []BranchRelation    `json:"branch_relations"`
-	ActivatedShenSha []ShenShaActivation `json:"activated_shen_sha"`
-	DaYunInfluence   DaYunInfluence      `json:"dayun_influence"`
-	LiuNianInfluence LiuNianInfluence    `json:"liunian_influence"`
-	AdvanceRetreat   AdvanceRetreat      `json:"advance_retreat"`
-	YongShenImpact   YongShenImpact      `json:"yongshen_impact"`
-	FortuneLayers    FortuneLayerSet     `json:"fortune_layers"`
-	OverallVerdict   string              `json:"overall_verdict"`
-	FavorScore       int                 `json:"favor_score"`
-
-	// 格局信息
-	PatternName        string   `json:"pattern_name"`
-	PatternType        string   `json:"pattern_type"`
-	PatternFavorable   []string `json:"pattern_favorable"`
-	PatternUnfavorable []string `json:"pattern_unfavorable"`
+	TenGod           TenGodEvidence              `json:"ten_god"`
+	TwelveStage      TwelveStageEvidence         `json:"twelve_stage"`
+	JianChu          TraditionalCalendarEvidence `json:"jian_chu"`
+	HuangDao         TraditionalCalendarEvidence `json:"huang_dao"`
+	HiddenStems      []HiddenStemGod             `json:"hidden_stems"`
+	StemRelations    []StemRelation              `json:"stem_relations"`
+	BranchRelations  []BranchRelation            `json:"branch_relations"`
+	ActivatedShenSha []ShenShaActivation         `json:"activated_shen_sha"`
+	SeasonalState    SeasonalStateEvidence       `json:"seasonal_state"`
+	FortuneLayers    FortuneLayerSet             `json:"fortune_layers"`
 }
 
 type WeeklyFortuneRequest struct {
@@ -212,10 +157,10 @@ type WeeklyFortuneRequest struct {
 }
 
 type WeeklyFortuneResponse struct {
-	DailyFortunes []FortuneResponse `json:"daily_fortunes"`
-	WeeklyScore   int               `json:"weekly_score"`
-	ElementTrend  string            `json:"element_trend"`
-	Summary       FortuneSummary    `json:"summary"`
+	DailyFortunes           []FortuneResponse `json:"daily_fortunes"`
+	StructuralRelationIndex int               `json:"structural_relation_index"`
+	ElementTrend            string            `json:"element_trend"`
+	Summary                 FortuneSummary    `json:"summary"`
 }
 
 type MonthlyFortuneRequest struct {
@@ -225,29 +170,24 @@ type MonthlyFortuneRequest struct {
 }
 
 type MonthlyFortuneResponse struct {
-	DailyFortunes []FortuneResponse `json:"daily_fortunes"`
-	MonthlyScore  int               `json:"monthly_score"`
-	ElementTrend  string            `json:"element_trend"`
-	Summary       FortuneSummary    `json:"summary"`
+	DailyFortunes           []FortuneResponse `json:"daily_fortunes"`
+	StructuralRelationIndex int               `json:"structural_relation_index"`
+	ElementTrend            string            `json:"element_trend"`
+	Summary                 FortuneSummary    `json:"summary"`
 }
 
-// FortuneSummary aggregates statistics across a multi-day window (week / month).
-// Scores are on the 0-100 scale produced by FortuneEngine.
+// FortuneSummary aggregates descriptive structural-index statistics across a
+// multi-day window. These fields do not express outcome quality or probability.
 type FortuneSummary struct {
-	BestDay             string             `json:"best_day"`
-	WorstDay            string             `json:"worst_day"`
-	BestScore           int                `json:"best_score"`
-	WorstScore          int                `json:"worst_score"`
-	PeakDays            []string           `json:"peak_days"`
-	LowDays             []string           `json:"low_days"`
-	ElementDistribution map[string]float64 `json:"element_distribution"`
-	DominantElement     string             `json:"dominant_element"`
-	DominantTenGod      string             `json:"dominant_ten_god"`
-	GoodStreak          int                `json:"good_streak"`
-	BadStreak           int                `json:"bad_streak"`
-	AverageScore        float64            `json:"average_score"`
-	Volatility          float64            `json:"volatility"`
-	KeyAdvice           string             `json:"key_advice"`
+	HighestIndexDay        string             `json:"highest_index_day"`
+	LowestIndexDay         string             `json:"lowest_index_day"`
+	HighestIndex           int                `json:"highest_index"`
+	LowestIndex            int                `json:"lowest_index"`
+	ElementDistribution    map[string]float64 `json:"element_distribution"`
+	DominantElement        string             `json:"dominant_element"`
+	DominantTenGod         string             `json:"dominant_ten_god"`
+	AverageIndex           float64            `json:"average_index"`
+	IndexStandardDeviation float64            `json:"index_standard_deviation"`
 }
 
 // --- AI Fortune Stub ---
@@ -271,12 +211,31 @@ type InterpretationSection struct {
 }
 
 type InterpretationCitation struct {
-	ID      int     `json:"id"`
-	Book    string  `json:"book"`
-	Chapter string  `json:"chapter"`
-	Path    string  `json:"path"`
-	Quote   string  `json:"quote"`
-	Score   float64 `json:"score"`
+	ID                 int     `json:"id"`
+	Book               string  `json:"book"`
+	Author             string  `json:"author"`
+	Edition            string  `json:"edition"`
+	Volume             string  `json:"volume"`
+	Chapter            string  `json:"chapter"`
+	Page               string  `json:"page"`
+	Locator            string  `json:"locator"`
+	Path               string  `json:"path"`
+	ArtifactPath       string  `json:"artifact_path"`
+	ArtifactSHA256     string  `json:"artifact_sha256"`
+	DocumentSHA256     string  `json:"document_sha256"`
+	Quote              string  `json:"quote"`
+	QuoteSHA256        string  `json:"quote_sha256"`
+	SourceTier         string  `json:"source_tier"`
+	VerificationStatus string  `json:"verification_status"`
+	ArtifactKind       string  `json:"artifact_kind"`
+	ProvenanceStatus   string  `json:"provenance_status"`
+	IndependenceStatus string  `json:"independence_status"`
+	CoverageStatus     string  `json:"coverage_status"`
+	CatalogSchema      string  `json:"catalog_schema"`
+	CatalogVersion     string  `json:"catalog_version"`
+	CatalogSHA256      string  `json:"catalog_sha256"`
+	ClaimEligible      bool    `json:"claim_eligible"`
+	Score              float64 `json:"score"`
 }
 
 type BaziInterpretationResponse struct {
@@ -298,12 +257,8 @@ type FeedbackRequest struct {
 	Rating          string   `json:"rating"`
 	Tags            []string `json:"tags"`
 	Comment         string   `json:"comment"`
-	EventYear       int      `json:"event_year"`
-	EventCategory   string   `json:"event_category"`
 	ConsentResearch bool     `json:"consent_research"`
 	ConsentTraining bool     `json:"consent_training"`
-	EngineVersion   string   `json:"engine_version"`
-	RuleVersion     string   `json:"rule_version"`
 }
 
 type FeedbackResponse struct {
@@ -312,14 +267,20 @@ type FeedbackResponse struct {
 }
 
 type FeedbackSummaryItem struct {
-	Rating string `json:"rating"`
-	Count  int64  `json:"count"`
+	TargetType    string `json:"target_type"`
+	TargetID      string `json:"target_id"`
+	Rating        string `json:"rating"`
+	EngineVersion string `json:"engine_version"`
+	RuleVersion   string `json:"rule_version"`
+	Count         int64  `json:"count"`
 }
 
 type FeedbackSummaryResponse struct {
-	ChartID uint                  `json:"chart_id"`
-	Total   int64                 `json:"total"`
-	Items   []FeedbackSummaryItem `json:"items"`
+	ChartID          uint                  `json:"chart_id"`
+	Total            int64                 `json:"total"`
+	ResearchEligible int64                 `json:"research_eligible"`
+	Scope            string                `json:"scope"`
+	Items            []FeedbackSummaryItem `json:"items"`
 }
 
 // --- Generic DTOs ---
@@ -331,25 +292,30 @@ type ErrorResponse struct {
 }
 
 type ChartSummaryResponse struct {
-	ID                uint     `json:"id"`
-	Name              string   `json:"name"`
-	Gender            string   `json:"gender"`
-	BirthYear         int      `json:"birth_year"`
-	BirthMonth        int      `json:"birth_month"`
-	BirthDay          int      `json:"birth_day"`
-	BirthHour         int      `json:"birth_hour"`
-	BirthMin          int      `json:"birth_min"`
-	CalendarType      string   `json:"calendar_type"`
-	LunarLeapMonth    bool     `json:"lunar_leap_month"`
-	BirthPlace        string   `json:"birth_place,omitempty"`
-	Timezone          string   `json:"timezone,omitempty"`
-	Longitude         *float64 `json:"longitude,omitempty"`
-	UseTrueSolarTime  bool     `json:"use_true_solar_time"`
-	TimeUncertain     bool     `json:"time_uncertain"`
-	EngineVersion     string   `json:"engine_version,omitempty"`
-	StoredRuleVersion string   `json:"stored_rule_version,omitempty"`
-	CreatedAt         string   `json:"created_at"`
-	UpdatedAt         string   `json:"updated_at"`
+	ID                    uint     `json:"id"`
+	Name                  string   `json:"name"`
+	Gender                string   `json:"gender"`
+	ZiHourPolicy          string   `json:"zi_hour_policy"`
+	BirthYear             int      `json:"birth_year"`
+	BirthMonth            int      `json:"birth_month"`
+	BirthDay              int      `json:"birth_day"`
+	BirthHour             int      `json:"birth_hour"`
+	BirthMin              int      `json:"birth_min"`
+	BirthSec              int      `json:"birth_sec"`
+	CalendarType          string   `json:"calendar_type"`
+	LunarLeapMonth        bool     `json:"lunar_leap_month"`
+	BirthPlace            string   `json:"birth_place,omitempty"`
+	Timezone              string   `json:"timezone,omitempty"`
+	BirthUTCOffsetSeconds *int     `json:"birth_utc_offset_seconds,omitempty"`
+	Longitude             *float64 `json:"longitude,omitempty"`
+	UseTrueSolarTime      bool     `json:"use_true_solar_time"`
+	TimeUncertain         bool     `json:"time_uncertain"`
+	UncertaintySeconds    int      `json:"uncertainty_seconds"`
+	SelectedCandidateID   string   `json:"selected_candidate_id,omitempty"`
+	EngineVersion         string   `json:"engine_version,omitempty"`
+	StoredRuleVersion     string   `json:"stored_rule_version,omitempty"`
+	CreatedAt             string   `json:"created_at"`
+	UpdatedAt             string   `json:"updated_at"`
 }
 
 type ChartDetailResponse struct {
@@ -370,35 +336,20 @@ type ChartDetailResponse struct {
 	HiddenStems          json.RawMessage `json:"hidden_stems"`
 	DaYunStart           json.RawMessage `json:"da_yun_start"`
 	DaYun                json.RawMessage `json:"da_yun"`
-	ClashHarmony         json.RawMessage `json:"clash_harmony"`
 	GanZhiAnalysis       json.RawMessage `json:"gan_zhi_analysis"`
 	PatternAnalysis      json.RawMessage `json:"pattern_analysis"`
 	MingGong             json.RawMessage `json:"ming_gong"`
-	RiZhuDesc            string          `json:"ri_zhu_desc,omitempty"`
 	PillarDetails        json.RawMessage `json:"pillar_details"`
-	TiaoHou              string          `json:"tiao_hou,omitempty"`
 	Tiaohou              json.RawMessage `json:"tiaohou"`
 	GlobalShenSha        json.RawMessage `json:"global_shen_sha"`
 	GlobalShenShaDetails json.RawMessage `json:"global_shen_sha_details"`
-	JinBuHuan            string          `json:"jin_bu_huan,omitempty"`
 	DayShenSha           json.RawMessage `json:"day_shen_sha"`
 	DayShenShaDetails    json.RawMessage `json:"day_shen_sha_details"`
-	SeasonText           string          `json:"season_text,omitempty"`
-	SeasonTextMonth      string          `json:"season_text_month,omitempty"`
-	RiZhuPoem            string          `json:"ri_zhu_poem,omitempty"`
-	RiZhuSource          string          `json:"ri_zhu_source,omitempty"`
-	RiZhuComment         string          `json:"ri_zhu_comment,omitempty"`
-	RiZhuHourDetail      string          `json:"ri_zhu_hour_detail,omitempty"`
+	MonthSeason          json.RawMessage `json:"month_season"`
 	ShenShaByPillar      json.RawMessage `json:"shen_sha_by_pillar"`
-	ShenShaSummary       json.RawMessage `json:"shen_sha_summary"`
 	TenGodProportion     json.RawMessage `json:"ten_god_proportion"`
 	TenGodAnalysis       json.RawMessage `json:"ten_god_analysis"`
-	WuxingSeasonNote     string          `json:"wuxing_season_note,omitempty"`
-	WuXingFlow           json.RawMessage `json:"wuxing_flow"`
-	TongGuan             json.RawMessage `json:"tong_guan"`
 	MissingElements      json.RawMessage `json:"missing_elements"`
-	FlowPatternDesc      string          `json:"flow_pattern_desc,omitempty"`
-	DaYunFlow            json.RawMessage `json:"dayun_flow"`
 	ZiWeiResult          json.RawMessage `json:"ziwei_result"`
 	ZiWeiComputed        bool            `json:"ziwei_computed"`
 }

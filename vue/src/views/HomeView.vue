@@ -26,7 +26,7 @@ const currentElementLabel = computed(() => ({
   tu: '土',
   jin: '金',
   shui: '水',
-})[themeStore.yongshen] || themeStore.yongshen)
+})[themeStore.elementTheme] || themeStore.elementTheme)
 
 let shaderMount: ShaderMount | null = null
 let themeObserver: MutationObserver | null = null
@@ -55,7 +55,7 @@ onMounted(async () => {
     shaderMount = new ShaderMount(
       shaderHost.value,
       grainGradientFragmentShader,
-      createShaderUniforms('grainGradient', themeStore.yongshen, undefined, themeMode.value),
+      createShaderUniforms('grainGradient', themeStore.elementTheme, undefined, themeMode.value),
       { alpha: true, antialias: true },
       2,
       0,
@@ -66,12 +66,12 @@ onMounted(async () => {
 
   themeObserver = new MutationObserver(() => {
     themeMode.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    shaderMount?.setUniforms(createShaderUniforms('grainGradient', themeStore.yongshen, undefined, themeMode.value))
+    shaderMount?.setUniforms(createShaderUniforms('grainGradient', themeStore.elementTheme, undefined, themeMode.value))
   })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
 
-watch(() => themeStore.yongshen, (key) => {
+watch(() => themeStore.elementTheme, (key) => {
   shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
 })
 
@@ -116,7 +116,7 @@ function continueChart() {
           </div>
 
           <p class="hero-meta" aria-label="当前主题">
-            当前用神：<strong>{{ currentElementLabel }}</strong>
+            当前五行主题：<strong>{{ currentElementLabel }}</strong>
           </p>
         </div>
       </section>

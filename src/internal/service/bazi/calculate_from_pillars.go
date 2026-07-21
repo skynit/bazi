@@ -9,11 +9,22 @@ import (
 	"github.com/6tail/tyme4go/tyme"
 )
 
-// CalculateFromPillars 直接从四柱干支计算八字命局
-// yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi 形如 "甲子"
-// 适用于测试场景：经典命例的干支已知，但公历日期不一定准确
-// 不计算大运（依赖公历起运年龄），重点是分析层（身强/格局/调候/神煞/十神）的计算
+// CalculateFromPillars analyzes a factual four-pillar chart whose calendar date
+// is unknown. Besides validating every sixty-cycle pair, it rejects impossible
+// year/month and day/hour stem combinations. Zi hour accepts both explicit
+// late-Zi schools because pillars alone cannot distinguish 23:xx from 00:xx.
 func (s *BaziService) CalculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, gender string) (*BaziResult, error) {
+	return s.calculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, gender, true)
+}
+
+// CalculateSyntheticPillars is restricted to isolated rule fixtures that need
+// arbitrary, individually valid sixty-cycle pillars. It must not be used for a
+// factual birth chart because the four pillars may not coexist in real time.
+func (s *BaziService) CalculateSyntheticPillars(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, gender string) (*BaziResult, error) {
+	return s.calculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, gender, false)
+}
+
+func (s *BaziService) calculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, hourGanZhi, gender string, validateLinkage bool) (*BaziResult, error) {
 	gender = strings.ToUpper(strings.TrimSpace(gender))
 	if gender != "MALE" && gender != "FEMALE" {
 		return nil, fmt.Errorf("invalid gender %q: must be MALE or FEMALE", gender)
@@ -53,6 +64,11 @@ func (s *BaziService) CalculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, h
 	if err != nil {
 		return nil, fmt.Errorf("invalid hour pillar %q: %w", hourGanZhi, err)
 	}
+	if validateLinkage {
+		if err := validatePillarLinkage(*yearSC, *monthSC, *daySC, *hourSC); err != nil {
+			return nil, err
+		}
+	}
 	ec := tyme.EightChar{}.FromSixtyCycle(*yearSC, *monthSC, *daySC, *hourSC)
 
 	result := &BaziResult{
@@ -64,17 +80,14 @@ func (s *BaziService) CalculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, h
 		DayPillar:   dayP,
 		HourPillar:  hourP,
 	}
+	result.MonthSeason = observeMonthSeason(result.MonthPillar.Zhi)
 
 	// 命宫
-	mingGongGanZhi, err := data.CalcMingGong(result.YearPillar.Gan, result.MonthPillar.Zhi, result.HourPillar.Zhi)
+	mingGongGanZhi, err := calcMingGongGanZhi(result.YearPillar.Gan, result.MonthPillar.Zhi, result.HourPillar.Zhi)
 	if err != nil {
 		return nil, fmt.Errorf("计算命宫失败: %w", err)
 	}
-	result.MingGong = data.BuildMingGongDetail(mingGongGanZhi)
-
-	// 日柱描述
-	riZhuKey := result.DayPillar.Gan + "日" + result.DayPillar.Zhi
-	result.RiZhuDesc = data.SiZiSummaries[riZhuKey]
+	result.MingGong = buildMingGongDetail(mingGongGanZhi)
 
 	// 五行/身强
 	result.FiveElements = calcFiveElements(&ec)
@@ -88,58 +101,41 @@ func (s *BaziService) CalculateFromPillars(yearGanZhi, monthGanZhi, dayGanZhi, h
 
 	// 大运：因无公历日期无法起运，给默认值
 	result.DaYunInfo = DaYunInfo{
-		StartAge:  0,
-		Direction: "未计算（需要准确公历日期）",
-		Pillars:   []model.Pillar{},
+		StartAge:           0,
+		Direction:          "未计算（需要准确公历日期）",
+		CalculationProfile: "unavailable-without-birth-date",
+		TimeBasis:          "仅有四柱，缺少可用于节令时差计算的准确公历出生时刻。",
+		Pillars:            []model.Pillar{},
 	}
 
-	// 冲合刑
-	result.ClashHarmony = calcClashHarmony(&ec)
-
 	// 干支分析 / 格局
-	result.GanZhiAnalysis = CalcGanZhiAnalysis(
+	result.GanZhiAnalysis, err = CalcGanZhiAnalysis(
 		result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("计算干支关系失败: %w", err)
+	}
 	result.PatternAnalysis = AnalyzePatternExtended(
 		[]model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar},
 		result.MonthPillar.Zhi,
-		result.FiveElements,
-		result.BodyStrength,
 	)
 
 	// 柱详情 / 神煞 / 调候文本
-	dayElem := data.GanElement[result.DayPillar.Gan]
 	result.TenGodProportion = calcTenGodProportion(&ec, result.DayPillar.Gan)
-	pillarTenGods := calcPillarTenGods(&ec, result.DayPillar.Gan)
-	analyzer := &TenGodAnalyzer{}
-	result.TenGodAnalysis = analyzer.AnalyzeTenGod(result.TenGodProportion, dayElem, result.BodyStrength, pillarTenGods, gender)
+	result.TenGodAnalysis = ObserveTenGodDistribution(result.TenGodProportion)
 
-	// 从月支反推公历月份，供季节/调候文本查询（无具体日期，仅取对应月份）
-	birthMonth := zhiToMonth(result.MonthPillar.Zhi)
-	s.enrichPillarDetails(result, birthMonth, gender)
-
-	enrichRiZhuText(result)
-
-	// 三命通会/穷通宝鉴等知识层
-	enrichWuxingSeason(result, birthMonth)
-	enrichJiaZiDetail(result)
-	enrichHealthNote(result)
+	if err := s.enrichPillarDetails(result, gender); err != nil {
+		return nil, fmt.Errorf("计算柱位神煞失败: %w", err)
+	}
 
 	// 调候用神
-	tiaohouResult, _ := AnalyzeTiaohou(result.DayPillar.Gan, result.MonthPillar.Zhi)
+	tiaohouResult, _ := AnalyzeTiaohouForPillars(
+		result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar,
+	)
 	result.Tiaohou = tiaohouResult
 
-	// 五行流通
-	pillars := []model.Pillar{result.YearPillar, result.MonthPillar, result.DayPillar, result.HourPillar}
-	result.WuXingFlow = data.AnalyzeWuXingFlowV2(result.FiveElements, dayElem)
-	result.TongGuan = data.FindTongGuan(pillars, dayElem, result.MonthPillar.Zhi)
+	// 原始五行分布
 	result.MissingElements = data.FindMissingElements(result.FiveElements)
-	result.FlowPatternDesc = data.BuildFlowPatternDesc(result.WuXingFlow, result.TongGuan, result.MissingElements)
-
-	// 大运流通（无大运则跳过）
-	if len(result.DaYunInfo.Pillars) > 0 {
-		result.DaYunFlow = data.CalcDaYunFlow(result.DayPillar.Gan, result.FiveElements, result.DaYunInfo.Pillars, result.DaYunInfo.StartAge)
-	}
 
 	return result, nil
 }
@@ -154,7 +150,7 @@ func parsePillarString(s, name string) (model.Pillar, error) {
 	}
 	gan := string(runes[0])
 	zhi := string(runes[1])
-	if _, ok := data.GanElement[gan]; !ok {
+	if GanInfoOf(gan).elem == "" {
 		return model.Pillar{}, fmt.Errorf("%s pillar has invalid Gan character: %q", name, gan)
 	}
 	if data.ZhiIndex(zhi) < 0 {
@@ -163,12 +159,43 @@ func parsePillarString(s, name string) (model.Pillar, error) {
 	return model.Pillar{Gan: gan, Zhi: zhi}, nil
 }
 
-// zhiToMonth 由月支反推公历月份（寅=1月, 卯=2月, ..., 丑=12月）。
-// 仅用于从四柱已知但公历日期不确定的场景（如经典命例核对）。
-func zhiToMonth(zhi string) int {
-	idx := data.ZhiIndex(zhi)
-	if idx < 0 {
-		return 0
+// validatePillarLinkage rejects individually valid sixty-cycle pillars that
+// cannot belong to one chart. Month stems follow the year stem (五虎遁), and
+// hour stems follow the day stem (五鼠遁).
+func validatePillarLinkage(year, month, day, hour tyme.SixtyCycle) error {
+	monthOffset := month.GetEarthBranch().Next(-2).GetIndex()
+	expectedMonthStem := tyme.HeavenStem{}.FromIndex(
+		(year.GetHeavenStem().GetIndex()+1)*2 + monthOffset,
+	)
+	if month.GetHeavenStem().GetName() != expectedMonthStem.GetName() {
+		return fmt.Errorf(
+			"month pillar %q is inconsistent with year pillar %q: expected %s%s by five-tiger month derivation",
+			month.GetName(), year.GetName(), expectedMonthStem.GetName(), month.GetEarthBranch().GetName(),
+		)
 	}
-	return ((idx - 2 + 12) % 12) + 1
+
+	hourBranchIndex := hour.GetEarthBranch().GetIndex()
+	expectedHourStem := fiveRatHourStem(day.GetHeavenStem(), hourBranchIndex)
+	hourStem := hour.GetHeavenStem().GetName()
+	if hourStem == expectedHourStem.GetName() {
+		return nil
+	}
+	if hourBranchIndex == 0 {
+		lateZiHourStem := fiveRatHourStem(day.Next(1).GetHeavenStem(), hourBranchIndex)
+		if hourStem == lateZiHourStem.GetName() {
+			return nil
+		}
+		return fmt.Errorf(
+			"hour pillar %q is inconsistent with day pillar %q: expected %s子 for same-day/early-Zi or %s子 for late-Zi-same-day",
+			hour.GetName(), day.GetName(), expectedHourStem.GetName(), lateZiHourStem.GetName(),
+		)
+	}
+	return fmt.Errorf(
+		"hour pillar %q is inconsistent with day pillar %q: expected %s%s by five-rat hour derivation",
+		hour.GetName(), day.GetName(), expectedHourStem.GetName(), hour.GetEarthBranch().GetName(),
+	)
+}
+
+func fiveRatHourStem(dayStem tyme.HeavenStem, hourBranchIndex int) tyme.HeavenStem {
+	return tyme.HeavenStem{}.FromIndex(dayStem.GetIndex()%5*2 + hourBranchIndex)
 }

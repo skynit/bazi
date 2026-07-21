@@ -198,44 +198,60 @@ func TestGetChartByID(t *testing.T) {
 		"tiaohou",
 		"day_shen_sha",
 		"shen_sha_by_pillar",
-		"shen_sha_summary",
 		"ten_god_analysis",
-		"flow_pattern_desc",
-		"dayun_flow",
 	} {
 		if value, ok := raw[key]; !ok || value == nil {
 			t.Errorf("chart detail DTO missing display field %q", key)
 		}
 	}
-	if desc, ok := raw["flow_pattern_desc"].(string); !ok || desc == "" {
-		t.Error("chart detail DTO should include non-empty flow_pattern_desc for fortune tab")
+	for _, key := range []string{"flow_pattern_desc", "dayun_flow", "clash_harmony"} {
+		if _, ok := raw[key]; ok {
+			t.Errorf("chart detail DTO leaked removed result field %q", key)
+		}
 	}
 }
 
 func TestGetChartPrefersStoredBaziSnapshot(t *testing.T) {
-	snapshot := bazi.BaziResult{
-		RuleVersion: "snapshot-rule",
-		School:      "snapshot-school",
-		YearPillar:  model.Pillar{Gan: "甲", Zhi: "子"},
-		MonthPillar: model.Pillar{Gan: "乙", Zhi: "丑"},
-		DayPillar:   model.Pillar{Gan: "丙", Zhi: "寅"},
-		HourPillar:  model.Pillar{Gan: "丁", Zhi: "卯"},
+	normalized, err := bazi.NormalizeBirthInput(bazi.BirthInput{
+		Year: 1990, Month: 6, Day: 15, Hour: 8, Minute: 30,
+		CalendarType: model.CalendarSolar, Gender: model.GenderMale, Timezone: bazi.DefaultBirthTimezone,
+	})
+	if err != nil {
+		t.Fatalf("failed to normalize fixture snapshot: %v", err)
 	}
+	snapshot, err := (&bazi.BaziService{}).CalculateNormalizedBirth(normalized)
+	if err != nil {
+		t.Fatalf("failed to calculate fixture snapshot: %v", err)
+	}
+	snapshot.RuleVersion = "snapshot-rule"
+	snapshot.School = "snapshot-school"
+	snapshot.RuleMeta.RuleVersion = snapshot.RuleVersion
+	snapshot.RuleMeta.School = snapshot.School
+	snapshot.BodyStrength.RuleVersion = snapshot.RuleVersion
+	snapshot.BodyStrength.School = snapshot.School
+
 	snapshotJSON, err := json.Marshal(snapshot)
 	if err != nil {
 		t.Fatalf("failed to marshal snapshot: %v", err)
 	}
+	normalizedJSON, err := json.Marshal(normalized)
+	if err != nil {
+		t.Fatalf("failed to marshal normalized birth: %v", err)
+	}
 
 	charts := newMockChartListStore()
 	charts.AddChart(&model.BirthChart{
-		UserID:       1,
-		Name:         "Snapshot Chart",
-		Gender:       "MALE",
-		BirthYear:    2000,
-		BirthMonth:   99,
-		BirthDay:     99,
-		BirthHour:    99,
-		BaziSnapshot: datatypes.JSON(snapshotJSON),
+		UserID:          1,
+		Name:            "Snapshot Chart",
+		Gender:          "MALE",
+		BirthYear:       2000,
+		BirthMonth:      99,
+		BirthDay:        99,
+		BirthHour:       99,
+		EngineVersion:   "snapshot-engine",
+		RuleVersion:     snapshot.RuleVersion,
+		NormalizedBirth: datatypes.JSON(normalizedJSON),
+		BaziSnapshot:    datatypes.JSON(snapshotJSON),
 	})
 	router := setupHistoryRouter(charts, &mockFortuneHistoryStore{})
 

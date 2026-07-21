@@ -65,7 +65,10 @@ onMounted(() => {
     themeVersion.value += 1
     isDark.value = document.documentElement.classList.contains('dark')
   })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-wuxing'] })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-wuxing'],
+  })
 })
 
 onUnmounted(() => {
@@ -85,7 +88,7 @@ const option = computed(() => {
 
   const series: any[] = [
     {
-      name: '运势评分',
+      name: '结构关系指数',
       type: 'line',
       yAxisIndex: 0,
       data: scores,
@@ -95,16 +98,18 @@ const option = computed(() => {
       symbolSize: 6,
       smooth: true,
     },
-    ...(props.showElements ? elementSeries.value.map((el) => ({
-      name: el.name,
-      type: 'line',
-      yAxisIndex: 1,
-      data: props.dailyData.map((d) => (d as unknown as Record<string, number>)[el.key]),
-      lineStyle: { color: el.color, width: 1.5, opacity: 0.75 },
-      itemStyle: { color: el.color },
-      symbol: 'none',
-      smooth: true,
-    })) : []),
+    ...(props.showElements
+      ? elementSeries.value.map((el) => ({
+          name: el.name,
+          type: 'line',
+          yAxisIndex: 1,
+          data: props.dailyData.map((d) => (d as unknown as Record<string, number>)[el.key]),
+          lineStyle: { color: el.color, width: 1.5, opacity: 0.75 },
+          itemStyle: { color: el.color },
+          symbol: 'none',
+          smooth: true,
+        }))
+      : []),
   ]
 
   return {
@@ -147,7 +152,7 @@ const option = computed(() => {
     yAxis: [
       {
         type: 'value',
-        name: '评分',
+        name: '指数',
         min: 0,
         max: 100,
         interval: 20,
@@ -246,7 +251,7 @@ const option = computed(() => {
         </svg>
       </div>
       <p class="empty-title">暂无数据</p>
-      <p class="empty-sub">运势数据将显示在这里</p>
+      <p class="empty-sub">结构趋势数据将显示在这里</p>
     </div>
   </div>
 </template>

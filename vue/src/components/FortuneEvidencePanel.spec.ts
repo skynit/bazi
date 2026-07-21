@@ -12,6 +12,10 @@ const supporting: ScoreEvidence[] = [
     impact: 18,
     description: '流日五行生扶日主。',
     source: '《三命通会》十神生克规则',
+    evidence_basis: 'empirical',
+    validation_status: 'not_validated',
+    interpretation_status: 'not_adjudicated',
+    is_outcome_conclusion: false,
   },
 ]
 const counter: ScoreEvidence[] = [
@@ -21,16 +25,24 @@ const counter: ScoreEvidence[] = [
     category: '地支关系',
     label: '地支六冲',
     impact: -30,
-    description: '变动和对立信号较强。',
+    description: '流日支与日支命中六冲结构。',
     source: '《协纪辨方书》地支关系规则',
+    evidence_basis: 'empirical',
+    validation_status: 'not_validated',
+    interpretation_status: 'not_adjudicated',
+    is_outcome_conclusion: false,
   },
 ]
 const breakdown: FortuneScoreBreakdown = {
   pipeline_version: 'fortune-score-pipeline-test',
+  score_kind: 'structural_relation_index',
+  evidence_basis: 'empirical',
+  validation_status: 'not_validated',
+  interpretation_status: 'not_adjudicated',
+  is_outcome_probability: false,
   base_score: 50,
   relation_score: 38,
-  detail_score: 65,
-  final_score: 57,
+  final_score: 38,
   evidence_completeness: 90,
   supporting_evidence: supporting,
   counter_evidence: counter,
@@ -42,10 +54,10 @@ describe('FortuneEvidencePanel', () => {
       props: { level: 'advanced', completeness: 90, supporting, counter, breakdown },
     })
 
-    expect(wrapper.text()).toContain('支持证据')
-    expect(wrapper.text()).toContain('反向证据')
+    expect(wrapper.text()).toContain('正向权重')
+    expect(wrapper.text()).toContain('负向权重')
     expect(wrapper.text()).toContain('流日五行生扶日主')
-    expect(wrapper.text()).toContain('变动和对立信号较强')
+    expect(wrapper.text()).toContain('流日支与日支命中六冲结构')
     expect(wrapper.text()).toContain('证据完整度 90%')
     expect(wrapper.text()).not.toContain('置信度')
   })
@@ -74,6 +86,8 @@ describe('FortuneEvidencePanel', () => {
     expect(professional.text()).toContain('relation.stem.shengWo')
     expect(professional.text()).toContain('fortune-engine-test')
     expect(professional.text()).toContain('bazi-rules-test')
-    expect(professional.text()).toContain('最终分 57')
+    expect(professional.text()).toContain('结构指数 38')
+    expect(professional.text()).toContain('not_validated')
+    expect(professional.text()).toContain('not_adjudicated')
   })
 })

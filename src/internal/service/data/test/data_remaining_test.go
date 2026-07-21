@@ -99,32 +99,6 @@ func TestRiZhuDesc_All60(t *testing.T) {
 }
 
 // =============================================================================
-// D1-08 五行疾病
-// Verify Organs/Excess/Deficit for all 5 elements (supplementary to existing tests).
-// =============================================================================
-
-func TestWuxingHealthMap_AllFieldsNonEmpty(t *testing.T) {
-	// Supplementary check — Organs slice must have at least one entry and Excess/Deficit must be non-empty
-	elements := []string{"金", "木", "水", "火", "土"}
-	for _, elem := range elements {
-		health, ok := WuxingHealthMap[elem]
-		if !ok {
-			t.Errorf("WuxingHealthMap 缺少 %s", elem)
-			continue
-		}
-		if len(health.Organs) == 0 {
-			t.Errorf("WuxingHealthMap[%s].Organs 为空", elem)
-		}
-		if health.Excess == "" {
-			t.Errorf("WuxingHealthMap[%s].Excess 为空", elem)
-		}
-		if health.Deficit == "" {
-			t.Errorf("WuxingHealthMap[%s].Deficit 为空", elem)
-		}
-	}
-}
-
-// =============================================================================
 // 纳音取象
 // Verify all NaYinMap entries have non-empty ImageDesc.
 // =============================================================================

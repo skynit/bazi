@@ -8,7 +8,7 @@ import (
 // ============================================================
 // A12 命宫精确测试
 //
-// 验证 CalculateFromPillars 的命宫计算结果：
+// 验证 CalculateSyntheticPillars 的命宫计算结果：
 //   - GanZhi 非空
 //   - Nayin 非空
 //   - ShenSha 非空
@@ -18,17 +18,16 @@ import (
 // TestMingGongPrecision_Basic 验证多种组合的命宫基本完整性
 //
 // 覆盖不同的年干、月支、时支组合，验证：
-//   1. GanZhi 非空且格式正确（2字符）
-//   2. Gan 非空
-//   3. Zhi 非空
-//   4. Nayin 非空
-//   5. ShenSha 非空
-//   6. ShenShaDesc 非空
+//  1. GanZhi 非空且格式正确（2字符）
+//  2. Gan 非空
+//  3. Zhi 非空
+//  4. Nayin 非空
+//  5. ShenSha 非空
 func TestMingGongPrecision_Basic(t *testing.T) {
 	svc := &BaziService{}
 
 	testCases := []struct {
-		name                   string
+		name                       string
 		yearP, monthP, dayP, hourP string
 	}{
 		// 10种以上不同组合
@@ -48,14 +47,14 @@ func TestMingGongPrecision_Basic(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(tc.yearP, tc.monthP, tc.dayP, tc.hourP, "MALE")
+			result, err := svc.CalculateSyntheticPillars(tc.yearP, tc.monthP, tc.dayP, tc.hourP, "MALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars 失败: %v", err)
+				t.Fatalf("CalculateSyntheticPillars 失败: %v", err)
 			}
 
 			mg := result.MingGong
-			t.Logf("命宫: GanZhi=%s Gan=%s Zhi=%s Nayin=%s ShenSha=%s Desc=%s",
-				mg.GanZhi, mg.Gan, mg.Zhi, mg.Nayin, mg.ShenSha, mg.ShenShaDesc)
+			t.Logf("命宫: GanZhi=%s Gan=%s Zhi=%s Nayin=%s ShenSha=%s",
+				mg.GanZhi, mg.Gan, mg.Zhi, mg.Nayin, mg.ShenSha)
 
 			// GanZhi 非空且格式正确
 			if mg.GanZhi == "" {
@@ -87,10 +86,6 @@ func TestMingGongPrecision_Basic(t *testing.T) {
 				t.Error("MingGong.ShenSha 应非空")
 			}
 
-			// ShenShaDesc 非空
-			if mg.ShenShaDesc == "" {
-				t.Error("MingGong.ShenShaDesc 应非空")
-			}
 		})
 	}
 }
@@ -102,7 +97,7 @@ func TestMingGongPrecision_NayinVariety(t *testing.T) {
 	// 选取不同的干支组合，命宫纳音应该不同（至少不全相同）
 	nayins := make(map[string]bool)
 	cases := []struct {
-		name   string
+		name       string
 		y, m, d, h string
 	}{
 		{"甲子甲戌丁卯戊申", "甲子", "甲戌", "丁卯", "戊申"},
@@ -115,9 +110,9 @@ func TestMingGongPrecision_NayinVariety(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		result, err := svc.CalculateFromPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
+		result, err := svc.CalculateSyntheticPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
 		if err != nil {
-			t.Fatalf("%s: CalculateFromPillars 失败: %v", tc.name, err)
+			t.Fatalf("%s: CalculateSyntheticPillars 失败: %v", tc.name, err)
 		}
 		nayins[result.MingGong.Nayin] = true
 		t.Logf("%s: 命宫=%s 纳音=%s", tc.name, result.MingGong.GanZhi, result.MingGong.Nayin)
@@ -135,11 +130,11 @@ func TestMingGongPrecision_NayinVariety(t *testing.T) {
 func TestMingGongPrecision_GenderIndependence(t *testing.T) {
 	svc := &BaziService{}
 
-	r1, err1 := svc.CalculateFromPillars("壬辰", "壬寅", "甲寅", "庚午", "MALE")
-	r2, err2 := svc.CalculateFromPillars("壬辰", "壬寅", "甲寅", "庚午", "FEMALE")
+	r1, err1 := svc.CalculateSyntheticPillars("壬辰", "壬寅", "甲寅", "庚午", "MALE")
+	r2, err2 := svc.CalculateSyntheticPillars("壬辰", "壬寅", "甲寅", "庚午", "FEMALE")
 
 	if err1 != nil || err2 != nil {
-		t.Fatalf("CalculateFromPillars 失败: %v / %v", err1, err2)
+		t.Fatalf("CalculateSyntheticPillars 失败: %v / %v", err1, err2)
 	}
 
 	if r1.MingGong.GanZhi != r2.MingGong.GanZhi {
@@ -164,8 +159,8 @@ func TestMingGongPrecision_ShenShaConsistency(t *testing.T) {
 
 	// 使用经典命例的组合计算命宫，验证其神煞非空
 	cases := []struct {
-		name                     string
-		y, m, d, h               string
+		name       string
+		y, m, d, h string
 	}{
 		{"壬辰壬寅甲寅庚午", "壬辰", "壬寅", "甲寅", "庚午"},
 		{"戊辰己未癸未辛酉", "戊辰", "己未", "癸未", "辛酉"},
@@ -181,9 +176,9 @@ func TestMingGongPrecision_ShenShaConsistency(t *testing.T) {
 
 	uniqueShenSha := make(map[string]bool)
 	for _, tc := range cases {
-		result, err := svc.CalculateFromPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
+		result, err := svc.CalculateSyntheticPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
 		if err != nil {
-			t.Fatalf("%s: CalculateFromPillars 失败: %v", tc.name, err)
+			t.Fatalf("%s: CalculateSyntheticPillars 失败: %v", tc.name, err)
 		}
 		mg := result.MingGong
 		if mg.ShenSha == "" {

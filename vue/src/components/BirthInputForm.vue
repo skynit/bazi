@@ -14,6 +14,7 @@ const errMsg = ref('')
 const loading = ref(false)
 const confirming = ref(false)
 const preview = ref<ChartPreviewResponse | null>(null)
+const selectedCandidateId = ref('')
 
 const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai'
 const now = new Date()
@@ -26,21 +27,31 @@ const form = ref({
   day: now.getDate(),
   hour: 8,
   minute: 0,
+  second: 0,
   gender: 'MALE' as 'MALE' | 'FEMALE',
+  ziHourPolicy: 'late_zi_next_day' as 'late_zi_next_day' | 'late_zi_same_day',
   birthPlace: '',
   timezone: browserTimezone,
+  birthUTCOffsetSeconds: '' as number | '',
   longitude: '' as number | '',
   useTrueSolarTime: false,
   timeUncertain: false,
+  uncertaintySeconds: 900,
+})
+
+const activeCandidate = computed(() => {
+  const candidates = preview.value?.candidate_charts ?? []
+  return candidates.find((candidate) => candidate.candidate_id === selectedCandidateId.value)
 })
 
 const pillars = computed(() => {
   if (!preview.value) return []
+  const chart = activeCandidate.value ?? preview.value
   return [
-    { label: '年柱', value: preview.value.year_pillar },
-    { label: '月柱', value: preview.value.month_pillar },
-    { label: '日柱', value: preview.value.day_pillar },
-    { label: '时柱', value: preview.value.hour_pillar },
+    { label: '年柱', value: chart.year_pillar },
+    { label: '月柱', value: chart.month_pillar },
+    { label: '日柱', value: chart.day_pillar },
+    { label: '时柱', value: chart.hour_pillar },
   ]
 })
 
@@ -57,35 +68,55 @@ onMounted(() => {
     form.value.day = Number(b.day) || form.value.day
     form.value.hour = Number.isFinite(Number(b.hour)) ? Number(b.hour) : 8
     form.value.minute = Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0
+    form.value.second = Number.isFinite(Number(b.second)) ? Number(b.second) : 0
     form.value.gender = b.gender === 'FEMALE' || b.gender === 'female' ? 'FEMALE' : 'MALE'
+    form.value.ziHourPolicy =
+      b.ziHourPolicy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day'
     form.value.birthPlace = b.birthPlace ?? ''
     form.value.timezone = b.timezone || browserTimezone
+    form.value.birthUTCOffsetSeconds =
+      typeof b.birthUTCOffsetSeconds === 'number' ? b.birthUTCOffsetSeconds : ''
     form.value.longitude = typeof b.longitude === 'number' ? b.longitude : ''
     form.value.useTrueSolarTime = Boolean(b.useTrueSolarTime)
     form.value.timeUncertain = Boolean(b.timeUncertain)
+    form.value.uncertaintySeconds = Number.isFinite(Number(b.uncertaintySeconds))
+      ? Number(b.uncertaintySeconds)
+      : 900
   } catch {
     localStorage.removeItem('bazi_last_birth')
   }
 })
 
-function requestPayload(): ChartCreateRequest {
+function requestPayload(includeSelection = false): ChartCreateRequest {
   const payload: ChartCreateRequest = {
     birth_year: Number(form.value.year),
     birth_month: Number(form.value.month),
     birth_day: Number(form.value.day),
     birth_hour: Number(form.value.hour),
     birth_min: Number(form.value.minute),
+    birth_sec: Number(form.value.second),
     calendar_type: form.value.calendarType,
     lunar_leap_month: form.value.calendarType === 'LUNAR' && form.value.lunarLeapMonth,
     gender: form.value.gender,
+    zi_hour_policy: form.value.ziHourPolicy,
     name: form.value.name.trim(),
     birth_place: form.value.birthPlace.trim(),
     timezone: form.value.timezone.trim() || browserTimezone,
     use_true_solar_time: form.value.useTrueSolarTime,
     time_uncertain: form.value.timeUncertain,
+    uncertainty_seconds: form.value.timeUncertain ? Number(form.value.uncertaintySeconds) : 0,
   }
   if (form.value.longitude !== '' && Number.isFinite(Number(form.value.longitude))) {
     payload.longitude = Number(form.value.longitude)
+  }
+  if (
+    form.value.birthUTCOffsetSeconds !== '' &&
+    Number.isFinite(Number(form.value.birthUTCOffsetSeconds))
+  ) {
+    payload.birth_utc_offset_seconds = Number(form.value.birthUTCOffsetSeconds)
+  }
+  if (includeSelection && selectedCandidateId.value) {
+    payload.candidate_id = selectedCandidateId.value
   }
   return payload
 }
@@ -94,6 +125,12 @@ function validateLocally(): string {
   if (!form.value.year || !form.value.month || !form.value.day) return '请填写完整的出生日期'
   if (form.value.hour < 0 || form.value.hour > 23) return '小时应在 0–23 之间'
   if (form.value.minute < 0 || form.value.minute > 59) return '分钟应在 0–59 之间'
+  if (form.value.second < 0 || form.value.second > 59) return '秒应在 0–59 之间'
+  if (
+    form.value.timeUncertain &&
+    (form.value.uncertaintySeconds < 1 || form.value.uncertaintySeconds > 86400)
+  )
+    return '时间误差应在 1–86400 秒之间'
   if (!form.value.timezone.trim()) return '请填写有效的 IANA 时区，例如 Asia/Shanghai'
   if (form.value.useTrueSolarTime && form.value.longitude === '')
     return '启用真太阳时需要填写出生地经度'
@@ -114,6 +151,8 @@ async function handlePreview() {
   errMsg.value = ''
   try {
     preview.value = await previewChart(requestPayload())
+    const candidates = preview.value.candidate_charts ?? []
+    selectedCandidateId.value = candidates.length === 1 ? candidates[0].candidate_id : ''
   } catch (err: any) {
     errMsg.value = apiError(err, '校验失败，请检查出生信息')
   } finally {
@@ -123,14 +162,19 @@ async function handlePreview() {
 
 function editInput() {
   preview.value = null
+  selectedCandidateId.value = ''
   errMsg.value = ''
 }
 
 async function confirmCreate() {
+  if (preview.value?.requires_candidate_selection && !selectedCandidateId.value) {
+    errMsg.value = '时间区间跨越四柱边界，请先选择一个候选命盘'
+    return
+  }
   confirming.value = true
   errMsg.value = ''
   try {
-    const payload = requestPayload()
+    const payload = requestPayload(true)
     const data = await createChart(payload)
     sessionStorage.setItem('lastChart', JSON.stringify(data))
     localStorage.setItem(
@@ -144,12 +188,19 @@ async function confirmCreate() {
         day: form.value.day,
         hour: form.value.hour,
         minute: form.value.minute,
+        second: form.value.second,
         gender: form.value.gender,
+        ziHourPolicy: form.value.ziHourPolicy,
         birthPlace: form.value.birthPlace,
         timezone: form.value.timezone,
+        birthUTCOffsetSeconds:
+          form.value.birthUTCOffsetSeconds === ''
+            ? undefined
+            : Number(form.value.birthUTCOffsetSeconds),
         longitude: form.value.longitude === '' ? undefined : Number(form.value.longitude),
         useTrueSolarTime: form.value.useTrueSolarTime,
         timeUncertain: form.value.timeUncertain,
+        uncertaintySeconds: form.value.timeUncertain ? form.value.uncertaintySeconds : 0,
         chartId: data.id,
       }),
     )
@@ -234,6 +285,36 @@ async function confirmCreate() {
               type="number"
             />
           </div>
+          <div class="field-group">
+            <label class="field-label">秒（0–59）</label
+            ><input
+              v-model.number="form.second"
+              class="input-dark"
+              min="0"
+              max="59"
+              type="number"
+            />
+          </div>
+        </div>
+
+        <div class="field-group full-field">
+          <label class="field-label">晚子时日柱口径</label>
+          <div class="policy-toggle">
+            <button
+              type="button"
+              :class="form.ziHourPolicy === 'late_zi_next_day' ? 'active' : ''"
+              @click="form.ziHourPolicy = 'late_zi_next_day'"
+            >
+              子初换日（23:00）
+            </button>
+            <button
+              type="button"
+              :class="form.ziHourPolicy === 'late_zi_same_day' ? 'active' : ''"
+              @click="form.ziHourPolicy = 'late_zi_same_day'"
+            >
+              午夜换日（00:00）
+            </button>
+          </div>
         </div>
 
         <div class="gender-toggle">
@@ -264,6 +345,18 @@ async function confirmCreate() {
           </div>
         </div>
         <div class="field-group full-field">
+          <label class="field-label">UTC 偏移秒（夏令时重复时刻时填写）</label>
+          <input
+            v-model.number="form.birthUTCOffsetSeconds"
+            class="input-dark"
+            min="-50400"
+            max="50400"
+            step="1"
+            type="number"
+            placeholder="例如：-14400"
+          />
+        </div>
+        <div class="field-group full-field">
           <label class="field-label">出生地经度（真太阳时可选）</label>
           <input
             v-model.number="form.longitude"
@@ -284,9 +377,20 @@ async function confirmCreate() {
           >
           <label class="check-row"
             ><input v-model="form.timeUncertain" type="checkbox" /><span
-              >出生时间不确定（结果中提示边界风险）</span
+              >出生时间不确定（生成边界候选盘）</span
             ></label
           >
+        </div>
+        <div v-if="form.timeUncertain" class="field-group full-field">
+          <label class="field-label">中心时刻前后误差（秒，最多 86400）</label>
+          <input
+            v-model.number="form.uncertaintySeconds"
+            class="input-dark"
+            min="1"
+            max="86400"
+            step="1"
+            type="number"
+          />
         </div>
 
         <p class="privacy-note">出生地点仅用于时区与真太阳时校正。请先核对转换结果，再保存命盘。</p>
@@ -322,7 +426,10 @@ async function confirmCreate() {
           </div>
           <div class="validation-item emphasis">
             <span>最终计算时间</span
-            ><strong>{{ preview.birth_validation.calculation_date_time }}</strong>
+            ><strong>{{
+              activeCandidate?.birth_validation.calculation_date_time ??
+              preview.birth_validation.calculation_date_time
+            }}</strong>
           </div>
           <div class="validation-item">
             <span>对应农历</span><strong>{{ preview.birth_validation.lunar_date }}</strong>
@@ -341,6 +448,14 @@ async function confirmCreate() {
               {{ preview.birth_validation.utc_date_time }}</strong
             >
           </div>
+          <div class="validation-item">
+            <span>晚子时日柱口径</span>
+            <strong>{{
+              preview.birth_validation.zi_hour_policy === 'late_zi_same_day'
+                ? '午夜换日（晚子时日柱算当天）'
+                : '子初换日（晚子时日柱算次日）'
+            }}</strong>
+          </div>
           <div v-if="preview.birth_validation.true_solar_time_applied" class="validation-item">
             <span>真太阳时校正</span
             ><strong
@@ -348,6 +463,48 @@ async function confirmCreate() {
               }}{{ preview.birth_validation.true_solar_adjustment_minutes }} 分钟</strong
             >
           </div>
+          <div v-if="preview.birth_validation.local_time_ambiguous" class="validation-item">
+            <span>重复本地时刻采用偏移</span>
+            <strong>UTC {{ preview.birth_validation.timezone_offset_seconds / 3600 >= 0 ? '+' : '' }}{{ preview.birth_validation.timezone_offset_seconds / 3600 }}</strong>
+          </div>
+        </div>
+
+        <div v-if="preview.uncertainty" class="uncertainty-box">
+          <strong>时间评估范围</strong>
+          <p>
+            输入范围：{{ preview.uncertainty.input_range_start }} 至
+            {{ preview.uncertainty.input_range_end }}
+          </p>
+          <p v-if="preview.uncertainty.algorithm_uncertainty_seconds">
+            真太阳时算法名义误差：±{{ preview.uncertainty.algorithm_uncertainty_seconds }} 秒；已纳入候选评估。
+          </p>
+          <p v-if="preview.unstable_fields.length">
+            不稳定字段：{{ preview.unstable_fields.join('、') }}
+          </p>
+        </div>
+
+        <div v-if="preview.candidate_charts.length > 1" class="candidate-list">
+          <div class="pillar-title">请选择要保存的候选命盘</div>
+          <button
+            v-for="(candidate, index) in preview.candidate_charts"
+            :key="candidate.candidate_id"
+            type="button"
+            class="candidate-card"
+            :class="{ selected: selectedCandidateId === candidate.candidate_id }"
+            @click="selectedCandidateId = candidate.candidate_id"
+          >
+            <span class="candidate-heading">候选 {{ index + 1 }}</span>
+            <span>{{ candidate.calculation_range_start }} 至 {{ candidate.calculation_range_end }}</span>
+            <strong>
+              {{ candidate.year_pillar.gan }}{{ candidate.year_pillar.zhi }} ·
+              {{ candidate.month_pillar.gan }}{{ candidate.month_pillar.zhi }} ·
+              {{ candidate.day_pillar.gan }}{{ candidate.day_pillar.zhi }} ·
+              {{ candidate.hour_pillar.gan }}{{ candidate.hour_pillar.zhi }}
+            </strong>
+            <small>
+              起运范围：{{ candidate.da_yun_start_at_min }} 至 {{ candidate.da_yun_start_at_max }}
+            </small>
+          </button>
         </div>
 
         <div class="pillar-title">用于计算的四柱</div>
@@ -375,7 +532,7 @@ async function confirmCreate() {
           >
           <Button
             class="h-12 rounded-full font-semibold bg-foreground text-background"
-            :disabled="confirming"
+            :disabled="confirming || (preview.requires_candidate_selection && !selectedCandidateId)"
             @click="confirmCreate"
             >{{ confirming ? '正在保存…' : '确认并保存命盘' }}</Button
           >
@@ -464,17 +621,24 @@ async function confirmCreate() {
 .time-grid,
 .location-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 16px;
 }
+.time-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+.location-grid {
+  grid-template-columns: 1fr 1fr;
+}
 .calendar-toggle,
+.policy-toggle,
 .gender-toggle {
   display: flex;
   gap: 10px;
   margin-bottom: 16px;
 }
 .calendar-toggle button,
+.policy-toggle button,
 .toggle-btn {
   flex: 1;
   padding: 10px;
@@ -484,6 +648,7 @@ async function confirmCreate() {
   background: transparent;
 }
 .calendar-toggle button.active,
+.policy-toggle button.active,
 .toggle-btn.btn-tech {
   background: var(--accent);
   border-color: var(--accent);
@@ -586,6 +751,47 @@ async function confirmCreate() {
   margin: 6px 0 0;
   padding-left: 18px;
 }
+.uncertainty-box {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-focus);
+  border-radius: 10px;
+  background: var(--accent-dim);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+.uncertainty-box p {
+  margin: 5px 0 0;
+}
+.candidate-list {
+  display: grid;
+  gap: 10px;
+}
+.candidate-card {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  color: var(--text-muted);
+  text-align: left;
+}
+.candidate-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.candidate-card strong {
+  color: var(--accent);
+  font-family: var(--font-serif), serif;
+  font-size: var(--fs-lg);
+}
+.candidate-heading {
+  color: var(--text);
+  font-weight: 700;
+}
 .action-grid {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -600,6 +806,7 @@ async function confirmCreate() {
     padding: 24px 18px;
   }
   .location-grid,
+  .time-grid,
   .validation-grid {
     grid-template-columns: 1fr;
   }

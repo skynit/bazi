@@ -1,0 +1,145 @@
+{
+  "schema": "commons_scan_snapshot_v1",
+  "version": "2026-07-17.1",
+  "status": "research_snapshot_not_runtime_eligible",
+  "retrieved_at": "2026-07-17",
+  "candidate_id": "sanming-ncl-06589-1578-12vol-scan-v1",
+  "provider": "commons.wikimedia.org",
+  "source_institution": "National Central Library, Republic of China (Taiwan)",
+  "work": "三命通會",
+  "author": "萬民英",
+  "edition": "明萬曆戊寅(六年, 1578)刊本",
+  "bibliographic_identity": {
+    "call_number": "306.5 06589",
+    "alternate_title": "三命會通",
+    "extent": "十二卷，12冊，線裝",
+    "classification": "子部-術數類-命相之屬",
+    "collation": "10行，行22字，雙欄，版心白口，單魚尾",
+    "source_url": "https://rbook.ncl.edu.tw/NCLSearch"
+  },
+  "license": {
+    "status": "terms_resolved_public_domain_scan",
+    "commons_template": "PD-scan|PD-old",
+    "underlying_work": "PD-old",
+    "digital_reproduction": "PD-scan",
+    "usage_terms": "Public domain",
+    "attribution_required": false,
+    "evidence_paths": [
+      "evidence/commons-file-page-1-rev1207461339.wikitext",
+      "evidence/commons-file-page-2-rev1207461333.wikitext"
+    ],
+    "evidence_urls": [
+      "https://commons.wikimedia.org/w/index.php?curid=138125281&oldid=1207461339",
+      "https://commons.wikimedia.org/w/index.php?curid=138043642&oldid=1207461333",
+      "https://commons.wikimedia.org/wiki/Template:PD-scan",
+      "https://commons.wikimedia.org/wiki/Template:PD-old"
+    ]
+  },
+  "discovery_audit": {
+    "path": "discovery-audit.json",
+    "sha256": "1958f96c18c58a9665414f147c17169d5f6fdd3575c2d289ef01d48551f25c7e"
+  },
+  "aggregate": {
+    "file_count": 2,
+    "total_size_bytes": 120923720,
+    "total_physical_pages": 1187,
+    "artifact_manifest_scheme": "part_tab_commons_page_id_tab_revision_id_tab_file_timestamp_tab_size_tab_page_count_tab_remote_sha1_tab_local_sha256_lf_v1",
+    "artifact_manifest_sha256": "996974d6fc6d6cee9815292ffa733ffc61b87fa7ae147b7ed8e4d0c2039e8c3d"
+  },
+  "boundaries": {
+    "scan_artifact_verified": true,
+    "stable_remote_identity_verified": true,
+    "license_terms_resolved": true,
+    "bibliographic_metadata_frozen": true,
+    "complete_structure_observed": true,
+    "local_artifact_frozen": true,
+    "bibliography_adjudicated": false,
+    "independent_primary_artifact_verified": false,
+    "complete_primary_text_verified": false,
+    "page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  },
+  "files": [
+    {
+      "part": 1,
+      "commons_page_id": 138125281,
+      "title": "File:NCL-06589 1 三命通會.pdf",
+      "fixed_file_page_revision": {
+        "revision_id": 1207461339,
+        "parent_id": 1138624022,
+        "timestamp": "2026-05-03T01:58:40Z",
+        "size_bytes": 5414,
+        "sha1": "a009fba1a2909653d5cc1f55a2e6d022f76d316f",
+        "source_url": "https://commons.wikimedia.org/w/index.php?curid=138125281&oldid=1207461339"
+      },
+      "remote_file": {
+        "timestamp": "2023-09-26T02:32:46Z",
+        "size_bytes": 101956385,
+        "page_count": 1000,
+        "sha1": "c222bc54815d8e5cef15338c03b9fc11d540f41a",
+        "mime": "application/pdf",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/NCL-06589_1_%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83.pdf",
+        "description_url": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281",
+        "physical_page_range": {
+          "first": 1,
+          "last": 1000
+        },
+        "page_locator_pattern": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138125281?page={physical_page}"
+      },
+      "local_artifact": {
+        "path": "artifacts/ncl-06589-part-1.pdf",
+        "size_bytes": 101956385,
+        "page_count": 1000,
+        "sha1": "c222bc54815d8e5cef15338c03b9fc11d540f41a",
+        "sha256": "3de5c45efb1919965afae00a3c97121054aaabd0f38f9fd5ab8f0a28bb8e36dd"
+      },
+      "license_evidence": {
+        "path": "evidence/commons-file-page-1-rev1207461339.wikitext",
+        "size_bytes": 1644,
+        "sha256": "65435ab54769d4dd0e05405578a555ec6b4b76208af82474e8fe1acf24890ce1"
+      }
+    },
+    {
+      "part": 2,
+      "commons_page_id": 138043642,
+      "title": "File:NCL-06589 2 三命通會.pdf",
+      "fixed_file_page_revision": {
+        "revision_id": 1207461333,
+        "parent_id": 804277976,
+        "timestamp": "2026-05-03T01:58:39Z",
+        "size_bytes": 2208,
+        "sha1": "2c97f0f2ea3cf51ec861585e23b18698bc9e0304",
+        "source_url": "https://commons.wikimedia.org/w/index.php?curid=138043642&oldid=1207461333"
+      },
+      "remote_file": {
+        "timestamp": "2023-09-24T12:54:27Z",
+        "size_bytes": 18967335,
+        "page_count": 187,
+        "sha1": "090ce9d53d9aa37bd7d2680b3b69c16385edbe2d",
+        "mime": "application/pdf",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/f/fd/NCL-06589_2_%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83.pdf",
+        "description_url": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138043642",
+        "physical_page_range": {
+          "first": 1,
+          "last": 187
+        },
+        "page_locator_pattern": "https://commons.wikimedia.org/wiki/Special:Redirect/page/138043642?page={physical_page}"
+      },
+      "local_artifact": {
+        "path": "artifacts/ncl-06589-part-2.pdf",
+        "size_bytes": 18967335,
+        "page_count": 187,
+        "sha1": "090ce9d53d9aa37bd7d2680b3b69c16385edbe2d",
+        "sha256": "3a309831d5b0f0396ac8c89c0176734c560ceaafb03e71b1457f45662de16eb8"
+      },
+      "license_evidence": {
+        "path": "evidence/commons-file-page-2-rev1207461333.wikitext",
+        "size_bytes": 1644,
+        "sha256": "65435ab54769d4dd0e05405578a555ec6b4b76208af82474e8fe1acf24890ce1"
+      }
+    }
+  ]
+}

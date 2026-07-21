@@ -57,25 +57,30 @@ func codeFromStatus(status int) string {
 
 func chartSummaryResponse(chart model.BirthChart) model.ChartSummaryResponse {
 	return model.ChartSummaryResponse{
-		ID:                chart.ID,
-		Name:              chart.Name,
-		Gender:            chart.Gender,
-		BirthYear:         chart.BirthYear,
-		BirthMonth:        chart.BirthMonth,
-		BirthDay:          chart.BirthDay,
-		BirthHour:         chart.BirthHour,
-		BirthMin:          chart.BirthMin,
-		CalendarType:      chart.CalendarType,
-		LunarLeapMonth:    chart.LunarLeapMonth,
-		BirthPlace:        chart.BirthPlace,
-		Timezone:          chart.Timezone,
-		Longitude:         cloneFloat64(chart.Longitude),
-		UseTrueSolarTime:  chart.UseTrueSolarTime,
-		TimeUncertain:     chart.TimeUncertain,
-		EngineVersion:     chart.EngineVersion,
-		StoredRuleVersion: chart.RuleVersion,
-		CreatedAt:         formatAPITime(chart.CreatedAt),
-		UpdatedAt:         formatAPITime(chart.UpdatedAt),
+		ID:                    chart.ID,
+		Name:                  chart.Name,
+		Gender:                chart.Gender,
+		ZiHourPolicy:          chart.ZiHourPolicy,
+		BirthYear:             chart.BirthYear,
+		BirthMonth:            chart.BirthMonth,
+		BirthDay:              chart.BirthDay,
+		BirthHour:             chart.BirthHour,
+		BirthMin:              chart.BirthMin,
+		BirthSec:              chart.BirthSec,
+		CalendarType:          chart.CalendarType,
+		LunarLeapMonth:        chart.LunarLeapMonth,
+		BirthPlace:            chart.BirthPlace,
+		Timezone:              chart.Timezone,
+		BirthUTCOffsetSeconds: cloneInt(chart.BirthUTCOffsetSeconds),
+		Longitude:             cloneFloat64(chart.Longitude),
+		UseTrueSolarTime:      chart.UseTrueSolarTime,
+		TimeUncertain:         chart.TimeUncertain,
+		UncertaintySeconds:    chart.UncertaintySeconds,
+		SelectedCandidateID:   chart.SelectedCandidateID,
+		EngineVersion:         chart.EngineVersion,
+		StoredRuleVersion:     chart.RuleVersion,
+		CreatedAt:             formatAPITime(chart.CreatedAt),
+		UpdatedAt:             formatAPITime(chart.UpdatedAt),
 	}
 }
 
@@ -140,35 +145,20 @@ func chartDetailResponseWithBazi(chart model.BirthChart, result *bazi.BaziResult
 	resp.HiddenStems = jsonFromValue(result.HiddenStems)
 	resp.DaYunStart = jsonFromValue(result.DaYunInfo)
 	resp.DaYun = jsonFromValue(result.DaYunInfo)
-	resp.ClashHarmony = jsonFromValue(result.ClashHarmony)
 	resp.GanZhiAnalysis = jsonFromValue(result.GanZhiAnalysis)
 	resp.PatternAnalysis = jsonFromValue(result.PatternAnalysis)
 	resp.MingGong = jsonFromValue(result.MingGong)
-	resp.RiZhuDesc = result.RiZhuDesc
 	resp.PillarDetails = jsonFromValue(result.PillarDetails)
-	resp.TiaoHou = result.DayStemTiaoHou
 	resp.Tiaohou = jsonFromValue(result.Tiaohou)
 	resp.GlobalShenSha = jsonFromValue(result.GlobalShenSha)
 	resp.GlobalShenShaDetails = jsonFromValue(result.GlobalShenShaDetails)
-	resp.JinBuHuan = result.DayStemJinBuHuan
 	resp.DayShenSha = jsonFromValue(result.DayShenSha)
 	resp.DayShenShaDetails = jsonFromValue(result.DayShenShaDetails)
-	resp.SeasonText = result.SeasonText
-	resp.SeasonTextMonth = result.SeasonTextMonth
-	resp.RiZhuPoem = result.RiZhuPoem
-	resp.RiZhuSource = result.RiZhuSource
-	resp.RiZhuComment = result.RiZhuComment
-	resp.RiZhuHourDetail = result.RiZhuHourDetail
+	resp.MonthSeason = jsonFromValue(result.MonthSeason)
 	resp.ShenShaByPillar = jsonFromValue(result.ShenShaByPillar)
-	resp.ShenShaSummary = jsonFromValue(result.ShenShaSummary)
 	resp.TenGodProportion = jsonFromValue(result.TenGodProportion)
 	resp.TenGodAnalysis = jsonFromValue(result.TenGodAnalysis)
-	resp.WuxingSeasonNote = result.WuxingSeasonNote
-	resp.WuXingFlow = jsonFromValue(result.WuXingFlow)
-	resp.TongGuan = jsonFromValue(result.TongGuan)
 	resp.MissingElements = jsonFromValue(result.MissingElements)
-	resp.FlowPatternDesc = result.FlowPatternDesc
-	resp.DaYunFlow = jsonFromValue(result.DaYunFlow)
 	return resp
 }
 

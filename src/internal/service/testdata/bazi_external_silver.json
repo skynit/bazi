@@ -1,0 +1,3888 @@
+{
+  "version": "1.2",
+  "description": "八字基础排盘外部 Silver 差分输入。普通日期要求 lunar-javascript 与 cnlunar 四柱共识；十二节令、跨世纪立春秒级边界及两种晚子时换日口径使用支持对应精度和 sect 的固定 lunar-javascript。",
+  "metadata": {
+    "tier": "silver",
+    "purpose": "bazi_external_structural_differential",
+    "review_status": "cross_checked_not_gold",
+    "publishable_accuracy": false,
+    "generator": "scripts/generate-bazi-external-silver.sh",
+    "dual_consensus_cases": 21,
+    "boundary_cases": 30,
+    "boundary_groups": 15,
+    "zi_policy_cases": 8,
+    "disputed_cases": 1,
+    "limitations": [
+      "cnlunar solar terms have day precision and are not used to adjudicate second-level boundaries",
+      "lunar-javascript and production tyme4go share an author, so boundary checks are correlated Silver evidence",
+      "late-Zi sect checks use pinned lunar-javascript only and are correlated Silver evidence, not independent Gold",
+      "traditional interpretation accuracy and dayun start-age school choice are outside this fixture",
+      "nayin aliases 沙/砂 and 泉中水/井泉水 are normalized explicitly before comparison"
+    ]
+  },
+  "sources": [
+    {
+      "id": "lunar_javascript",
+      "repository": "https://github.com/6tail/lunar-javascript",
+      "commit": "4c45a59f79b856125516f31aefa8295035c16afd",
+      "license": "MIT",
+      "files": {
+        "lunar.js": "9750324bfe1aa63c146f8c72b1143df924466c11c8a5277d7d9225c541a18aaa"
+      }
+    },
+    {
+      "id": "cnlunar",
+      "repository": "https://github.com/OPN48/cnlunar",
+      "commit": "1d7f868967cc533c9b577ed0c3ffb3cb67bb5352",
+      "license": "MIT",
+      "files": {
+        "cnlunar/lunar.py": "049ad17c4153208d4cbcdc358177eff30d46f6429f0caf3676ea7d4170a2cdd8",
+        "cnlunar/config.py": "aa804333238a07633057f614ae611798cc64da4621549940bb0d2025c2ab478a",
+        "cnlunar/solar24.py": "a284dbe276637fb27d93f12c608c234b516cd4fbb1201fa2415df27a49886bf1",
+        "cnlunar/tools.py": "2f99d0d77a2365b23021c5adf56354ed4a233df7e1856244aff2ee592e091b6a"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "y1902",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1902,
+        "month": 1,
+        "day": 15,
+        "hour": 12,
+        "minute": 30,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "辛丑",
+          "month": "辛丑",
+          "day": "戊戌",
+          "hour": "戊午"
+        },
+        "ming_gong": "戊戌",
+        "nayin": {
+          "year": "壁上土",
+          "month": "壁上土",
+          "day": "平地木",
+          "hour": "天上火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "庚子",
+            "己亥",
+            "戊戌",
+            "丁酉",
+            "丙申",
+            "乙未",
+            "甲午",
+            "癸巳"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "天上火",
+          "month": "壁上土",
+          "year": "壁上土"
+        },
+        "pillars": {
+          "day": "戊戌",
+          "hour": "戊午",
+          "month": "辛丑",
+          "year": "辛丑"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1912",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1912,
+        "month": 4,
+        "day": 15,
+        "hour": 0,
+        "minute": 30,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "壬子",
+          "month": "甲辰",
+          "day": "辛酉",
+          "hour": "戊子"
+        },
+        "ming_gong": "癸丑",
+        "nayin": {
+          "year": "桑柘木",
+          "month": "覆灯火",
+          "day": "石榴木",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "癸卯",
+            "壬寅",
+            "辛丑",
+            "庚子",
+            "己亥",
+            "戊戌",
+            "丁酉",
+            "丙申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "石榴木",
+          "hour": "霹雳火",
+          "month": "覆灯火",
+          "year": "桑柘木"
+        },
+        "pillars": {
+          "day": "辛酉",
+          "hour": "戊子",
+          "month": "甲辰",
+          "year": "壬子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1924",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1924,
+        "month": 7,
+        "day": 19,
+        "hour": 3,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲子",
+          "month": "辛未",
+          "day": "己亥",
+          "hour": "丙寅"
+        },
+        "ming_gong": "壬申",
+        "nayin": {
+          "year": "海中金",
+          "month": "路旁土",
+          "day": "平地木",
+          "hour": "炉中火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "炉中火",
+          "month": "路旁土",
+          "year": "海中金"
+        },
+        "pillars": {
+          "day": "己亥",
+          "hour": "丙寅",
+          "month": "辛未",
+          "year": "甲子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1936",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1936,
+        "month": 10,
+        "day": 21,
+        "hour": 5,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "丙子",
+          "month": "戊戌",
+          "day": "丙子",
+          "hour": "辛卯"
+        },
+        "ming_gong": "壬辰",
+        "nayin": {
+          "year": "涧下水",
+          "month": "平地木",
+          "day": "涧下水",
+          "hour": "松柏木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "丁酉",
+            "丙申",
+            "乙未",
+            "甲午",
+            "癸巳",
+            "壬辰",
+            "辛卯",
+            "庚寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "涧下水",
+          "hour": "松柏木",
+          "month": "平地木",
+          "year": "涧下水"
+        },
+        "pillars": {
+          "day": "丙子",
+          "hour": "辛卯",
+          "month": "戊戌",
+          "year": "丙子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1948",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1948,
+        "month": 12,
+        "day": 18,
+        "hour": 7,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "戊子",
+          "month": "甲子",
+          "day": "丁丑",
+          "hour": "甲辰"
+        },
+        "ming_gong": "乙丑",
+        "nayin": {
+          "year": "霹雳火",
+          "month": "海中金",
+          "day": "涧下水",
+          "hour": "覆灯火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "乙丑",
+            "丙寅",
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "涧下水",
+          "hour": "覆灯火",
+          "month": "海中金",
+          "year": "霹雳火"
+        },
+        "pillars": {
+          "day": "丁丑",
+          "hour": "甲辰",
+          "month": "甲子",
+          "year": "戊子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1960",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1960,
+        "month": 3,
+        "day": 20,
+        "hour": 8,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "庚子",
+          "month": "己卯",
+          "day": "丁未",
+          "hour": "甲辰"
+        },
+        "ming_gong": "丙戌",
+        "nayin": {
+          "year": "壁上土",
+          "month": "城头土",
+          "day": "天河水",
+          "hour": "覆灯火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "戊寅",
+            "丁丑",
+            "丙子",
+            "乙亥",
+            "甲戌",
+            "癸酉",
+            "壬申",
+            "辛未"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "覆灯火",
+          "month": "城头土",
+          "year": "壁上土"
+        },
+        "pillars": {
+          "day": "丁未",
+          "hour": "甲辰",
+          "month": "己卯",
+          "year": "庚子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1972",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1972,
+        "month": 6,
+        "day": 18,
+        "hour": 9,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "壬子",
+          "month": "丙午",
+          "day": "庚辰",
+          "hour": "辛巳"
+        },
+        "ming_gong": "丙午",
+        "nayin": {
+          "year": "桑柘木",
+          "month": "天河水",
+          "day": "白蜡金",
+          "hour": "白蜡金"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丁未",
+            "戊申",
+            "己酉",
+            "庚戌",
+            "辛亥",
+            "壬子",
+            "癸丑",
+            "甲寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "白蜡金",
+          "hour": "白蜡金",
+          "month": "天河水",
+          "year": "桑柘木"
+        },
+        "pillars": {
+          "day": "庚辰",
+          "hour": "辛巳",
+          "month": "丙午",
+          "year": "壬子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1984",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1984,
+        "month": 9,
+        "day": 19,
+        "hour": 11,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲子",
+          "month": "癸酉",
+          "day": "丙辰",
+          "hour": "甲午"
+        },
+        "ming_gong": "丙寅",
+        "nayin": {
+          "year": "海中金",
+          "month": "剑锋金",
+          "day": "沙中土",
+          "hour": "沙中金"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "壬申",
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "砂中土",
+          "hour": "砂中金",
+          "month": "剑锋金",
+          "year": "海中金"
+        },
+        "pillars": {
+          "day": "丙辰",
+          "hour": "甲午",
+          "month": "癸酉",
+          "year": "甲子"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "latezi1988",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1988,
+        "month": 2,
+        "day": 15,
+        "hour": 23,
+        "minute": 30,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "戊辰",
+          "month": "甲寅",
+          "day": "辛丑",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙卯",
+        "nayin": {
+          "year": "大林木",
+          "month": "大溪水",
+          "day": "壁上土",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "乙卯",
+            "丙辰",
+            "丁巳",
+            "戊午",
+            "己未",
+            "庚申",
+            "辛酉",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "壁上土",
+          "hour": "霹雳火",
+          "month": "大溪水",
+          "year": "大林木"
+        },
+        "pillars": {
+          "day": "辛丑",
+          "hour": "戊子",
+          "month": "甲寅",
+          "year": "戊辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y1995",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 1995,
+        "month": 12,
+        "day": 18,
+        "hour": 10,
+        "minute": 28,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "乙亥",
+          "month": "戊子",
+          "day": "癸未",
+          "hour": "丁巳"
+        },
+        "ming_gong": "戊子",
+        "nayin": {
+          "year": "山头火",
+          "month": "霹雳火",
+          "day": "杨柳木",
+          "hour": "沙中土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "己丑",
+            "庚寅",
+            "辛卯",
+            "壬辰",
+            "癸巳",
+            "甲午",
+            "乙未",
+            "丙申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "杨柳木",
+          "hour": "砂中土",
+          "month": "霹雳火",
+          "year": "山头火"
+        },
+        "pillars": {
+          "day": "癸未",
+          "hour": "丁巳",
+          "month": "戊子",
+          "year": "乙亥"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "sample2003",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2003,
+        "month": 4,
+        "day": 15,
+        "hour": 14,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "癸未",
+          "month": "丙辰",
+          "day": "戊午",
+          "hour": "己未"
+        },
+        "ming_gong": "戊午",
+        "nayin": {
+          "year": "杨柳木",
+          "month": "沙中土",
+          "day": "天上火",
+          "hour": "天上火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "乙卯",
+            "甲寅",
+            "癸丑",
+            "壬子",
+            "辛亥",
+            "庚戌",
+            "己酉",
+            "戊申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天上火",
+          "hour": "天上火",
+          "month": "砂中土",
+          "year": "杨柳木"
+        },
+        "pillars": {
+          "day": "戊午",
+          "hour": "己未",
+          "month": "丙辰",
+          "year": "癸未"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2012",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2012,
+        "month": 8,
+        "day": 16,
+        "hour": 15,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "壬辰",
+          "month": "戊申",
+          "day": "己酉",
+          "hour": "壬申"
+        },
+        "ming_gong": "癸丑",
+        "nayin": {
+          "year": "长流水",
+          "month": "大驿土",
+          "day": "大驿土",
+          "hour": "剑锋金"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "己酉",
+            "庚戌",
+            "辛亥",
+            "壬子",
+            "癸丑",
+            "甲寅",
+            "乙卯",
+            "丙辰"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大驿土",
+          "hour": "剑锋金",
+          "month": "大驿土",
+          "year": "长流水"
+        },
+        "pillars": {
+          "day": "己酉",
+          "hour": "壬申",
+          "month": "戊申",
+          "year": "壬辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2018",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2018,
+        "month": 6,
+        "day": 11,
+        "hour": 9,
+        "minute": 30,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "戊戌",
+          "month": "戊午",
+          "day": "甲戌",
+          "hour": "己巳"
+        },
+        "ming_gong": "戊午",
+        "nayin": {
+          "year": "平地木",
+          "month": "天上火",
+          "day": "山头火",
+          "hour": "大林木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "丁巳",
+            "丙辰",
+            "乙卯",
+            "甲寅",
+            "癸丑",
+            "壬子",
+            "辛亥",
+            "庚戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "大林木",
+          "month": "天上火",
+          "year": "平地木"
+        },
+        "pillars": {
+          "day": "甲戌",
+          "hour": "己巳",
+          "month": "戊午",
+          "year": "戊戌"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2022",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2022,
+        "month": 3,
+        "day": 9,
+        "hour": 20,
+        "minute": 51,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "壬寅",
+          "month": "癸卯",
+          "day": "辛酉",
+          "hour": "戊戌"
+        },
+        "ming_gong": "甲辰",
+        "nayin": {
+          "year": "金箔金",
+          "month": "金箔金",
+          "day": "石榴木",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "甲辰",
+            "乙巳",
+            "丙午",
+            "丁未",
+            "戊申",
+            "己酉",
+            "庚戌",
+            "辛亥"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "石榴木",
+          "hour": "平地木",
+          "month": "金箔金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "辛酉",
+          "hour": "戊戌",
+          "month": "癸卯",
+          "year": "壬寅"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2024a",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 1,
+        "day": 29,
+        "hour": 9,
+        "minute": 30,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "癸卯",
+          "month": "乙丑",
+          "day": "壬辰",
+          "hour": "乙巳"
+        },
+        "ming_gong": "癸亥",
+        "nayin": {
+          "year": "金箔金",
+          "month": "海中金",
+          "day": "长流水",
+          "hour": "覆灯火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丙寅",
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "长流水",
+          "hour": "覆灯火",
+          "month": "海中金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "壬辰",
+          "hour": "乙巳",
+          "month": "乙丑",
+          "year": "癸卯"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "latezi2024",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 2,
+        "day": 15,
+        "hour": 23,
+        "minute": 30,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丙寅",
+          "day": "庚戌",
+          "hour": "丙子"
+        },
+        "ming_gong": "丁卯",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "炉中火",
+          "day": "钗钏金",
+          "hour": "涧下水"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "钗钏金",
+          "hour": "涧下水",
+          "month": "炉中火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "庚戌",
+          "hour": "丙子",
+          "month": "丙寅",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2028",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2028,
+        "month": 8,
+        "day": 18,
+        "hour": 17,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "戊申",
+          "month": "庚申",
+          "day": "乙亥",
+          "hour": "乙酉"
+        },
+        "ming_gong": "甲子",
+        "nayin": {
+          "year": "大驿土",
+          "month": "石榴木",
+          "day": "山头火",
+          "hour": "泉中水"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己未",
+            "戊午",
+            "丁巳",
+            "丙辰",
+            "乙卯",
+            "甲寅",
+            "癸丑",
+            "壬子"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "井泉水",
+          "month": "石榴木",
+          "year": "大驿土"
+        },
+        "pillars": {
+          "day": "乙亥",
+          "hour": "乙酉",
+          "month": "庚申",
+          "year": "戊申"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2036",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2036,
+        "month": 11,
+        "day": 20,
+        "hour": 19,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "丙辰",
+          "month": "己亥",
+          "day": "辛卯",
+          "hour": "戊戌"
+        },
+        "ming_gong": "丙申",
+        "nayin": {
+          "year": "沙中土",
+          "month": "平地木",
+          "day": "松柏木",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "庚子",
+            "辛丑",
+            "壬寅",
+            "癸卯",
+            "甲辰",
+            "乙巳",
+            "丙午",
+            "丁未"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "松柏木",
+          "hour": "平地木",
+          "month": "平地木",
+          "year": "砂中土"
+        },
+        "pillars": {
+          "day": "辛卯",
+          "hour": "戊戌",
+          "month": "己亥",
+          "year": "丙辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2050",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2050,
+        "month": 5,
+        "day": 16,
+        "hour": 21,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "庚午",
+          "month": "辛巳",
+          "day": "丙申",
+          "hour": "己亥"
+        },
+        "ming_gong": "己丑",
+        "nayin": {
+          "year": "路旁土",
+          "month": "白蜡金",
+          "day": "山下火",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "庚辰",
+            "己卯",
+            "戊寅",
+            "丁丑",
+            "丙子",
+            "乙亥",
+            "甲戌",
+            "癸酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山下火",
+          "hour": "平地木",
+          "month": "白蜡金",
+          "year": "路旁土"
+        },
+        "pillars": {
+          "day": "丙申",
+          "hour": "己亥",
+          "month": "辛巳",
+          "year": "庚午"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2075",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2075,
+        "month": 9,
+        "day": 22,
+        "hour": 22,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "乙未",
+          "month": "乙酉",
+          "day": "丙辰",
+          "hour": "己亥"
+        },
+        "ming_gong": "乙酉",
+        "nayin": {
+          "year": "沙中金",
+          "month": "泉中水",
+          "day": "沙中土",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "甲申",
+            "癸未",
+            "壬午",
+            "辛巳",
+            "庚辰",
+            "己卯",
+            "戊寅",
+            "丁丑"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "砂中土",
+          "hour": "平地木",
+          "month": "井泉水",
+          "year": "砂中金"
+        },
+        "pillars": {
+          "day": "丙辰",
+          "hour": "己亥",
+          "month": "乙酉",
+          "year": "乙未"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "y2099",
+      "scope": "dual_consensus",
+      "term": "",
+      "input": {
+        "year": 2099,
+        "month": 12,
+        "day": 20,
+        "hour": 1,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": true
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "己未",
+          "month": "丙子",
+          "day": "辛卯",
+          "hour": "己丑"
+        },
+        "ming_gong": "戊辰",
+        "nayin": {
+          "year": "天上火",
+          "month": "涧下水",
+          "day": "松柏木",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丁丑",
+            "戊寅",
+            "己卯",
+            "庚辰",
+            "辛巳",
+            "壬午",
+            "癸未",
+            "甲申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "松柏木",
+          "hour": "霹雳火",
+          "month": "涧下水",
+          "year": "天上火"
+        },
+        "pillars": {
+          "day": "辛卯",
+          "hour": "己丑",
+          "month": "丙子",
+          "year": "己未"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "disputed_2005",
+      "scope": "upstream_disputed",
+      "term": "",
+      "input": {
+        "year": 2005,
+        "month": 12,
+        "day": 23,
+        "hour": 8,
+        "minute": 37,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "乙酉",
+          "month": "戊子",
+          "day": "辛巳",
+          "hour": "壬辰"
+        },
+        "ming_gong": "己丑",
+        "nayin": {
+          "year": "泉中水",
+          "month": "霹雳火",
+          "day": "白蜡金",
+          "hour": "长流水"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "己丑",
+            "庚寅",
+            "辛卯",
+            "壬辰",
+            "癸巳",
+            "甲午",
+            "乙未",
+            "丙申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "白蜡金",
+          "hour": "长流水",
+          "month": "霹雳火",
+          "year": "井泉水"
+        },
+        "pillars": {
+          "day": "辛巳",
+          "hour": "壬辰",
+          "month": "戊子",
+          "year": "甲申"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_next_225959",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 22,
+        "minute": 59,
+        "second": 59,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "乙巳",
+          "hour": "丁亥"
+        },
+        "ming_gong": "丙子",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "覆灯火",
+          "hour": "屋上土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "屋上土",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丁亥",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_next_230000",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 23,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "丙午",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "天河水",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_next_235959",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 23,
+        "minute": 59,
+        "second": 59,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "丙午",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "天河水",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_next_000000",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 11,
+        "hour": 0,
+        "minute": 0,
+        "second": 0,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "丙午",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "天河水",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_same_225959",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 22,
+        "minute": 59,
+        "second": 59,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_same_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_same_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "乙巳",
+          "hour": "丁亥"
+        },
+        "ming_gong": "丙子",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "覆灯火",
+          "hour": "屋上土"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "屋上土",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丁亥",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_same_230000",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 23,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_same_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_same_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "乙巳",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "覆灯火",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_same_235959",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 10,
+        "hour": 23,
+        "minute": 59,
+        "second": 59,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_same_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_same_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "乙巳",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "覆灯火",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "zi_same_000000",
+      "scope": "lunar_js_zi_boundary",
+      "term": "",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 11,
+        "hour": 0,
+        "minute": 0,
+        "second": 0,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_same_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_same_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "丙午",
+          "hour": "戊子"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "天河水",
+          "hour": "霹雳火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天河水",
+          "hour": "霹雳火",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "丙午",
+          "hour": "戊子",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_1902_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 1902,
+        "month": 2,
+        "day": 5,
+        "hour": 1,
+        "minute": 38,
+        "second": 9,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "辛丑",
+          "month": "辛丑",
+          "day": "己未",
+          "hour": "乙丑"
+        },
+        "ming_gong": "辛卯",
+        "nayin": {
+          "year": "壁上土",
+          "month": "壁上土",
+          "day": "天上火",
+          "hour": "海中金"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "庚子",
+            "己亥",
+            "戊戌",
+            "丁酉",
+            "丙申",
+            "乙未",
+            "甲午",
+            "癸巳"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天上火",
+          "hour": "海中金",
+          "month": "金箔金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "己未",
+          "hour": "乙丑",
+          "month": "壬寅",
+          "year": "壬寅"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_1902_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 1902,
+        "month": 2,
+        "day": 5,
+        "hour": 1,
+        "minute": 38,
+        "second": 10,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "壬寅",
+          "month": "壬寅",
+          "day": "己未",
+          "hour": "乙丑"
+        },
+        "ming_gong": "壬寅",
+        "nayin": {
+          "year": "金箔金",
+          "month": "金箔金",
+          "day": "天上火",
+          "hour": "海中金"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "癸卯",
+            "甲辰",
+            "乙巳",
+            "丙午",
+            "丁未",
+            "戊申",
+            "己酉",
+            "庚戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "天上火",
+          "hour": "海中金",
+          "month": "金箔金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "己未",
+          "hour": "乙丑",
+          "month": "壬寅",
+          "year": "壬寅"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_2026_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2026,
+        "month": 2,
+        "day": 4,
+        "hour": 4,
+        "minute": 2,
+        "second": 7,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "乙巳",
+          "month": "己丑",
+          "day": "己酉",
+          "hour": "丙寅"
+        },
+        "ming_gong": "戊寅",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "霹雳火",
+          "day": "大驿土",
+          "hour": "炉中火"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "庚寅",
+            "辛卯",
+            "壬辰",
+            "癸巳",
+            "甲午",
+            "乙未",
+            "丙申",
+            "丁酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大驿土",
+          "hour": "炉中火",
+          "month": "松柏木",
+          "year": "天河水"
+        },
+        "pillars": {
+          "day": "己酉",
+          "hour": "丙寅",
+          "month": "庚寅",
+          "year": "丙午"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_2026_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2026,
+        "month": 2,
+        "day": 4,
+        "hour": 4,
+        "minute": 2,
+        "second": 8,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "丙午",
+          "month": "庚寅",
+          "day": "己酉",
+          "hour": "丙寅"
+        },
+        "ming_gong": "辛丑",
+        "nayin": {
+          "year": "天河水",
+          "month": "松柏木",
+          "day": "大驿土",
+          "hour": "炉中火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己丑",
+            "戊子",
+            "丁亥",
+            "丙戌",
+            "乙酉",
+            "甲申",
+            "癸未",
+            "壬午"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大驿土",
+          "hour": "炉中火",
+          "month": "松柏木",
+          "year": "天河水"
+        },
+        "pillars": {
+          "day": "己酉",
+          "hour": "丙寅",
+          "month": "庚寅",
+          "year": "丙午"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_2099_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2099,
+        "month": 2,
+        "day": 3,
+        "hour": 21,
+        "minute": 9,
+        "second": 28,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "戊午",
+          "month": "乙丑",
+          "day": "辛未",
+          "hour": "己亥"
+        },
+        "ming_gong": "丁巳",
+        "nayin": {
+          "year": "天上火",
+          "month": "海中金",
+          "day": "路旁土",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丙寅",
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "路旁土",
+          "hour": "平地木",
+          "month": "炉中火",
+          "year": "天上火"
+        },
+        "pillars": {
+          "day": "辛未",
+          "hour": "己亥",
+          "month": "丙寅",
+          "year": "己未"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_2099_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2099,
+        "month": 2,
+        "day": 3,
+        "hour": 21,
+        "minute": 9,
+        "second": 29,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "己未",
+          "month": "丙寅",
+          "day": "辛未",
+          "hour": "己亥"
+        },
+        "ming_gong": "戊辰",
+        "nayin": {
+          "year": "天上火",
+          "month": "炉中火",
+          "day": "路旁土",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申",
+            "己未",
+            "戊午"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "路旁土",
+          "hour": "平地木",
+          "month": "炉中火",
+          "year": "天上火"
+        },
+        "pillars": {
+          "day": "辛未",
+          "hour": "己亥",
+          "month": "丙寅",
+          "year": "己未"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "xiaohan_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "小寒",
+      "input": {
+        "year": 2024,
+        "month": 1,
+        "day": 6,
+        "hour": 4,
+        "minute": 49,
+        "second": 21,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "癸卯",
+          "month": "甲子",
+          "day": "己巳",
+          "hour": "丙寅"
+        },
+        "ming_gong": "乙卯",
+        "nayin": {
+          "year": "金箔金",
+          "month": "海中金",
+          "day": "大林木",
+          "hour": "炉中火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申",
+            "己未",
+            "戊午",
+            "丁巳",
+            "丙辰"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "炉中火",
+          "month": "海中金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "己巳",
+          "hour": "丙寅",
+          "month": "乙丑",
+          "year": "癸卯"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "xiaohan_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "小寒",
+      "input": {
+        "year": 2024,
+        "month": 1,
+        "day": 6,
+        "hour": 4,
+        "minute": 49,
+        "second": 22,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "癸卯",
+          "month": "乙丑",
+          "day": "己巳",
+          "hour": "丙寅"
+        },
+        "ming_gong": "甲寅",
+        "nayin": {
+          "year": "金箔金",
+          "month": "海中金",
+          "day": "大林木",
+          "hour": "炉中火"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申",
+            "己未",
+            "戊午",
+            "丁巳"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "炉中火",
+          "month": "海中金",
+          "year": "金箔金"
+        },
+        "pillars": {
+          "day": "己巳",
+          "hour": "丙寅",
+          "month": "乙丑",
+          "year": "癸卯"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2024,
+        "month": 2,
+        "day": 4,
+        "hour": 16,
+        "minute": 27,
+        "second": 6,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "癸卯",
+          "month": "乙丑",
+          "day": "戊戌",
+          "hour": "庚申"
+        },
+        "ming_gong": "庚申",
+        "nayin": {
+          "year": "金箔金",
+          "month": "海中金",
+          "day": "平地木",
+          "hour": "石榴木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丙寅",
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "石榴木",
+          "month": "炉中火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊戌",
+          "hour": "庚申",
+          "month": "丙寅",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lichun_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立春",
+      "input": {
+        "year": 2024,
+        "month": 2,
+        "day": 4,
+        "hour": 16,
+        "minute": 27,
+        "second": 7,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丙寅",
+          "day": "戊戌",
+          "hour": "庚申"
+        },
+        "ming_gong": "辛未",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "炉中火",
+          "day": "平地木",
+          "hour": "石榴木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申",
+            "己未",
+            "戊午"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "石榴木",
+          "month": "炉中火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊戌",
+          "hour": "庚申",
+          "month": "丙寅",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "jingzhe_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "惊蛰",
+      "input": {
+        "year": 2024,
+        "month": 3,
+        "day": 5,
+        "hour": 10,
+        "minute": 22,
+        "second": 44,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丙寅",
+          "day": "戊辰",
+          "hour": "丁巳"
+        },
+        "ming_gong": "甲戌",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "炉中火",
+          "day": "大林木",
+          "hour": "沙中土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丁卯",
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "砂中土",
+          "month": "炉中火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊辰",
+          "hour": "丁巳",
+          "month": "丁卯",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "jingzhe_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "惊蛰",
+      "input": {
+        "year": 2024,
+        "month": 3,
+        "day": 5,
+        "hour": 10,
+        "minute": 22,
+        "second": 45,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丁卯",
+          "day": "戊辰",
+          "hour": "丁巳"
+        },
+        "ming_gong": "癸酉",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "炉中火",
+          "day": "大林木",
+          "hour": "沙中土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "戊辰",
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "砂中土",
+          "month": "炉中火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊辰",
+          "hour": "丁巳",
+          "month": "丁卯",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "qingming_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "清明",
+      "input": {
+        "year": 2024,
+        "month": 4,
+        "day": 4,
+        "hour": 15,
+        "minute": 2,
+        "second": 16,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丁卯",
+          "day": "戊戌",
+          "hour": "庚申"
+        },
+        "ming_gong": "庚午",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "炉中火",
+          "day": "平地木",
+          "hour": "石榴木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申",
+            "己未"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "石榴木",
+          "month": "大林木",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊戌",
+          "hour": "庚申",
+          "month": "戊辰",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "qingming_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "清明",
+      "input": {
+        "year": 2024,
+        "month": 4,
+        "day": 4,
+        "hour": 15,
+        "minute": 2,
+        "second": 17,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "戊辰",
+          "day": "戊戌",
+          "hour": "庚申"
+        },
+        "ming_gong": "己巳",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "大林木",
+          "day": "平地木",
+          "hour": "石榴木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉",
+            "庚申"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "平地木",
+          "hour": "石榴木",
+          "month": "大林木",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "戊戌",
+          "hour": "庚申",
+          "month": "戊辰",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lixia_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立夏",
+      "input": {
+        "year": 2024,
+        "month": 5,
+        "day": 5,
+        "hour": 8,
+        "minute": 10,
+        "second": 4,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "戊辰",
+          "day": "己巳",
+          "hour": "戊辰"
+        },
+        "ming_gong": "癸酉",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "大林木",
+          "day": "大林木",
+          "hour": "大林木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "己巳",
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "大林木",
+          "month": "大林木",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "己巳",
+          "hour": "戊辰",
+          "month": "己巳",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lixia_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立夏",
+      "input": {
+        "year": 2024,
+        "month": 5,
+        "day": 5,
+        "hour": 8,
+        "minute": 10,
+        "second": 5,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "己巳",
+          "day": "己巳",
+          "hour": "戊辰"
+        },
+        "ming_gong": "壬申",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "大林木",
+          "day": "大林木",
+          "hour": "大林木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "庚午",
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "大林木",
+          "hour": "大林木",
+          "month": "大林木",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "己巳",
+          "hour": "戊辰",
+          "month": "己巳",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "mangzhong_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "芒种",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 5,
+        "hour": 12,
+        "minute": 9,
+        "second": 53,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "己巳",
+          "day": "庚子",
+          "hour": "壬午"
+        },
+        "ming_gong": "庚午",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "大林木",
+          "day": "壁上土",
+          "hour": "杨柳木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌",
+            "辛酉"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "壁上土",
+          "hour": "杨柳木",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "庚子",
+          "hour": "壬午",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "mangzhong_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "芒种",
+      "input": {
+        "year": 2024,
+        "month": 6,
+        "day": 5,
+        "hour": 12,
+        "minute": 9,
+        "second": 54,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "庚子",
+          "hour": "壬午"
+        },
+        "ming_gong": "己巳",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "壁上土",
+          "hour": "杨柳木"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥",
+            "壬戌"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "壁上土",
+          "hour": "杨柳木",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "庚子",
+          "hour": "壬午",
+          "month": "庚午",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "xiaoshu_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "小暑",
+      "input": {
+        "year": 2024,
+        "month": 7,
+        "day": 6,
+        "hour": 22,
+        "minute": 20,
+        "second": 2,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "庚午",
+          "day": "辛未",
+          "hour": "己亥"
+        },
+        "ming_gong": "丙子",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "路旁土",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "辛未",
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "路旁土",
+          "hour": "平地木",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "辛未",
+          "hour": "己亥",
+          "month": "辛未",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "xiaoshu_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "小暑",
+      "input": {
+        "year": 2024,
+        "month": 7,
+        "day": 6,
+        "hour": 22,
+        "minute": 20,
+        "second": 3,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "辛未",
+          "day": "辛未",
+          "hour": "己亥"
+        },
+        "ming_gong": "乙亥",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "路旁土",
+          "hour": "平地木"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "壬申",
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "路旁土",
+          "hour": "平地木",
+          "month": "路旁土",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "辛未",
+          "hour": "己亥",
+          "month": "辛未",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "liqiu_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立秋",
+      "input": {
+        "year": 2024,
+        "month": 8,
+        "day": 7,
+        "hour": 8,
+        "minute": 9,
+        "second": 15,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "辛未",
+          "day": "癸卯",
+          "hour": "丙辰"
+        },
+        "ming_gong": "庚午",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "路旁土",
+          "day": "金箔金",
+          "hour": "沙中土"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子",
+            "癸亥"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "金箔金",
+          "hour": "砂中土",
+          "month": "剑锋金",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "癸卯",
+          "hour": "丙辰",
+          "month": "壬申",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "liqiu_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立秋",
+      "input": {
+        "year": 2024,
+        "month": 8,
+        "day": 7,
+        "hour": 8,
+        "minute": 9,
+        "second": 16,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "壬申",
+          "day": "癸卯",
+          "hour": "丙辰"
+        },
+        "ming_gong": "己巳",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "剑锋金",
+          "day": "金箔金",
+          "hour": "沙中土"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑",
+            "甲子"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "金箔金",
+          "hour": "砂中土",
+          "month": "剑锋金",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "癸卯",
+          "hour": "丙辰",
+          "month": "壬申",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "bailu_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "白露",
+      "input": {
+        "year": 2024,
+        "month": 9,
+        "day": 7,
+        "hour": 11,
+        "minute": 11,
+        "second": 19,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "壬申",
+          "day": "甲戌",
+          "hour": "庚午"
+        },
+        "ming_gong": "丁卯",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "剑锋金",
+          "day": "山头火",
+          "hour": "路旁土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "癸酉",
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯",
+            "庚辰"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "路旁土",
+          "month": "剑锋金",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "甲戌",
+          "hour": "庚午",
+          "month": "癸酉",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "bailu_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "白露",
+      "input": {
+        "year": 2024,
+        "month": 9,
+        "day": 7,
+        "hour": 11,
+        "minute": 11,
+        "second": 20,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "癸酉",
+          "day": "甲戌",
+          "hour": "庚午"
+        },
+        "ming_gong": "丙寅",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "剑锋金",
+          "day": "山头火",
+          "hour": "路旁土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "甲戌",
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯",
+            "庚辰",
+            "辛巳"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "路旁土",
+          "month": "剑锋金",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "甲戌",
+          "hour": "庚午",
+          "month": "癸酉",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "hanlu_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "寒露",
+      "input": {
+        "year": 2024,
+        "month": 10,
+        "day": 8,
+        "hour": 2,
+        "minute": 59,
+        "second": 56,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "癸酉",
+          "day": "乙巳",
+          "hour": "丁丑"
+        },
+        "ming_gong": "辛未",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "剑锋金",
+          "day": "覆灯火",
+          "hour": "涧下水"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "壬申",
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅",
+            "乙丑"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "涧下水",
+          "month": "山头火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丁丑",
+          "month": "甲戌",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "hanlu_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "寒露",
+      "input": {
+        "year": 2024,
+        "month": 10,
+        "day": 8,
+        "hour": 2,
+        "minute": 59,
+        "second": 57,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "甲戌",
+          "day": "乙巳",
+          "hour": "丁丑"
+        },
+        "ming_gong": "庚午",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "山头火",
+          "day": "覆灯火",
+          "hour": "涧下水"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "癸酉",
+            "壬申",
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯",
+            "丙寅"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "涧下水",
+          "month": "山头火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丁丑",
+          "month": "甲戌",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lidong_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立冬",
+      "input": {
+        "year": 2024,
+        "month": 11,
+        "day": 7,
+        "hour": 6,
+        "minute": 20,
+        "second": 3,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "甲戌",
+          "day": "乙亥",
+          "hour": "己卯"
+        },
+        "ming_gong": "戊辰",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "山头火",
+          "day": "山头火",
+          "hour": "城头土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "乙亥",
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯",
+            "庚辰",
+            "辛巳",
+            "壬午"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "城头土",
+          "month": "山头火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙亥",
+          "hour": "己卯",
+          "month": "乙亥",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "lidong_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "立冬",
+      "input": {
+        "year": 2024,
+        "month": 11,
+        "day": 7,
+        "hour": 6,
+        "minute": 20,
+        "second": 4,
+        "gender": "MALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "乙亥",
+          "day": "乙亥",
+          "hour": "己卯"
+        },
+        "ming_gong": "丁卯",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "山头火",
+          "day": "山头火",
+          "hour": "城头土"
+        },
+        "dayun": {
+          "direction": "forward",
+          "pillars": [
+            "丙子",
+            "丁丑",
+            "戊寅",
+            "己卯",
+            "庚辰",
+            "辛巳",
+            "壬午",
+            "癸未"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "山头火",
+          "hour": "城头土",
+          "month": "山头火",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙亥",
+          "hour": "己卯",
+          "month": "乙亥",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "daxue_before",
+      "scope": "lunar_js_jie_boundary",
+      "term": "大雪",
+      "input": {
+        "year": 2024,
+        "month": 12,
+        "day": 6,
+        "hour": 23,
+        "minute": 17,
+        "second": 2,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": false,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "乙亥",
+          "day": "乙巳",
+          "hour": "丙子"
+        },
+        "ming_gong": "庚午",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "山头火",
+          "day": "覆灯火",
+          "hour": "涧下水"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "甲戌",
+            "癸酉",
+            "壬申",
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰",
+            "丁卯"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "涧下水",
+          "month": "涧下水",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丙子",
+          "month": "丙子",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    },
+    {
+      "id": "daxue_at",
+      "scope": "lunar_js_jie_boundary",
+      "term": "大雪",
+      "input": {
+        "year": 2024,
+        "month": 12,
+        "day": 6,
+        "hour": 23,
+        "minute": 17,
+        "second": 3,
+        "gender": "FEMALE",
+        "zi_hour_policy": "late_zi_next_day"
+      },
+      "consensus": {
+        "pillars_agree": true,
+        "admitted": false
+      },
+      "lunar_javascript": {
+        "precision": "second_level_solar_terms",
+        "zi_hour_policy": "late_zi_next_day",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丙子",
+          "day": "乙巳",
+          "hour": "丙子"
+        },
+        "ming_gong": "己巳",
+        "nayin": {
+          "year": "覆灯火",
+          "month": "涧下水",
+          "day": "覆灯火",
+          "hour": "涧下水"
+        },
+        "dayun": {
+          "direction": "reverse",
+          "pillars": [
+            "乙亥",
+            "甲戌",
+            "癸酉",
+            "壬申",
+            "辛未",
+            "庚午",
+            "己巳",
+            "戊辰"
+          ]
+        }
+      },
+      "cnlunar": {
+        "nayin": {
+          "day": "覆灯火",
+          "hour": "涧下水",
+          "month": "涧下水",
+          "year": "覆灯火"
+        },
+        "pillars": {
+          "day": "乙巳",
+          "hour": "丙子",
+          "month": "丙子",
+          "year": "甲辰"
+        },
+        "precision": "day_level_solar_terms"
+      }
+    }
+  ]
+}

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
- * ScoreOrb — large central score with aurora halo and progress ring.
- * Score is 0-100. Color follows the active wuxing theme and brightens with score.
+ * ScoreOrb — central 0-100 structural index with a progress ring.
  */
 import { computed } from 'vue'
 
@@ -11,8 +10,8 @@ interface Props {
   caption?: string
 }
 const props = withDefaults(defineProps<Props>(), {
-  label: '综合评分',
-  caption: ''
+  label: '结构指数',
+  caption: '',
 })
 
 const clamped = computed(() => Math.max(0, Math.min(100, props.score)))
@@ -40,7 +39,7 @@ const tone = computed(() => {
     </svg>
     <div class="content">
       <span class="number tabular-nums" :style="{ color: tone }">{{ clamped }}</span>
-      <span class="unit">分</span>
+      <span class="unit">0-100</span>
       <span class="label">{{ label }}</span>
       <span v-if="caption" class="caption">{{ caption }}</span>
     </div>
@@ -59,8 +58,7 @@ const tone = computed(() => {
 .halo {
   position: absolute;
   inset: -30%;
-  background:
-    radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.32), transparent 70%);
+  background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.32), transparent 70%);
   filter: blur(20px);
   pointer-events: none;
   animation: pulse 5s ease-in-out infinite alternate;
@@ -129,14 +127,26 @@ const tone = computed(() => {
 }
 
 @keyframes pulse {
-  from { opacity: 0.6; transform: scale(1); }
-  to   { opacity: 1;   transform: scale(1.08); }
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.08);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .halo { animation: none; }
-  .ring-fill { transition: none; }
+  .halo {
+    animation: none;
+  }
+  .ring-fill {
+    transition: none;
+  }
 }
 
-.tabular-nums { font-variant-numeric: tabular-nums; }
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
 </style>

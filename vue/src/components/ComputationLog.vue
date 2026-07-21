@@ -6,8 +6,8 @@ interface ChartData {
   year_pillar?: { gan: string; zhi: string }
   month_pillar?: { gan: string; zhi: string }
   hour_pillar?: { gan: string; zhi: string }
-  wuxing_distribution?: Record<string, number>
-  yongshen?: string
+  five_elements?: Record<string, number>
+  body_strength?: { score_band_candidate?: string }
   [key: string]: any
 }
 
@@ -33,14 +33,17 @@ const logLines = computed(() => {
   const dayGan = chart?.day_pillar?.gan || '庚'
   const dayElement = ganElement[dayGan] || '金'
 
-  const wuxing = chart?.wuxing_distribution || { 金: 15, 木: 20, 水: 10, 火: 40, 土: 15 }
+  const wuxing = chart?.five_elements || {}
+  const bodyBand = chart?.body_strength?.score_band_candidate || '暂无'
+  const score = (element: string) =>
+    typeof wuxing[element] === 'number' ? String(wuxing[element]) : '—'
 
   const lines = [
-    `▶ 初始化天干地支五行矩阵... 成功`,
-    `▶ 正在检索生辰星历...`,
-    `▶ 正在分析日元强度：日主【${dayGan}${dayElement}】，生于当令之月`,
-    `▶ 正在计算五行损益比例：金 (${wuxing.金 || 15}%) | 木 (${wuxing.木 || 20}%) | 水 (${wuxing.水 || 10}%) | 火 (${wuxing.火 || 40}%) | 土 (${wuxing.土 || 15}%)`,
-    `✔ 命运解构完成。正在生成专属于您的因果律报告。`
+    `▶ 初始化干支与五行规则...`,
+    `▶ 正在计算四柱结构...`,
+    `▶ 日主【${dayGan}${dayElement}】；身强本地分段候选【${bodyBand}】`,
+    `▶ 原始五行计分：金 ${score('金')} | 木 ${score('木')} | 水 ${score('水')} | 火 ${score('火')} | 土 ${score('土')}`,
+    `✔ 命盘结构计算完成，正在载入证据明细。`
   ]
   return lines
 })
@@ -68,7 +71,7 @@ onMounted(() => {
   <div class="computation-log">
     <div class="log-header">
       <span class="log-dot animate-ping bg-cyan-400"></span>
-      <span class="log-title">命运引擎 · 推演算法</span>
+      <span class="log-title">命盘计算 · 结构证据</span>
     </div>
 
     <div class="log-terminal">

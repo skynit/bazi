@@ -1,0 +1,593 @@
+{
+  "version": "1.0",
+  "description": "Legacy Gregorian-date to four-pillar Gold candidates; quarantined pending independent source-location and calendar adjudication.",
+  "source": "知识库 /home/skynit/Uni/ming/mingli/03-技法体系/断命实例/ + 经典文献",
+  "metadata": {
+    "tier": "bronze",
+    "source_name": "legacy Gregorian date and classical pillar pairs",
+    "license": "unknown",
+    "confidence": 0,
+    "review_status": "quarantined",
+    "reviewers": [],
+    "purpose": "date_chart_gold_candidates",
+    "quarantine_reason": "Gregorian dates were attached to classical pillars without independently reviewed source locations; candidates must not enter Gold metrics."
+  },
+  "cases": [
+    {
+      "id": "date_case_001",
+      "legacy_id": "case_001",
+      "name": "甲木身旺用火泄（壬辰日主造）",
+      "source": "滴天髓阐微",
+      "year": 1952,
+      "month": 2,
+      "day": 15,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "壬辰",
+        "month_pillar": "壬寅",
+        "day_pillar": "甲寅",
+        "hour_pillar": "庚午"
+      }
+    },
+    {
+      "id": "date_case_002",
+      "legacy_id": "case_002",
+      "name": "癸水从旺格（满局金水）",
+      "source": "滴天髓阐微",
+      "year": 1933,
+      "month": 12,
+      "day": 10,
+      "hour": 18,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "癸酉",
+        "month_pillar": "甲子",
+        "day_pillar": "癸亥",
+        "hour_pillar": "辛酉"
+      }
+    },
+    {
+      "id": "date_case_003",
+      "legacy_id": "case_003",
+      "name": "乙木寒木喜阳（丙子日主造）",
+      "source": "滴天髓阐微",
+      "year": 1973,
+      "month": 11,
+      "day": 5,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "丙子",
+        "month_pillar": "己亥",
+        "day_pillar": "乙丑",
+        "hour_pillar": "壬午"
+      }
+    },
+    {
+      "id": "date_case_004",
+      "legacy_id": "case_004",
+      "name": "庚金从革格（行伍出身）",
+      "source": "滴天髓阐微",
+      "year": 1920,
+      "month": 9,
+      "day": 20,
+      "hour": 16,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚申",
+        "month_pillar": "乙酉",
+        "day_pillar": "庚戌",
+        "hour_pillar": "庚辰"
+      }
+    },
+    {
+      "id": "date_case_005",
+      "legacy_id": "case_005",
+      "name": "朱文公命（专禄格，化煞为权）",
+      "source": "三命通会",
+      "year": 1130,
+      "month": 10,
+      "day": 18,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚戌",
+        "month_pillar": "丙戌",
+        "day_pillar": "甲寅",
+        "hour_pillar": "庚午"
+      }
+    },
+    {
+      "id": "date_case_006",
+      "legacy_id": "case_006",
+      "name": "丙火夏月用壬",
+      "source": "穷通宝鉴",
+      "year": 1967,
+      "month": 6,
+      "day": 20,
+      "hour": 14,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "丁未",
+        "month_pillar": "乙未",
+        "day_pillar": "丙午",
+        "hour_pillar": "丁未"
+      }
+    },
+    {
+      "id": "date_case_007",
+      "legacy_id": "case_007",
+      "name": "丁火冬月用甲",
+      "source": "穷通宝鉴",
+      "year": 1985,
+      "month": 12,
+      "day": 15,
+      "hour": 6,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙丑",
+        "month_pillar": "戊子",
+        "day_pillar": "丁丑",
+        "hour_pillar": "乙卯"
+      }
+    },
+    {
+      "id": "date_case_008",
+      "legacy_id": "case_008",
+      "name": "戊土四季用丙",
+      "source": "穷通宝鉴",
+      "year": 1990,
+      "month": 3,
+      "day": 25,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚午",
+        "month_pillar": "己卯",
+        "day_pillar": "戊辰",
+        "hour_pillar": "丁巳"
+      }
+    },
+    {
+      "id": "date_case_009",
+      "legacy_id": "case_009",
+      "name": "己土夏月用癸",
+      "source": "穷通宝鉴",
+      "year": 1991,
+      "month": 6,
+      "day": 18,
+      "hour": 16,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "辛未",
+        "month_pillar": "乙未",
+        "day_pillar": "己酉",
+        "hour_pillar": "壬申"
+      }
+    },
+    {
+      "id": "date_case_010",
+      "legacy_id": "case_010",
+      "name": "庚金秋月用丁",
+      "source": "穷通宝鉴",
+      "year": 1980,
+      "month": 9,
+      "day": 10,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚申",
+        "month_pillar": "乙酉",
+        "day_pillar": "庚辰",
+        "hour_pillar": "癸未"
+      }
+    },
+    {
+      "id": "date_case_011",
+      "legacy_id": "case_011",
+      "name": "辛金冬月用壬",
+      "source": "穷通宝鉴",
+      "year": 1986,
+      "month": 11,
+      "day": 20,
+      "hour": 8,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "丙寅",
+        "month_pillar": "庚子",
+        "day_pillar": "辛丑",
+        "hour_pillar": "壬辰"
+      }
+    },
+    {
+      "id": "date_case_012",
+      "legacy_id": "case_012",
+      "name": "壬水冬月用戊",
+      "source": "穷通宝鉴",
+      "year": 1989,
+      "month": 12,
+      "day": 8,
+      "hour": 22,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "己酉",
+        "month_pillar": "乙丑",
+        "day_pillar": "壬戌",
+        "hour_pillar": "庚子"
+      }
+    },
+    {
+      "id": "date_case_013",
+      "legacy_id": "case_013",
+      "name": "癸水秋月用辛",
+      "source": "穷通宝鉴",
+      "year": 1992,
+      "month": 8,
+      "day": 15,
+      "hour": 16,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "壬申",
+        "month_pillar": "丁未",
+        "day_pillar": "癸卯",
+        "hour_pillar": "辛酉"
+      }
+    },
+    {
+      "id": "date_case_014",
+      "legacy_id": "case_014",
+      "name": "甲木春月用庚",
+      "source": "穷通宝鉴",
+      "year": 1985,
+      "month": 3,
+      "day": 20,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙丑",
+        "month_pillar": "己卯",
+        "day_pillar": "甲申",
+        "hour_pillar": "己巳"
+      }
+    },
+    {
+      "id": "date_case_015",
+      "legacy_id": "case_015",
+      "name": "乙木春月用丙",
+      "source": "穷通宝鉴",
+      "year": 1990,
+      "month": 2,
+      "day": 15,
+      "hour": 8,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "庚午",
+        "month_pillar": "戊寅",
+        "day_pillar": "乙未",
+        "hour_pillar": "庚辰"
+      }
+    },
+    {
+      "id": "date_case_016",
+      "legacy_id": "case_016",
+      "name": "丙火春月用壬",
+      "source": "穷通宝鉴",
+      "year": 1988,
+      "month": 3,
+      "day": 10,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "戊辰",
+        "month_pillar": "丙辰",
+        "day_pillar": "丙午",
+        "hour_pillar": "甲午"
+      }
+    },
+    {
+      "id": "date_case_017",
+      "legacy_id": "case_017",
+      "name": "正官格（女命夫星）",
+      "source": "子平真诠",
+      "year": 1990,
+      "month": 8,
+      "day": 5,
+      "hour": 14,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "庚午",
+        "month_pillar": "甲申",
+        "day_pillar": "辛巳",
+        "hour_pillar": "丙申"
+      }
+    },
+    {
+      "id": "date_case_018",
+      "legacy_id": "case_018",
+      "name": "食神制杀格",
+      "source": "子平真诠",
+      "year": 1985,
+      "month": 5,
+      "day": 20,
+      "hour": 18,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙丑",
+        "month_pillar": "壬午",
+        "day_pillar": "戊申",
+        "hour_pillar": "辛酉"
+      }
+    },
+    {
+      "id": "date_case_019",
+      "legacy_id": "case_019",
+      "name": "伤官配印格",
+      "source": "子平真诠",
+      "year": 1982,
+      "month": 7,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "壬戌",
+        "month_pillar": "庚申",
+        "day_pillar": "癸亥",
+        "hour_pillar": "丙辰"
+      }
+    },
+    {
+      "id": "date_case_020",
+      "legacy_id": "case_020",
+      "name": "财滋杀旺格",
+      "source": "子平真诠",
+      "year": 1980,
+      "month": 6,
+      "day": 18,
+      "hour": 16,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚申",
+        "month_pillar": "癸未",
+        "day_pillar": "甲申",
+        "hour_pillar": "壬申"
+      }
+    },
+    {
+      "id": "date_case_021",
+      "legacy_id": "case_021",
+      "name": "比劫帮身格",
+      "source": "子平真诠",
+      "year": 1988,
+      "month": 10,
+      "day": 10,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "戊辰",
+        "month_pillar": "癸亥",
+        "day_pillar": "乙卯",
+        "hour_pillar": "壬午"
+      }
+    },
+    {
+      "id": "date_case_022",
+      "legacy_id": "case_022",
+      "name": "印绶当权格",
+      "source": "子平真诠",
+      "year": 1975,
+      "month": 12,
+      "day": 25,
+      "hour": 6,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙卯",
+        "month_pillar": "戊子",
+        "day_pillar": "辛亥",
+        "hour_pillar": "辛丑"
+      }
+    },
+    {
+      "id": "date_case_023",
+      "legacy_id": "case_023",
+      "name": "建禄格",
+      "source": "渊海子平",
+      "year": 1985,
+      "month": 2,
+      "day": 20,
+      "hour": 8,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙丑",
+        "month_pillar": "戊寅",
+        "day_pillar": "甲子",
+        "hour_pillar": "丙寅"
+      }
+    },
+    {
+      "id": "date_case_024",
+      "legacy_id": "case_024",
+      "name": "羊刃格",
+      "source": "渊海子平",
+      "year": 1980,
+      "month": 10,
+      "day": 15,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚申",
+        "month_pillar": "丙戌",
+        "day_pillar": "戊午",
+        "hour_pillar": "辛酉"
+      }
+    },
+    {
+      "id": "date_case_025",
+      "legacy_id": "case_025",
+      "name": "日禄归时格",
+      "source": "渊海子平",
+      "year": 1982,
+      "month": 5,
+      "day": 10,
+      "hour": 14,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "壬戌",
+        "month_pillar": "丙午",
+        "day_pillar": "丁未",
+        "hour_pillar": "丁未"
+      }
+    },
+    {
+      "id": "date_case_026",
+      "legacy_id": "case_026",
+      "name": "正印格（学业）",
+      "source": "子平真诠",
+      "year": 1995,
+      "month": 2,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "乙亥",
+        "month_pillar": "戊寅",
+        "day_pillar": "己亥",
+        "hour_pillar": "丙寅"
+      }
+    },
+    {
+      "id": "date_case_027",
+      "legacy_id": "case_027",
+      "name": "偏印格（继母/学业偏才）",
+      "source": "子平真诠",
+      "year": 1988,
+      "month": 8,
+      "day": 20,
+      "hour": 18,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "戊辰",
+        "month_pillar": "庚申",
+        "day_pillar": "壬申",
+        "hour_pillar": "庚戌"
+      }
+    },
+    {
+      "id": "date_case_028",
+      "legacy_id": "case_028",
+      "name": "正财格（男命妻星）",
+      "source": "子平真诠",
+      "year": 1990,
+      "month": 3,
+      "day": 15,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "庚午",
+        "month_pillar": "己卯",
+        "day_pillar": "乙酉",
+        "hour_pillar": "己卯"
+      }
+    },
+    {
+      "id": "date_case_029",
+      "legacy_id": "case_029",
+      "name": "偏财格（父星/横财）",
+      "source": "子平宝鉴",
+      "year": 1985,
+      "month": 6,
+      "day": 10,
+      "hour": 12,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "乙丑",
+        "month_pillar": "癸未",
+        "day_pillar": "丁卯",
+        "hour_pillar": "丙午"
+      }
+    },
+    {
+      "id": "date_case_030",
+      "legacy_id": "case_030",
+      "name": "食神生财格",
+      "source": "子平真诠",
+      "year": 1992,
+      "month": 11,
+      "day": 20,
+      "hour": 8,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "壬申",
+        "month_pillar": "辛亥",
+        "day_pillar": "戊子",
+        "hour_pillar": "乙卯"
+      }
+    },
+    {
+      "id": "date_case_031",
+      "legacy_id": "case_031",
+      "name": "正官佩印格",
+      "source": "子平真诠",
+      "year": 1986,
+      "month": 3,
+      "day": 25,
+      "hour": 10,
+      "minute": 0,
+      "gender": "MALE",
+      "expected": {
+        "year_pillar": "丙寅",
+        "month_pillar": "辛卯",
+        "day_pillar": "庚寅",
+        "hour_pillar": "戊寅"
+      }
+    },
+    {
+      "id": "date_case_032",
+      "legacy_id": "case_032",
+      "name": "金神格",
+      "source": "渊海子平",
+      "year": 1993,
+      "month": 6,
+      "day": 8,
+      "hour": 4,
+      "minute": 0,
+      "gender": "FEMALE",
+      "expected": {
+        "year_pillar": "癸酉",
+        "month_pillar": "己未",
+        "day_pillar": "乙酉",
+        "hour_pillar": "己卯"
+      }
+    }
+  ]
+}

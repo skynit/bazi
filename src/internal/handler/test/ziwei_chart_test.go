@@ -9,6 +9,7 @@ import (
 
 	"bazi/internal/middleware"
 	"bazi/internal/model"
+	"bazi/internal/service/bazi"
 	"bazi/internal/service/ziwei"
 
 	"github.com/gin-gonic/gin"
@@ -60,7 +61,17 @@ func TestZiWeiChart_Success(t *testing.T) {
 	}
 
 	var resp struct {
-		Palaces []struct {
+		ProfileID          string                      `json:"profile_id"`
+		EngineVersion      string                      `json:"engine_version"`
+		RuleVersion        string                      `json:"rule_version"`
+		RuleSchool         string                      `json:"rule_school"`
+		RuleSources        []ziwei.RuleSourceRef       `json:"rule_sources"`
+		PluginManifest     []ziwei.PluginRequirement   `json:"plugin_manifest"`
+		PluginManifestHash string                      `json:"plugin_manifest_hash"`
+		CalculationInput   ziwei.ZiWeiCalculationInput `json:"calculation_input"`
+		InputFingerprint   string                      `json:"input_fingerprint"`
+		ContentHash        string                      `json:"content_hash"`
+		Palaces            []struct {
 			Name   string `json:"name"`
 			Branch string `json:"branch"`
 		} `json:"palaces"`
@@ -74,6 +85,11 @@ func TestZiWeiChart_Success(t *testing.T) {
 
 	if len(resp.Palaces) != 12 {
 		t.Errorf("expected 12 palaces, got %d", len(resp.Palaces))
+	}
+	if len(resp.RuleSources) != 4 || resp.RuleSources[0].RuleID != ziwei.SiHuaRuleID || resp.RuleSources[0].Commit != ziwei.SiHuaSourceCommit ||
+		resp.RuleSources[1].RuleID != ziwei.StarBrightnessRuleID || resp.RuleSources[2].RuleID != ziwei.PeriodChronologyRuleID ||
+		resp.RuleSources[3].RuleID != ziwei.TransitStarsRuleID {
+		t.Fatalf("missing pinned four-hua source: %+v", resp.RuleSources)
 	}
 
 	for i, p := range resp.Palaces {
@@ -94,6 +110,91 @@ func TestZiWeiChart_Success(t *testing.T) {
 	}
 	if resp.EarthlyBranchOfBodyPalace == "" {
 		t.Error("EarthlyBranchOfBodyPalace is empty")
+	}
+	if resp.ProfileID != ziwei.DefaultProfileID || resp.EngineVersion != ziwei.ZiWeiEngineVersion ||
+		resp.RuleVersion != ziwei.ZiWeiRuleVersion || resp.RuleSchool != ziwei.ZiWeiRuleSchool {
+		t.Fatalf("unexpected reproducibility metadata: %+v", resp)
+	}
+	if len(resp.PluginManifest) != 0 || len(resp.PluginManifestHash) != 64 {
+		t.Fatalf("unexpected plugin contract: %+v hash=%q", resp.PluginManifest, resp.PluginManifestHash)
+	}
+	if len(resp.InputFingerprint) != 64 || len(resp.ContentHash) != 64 {
+		t.Fatalf("unexpected cache contract: input=%q content=%q", resp.InputFingerprint, resp.ContentHash)
+	}
+	if resp.CalculationInput.CalendarType != "SOLAR" || resp.CalculationInput.Basis != "normalized_solar_minute" {
+		t.Fatalf("unexpected calculation input: %+v", resp.CalculationInput)
+	}
+}
+
+func TestZiWeiChart_DirectLunarRequestUsesNormalizedSolarInput(t *testing.T) {
+	expected, err := bazi.NormalizeBirthInput(bazi.BirthInput{
+		Year: 2024, Month: 1, Day: 1, Hour: 8, Minute: 30,
+		CalendarType: model.CalendarLunar, Gender: model.GenderMale,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	router := setupZiWeiRouter()
+	token := getValidJWT(t)
+	body := jsonBody(t, map[string]interface{}{
+		"birth_year": 2024, "birth_month": 1, "birth_day": 1,
+		"birth_hour": 8, "birth_min": 30, "calendar_type": model.CalendarLunar,
+		"gender": "男",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/ziwei/chart", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, req)
+	if response.Code != http.StatusOK {
+		t.Fatalf("lunar chart request failed: %d %s", response.Code, response.Body.String())
+	}
+	var payload struct {
+		CalculationInput ziwei.ZiWeiCalculationInput `json:"calculation_input"`
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+	got := payload.CalculationInput
+	if got.Year != expected.Year || got.Month != expected.Month || got.Day != expected.Day ||
+		got.Hour != expected.Hour || got.Minute != expected.Minute || got.Gender != "男" {
+		t.Fatalf("calculation input = %+v, normalized request = %+v", got, expected)
+	}
+}
+
+func TestZiWeiChart_RejectsIgnoredAlgorithmParameter(t *testing.T) {
+	router := setupZiWeiRouter()
+	token := getValidJWT(t)
+	body := jsonBody(t, map[string]interface{}{
+		"birth_year": 1984, "birth_month": 2, "birth_day": 15, "birth_hour": 8,
+		"gender": "男", "algorithm": "zhongzhou",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/ziwei/chart", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestZiWeiChart_RejectsUnknownProfile(t *testing.T) {
+	router := setupZiWeiRouter()
+	token := getValidJWT(t)
+	body := jsonBody(t, map[string]interface{}{
+		"birth_year": 1984, "birth_month": 2, "birth_day": 15, "birth_hour": 8,
+		"gender": "男", "profile": "ziwei-unknown-v1",
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/ziwei/chart", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d: %s", w.Code, w.Body.String())
 	}
 }
 

@@ -16,8 +16,6 @@ import { submitFeedback, type FeedbackRating } from '../api/feedback'
 
 const props = defineProps<{
   chartId?: number
-  engineVersion?: string
-  ruleVersion?: string
 }>()
 
 const focusOptions: Array<{ key: InterpretationFocus; label: string }> = [
@@ -32,6 +30,7 @@ const loading = ref(false)
 const error = ref('')
 const response = ref<BaziInterpretationResponse | null>(null)
 const expandedCitations = ref<number[]>([])
+const consentResearch = ref(false)
 const feedbackState = ref<
   Record<string, { rating?: FeedbackRating; loading?: boolean; error?: string }>
 >({})
@@ -90,10 +89,8 @@ async function sendSectionFeedback(sectionTitle: string, rating: FeedbackRating)
       target_id: key,
       rating,
       tags: [focus.value, sectionTitle],
-      consent_research: false,
+      consent_research: consentResearch.value,
       consent_training: false,
-      engine_version: props.engineVersion,
-      rule_version: props.ruleVersion,
     })
     feedbackState.value = {
       ...feedbackState.value,
@@ -181,6 +178,11 @@ const statusText = computed(() => {
     <div v-else-if="response" class="ai-body">
       <p class="ai-summary">{{ response.summary }}</p>
 
+      <label class="ai-research-consent">
+        <input v-model="consentResearch" type="checkbox" />
+        <span>允许将本次段落反馈用于内部解读准确性研究</span>
+      </label>
+
       <div class="ai-sections">
         <article v-for="section in response.sections" :key="section.title" class="ai-section">
           <div class="ai-section-head">
@@ -237,12 +239,28 @@ const statusText = computed(() => {
           <article v-for="citation in response.citations" :key="citation.id" class="ai-citation">
             <button class="ai-citation-head" @click="toggleCitation(citation.id)">
               <span class="ai-citation-book">{{ citation.book }}</span>
-              <span class="ai-citation-meta">{{ citation.chapter }}</span>
+              <span class="ai-citation-meta">
+                {{ citation.chapter }} · {{ citation.page || citation.locator || '定位缺失' }}
+              </span>
               <span class="ai-citation-score">{{ citation.score.toFixed(2) }}</span>
             </button>
             <div v-if="expandedCitations.includes(citation.id)" class="ai-citation-body">
+              <p class="ai-citation-path">{{ citation.author }} · {{ citation.edition }}</p>
               <p class="ai-citation-path">{{ citation.path }}</p>
+              <p class="ai-citation-path">
+                {{ citation.verification_status }} ·
+                {{ citation.claim_eligible ? '可用于声明证据' : '元数据不完整，仅供审计' }}
+              </p>
+              <p class="ai-citation-path">
+                {{ citation.artifact_kind }} · {{ citation.provenance_status }} ·
+                {{ citation.independence_status }} · {{ citation.coverage_status }}
+              </p>
+              <p class="ai-citation-path">
+                {{ citation.catalog_schema }} · {{ citation.catalog_version }}
+              </p>
               <p class="ai-citation-quote">{{ citation.quote }}</p>
+              <p class="ai-citation-hash">引文 SHA-256：{{ citation.quote_sha256 }}</p>
+              <p class="ai-citation-hash">目录 SHA-256：{{ citation.catalog_sha256 }}</p>
             </div>
           </article>
         </div>
@@ -441,6 +459,21 @@ const statusText = computed(() => {
   border-top: 1px solid var(--glass-border);
 }
 
+.ai-research-consent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.ai-research-consent input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
 .ai-feedback-label,
 .ai-feedback-note,
 .ai-feedback-error {
@@ -535,6 +568,13 @@ const statusText = computed(() => {
   font-size: var(--fs-sm);
   line-height: 1.65;
   color: var(--text-muted);
+}
+
+.ai-citation-hash {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
 }
 
 .spinning {

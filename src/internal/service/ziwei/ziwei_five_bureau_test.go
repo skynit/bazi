@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 )
+
 // ═══════════════════════════════════════════════════════════════════════
 // Five Bureau (五行局) Data Structure & Integrity Tests
 // ═══════════════════════════════════════════════════════════════════════
@@ -369,16 +370,16 @@ func TestFiveBureau_Integration_AdditionalCharts(t *testing.T) {
 				t.Errorf("FiveBureau = %q, should end with 局", chart.FiveBureau)
 			}
 
-			// Check JuValue is in valid range [2,6]
-			if chart.JuValue < 2 || chart.JuValue > 6 {
-				t.Errorf("JuValue = %d, want 2-6", chart.JuValue)
+			juValue, ok := FiveBureauValue[chart.FiveBureau]
+			if !ok || juValue < 2 || juValue > 6 {
+				t.Errorf("FiveBureau = %q has invalid bureau value %d/%t", chart.FiveBureau, juValue, ok)
 			}
 
-			// Verify FiveBureau string matches the internal JuValue
-			expectedName := FiveBureauName[chart.JuValue]
+			// Verify the public bureau name round-trips through the authority maps.
+			expectedName := FiveBureauName[juValue]
 			if chart.FiveBureau != expectedName {
-				t.Errorf("FiveBureau = %q, but JuValue=%d maps to %q",
-					chart.FiveBureau, chart.JuValue, expectedName)
+				t.Errorf("FiveBureau = %q, but bureau value=%d maps to %q",
+					chart.FiveBureau, juValue, expectedName)
 			}
 		})
 	}

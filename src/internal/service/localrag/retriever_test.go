@@ -43,9 +43,27 @@ func TestRetrieverFallsBackToLikeWithoutFTS(t *testing.T) {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		domain TEXT NOT NULL,
 		book TEXT NOT NULL,
+		author TEXT NOT NULL,
+		edition TEXT NOT NULL,
+		volume TEXT NOT NULL,
 		chapter TEXT NOT NULL,
+		page TEXT NOT NULL,
+		locator TEXT NOT NULL,
 		source_path TEXT NOT NULL,
 		title TEXT NOT NULL,
+		artifact_path TEXT NOT NULL,
+		artifact_sha256 TEXT NOT NULL,
+		document_sha256 TEXT NOT NULL,
+		source_tier TEXT NOT NULL,
+		verification_status TEXT NOT NULL,
+		artifact_kind TEXT NOT NULL,
+		provenance_status TEXT NOT NULL,
+		independence_status TEXT NOT NULL,
+		coverage_status TEXT NOT NULL,
+		catalog_claim_eligible INTEGER NOT NULL DEFAULT 0,
+		catalog_schema TEXT NOT NULL,
+		catalog_version TEXT NOT NULL,
+		catalog_sha256 TEXT NOT NULL,
 		content TEXT NOT NULL,
 		is_index INTEGER NOT NULL DEFAULT 0,
 		document_id TEXT NOT NULL
@@ -54,8 +72,18 @@ func TestRetrieverFallsBackToLikeWithoutFTS(t *testing.T) {
 		t.Fatalf("create chunks: %v", err)
 	}
 	_, err = db.Exec(`INSERT INTO chunks
-		(domain, book, chapter, source_path, title, content, is_index, document_id)
-		VALUES ('bazi', '子平真诠', '001', 'bazi/子平真诠/001.md', '论月令', '月令提纲，格局当以月令为主。', 0, 'bazi/子平真诠/001.md')`)
+		(domain, book, author, edition, volume, chapter, page, locator, source_path, title,
+			 artifact_path, artifact_sha256, document_sha256, source_tier, verification_status,
+			 artifact_kind, provenance_status, independence_status, coverage_status, catalog_claim_eligible,
+			 catalog_schema, catalog_version, catalog_sha256, content, is_index, document_id)
+		VALUES ('bazi', '子平真诠', 'unrecorded', 'unrecorded', '', '001', '', 'chapter:001',
+		'bazi/子平真诠/001.md', '论月令', '', '',
+		'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bronze_unverified',
+			'source_catalog_missing', 'unregistered', 'source_catalog_missing', 'unknown', 'unknown', 0,
+			'bazi_rag_source_catalog_v1', '2026-07-17.3',
+		'5a012c68833eaa1163a175f579833cca2337de2d7b22eeb2ec9ba396038059d5',
+		'月令提纲，格局当以月令为主。', 0,
+		'bazi/子平真诠/001.md')`)
 	if err != nil {
 		t.Fatalf("insert chunk: %v", err)
 	}

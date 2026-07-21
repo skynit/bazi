@@ -1,0 +1,229 @@
+{
+  "schema": "pattern_detector_profile_migration_ledger_v2",
+  "claim_boundary": "digest_evidence_only",
+  "chain_scheme": "pattern_detector_profile_migration_chain_v1",
+  "profile_sets": [
+    {
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23",
+      "detector_profiles": [
+        {
+          "rule_id": "pattern.aux.jinshen",
+          "algorithm_sha256": "326f3feb4586cd0bf618737a597807f1da18b0ce70dda666c6589203993597e6",
+          "behavior_sha256": "be71d3d52d03a913a3e2f8010c92480c2da401397c68d82fcdd4492881b2fe09",
+          "profile_sha256": "c09c584d0ae7e0b55e6167cae417f6f85c9f1a514978ff0640d9dde9c128f63e"
+        },
+        {
+          "rule_id": "pattern.aux.kuigang",
+          "algorithm_sha256": "552b8d2dd8cef0d7f5343638c4c07d870791a34283d50d6e7247e514334b4db6",
+          "behavior_sha256": "40f31c0dd264242bb03b8e13a1befab913faeddb75e40a4a11154e5c72f8bfe9",
+          "profile_sha256": "5473b6110b3cb1bfbc2570f000c6e84da7d1ad5a6738ef1f1ca462d4c40d8e02"
+        },
+        {
+          "rule_id": "pattern.aux.ride",
+          "algorithm_sha256": "a5d3c9dc5ca9dcc125898be9a7305c8f1b88da9dc31f32f39e250d9c092276b2",
+          "behavior_sha256": "7be77b6771f51945042d3fe7ddb0a305c8840147f89c97b84754d2dc67c65a1c",
+          "profile_sha256": "d6624103cfe639446158c5dfa6909f4979dc1b995a1da1b245acf1621431ab02"
+        },
+        {
+          "rule_id": "pattern.aux.sanqi",
+          "algorithm_sha256": "69f4d63d045612b192a7276e3951e04104eb6b4eb8431aea62f6b7a712eca25c",
+          "behavior_sha256": "7a9e9fb9f8a63f9bfd908c4b27187c8329e132cb63d410d371adc9b51de2348a",
+          "profile_sha256": "b54db26c03be56842109528860f258280937d5dafbaf5b5c5dd61cfbd6956028"
+        },
+        {
+          "rule_id": "pattern.lu.jianlu",
+          "algorithm_sha256": "a8ba8785978eecf10745ffbb81d86542f3a948ded86d569ca8ffc8ad565c603e",
+          "behavior_sha256": "d51707e2f5627ade0d053f10c9885eb7406e0b55defb6ea3b7ed6ad25c91a97b",
+          "profile_sha256": "29314b503c9d6b5dcd248121d9abb189ae5304e2984648299be0580bb04b5322"
+        },
+        {
+          "rule_id": "pattern.lu.riren",
+          "algorithm_sha256": "0f124e093fbc6009e6fadb279ae9020205493dd5e4b2e2d07a4fc8bfa5a8799d",
+          "behavior_sha256": "d3258cb7609e23df271a827467f048799339f31623a47949de1c55e1930cbc1b",
+          "profile_sha256": "bb3a422fa07b0661abac8c7925aaa039262f4a1a6e8cde0b1c6d5d20aa847983"
+        },
+        {
+          "rule_id": "pattern.lu.yueren",
+          "algorithm_sha256": "3955ef0ad0405984cbc41bb2a58571f9409b1a75a51ac00be88f1278ffa6fd28",
+          "behavior_sha256": "cb4d3b6db008d758dbefa4730bf876c8ec6edf82a116733ed3bcd8131b0a6df3",
+          "profile_sha256": "80c34b3028f8a9cb8b8dab004ee89fc9355ed2b8feb5b451c1113fe41d58f97e"
+        },
+        {
+          "rule_id": "pattern.lu.zhuanlu",
+          "algorithm_sha256": "4ac683a19f228d45b2acd2bdbe22b0c0ecd22d161f824295f6d1ca712a302067",
+          "behavior_sha256": "3e5fa70c2fb6805ecb5e4c0d57318242840866b2ee3b3bb7057fd6521deb4581",
+          "profile_sha256": "94f7305566788f872cbcceadd7aa62e15ab41d42421869026c509798ae256b2b"
+        },
+        {
+          "rule_id": "pattern.special.liangqi",
+          "algorithm_sha256": "a4feed92bef94cf35624c525895a9872e1014f59aa273dd1c69cace155fc9c23",
+          "behavior_sha256": "454a7144a3ec3f6fd6a5cf2a7e2f2af5ec668fcf02c513f5ecd833a09763b55e",
+          "profile_sha256": "20ed815f5411b2add63e4d98931f8f775b7af1b4f98a2b41f91a6b9feae9c610"
+        },
+        {
+          "rule_id": "pattern.special.zhuanwang",
+          "algorithm_sha256": "ef1fe91027ba0e0101789f43e2bef18f3f17fd273a4913ca88d980deee66e53f",
+          "behavior_sha256": "6193bc4d839aead50015b4ce6f155151e528437eb9fd269b7d49cb3657c235e7",
+          "profile_sha256": "daedf9a821d62349eadcaf07757cc678f86ff67f3adb76e966d3d8d3685cd57c"
+        }
+      ]
+    }
+  ],
+  "snapshots": [
+    {
+      "snapshot_id": "bazi.pattern-candidate-set-v30",
+      "engine_version": "bazi-engine-2026-07-17.23",
+      "rule_version": "bazi-rules-2026-07-17.23",
+      "rule_id": "bazi.pattern-candidate-set-v30",
+      "schema_version": "pattern-candidates-2026-07-17.23",
+      "detector_profile": "classical_structural_detectors_v41",
+      "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23"
+    },
+    {
+      "snapshot_id": "bazi.pattern-candidate-set-v31",
+      "engine_version": "bazi-engine-2026-07-17.24",
+      "rule_version": "bazi-rules-2026-07-17.24",
+      "rule_id": "bazi.pattern-candidate-set-v31",
+      "schema_version": "pattern-candidates-2026-07-17.24",
+      "detector_profile": "classical_structural_detectors_v42",
+      "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23"
+    },
+    {
+      "snapshot_id": "bazi.pattern-candidate-set-v32",
+      "engine_version": "bazi-engine-2026-07-17.25",
+      "rule_version": "bazi-rules-2026-07-17.25",
+      "rule_id": "bazi.pattern-candidate-set-v32",
+      "schema_version": "pattern-candidates-2026-07-17.25",
+      "detector_profile": "classical_structural_detectors_v43",
+      "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23"
+    },
+    {
+      "snapshot_id": "bazi.pattern-candidate-set-v33",
+      "engine_version": "bazi-engine-2026-07-17.26",
+      "rule_version": "bazi-rules-2026-07-17.26",
+      "rule_id": "bazi.pattern-candidate-set-v33",
+      "schema_version": "pattern-candidates-2026-07-17.26",
+      "detector_profile": "classical_structural_detectors_v44",
+      "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23"
+    },
+    {
+      "snapshot_id": "bazi.pattern-candidate-set-v34",
+      "engine_version": "bazi-engine-2026-07-17.27",
+      "rule_version": "bazi-rules-2026-07-17.27",
+      "rule_id": "bazi.pattern-candidate-set-v34",
+      "schema_version": "pattern-candidates-2026-07-17.27",
+      "detector_profile": "classical_structural_detectors_v45",
+      "detector_manifest_sha256": "6334f79633183924f9daf4d1a695bd84281b1bb3126e853657a436068fff57d8",
+      "profile_set_id": "pattern-detector-profiles-2026-07-17.23"
+    }
+  ],
+  "change_sets": [
+    {
+      "change_set_id": "ten-layered-digests-unchanged-v1",
+      "result": {
+        "scheme": "layered_detector_digest_delta_v1",
+        "status": "compared",
+        "changes": [
+          {
+            "rule_id": "pattern.aux.jinshen",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.aux.kuigang",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.aux.ride",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.aux.sanqi",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.lu.jianlu",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.lu.riren",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.lu.yueren",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.lu.zhuanlu",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.special.liangqi",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          },
+          {
+            "rule_id": "pattern.special.zhuanwang",
+            "classes": [
+              "layered_digests_unchanged"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "migrations": [
+    {
+      "migration_id": "bazi.pattern-candidate-set-v30_to_v31",
+      "from_snapshot_id": "bazi.pattern-candidate-set-v30",
+      "to_snapshot_id": "bazi.pattern-candidate-set-v31",
+      "expected_change_set_id": "ten-layered-digests-unchanged-v1",
+      "previous_migration_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "migration_sha256": "0f71d210f4475e0c3a81480a612b5b0e39b86601085e4aa79d8d364660f6ccc9"
+    },
+    {
+      "migration_id": "bazi.pattern-candidate-set-v31_to_v32",
+      "from_snapshot_id": "bazi.pattern-candidate-set-v31",
+      "to_snapshot_id": "bazi.pattern-candidate-set-v32",
+      "expected_change_set_id": "ten-layered-digests-unchanged-v1",
+      "previous_migration_sha256": "0f71d210f4475e0c3a81480a612b5b0e39b86601085e4aa79d8d364660f6ccc9",
+      "migration_sha256": "aea51f9ca734acc61861aaacfff161c522671ff68b87c669389fde442bbc1a53"
+    },
+    {
+      "migration_id": "bazi.pattern-candidate-set-v32_to_v33",
+      "from_snapshot_id": "bazi.pattern-candidate-set-v32",
+      "to_snapshot_id": "bazi.pattern-candidate-set-v33",
+      "expected_change_set_id": "ten-layered-digests-unchanged-v1",
+      "previous_migration_sha256": "aea51f9ca734acc61861aaacfff161c522671ff68b87c669389fde442bbc1a53",
+      "migration_sha256": "ea922b348fa81df44a70ece07f84b30fc5d8b50d2958e0012219d353ea5de2aa"
+    },
+    {
+      "migration_id": "bazi.pattern-candidate-set-v33_to_v34",
+      "from_snapshot_id": "bazi.pattern-candidate-set-v33",
+      "to_snapshot_id": "bazi.pattern-candidate-set-v34",
+      "expected_change_set_id": "ten-layered-digests-unchanged-v1",
+      "previous_migration_sha256": "ea922b348fa81df44a70ece07f84b30fc5d8b50d2958e0012219d353ea5de2aa",
+      "migration_sha256": "07dc296ad9e5dd0f834e40256c1e0f6033eb0ded435d0c76be6a0602ae0113bd"
+    }
+  ]
+}

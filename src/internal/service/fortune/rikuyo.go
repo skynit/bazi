@@ -2,6 +2,7 @@ package fortune
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"bazi/internal/model"
@@ -13,16 +14,12 @@ import (
 
 // RikuyoResult 日课推算完整结果
 type RikuyoResult struct {
-	// 今日天干十神
-	TodayTenGod     string `json:"today_ten_god"`
-	TenGodFavorable bool   `json:"ten_god_favorable"`
-	TenGodDesc      string `json:"ten_god_desc"`
+	// TodayTenGod is retained internally for period frequency aggregation.
+	TodayTenGod string               `json:"-"`
+	TenGod      model.TenGodEvidence `json:"ten_god"`
 
 	// 今日地支十二长生
-	TwelveStage    string `json:"twelve_stage"`
-	StageFavorable bool   `json:"stage_favorable"`
-	StageDesc      string `json:"stage_desc"`
-	StageFlexible  string `json:"stage_flexible"` // 活法修正说明
+	TwelveStage model.TwelveStageEvidence `json:"twelve_stage"`
 
 	// 地支藏干分析
 	HiddenStems []HiddenStemGod `json:"hidden_stems"`
@@ -34,43 +31,12 @@ type RikuyoResult struct {
 	// 神煞引动
 	ActivatedShenSha []ShenShaActivation `json:"activated_shen_sha"`
 
-	// 大运流年叠加
-	DaYunInfluence   DaYunInfluence   `json:"dayun_influence"`
-	LiuNianInfluence LiuNianInfluence `json:"liunian_influence"`
-
-	// 进退气
-	AdvanceRetreat AdvanceRetreat `json:"advance_retreat"`
-
-	// 用神综合影响
-	YongShenImpact YongShenImpact `json:"yongshen_impact"`
-
-	// 综合判断
-	OverallVerdict string `json:"overall_verdict"`
-	FavorScore     int    `json:"favor_score"`
-
-	// 格局信息
-	PatternName        string   `json:"pattern_name"`
-	PatternType        string   `json:"pattern_type"`
-	PatternFavorable   []string `json:"pattern_favorable"`
-	PatternUnfavorable []string `json:"pattern_unfavorable"`
+	// 查询日天干在查询月令中的旺相休囚死查表结果。
+	SeasonalState model.SeasonalStateEvidence `json:"seasonal_state"`
 
 	// 建除十二神
-	JianChuName  string `json:"jian_chu_name"`
-	JianChuFavor string `json:"jian_chu_favor"`
-	JianChuDesc  string `json:"jian_chu_desc"`
-
-	// 彭祖百忌
-	PengzuGanTaboo string `json:"pengzu_gan_taboo"`
-	PengzuZhiTaboo string `json:"pengzu_zhi_taboo"`
-
-	// 黄道黑道日
-	HuangDaoName      string `json:"huang_dao_name"`
-	HuangDaoFavorable bool   `json:"huang_dao_favorable"`
-	HuangDaoDesc      string `json:"huang_dao_desc"`
-
-	// 日课综合建议
-	DayClassSummary string `json:"day_class_summary"`
-	DayClassAdvice  string `json:"day_class_advice"`
+	JianChu  model.TraditionalCalendarEvidence `json:"jian_chu"`
+	HuangDao model.TraditionalCalendarEvidence `json:"huang_dao"`
 }
 
 type HiddenStemGod = model.HiddenStemGod
@@ -79,8 +45,7 @@ type BranchRelation = model.BranchRelation
 type ShenShaActivation = model.ShenShaActivation
 type DaYunInfluence = model.DaYunInfluence
 type LiuNianInfluence = model.LiuNianInfluence
-type AdvanceRetreat = model.AdvanceRetreat
-type YongShenImpact = model.YongShenImpact
+type SeasonalStateEvidence = model.SeasonalStateEvidence
 
 // ── 速查表数据 ──────────────────────────────────────────────
 
@@ -108,29 +73,6 @@ var twelveStageTable = [10][12]string{
 	{"帝旺", "衰", "病", "死", "墓", "绝", "胎", "养", "长生", "沐浴", "冠带", "临官"},
 	// 癸: 长生在卯, 逆行: 沐浴寅, 冠带丑, 临官子, 帝旺亥, 衰戌, 病酉, 死申, 墓未, 绝午, 胎巳, 养辰
 	{"临官", "冠带", "沐浴", "长生", "养", "胎", "绝", "墓", "死", "病", "衰", "帝旺"},
-}
-
-// stageFavorability 长生状态吉凶
-var stageFavorability = map[string]string{
-	"长生": "吉", "冠带": "吉", "临官": "吉", "帝旺": "吉",
-	"沐浴": "半吉", "胎": "半吉", "养": "半吉",
-	"衰": "半凶", "病": "凶", "死": "凶", "墓": "半凶", "绝": "凶",
-}
-
-// stageDescriptions 长生状态描述
-var stageDescriptions = map[string]string{
-	"长生": "气始发，旭日东升。主创建、开创之事，精力渐充。",
-	"沐浴": "气初生而弱，如婴儿洗浴。主落魄、酒色，半吉半凶。",
-	"冠带": "气渐长，如少年加冠。主渐进成长，学业有成。",
-	"临官": "气旺盛，如入仕为官。主兴盛发达，事业顺遂。",
-	"帝旺": "气极盛，如日中天。主极盛巅峰，但盛极必衰。",
-	"衰":  "气始退，如人过壮年。主退败渐衰，力不从心。",
-	"病":  "气已弱，如人患病。主困顿多事，诸事不顺。",
-	"死":  "气已绝，如人已死。主丧祸大凶，宜守不宜进。",
-	"墓":  "气收藏，如入墓库。主停滞阻滞，蓄势待发。",
-	"绝":  "气完全消失，如断根之木。主断绝极凶，但绝处逢生。",
-	"胎":  "气重新凝聚，如胎儿孕育。主孕育潜伏，韬光养晦。",
-	"养":  "气渐充盈，如婴儿哺育。主滋养蓄势，蓄积力量。",
 }
 
 // hiddenStemMap 地支藏干表 [地支索引] = {本气, 中气, 余气}
@@ -239,79 +181,7 @@ var elementOvercomesMap = map[string]string{
 	"木": "土", "土": "水", "水": "火", "火": "金", "金": "木",
 }
 
-// ── 黄道黑道日（协纪辨方书） ──────────────────────────────────
-// 黄道六神：青龙、明堂、金匮、天德、玉堂、司命 → 吉
-// 黑道六神：天刑、朱雀、白虎、天牢、玄武、勾陈 → 凶
-// 以月支起青龙，顺排十二建星
-// 建除十二神：建、除、满、平、定、执、破、危、成、收、开、闭
-var jianChuTable = map[string][]string{
-	// 月支 → [建,除,满,平,定,执,破,危,成,收,开,闭] 对应日子地支
-	"寅": {"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"},
-	"卯": {"卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅"},
-	"辰": {"辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯"},
-	"巳": {"巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"},
-	"午": {"午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳"},
-	"未": {"未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午"},
-	"申": {"申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"},
-	"酉": {"酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申"},
-	"戌": {"戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉"},
-	"亥": {"亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"},
-	"子": {"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"},
-	"丑": {"丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子"},
-}
-
-// jianChuFavorability 建除十二神吉凶
-var jianChuFavorability = map[string]string{
-	"建": "吉", "除": "吉", "满": "吉", "平": "平",
-	"定": "吉", "执": "吉", "破": "凶", "危": "凶",
-	"成": "吉", "收": "吉", "开": "吉", "闭": "凶",
-}
-
-// jianChuDesc 建除十二神描述（协纪辨方书）
-var jianChuDesc = map[string]string{
-	"建": "万物生育之始，宜出行、上任、拜谒",
-	"除": "除旧布新，宜治病、解除、清洁",
-	"满": "丰收圆满，宜祭祀、祈福、开张",
-	"平": "平顺无奇，宜修造、安葬，诸事平常",
-	"定": "安定稳固，宜签约、交易、安床",
-	"执": "执持果断，宜捕捉、执法、施工",
-	"破": "破败损耗，大事不宜，仅宜破屋坏垣",
-	"危": "高处危险，宜祭祀安床，忌登高冒险",
-	"成": "成就圆满，宜开业、嫁娶、签约",
-	"收": "收藏收获，宜纳财、收债、入库",
-	"开": "开通顺利，宜开业、出行、求医",
-	"闭": "关闭不通，宜收藏静守，忌开业出行",
-}
-
-// ── 彭祖百忌日（协纪辨方书） ──────────────────────────────────
-// 以天干取前半句，以地支取后半句
-var pengzuGanTaboo = map[string]string{
-	"甲": "甲不开仓财物耗散",
-	"乙": "乙不栽植千株不长",
-	"丙": "丙不修灶必见灾殃",
-	"丁": "丁不剃头头必生疮",
-	"戊": "戊不受田田主不祥",
-	"己": "己不破券二比并亡",
-	"庚": "庚不经络织机虚张",
-	"辛": "辛不合酱主人不尝",
-	"壬": "壬不汲水更难提防",
-	"癸": "癸不词讼理弱敌强",
-}
-
-var pengzuZhiTaboo = map[string]string{
-	"子": "子不问卜自惹祸殃",
-	"丑": "丑不冠带主不还乡",
-	"寅": "寅不祭祀神鬼不尝",
-	"卯": "卯不穿井水泉不香",
-	"辰": "辰不哭泣必主重丧",
-	"巳": "巳不远行财物伏藏",
-	"午": "午不苫盖屋主更张",
-	"未": "未不服药毒气入肠",
-	"申": "申不安床鬼祟入房",
-	"酉": "酉不宴客醉坐颠狂",
-	"戌": "戌不吃犬作怪上床",
-	"亥": "亥不嫁娶不利新郎",
-}
+var jianChuNames = []string{"建", "除", "满", "平", "定", "执", "破", "危", "成", "收", "开", "闭"}
 
 // ── 天乙贵人速查（以日干查地支） ──────────────────────────
 var tianYiGuiren = map[string][]string{
@@ -354,243 +224,106 @@ var elementSeasonState = map[string]map[string]string{
 	"冬": {"水": "旺", "木": "相", "金": "休", "土": "囚", "火": "死"},
 }
 
-// ── 十神含义描述 ──────────────────────────────────────────
-var tenGodDescriptions = map[string]string{
-	"比肩": "同类相助，主竞争、合作、义气。身弱得助，身旺争财。",
-	"劫财": "同类异性，主争夺、破耗、义气。身弱有帮，身旺破财。",
-	"食神": "我生同性，主才艺、口福、表达。泄秀有情，利创作。",
-	"伤官": "我生异性，主叛逆、创新、口舌。泄秀有力，防是非。",
-	"正财": "我克异性，主正当收入、妻财。务实求财，稳定收获。",
-	"偏财": "我克同性，主意外之财、投机。横财机遇，但不稳定。",
-	"正官": "克我异性，主权威、责任、约束。事业正途，守规矩。",
-	"七杀": "克我同性，主压力、竞争、果断。猛烈克身，须有制化。",
-	"正印": "生我异性，主学问、庇护、贵人。文星高照，得长辈助。",
-	"偏印": "生我同性，主偏门学问、孤僻。枭神夺食，防暗损。",
-}
-
 // ── 核心计算函数 ──────────────────────────────────────────
 
 // CalcRikuyo 日课推算主入口
-func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) *RikuyoResult {
+func CalcRikuyo(bazi *bazipkg.BaziResult, queryDate time.Time) *RikuyoResult {
 	dayGan := bazi.DayPillar.Gan
-
-	// 获取有效喜忌（格局优先，扶抑兜底）
-	like, dislike, isSpecialPattern := getEffectiveFavor(bazi)
 
 	// 获取今日干支
 	qYear, qMonth, qDay := queryDate.Year(), int(queryDate.Month()), queryDate.Day()
 	ec, err := getDayEightChar(qYear, qMonth, qDay)
 	if err != nil {
-		return &RikuyoResult{OverallVerdict: "无法获取今日干支", FavorScore: 0}
+		return &RikuyoResult{}
 	}
 	todayGan := ec.GetDay().GetHeavenStem().GetName()
 	todayZhi := ec.GetDay().GetEarthBranch().GetName()
 	monthZhi := ec.GetMonth().GetEarthBranch().GetName()
 
-	// 步骤一：今日天干取十神（格局感知）
-	tenGod := bazipkg.ClassifyTenGod(todayGan, dayGan, false)
-	tenGodFavorable := isFavorableTenGodByFavor(tenGod, like, dayGan)
+	// 步骤一：今日天干取十神，只记录结构映射。
+	tenGodEvidence := observeTenGod(dayGan, todayGan)
+	tenGod := tenGodEvidence.Name
 
-	// 步骤二：今日地支取十二长生
-	stage, stageFav, flexible := calcTwelveStage(dayGan, todayZhi)
+	// 步骤二：今日地支取十二长生结构标签
+	twelveStage := observeTwelveStage(dayGan, todayZhi)
 
 	// 步骤三：地支藏干分析（格局感知）
-	hiddenStems := calcHiddenStemGods(todayZhi, dayGan, like, dayGan)
+	hiddenStems := calcHiddenStemGods(todayZhi, dayGan)
 
 	// 步骤四：天干关系（今日天干 vs 命局四柱天干）
 	stemRels := calcStemRelations(todayGan, bazi)
 
 	// 步骤五：地支关系（今日地支 vs 命局四柱地支）
-	branchRels := calcBranchRelations(todayZhi, bazi, like, dislike)
+	branchRels := calcBranchRelations(todayZhi, bazi)
 
 	// 步骤六：神煞引动
 	shenSha := calcShenShaActivation(todayGan, todayZhi, bazi)
 
-	// 步骤七：大运叠加
-	daYun := calcDaYunInfluence(bazi, queryDate, birthYear)
+	// 步骤七：查询日天干在查询月令中的传统状态查表。
+	seasonalState := observeSeasonalState(todayGan, monthZhi)
 
-	// 步骤八：流年叠加
-	liuNian := calcLiuNianInfluence(bazi, queryDate)
-
-	// 步骤九：进退气分析
-	advanceRetreat := calcAdvanceRetreat(todayGan, todayZhi, monthZhi)
-
-	// 步骤十：用神综合判断
-	yongShen := calcYongShenIntegration(bazi, todayGan, todayZhi)
-
-	// 步骤十一：综合评分与断语
-	verdict, score := calcOverallVerdict(
-		tenGod, tenGodFavorable, stage, stageFav,
-		hiddenStems, stemRels, branchRels,
-		shenSha, daYun, liuNian,
-		advanceRetreat, yongShen, isSpecialPattern, bazi,
-	)
-
-	// 步骤十二：建除十二神
-	jianChuName, jianChuFav, jianChuD := calcJianChu(bazi.MonthPillar.Zhi, todayZhi)
-
-	// 步骤十三：彭祖百忌
-	pengzuGan := pengzuGanTaboo[todayGan]
-	pengzuZhi := pengzuZhiTaboo[todayZhi]
-
-	// 步骤十四：黄道黑道日
-	huangDaoName, huangDaoFav, huangDaoDesc := calcHuangDaoHeiDao(monthZhi, todayZhi)
-
-	// 步骤十五：日课综合判断
-	dayClassSummary, dayClassAdvice := calcDayClassSummary(jianChuName, jianChuFav, huangDaoName, huangDaoFav, pengzuGan, pengzuZhi)
+	// 传统日课标签只记录查表事实，不进入吉凶评分。
+	jianChu := observeJianChu(monthZhi, todayZhi)
+	huangDao := observeHuangDao(monthZhi, todayZhi)
 
 	return &RikuyoResult{
-		TodayTenGod:        tenGod,
-		TenGodFavorable:    tenGodFavorable,
-		TenGodDesc:         tenGodDescriptions[tenGod],
-		TwelveStage:        stage,
-		StageFavorable:     stageFav,
-		StageDesc:          stageDescriptions[stage],
-		StageFlexible:      flexible,
-		HiddenStems:        hiddenStems,
-		StemRelations:      stemRels,
-		BranchRelations:    branchRels,
-		ActivatedShenSha:   shenSha,
-		DaYunInfluence:     daYun,
-		LiuNianInfluence:   liuNian,
-		AdvanceRetreat:     advanceRetreat,
-		YongShenImpact:     yongShen,
-		OverallVerdict:     verdict,
-		FavorScore:         score,
-		PatternName:        bazi.PatternAnalysis.PatternName,
-		PatternType:        bazi.PatternAnalysis.PatternType,
-		PatternFavorable:   bazi.PatternAnalysis.FavorableElements,
-		PatternUnfavorable: bazi.PatternAnalysis.UnfavorableElements,
-		JianChuName:        jianChuName,
-		JianChuFavor:       jianChuFav,
-		JianChuDesc:        jianChuD,
-		PengzuGanTaboo:     pengzuGan,
-		PengzuZhiTaboo:     pengzuZhi,
-		HuangDaoName:       huangDaoName,
-		HuangDaoFavorable:  huangDaoFav,
-		HuangDaoDesc:       huangDaoDesc,
-		DayClassSummary:    dayClassSummary,
-		DayClassAdvice:     dayClassAdvice,
+		TodayTenGod:      tenGod,
+		TenGod:           tenGodEvidence,
+		TwelveStage:      twelveStage,
+		HiddenStems:      hiddenStems,
+		StemRelations:    stemRels,
+		BranchRelations:  branchRels,
+		ActivatedShenSha: shenSha,
+		SeasonalState:    seasonalState,
+		JianChu:          jianChu,
+		HuangDao:         huangDao,
 	}
 }
 
-// ── 步骤一：十神喜忌判断 ──────────────────────────────────
-
-func isFavorableTenGodByStrength(tenGod string, isStrong bool) bool {
-	favorableForStrong := map[string]bool{
-		"正官": true, "七杀": true, "食神": true, "伤官": true,
-		"正财": true, "偏财": true,
+func observeTenGod(referenceStem, queryStem string) model.TenGodEvidence {
+	evidence := model.TenGodEvidence{
+		RuleID:               "rikuyo.ten-god-day-stem-v1",
+		ReferenceStem:        referenceStem,
+		QueryStem:            queryStem,
+		Basis:                "reference_day_stem_and_query_day_stem",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-	favorableForWeak := map[string]bool{
-		"正印": true, "偏印": true, "比肩": true, "劫财": true,
+	if data.GanIndex(referenceStem) < 0 || data.GanIndex(queryStem) < 0 {
+		return evidence
 	}
-	if isStrong {
-		return favorableForStrong[tenGod]
+	evidence.Name = bazipkg.ClassifyTenGod(queryStem, referenceStem, false)
+	if evidence.Name == "" {
+		return evidence
 	}
-	return favorableForWeak[tenGod]
+	evidence.Status = "observed"
+	return evidence
 }
 
-// getEffectiveFavor 获取有效喜用五行（格局优先，扶抑兜底）
-// 特殊格局（从格/专旺格）的喜忌完全覆盖普通扶抑喜忌
-func getEffectiveFavor(bazi *bazipkg.BaziResult) (like, dislike []string, isSpecialPattern bool) {
-	pa := bazi.PatternAnalysis
-	if pa.PatternType == "特殊格局" && len(pa.FavorableElements) > 0 {
-		return pa.FavorableElements, pa.UnfavorableElements, true
-	}
-	return bazi.BodyStrength.Like, bazi.BodyStrength.Dislike, false
-}
+// ── 步骤二：十二长生结构标签 ────────────────────────────────
 
-// isFavorableElement 判断某五行是否在喜用列表中
-func isFavorableElement(elem string, like []string) bool {
-	for _, e := range like {
-		if e == elem {
-			return true
-		}
+func observeTwelveStage(dayGan, branch string) model.TwelveStageEvidence {
+	evidence := model.TwelveStageEvidence{
+		RuleID:               "rikuyo.twelve-stage-v1",
+		ReferenceStem:        dayGan,
+		QueryBranch:          branch,
+		Basis:                "reference_day_stem_and_query_day_branch",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-	return false
-}
-
-// isFavorableTenGodByFavor 格局感知的十神喜忌判断
-// 通过十神对应的五行关系，判断该十神是否为喜用
-func isFavorableTenGodByFavor(tenGod string, like []string, dayGan string) bool {
-	dayElem := data.GanElement[dayGan]
-	if dayElem == "" {
-		return false
-	}
-	// 十神 → 对应五行关系 → 具体五行
-	var targetElem string
-	switch tenGod {
-	case "正印", "偏印":
-		targetElem = bazipkg.ShengWo(dayElem) // 生我
-	case "比肩", "劫财":
-		targetElem = dayElem // 同我
-	case "食神", "伤官":
-		targetElem = elementGeneratesMap[dayElem] // 我生
-	case "正财", "偏财":
-		targetElem = elementOvercomesMap[dayElem] // 我克
-	case "正官", "七杀":
-		targetElem = bazipkg.KeWo(dayElem) // 克我
-	}
-	return isFavorableElement(targetElem, like)
-}
-
-// ── 步骤二：十二长生（含活法修正） ──────────────────────────
-
-func calcTwelveStage(dayGan, branch string) (string, bool, string) {
 	ganIdx := data.GanIndex(dayGan)
 	zhiIdx := data.ZhiIndex(branch)
 	if ganIdx < 0 || zhiIdx < 0 {
-		return "未知", false, ""
+		return evidence
 	}
-
-	stage := twelveStageTable[ganIdx][zhiIdx]
-	fav := stageFavorability[stage]
-	flexible := ""
-
-	// 活法修正：凶位检查藏干是否有救
-	if fav == "凶" || fav == "半凶" {
-		rescue := checkFlexibleRescue(dayGan, branch)
-		if rescue != "" {
-			flexible = rescue
-		}
-	}
-
-	stageFav := fav == "吉"
-	return stage, stageFav, flexible
-}
-
-// checkFlexibleRescue 检查活法是否有救
-// 例：丙火绝于亥，亥中藏甲木（偏印），木能生火 → "虽绝有救：亥中甲木生丙火"
-func checkFlexibleRescue(dayGan, branch string) string {
-	dayElem := data.GanElement[dayGan]
-	zhiIdx := data.ZhiIndex(branch)
-	if zhiIdx < 0 {
-		return ""
-	}
-
-	stems := hiddenStemMap[zhiIdx]
-	for _, s := range stems {
-		if s == "" {
-			continue
-		}
-		stemElem := data.GanElement[s]
-		// 检查藏干五行是否生扶日主五行
-		if elementGeneratesMap[stemElem] == dayElem {
-			god := bazipkg.ClassifyTenGod(s, dayGan, false)
-			return fmt.Sprintf("虽%s有救：%s中%s(%s)生%s", twelveStageTable[data.GanIndex(dayGan)][zhiIdx], branch, s, god, dayGan)
-		}
-		// 检查藏干五行是否与日主同五行（比劫帮身）
-		if stemElem == dayElem {
-			god := bazipkg.ClassifyTenGod(s, dayGan, false)
-			return fmt.Sprintf("虽%s有根：%s中%s(%s)帮身", twelveStageTable[data.GanIndex(dayGan)][zhiIdx], branch, s, god)
-		}
-	}
-	return ""
+	evidence.Name = twelveStageTable[ganIdx][zhiIdx]
+	evidence.Status = "observed"
+	return evidence
 }
 
 // ── 步骤三：藏干十神分析 ──────────────────────────────────
 
-func calcHiddenStemGods(branch, dayGan string, like []string, dayGanForFavor string) []HiddenStemGod {
+func calcHiddenStemGods(branch, dayGan string) []HiddenStemGod {
 	zhiIdx := data.ZhiIndex(branch)
 	if zhiIdx < 0 {
 		return nil
@@ -603,14 +336,17 @@ func calcHiddenStemGods(branch, dayGan string, like []string, dayGanForFavor str
 		if s == "" {
 			continue
 		}
-		god := bazipkg.ClassifyTenGod(s, dayGan, false)
-		fav := isFavorableTenGodByFavor(god, like, dayGanForFavor)
 		result = append(result, HiddenStemGod{
-			Stem:      s,
-			Type:      types[i],
-			Element:   data.GanElement[s],
-			TenGod:    god,
-			Favorable: fav,
+			RuleID:               "rikuyo.hidden-stem-ten-god-v1",
+			QueryBranch:          branch,
+			ReferenceStem:        dayGan,
+			Stem:                 s,
+			Type:                 types[i],
+			Element:              data.GanElement[s],
+			TenGod:               bazipkg.ClassifyTenGod(s, dayGan, false),
+			Basis:                "query_branch_hidden_stem_table_and_reference_day_stem",
+			Status:               "observed",
+			InterpretationStatus: "not_adjudicated",
 		})
 	}
 	return result
@@ -631,87 +367,69 @@ func calcStemRelations(todayGan string, bazi *bazipkg.BaziResult) []StemRelation
 
 	var rels []StemRelation
 	for _, bg := range birthGans {
-		if bg.name == bazi.DayPillar.Gan {
-			continue // 跳过日干自身
+		if data.GanIndex(todayGan) < 0 || data.GanIndex(bg.name) < 0 {
+			continue
 		}
 
-		// 天干五合
+		type relationMatch struct {
+			relationType, relationName, combinedElement, transformationStatus string
+		}
+		matches := make([]relationMatch, 0, 2)
 		if stemCombineMap[todayGan] == bg.name {
-			ce := combineElement[todayGan+bg.name]
-			rels = append(rels, StemRelation{
-				Type:        "五合",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s%s合化%s", todayGan, bg.name, ce),
-				IsFavorable: true,
-				Note:        checkTanHeWangKe(todayGan, bg.name, bazi),
+			matches = append(matches, relationMatch{
+				relationType: "five_combine", relationName: "五合",
+				combinedElement: combineElement[todayGan+bg.name], transformationStatus: "not_adjudicated",
 			})
-			continue
 		}
-
-		// 天干相冲
 		if stemClashMap[todayGan] == bg.name {
-			rels = append(rels, StemRelation{
-				Type:        "相冲",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s冲%s", todayGan, bg.name),
-				IsFavorable: false,
+			matches = append(matches, relationMatch{
+				relationType: "clash", relationName: "相冲", transformationStatus: "not_applicable",
 			})
-			continue
 		}
 
-		// 天干相克
-		todayElem := data.GanElement[todayGan]
-		birthElem := data.GanElement[bg.name]
-		if elementOvercomesMap[todayElem] == birthElem {
+		queryElement := data.GanElement[todayGan]
+		targetElement := data.GanElement[bg.name]
+		elementMatch := relationMatch{transformationStatus: "not_applicable"}
+		switch {
+		case todayGan == bg.name:
+			elementMatch.relationType, elementMatch.relationName = "same_stem", "同干"
+		case queryElement == targetElement:
+			elementMatch.relationType, elementMatch.relationName = "same_element", "同五行"
+		case elementGeneratesMap[queryElement] == targetElement:
+			elementMatch.relationType, elementMatch.relationName = "query_generates_target", "查询干生目标干"
+		case elementGeneratesMap[targetElement] == queryElement:
+			elementMatch.relationType, elementMatch.relationName = "target_generates_query", "目标干生查询干"
+		case elementOvercomesMap[queryElement] == targetElement:
+			elementMatch.relationType, elementMatch.relationName = "query_overcomes_target", "查询干克目标干"
+		case elementOvercomesMap[targetElement] == queryElement:
+			elementMatch.relationType, elementMatch.relationName = "target_overcomes_query", "目标干克查询干"
+		}
+		if elementMatch.relationType != "" {
+			matches = append(matches, elementMatch)
+		}
+
+		for _, match := range matches {
 			rels = append(rels, StemRelation{
-				Type:        "相克",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s克%s", todayGan, bg.name),
-				IsFavorable: false,
-			})
-		} else if elementOvercomesMap[birthElem] == todayElem {
-			rels = append(rels, StemRelation{
-				Type:        "被克",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s克%s", bg.name, todayGan),
-				IsFavorable: false,
-			})
-		} else if elementGeneratesMap[todayElem] == birthElem {
-			rels = append(rels, StemRelation{
-				Type:        "相生",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s生%s", todayGan, bg.name),
-				IsFavorable: true,
-			})
-		} else if elementGeneratesMap[birthElem] == todayElem {
-			rels = append(rels, StemRelation{
-				Type:        "被生",
-				Target:      bg.name,
-				Detail:      fmt.Sprintf("%s生%s", bg.name, todayGan),
-				IsFavorable: true,
+				RuleID:               "rikuyo.stem-relation-v3." + match.relationType,
+				QueryStem:            todayGan,
+				TargetPillar:         bg.label,
+				TargetStem:           bg.name,
+				Type:                 match.relationType,
+				Name:                 match.relationName,
+				CombinedElement:      match.combinedElement,
+				Basis:                "query_day_stem_and_natal_pillar_stem_all_structures",
+				Status:               "observed",
+				TransformationStatus: match.transformationStatus,
+				InterpretationStatus: "not_adjudicated",
 			})
 		}
 	}
 	return rels
 }
 
-// checkTanHeWangKe 检查"贪合忘克"
-// 若今日天干与命局某天干相合，且该天干原为克日主的忌神，则合住后该忌神失效
-func checkTanHeWangKe(todayGan, combinedGan string, bazi *bazipkg.BaziResult) string {
-	dayGan := bazi.DayPillar.Gan
-	dayElem := data.GanElement[dayGan]
-	combinedElem := data.GanElement[combinedGan]
-
-	// 检查被合住的天干是否克日主
-	if elementOvercomesMap[combinedElem] == dayElem {
-		return fmt.Sprintf("贪合忘克：%s本克%s，但%s合住%s，克力化解", combinedGan, dayGan, todayGan, combinedGan)
-	}
-	return ""
-}
-
 // ── 步骤五：地支关系 ──────────────────────────────────────
 
-func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult, like, dislike []string) []BranchRelation {
+func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult) []BranchRelation {
 	birthZhis := []struct {
 		name  string
 		label string
@@ -723,88 +441,28 @@ func calcBranchRelations(todayZhi string, bazi *bazipkg.BaziResult, like, dislik
 	}
 
 	var rels []BranchRelation
-
 	for _, bz := range birthZhis {
-		// 六合：合住忌神为吉（忌神被合住不为害），合住喜神为凶（喜神被合住失去作用）
-		if branchSixCombine[todayZhi] == bz.name {
-			rels = append(rels, BranchRelation{
-				Type:        "六合",
-				Target:      bz.name,
-				Detail:      fmt.Sprintf("%s%s六合", todayZhi, bz.name),
-				IsFavorable: !isFavorableElement(data.ZhiElement[bz.name], like),
-			})
-		}
-		// 六冲：冲去忌神为吉（忌神被冲走），冲去喜神为凶（喜神被冲散）
-		if branchSixClash[todayZhi] == bz.name {
-			rels = append(rels, BranchRelation{
-				Type:        "六冲",
-				Target:      bz.name,
-				Detail:      fmt.Sprintf("%s%s六冲", todayZhi, bz.name),
-				IsFavorable: isFavorableElement(data.ZhiElement[bz.name], dislike),
-			})
-		}
-		// 六害：害到忌神为吉，害到喜神为凶
-		if branchSixHarm[todayZhi] == bz.name {
-			rels = append(rels, BranchRelation{
-				Type:        "六害",
-				Target:      bz.name,
-				Detail:      fmt.Sprintf("%s%s六害", todayZhi, bz.name),
-				IsFavorable: !isFavorableElement(data.ZhiElement[bz.name], like),
-			})
-		}
-	}
-
-	// 三刑检测
-	for _, pun := range branchThreePunishment {
-		todayInGroup := contains(pun.Group, todayZhi)
-		if !todayInGroup {
+		if data.ZhiIndex(todayZhi) < 0 || data.ZhiIndex(bz.name) < 0 {
 			continue
 		}
-		for _, bz := range birthZhis {
-			if contains(pun.Group, bz.name) && bz.name != todayZhi {
-				rels = append(rels, BranchRelation{
-					Type:        "三刑",
-					Target:      bz.name,
-					Detail:      fmt.Sprintf("%s(%s)", pun.Name, pun.Desc),
-					IsFavorable: false,
-				})
+		for _, relation := range layerBranchRelations("流日", todayZhi, bz.label, bz.name) {
+			transformationStatus := "not_applicable"
+			switch relation.Type {
+			case "combine", "banHe", "gongHe", "banHui", "sanHe", "sanHui":
+				transformationStatus = "not_adjudicated"
 			}
-		}
-	}
-
-	// 三合检测
-	for _, he := range branchThreeCombine {
-		todayInGroup := contains(he.Group, todayZhi)
-		if !todayInGroup {
-			continue
-		}
-		for _, bz := range birthZhis {
-			if contains(he.Group, bz.name) && bz.name != todayZhi {
-				rels = append(rels, BranchRelation{
-					Type:        "三合",
-					Target:      bz.name,
-					Detail:      fmt.Sprintf("%s%s三合%s局", todayZhi, bz.name, he.Element),
-					IsFavorable: true,
-				})
-			}
-		}
-	}
-
-	// 三会检测
-	for _, hui := range branchThreeMeeting {
-		todayInGroup := contains(hui.Group, todayZhi)
-		if !todayInGroup {
-			continue
-		}
-		for _, bz := range birthZhis {
-			if contains(hui.Group, bz.name) && bz.name != todayZhi {
-				rels = append(rels, BranchRelation{
-					Type:        "三会",
-					Target:      bz.name,
-					Detail:      fmt.Sprintf("%s%s三会%s方", todayZhi, bz.name, hui.Element),
-					IsFavorable: true,
-				})
-			}
+			rels = append(rels, BranchRelation{
+				RuleID:               "rikuyo.branch-relation-v3." + relation.Type,
+				QueryBranch:          todayZhi,
+				TargetPillar:         bz.label,
+				TargetBranch:         bz.name,
+				Type:                 relation.Type,
+				Name:                 relation.Name,
+				Basis:                "query_day_branch_and_natal_pillar_branch_all_structures",
+				Status:               "observed",
+				TransformationStatus: transformationStatus,
+				InterpretationStatus: "not_adjudicated",
+			})
 		}
 	}
 
@@ -825,45 +483,58 @@ func contains(ss []string, s string) bool {
 func calcShenShaActivation(todayGan, todayZhi string, bazi *bazipkg.BaziResult) []ShenShaActivation {
 	dayGan := bazi.DayPillar.Gan
 	dayZhi := bazi.DayPillar.Zhi
+	yearZhi := bazi.YearPillar.Zhi
 	var result []ShenShaActivation
 
 	// 天乙贵人
 	if guas, ok := tianYiGuiren[dayGan]; ok {
 		for _, g := range guas {
 			if todayZhi == g {
-				result = append(result, newShenShaActivation("天乙贵人", "吉神", "命中最尊贵之神，所至之处凶煞隐避。主当日有贵人相助，逢凶化吉。", fmt.Sprintf("今日地支%s为%s的天乙贵人位", todayZhi, dayGan)))
+				result = append(result, newShenShaActivation("天乙贵人", fmt.Sprintf("查询日地支%s命中日干%s的天乙贵人位", todayZhi, dayGan)))
 			}
 		}
 	}
 
-	// 驿马
-	if yiMa[dayZhi] == todayZhi {
-		result = append(result, newShenShaActivation("驿马", "吉神", "主出行变动、消息到来。当日有出行、变动之象。", fmt.Sprintf("今日地支%s为日支%s的驿马位", todayZhi, dayZhi)))
+	// 驿马、咸池均以年支或日支所属三合组查目标位。
+	if references := matchingSanHeReferences(todayZhi, yiMa, yearZhi, dayZhi); len(references) > 0 {
+		result = append(result, newShenShaActivation("驿马", fmt.Sprintf(
+			"查询日地支%s命中%s所定驿马位", todayZhi, strings.Join(references, "、"),
+		)))
 	}
-
-	// 桃花
-	if taoHua[dayZhi] == todayZhi {
-		result = append(result, newShenShaActivation("桃花", "吉神", "主异性缘、人缘佳。当日社交活跃，人缘旺盛。", fmt.Sprintf("今日地支%s为日支%s的桃花位", todayZhi, dayZhi)))
+	if references := matchingSanHeReferences(todayZhi, taoHua, yearZhi, dayZhi); len(references) > 0 {
+		result = append(result, newShenShaActivation("咸池", fmt.Sprintf(
+			"查询日地支%s命中%s所定咸池位", todayZhi, strings.Join(references, "、"),
+		)))
 	}
 
 	// 禄神
 	if luShen[dayGan] == todayZhi {
-		result = append(result, newShenShaActivation("禄神", "吉神", "主俸禄、财禄。当日得禄，事业财运有助力。", fmt.Sprintf("今日地支%s为%s的禄神位", todayZhi, dayGan)))
+		result = append(result, newShenShaActivation("禄神", fmt.Sprintf("查询日地支%s命中日干%s的禄神位", todayZhi, dayGan)))
 	}
 
 	return result
 }
 
-func newShenShaActivation(name, typ, description, activation string) ShenShaActivation {
+func matchingSanHeReferences(todayZhi string, targets map[string]string, yearZhi, dayZhi string) []string {
+	references := make([]string, 0, 2)
+	if targets[yearZhi] == todayZhi {
+		references = append(references, "年支"+yearZhi)
+	}
+	if targets[dayZhi] == todayZhi {
+		references = append(references, "日支"+dayZhi)
+	}
+	return references
+}
+
+func newShenShaActivation(name, activation string) ShenShaActivation {
 	meta := bazipkg.LookupShenShaMeta(name)
 	return ShenShaActivation{
-		Name:        name,
-		Type:        typ,
-		Category:    meta.Category,
-		Polarity:    meta.Polarity,
-		Priority:    meta.Priority,
-		Description: description,
-		Activation:  activation,
+		Name:                 name,
+		RuleID:               meta.RuleID,
+		Basis:                meta.Basis,
+		Status:               meta.Status,
+		InterpretationStatus: meta.InterpretationStatus,
+		Activation:           activation,
 	}
 }
 
@@ -871,25 +542,55 @@ func newShenShaActivation(name, typ, description, activation string) ShenShaActi
 
 func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear int) DaYunInfluence {
 	if len(bazi.DaYunInfo.Pillars) == 0 {
-		return DaYunInfluence{}
+		return DaYunInfluence{Status: "unavailable", InterpretationStatus: "not_adjudicated"}
 	}
 
 	age := queryDate.Year() - birthYear
 	startAge := bazi.DaYunInfo.StartAge
+	idx, periodStart, periodEnd, exactStatus := exactDaYunPeriod(bazi.DaYunInfo, queryDate)
+	if exactStatus == daYunBeforeStart {
+		return DaYunInfluence{
+			Active:               false,
+			Index:                -1,
+			StartAt:              periodStart,
+			SelectionBasis:       "exact_start_time_and_query_time",
+			Status:               "before_start",
+			InterpretationStatus: "not_adjudicated",
+		}
+	}
+	if exactStatus == daYunAfterCoveredPeriods {
+		return DaYunInfluence{
+			Active:               false,
+			Index:                len(bazi.DaYunInfo.Pillars),
+			StartAt:              periodStart,
+			SelectionBasis:       "exact_start_time_and_query_time",
+			Status:               "after_covered_periods",
+			InterpretationStatus: "not_adjudicated",
+		}
+	}
 
-	// 确定当前大运索引（精确计算，处理起运年龄非整十年的情况）
-	// 大运每步10年，从起运年龄开始：第0步 = [startAge, startAge+9]，第1步 = [startAge+10, startAge+19]...
-	idx := 0
-	if age >= startAge {
+	// Old or pillar-only inputs do not contain a start timestamp. Keep their
+	// integer-age calculation isolated as a clearly less precise fallback.
+	if exactStatus == daYunTimeUnavailable {
+		if age < startAge {
+			return DaYunInfluence{
+				Active:               false,
+				Index:                -1,
+				SelectionBasis:       "integer_age_fallback",
+				Status:               "before_start",
+				InterpretationStatus: "not_adjudicated",
+			}
+		}
 		idx = (age - startAge) / 10
-	} else {
-		idx = 0 // 未起运，取第一步大运
-	}
-	if idx < 0 {
-		idx = 0
-	}
-	if idx >= len(bazi.DaYunInfo.Pillars) {
-		idx = len(bazi.DaYunInfo.Pillars) - 1
+		if idx >= len(bazi.DaYunInfo.Pillars) {
+			return DaYunInfluence{
+				Active:               false,
+				Index:                len(bazi.DaYunInfo.Pillars),
+				SelectionBasis:       "integer_age_fallback",
+				Status:               "after_covered_periods",
+				InterpretationStatus: "not_adjudicated",
+			}
+		}
 	}
 
 	pillar := bazi.DaYunInfo.Pillars[idx]
@@ -901,45 +602,60 @@ func calcDaYunInfluence(bazi *bazipkg.BaziResult, queryDate time.Time, birthYear
 	daYunStartAge := startAge + idx*10
 	daYunEndAge := daYunStartAge + 9
 
-	// 大运天干对日主的十神（格局感知）
-	tenGod := bazipkg.ClassifyTenGod(daYunGan, dayGan, false)
-	like, _, _ := getEffectiveFavor(bazi)
-	fav := isFavorableTenGodByFavor(tenGod, like, dayGan)
-
-	// 分析今日干支与大运的关系
-	score := 0
-	desc := ""
-
-	// 大运天干与今日天干的关系（优先检查天干五合）
-	todayGan := queryDateGan(queryDate)
-	todayElem := data.GanElement[todayGan]
-	daYunElem := data.GanElement[daYunGan]
-
-	if stemCombineMap[todayGan] == daYunGan {
-		// 天干五合：气机交融，正面关系
-		score += 8
-		desc += fmt.Sprintf("%s%s合化%s。", todayGan, daYunGan, combineElement[todayGan+daYunGan])
-	} else if elementGeneratesMap[todayElem] == daYunElem || elementGeneratesMap[daYunElem] == todayElem {
-		score += 5
-		desc += "今日与大运相生。"
-	} else if elementOvercomesMap[todayElem] == daYunElem {
-		score -= 5
-		desc += "今日克大运。"
-	} else if elementOvercomesMap[daYunElem] == todayElem {
-		score -= 3
-		desc += "大运克今日。"
+	selectionBasis := "exact_start_time_and_query_time"
+	if exactStatus == daYunTimeUnavailable {
+		selectionBasis = "integer_age_fallback"
 	}
+
+	// 大运天干对日主的十神结构映射。
+	tenGod := bazipkg.ClassifyTenGod(daYunGan, dayGan, false)
 
 	return DaYunInfluence{
-		CurrentPillar: daYunGan + daYunZhi,
-		StartAge:      daYunStartAge,
-		EndAge:        daYunEndAge,
-		TenGod:        tenGod,
-		Favorable:     fav,
-		Relation:      desc,
-		Score:         score,
-		Description:   fmt.Sprintf("当前行%s运（%s），%s对日主为%s，%s", daYunGan+daYunZhi, tenGod, daYunGan, tenGod, boolToFavStr(fav)),
+		CurrentPillar:        daYunGan + daYunZhi,
+		Active:               true,
+		Index:                idx,
+		StartAt:              periodStart,
+		EndAtExclusive:       periodEnd,
+		StartAge:             daYunStartAge,
+		EndAge:               daYunEndAge,
+		TenGod:               tenGod,
+		SelectionBasis:       selectionBasis,
+		Status:               "observed",
+		InterpretationStatus: "not_adjudicated",
 	}
+}
+
+type daYunPeriodStatus int
+
+const (
+	daYunTimeUnavailable daYunPeriodStatus = iota
+	daYunPeriodActive
+	daYunBeforeStart
+	daYunAfterCoveredPeriods
+)
+
+const daYunTimeLayout = "2006-01-02T15:04:05"
+
+func exactDaYunPeriod(info bazipkg.DaYunInfo, queryDate time.Time) (int, string, string, daYunPeriodStatus) {
+	if !info.Calculated || info.StartAt == "" {
+		return 0, "", "", daYunTimeUnavailable
+	}
+	start, err := time.ParseInLocation(daYunTimeLayout, info.StartAt, queryDate.Location())
+	if err != nil {
+		return 0, "", "", daYunTimeUnavailable
+	}
+	if queryDate.Before(start) {
+		return -1, start.Format(daYunTimeLayout), "", daYunBeforeStart
+	}
+	for idx := range info.Pillars {
+		periodStart := start.AddDate(idx*10, 0, 0)
+		periodEnd := start.AddDate((idx+1)*10, 0, 0)
+		if queryDate.Before(periodEnd) {
+			return idx, periodStart.Format(daYunTimeLayout), periodEnd.Format(daYunTimeLayout), daYunPeriodActive
+		}
+	}
+	coveredUntil := start.AddDate(len(info.Pillars)*10, 0, 0)
+	return len(info.Pillars), coveredUntil.Format(daYunTimeLayout), "", daYunAfterCoveredPeriods
 }
 
 // queryDateGan helper
@@ -956,103 +672,56 @@ func queryDateGan(queryDate time.Time) string {
 func calcLiuNianInfluence(bazi *bazipkg.BaziResult, queryDate time.Time) LiuNianInfluence {
 	yearGanZhi := getYearGanZhi(queryDate.Year(), int(queryDate.Month()), queryDate.Day())
 	if len(yearGanZhi) < 2 {
-		return LiuNianInfluence{}
+		return LiuNianInfluence{Status: "unavailable", InterpretationStatus: "not_adjudicated"}
 	}
 	runes := []rune(yearGanZhi)
 	yearGan := string(runes[0])
 	yearZhi := string(runes[1])
 	dayGan := bazi.DayPillar.Gan
 
-	// 流年天干对日主的十神（格局感知）
+	// 流年天干对日主的十神结构映射。
 	tenGod := bazipkg.ClassifyTenGod(yearGan, dayGan, false)
-	like, _, _ := getEffectiveFavor(bazi)
-	fav := isFavorableTenGodByFavor(tenGod, like, dayGan)
-
-	// 岁伤日干 vs 日犯岁君
-	taiSuiRel := ""
-	todayGan := queryDateGan(queryDate)
-	todayElem := data.GanElement[todayGan]
-	yearElem := data.GanElement[yearGan]
-	score := 0
-
-	if elementOvercomesMap[yearElem] == todayElem {
-		taiSuiRel = "岁伤日干：流年天干克今日天干，有祸必轻"
-		score -= 3
-	} else if elementOvercomesMap[todayElem] == yearElem {
-		taiSuiRel = "日犯岁君：今日天干克流年天干，灾殃必重"
-		score -= 8
-	}
 
 	return LiuNianInfluence{
-		YearPillar:     yearGan + yearZhi,
-		TenGod:         tenGod,
-		Favorable:      fav,
-		TaiSuiRelation: taiSuiRel,
-		Score:          score,
-		Description:    fmt.Sprintf("流年%s，%s对日主为%s，%s", yearGan+yearZhi, yearGan, tenGod, boolToFavStr(fav)),
+		YearPillar:           yearGan + yearZhi,
+		TenGod:               tenGod,
+		SelectionBasis:       "query_date_year_pillar_at_solar_term_boundary",
+		Status:               "observed",
+		InterpretationStatus: "not_adjudicated",
 	}
 }
 
-// getYearGanZhi 获取年干支（以立春为界）
-// 立春前仍属上一年干支
+// getYearGanZhi uses the calendar engine's exact solar-term boundary.
 func getYearGanZhi(year, month, day int) string {
-	y := year
-	// 立春约在2月4日，立春前用上一年干支
-	if month < 2 || (month == 2 && day < 4) {
-		y = year - 1
+	ec, err := getDayEightChar(year, month, day)
+	if err != nil {
+		return ""
 	}
-	gans := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
-	zhis := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	ganIdx := (y - 4) % 10
-	zhiIdx := (y - 4) % 12
-	return gans[ganIdx] + zhis[zhiIdx]
+	return ec.GetYear().GetName()
 }
 
-// ── 步骤九：进退气分析 ──────────────────────────────────────
-
-func calcAdvanceRetreat(todayGan, todayZhi string, monthZhi string) AdvanceRetreat {
+func observeSeasonalState(todayGan, monthZhi string) SeasonalStateEvidence {
 	elem := data.GanElement[todayGan]
 	season := monthZhiToSeason(monthZhi)
-	state := elementSeasonState[season][elem]
-
-	phase := ""
-	phaseDesc := ""
-	score := 0
-
-	switch state {
-	case "相":
-		phase = "进气"
-		phaseDesc = "将来者进，朝阳初升。虽表面不显，实则后劲十足。"
-		score = 8
-	case "旺":
-		phase = "当令"
-		phaseDesc = "进而当令，日中天。表面最强，但盛极必衰。"
-		score = 6
-	case "休":
-		phase = "退气"
-		phaseDesc = "功成者退，夕阳西下。渐弱之势，力不从心。"
-		score = -4
-	case "囚":
-		phase = "无气"
-		phaseDesc = "退而无气，暗夜沉寂。最弱之时，宜守不宜进。"
-		score = -8
-	case "死":
-		phase = "绝灭"
-		phaseDesc = "气已绝灭。极弱之时，但死中藏生。"
-		score = -10
-	default:
-		phase = "未知"
-		phaseDesc = "状态不明。"
-		score = 0
+	evidence := SeasonalStateEvidence{
+		RuleID:               "rikuyo.seasonal-state-v1",
+		QueryStem:            todayGan,
+		QueryElement:         elem,
+		QueryMonthBranch:     monthZhi,
+		Season:               season,
+		Basis:                "query_day_stem_element_and_query_month_branch",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-
-	return AdvanceRetreat{
-		Phase:       phase,
-		PhaseDesc:   phaseDesc,
-		Element:     elem,
-		Score:       score,
-		Description: fmt.Sprintf("%s在%s为%s（%s）。%s", elem, season, state, phase, phaseDesc),
+	if elem == "" || season == "" {
+		return evidence
 	}
+	evidence.State = elementSeasonState[season][elem]
+	if evidence.State == "" {
+		return evidence
+	}
+	evidence.Status = "observed"
+	return evidence
 }
 
 // monthZhiToSeason 以节气月地支判断季节
@@ -1065,8 +734,10 @@ func monthZhiToSeason(zhi string) string {
 		return "夏"
 	case "申", "酉", "戌":
 		return "秋"
-	default: // 亥, 子, 丑
+	case "亥", "子", "丑":
 		return "冬"
+	default:
+		return ""
 	}
 }
 
@@ -1084,96 +755,27 @@ func solarDateToJieQiMonth(month, day int) int {
 	return month - 1
 }
 
-// ── 步骤十：用神综合判断 ──────────────────────────────────
+// ── 传统日课结构标签 ──────────────────────────────────────────
 
-func calcYongShenIntegration(bazi *bazipkg.BaziResult, todayGan, todayZhi string) YongShenImpact {
-	todayElem := data.GanElement[todayGan]
-	todayZhiElem := data.ZhiElement[todayZhi]
-	score := 0
-	desc := ""
-
-	// 扶抑用神
-	fuYiHit := false
-	for _, e := range bazi.BodyStrength.Like {
-		if todayElem == e || todayZhiElem == e {
-			fuYiHit = true
-			break
-		}
+func observeJianChu(monthZhi, todayZhi string) model.TraditionalCalendarEvidence {
+	evidence := model.TraditionalCalendarEvidence{
+		RuleID:               "rikuyo.jianchu-month-branch-v1",
+		MonthBranch:          monthZhi,
+		QueryBranch:          todayZhi,
+		Basis:                "query_month_branch_and_query_day_branch",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-	if fuYiHit {
-		score += 10
-		desc += "今日干支生扶扶抑用神。"
-	}
-
-	// 调候用神（从命局获取）
-	tiaoHouElem := ""
-	if bazi.Tiaohou != nil && bazi.Tiaohou.Primary != "" {
-		tiaoHouElem = data.GanElement[bazi.Tiaohou.Primary]
-		if tiaoHouElem == "" {
-			tiaoHouElem = bazi.Tiaohou.Primary
-		}
-	}
-	tiaoHouHit := false
-	if tiaoHouElem != "" {
-		if todayElem == tiaoHouElem || todayZhiElem == tiaoHouElem {
-			tiaoHouHit = true
-			score += 15 // 调候优先级最高
-			desc += "今日干支生扶调候用神，大吉。"
-		}
-	}
-
-	// 通关用神
-	tongGuanElem := bazi.TongGuan.TongGuanElement
-	tongGuanHit := false
-	if tongGuanElem != "" && bazi.TongGuan.HasTongGuan {
-		if todayElem == tongGuanElem || todayZhiElem == tongGuanElem {
-			tongGuanHit = true
-			score += 10
-			desc += "今日干支生扶通关用神。"
-		}
-	}
-
-	return YongShenImpact{
-		TiaoHouElement:  tiaoHouElem,
-		TiaoHouHit:      tiaoHouHit,
-		TongGuanElement: tongGuanElem,
-		TongGuanHit:     tongGuanHit,
-		FuYiElements:    bazi.BodyStrength.Like,
-		FuYiHit:         fuYiHit,
-		Score:           score,
-		Description:     desc,
-	}
-}
-
-// ── 步骤十二：建除十二神 ──────────────────────────────────────
-
-// calcJianChu 计算建除十二神
-// 以月支为起点，今日地支与月支的距离决定建除值
-func calcJianChu(monthZhi, todayZhi string) (name, favor, desc string) {
-	table, ok := jianChuTable[monthZhi]
-	if !ok {
-		return "未知", "平", ""
-	}
-	zhiOrder := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	monthIdx, todayIdx := -1, -1
-	for i, z := range zhiOrder {
-		if z == monthZhi {
-			monthIdx = i
-		}
-		if z == todayZhi {
-			todayIdx = i
-		}
-	}
+	monthIdx, todayIdx := data.ZhiIndex(monthZhi), data.ZhiIndex(todayZhi)
 	if monthIdx < 0 || todayIdx < 0 {
-		return "未知", "平", ""
+		return evidence
 	}
-	// 月支本身为"建"日，顺推
-	offset := (todayIdx - monthIdx + 12) % 12
-	jianChu := table[offset]
-	return jianChu, jianChuFavorability[jianChu], jianChuDesc[jianChu]
+	evidence.Name = jianChuNames[(todayIdx-monthIdx+12)%12]
+	evidence.Status = "observed"
+	return evidence
 }
 
-// ── 黄道黑道日（协纪辨方书） ──────────────────────────────────
+// ── 十二值神结构标签（协纪辨方书） ──────────────────────────────
 
 // huangDaoTwelveGods 十二值神顺排顺序
 var huangDaoTwelveGods = []string{
@@ -1181,269 +783,20 @@ var huangDaoTwelveGods = []string{
 	"白虎", "玉堂", "天牢", "玄武", "司命", "勾陈",
 }
 
-// huangDaoFavorableMap 黄道六神（吉）vs 黑道六神（凶）
-var huangDaoFavorableMap = map[string]bool{
-	"青龙": true, "明堂": true, "金匮": true, "天德": true, "玉堂": true, "司命": true,
-	"天刑": false, "朱雀": false, "白虎": false, "天牢": false, "玄武": false, "勾陈": false,
-}
-
-// huangDaoDescMap 十二值神描述
-var huangDaoDescMap = map[string]string{
-	"青龙": "黄道吉神，主喜庆、贵人、财利。所值之日，百事皆宜。",
-	"明堂": "黄道吉神，主明达、公开、顺畅。利公开事务、文书契约。",
-	"天刑": "黑道凶神，主刑伤、意外。忌诉讼、出行、手术。",
-	"朱雀": "黑道凶神，主口舌、是非、文书纠纷。忌签约、诉讼。",
-	"金匮": "黄道吉神，主财富、收藏、积蓄。利纳财、储蓄、收账。",
-	"天德": "黄道吉神，主德行、化解、贵人。百事皆宜，逢凶化吉。",
-	"白虎": "黑道凶神，主血光、伤灾、丧事。忌动刀、出行、见血。",
-	"玉堂": "黄道吉神，主吉庆、文昌、学业。利考试、文书、求名。",
-	"天牢": "黑道凶神，主囚禁、束缚、不自由。忌诉讼、出行。",
-	"玄武": "黑道凶神，主盗窃、暗昧、欺诈。防失财、小人、被骗。",
-	"司命": "黄道吉神，主寿命、健康、平安。利求医、祈福、安床。",
-	"勾陈": "黑道凶神，主田土、牵连、拖沓。忌动土、搬家、签约。",
-}
-
-// huangDaoStartIdx 月支 → 青龙起始地支索引
-// 子午月从寅起，丑未月从卯起，寅申月从辰起，卯酉月从巳起，辰戌月从午起，巳亥月从未起
-var huangDaoStartIdx = map[string]int{
-	"子": 2, "午": 2, // 寅(2)起青龙
-	"丑": 3, "未": 3, // 卯(3)起青龙
-	"寅": 4, "申": 4, // 辰(4)起青龙
-	"卯": 5, "酉": 5, // 巳(5)起青龙
-	"辰": 6, "戌": 6, // 午(6)起青龙
-	"巳": 7, "亥": 7, // 未(7)起青龙
-}
-
-// calcHuangDaoHeiDao 计算黄道黑道日
-// 以月支定青龙起点，顺排十二值神，看今日地支落在哪个神
-func calcHuangDaoHeiDao(monthZhi, todayZhi string) (name string, favorable bool, desc string) {
-	startIdx, ok := huangDaoStartIdx[monthZhi]
-	if !ok {
-		return "未知", false, ""
+func observeHuangDao(monthZhi, todayZhi string) model.TraditionalCalendarEvidence {
+	evidence := model.TraditionalCalendarEvidence{
+		RuleID:               "rikuyo.twelve-star.tyme4go-v2",
+		MonthBranch:          monthZhi,
+		QueryBranch:          todayZhi,
+		Basis:                "tyme4go_sixty_cycle_day_twelve_star_formula",
+		Status:               "unavailable",
+		InterpretationStatus: "not_adjudicated",
 	}
-	todayIdx := data.ZhiIndex(todayZhi)
-	if todayIdx < 0 {
-		return "未知", false, ""
+	monthIdx, todayIdx := data.ZhiIndex(monthZhi), data.ZhiIndex(todayZhi)
+	if monthIdx < 0 || todayIdx < 0 {
+		return evidence
 	}
-	offset := (todayIdx - startIdx + 12) % 12
-	name = huangDaoTwelveGods[offset]
-	favorable = huangDaoFavorableMap[name]
-	desc = huangDaoDescMap[name]
-	return
-}
-
-// ── 日课综合判断 ──────────────────────────────────────────
-
-// calcDayClassSummary 综合建除十二神、黄道黑道日、彭祖百忌，给出日课综合建议
-func calcDayClassSummary(jianChuName, jianChuFav, huangDaoName string, huangDaoFav bool, pengzuGan, pengzuZhi string) (summary, advice string) {
-	score := 0
-	var goodPoints, badPoints []string
-
-	// 建除十二神
-	switch jianChuFav {
-	case "吉":
-		score += 2
-		goodPoints = append(goodPoints, "建除"+jianChuName+"为吉")
-	case "凶":
-		score -= 2
-		badPoints = append(badPoints, "建除"+jianChuName+"为凶")
-	}
-
-	// 黄道黑道
-	if huangDaoFav {
-		score += 2
-		goodPoints = append(goodPoints, huangDaoName+"为黄道吉神")
-	} else {
-		score -= 2
-		badPoints = append(badPoints, huangDaoName+"为黑道凶神")
-	}
-
-	// 生成综合断语
-	if score >= 3 {
-		summary = "日课大吉：黄道" + huangDaoName + "、建除" + jianChuName + "皆吉，诸事皆宜。"
-		advice = "今日日课吉利，宜行大事。忌：" + pengzuGan + "；" + pengzuZhi
-	} else if score >= 1 {
-		summary = "日课偏吉：黄道" + huangDaoName + "、建除" + jianChuName + "尚可，宜谨慎行事。"
-		advice = "今日日课尚可，宜择吉而行。忌：" + pengzuGan + "；" + pengzuZhi
-	} else if score >= -1 {
-		summary = "日课平平：黄道" + huangDaoName + "、建除" + jianChuName + "参半，宜守不宜攻。"
-		advice = "今日日课平平，宜谨慎行事。忌：" + pengzuGan + "；" + pengzuZhi
-	} else {
-		summary = "日课欠佳：黄道" + huangDaoName + "、建除" + jianChuName + "皆凶，大事不宜。"
-		advice = "今日日课不利，宜守不宜进，大事不宜。忌：" + pengzuGan + "；" + pengzuZhi
-	}
-
-	return
-}
-
-// ── 步骤十一：综合评分与断语 ──────────────────────────────
-
-func calcOverallVerdict(
-	tenGod string, tenGodFav bool,
-	stage string, stageFav bool,
-	hiddenStems []HiddenStemGod,
-	stemRels []StemRelation,
-	branchRels []BranchRelation,
-	shenSha []ShenShaActivation,
-	daYun DaYunInfluence,
-	liuNian LiuNianInfluence,
-	advanceRetreat AdvanceRetreat,
-	yongShen YongShenImpact,
-	isSpecialPattern bool,
-	bazi *bazipkg.BaziResult,
-) (string, int) {
-
-	score := 50 // 基准分
-
-	// 天干十神喜忌 (权重25%)
-	if tenGodFav {
-		score += 12
-	} else {
-		score -= 12
-	}
-
-	// 地支长生状态 (权重15%)
-	if stageFav {
-		score += 8
-	} else {
-		score -= 8
-	}
-
-	// 藏干分析 (权重15%)
-	for _, hs := range hiddenStems {
-		if hs.Favorable {
-			score += 3
-		} else {
-			score -= 3
-		}
-	}
-
-	// 地支关系 (权重15%)
-	for _, br := range branchRels {
-		if br.IsFavorable {
-			score += 4
-		} else {
-			score -= 4
-		}
-	}
-
-	// 天干关系（含贪合忘克）
-	for _, sr := range stemRels {
-		if sr.Note != "" {
-			score += 5 // 贪合忘克加分
-		}
-		if sr.IsFavorable {
-			score += 3
-		} else {
-			score -= 3
-		}
-	}
-
-	// 大运叠加 (权重15%)
-	score += daYun.Score
-
-	// 流年叠加 (权重10%)
-	score += liuNian.Score
-
-	// 进退气
-	score += advanceRetreat.Score
-
-	// 用神综合
-	score += yongShen.Score
-
-	// 神煞引动 (权重5%)
-	for _, ss := range shenSha {
-		if ss.Type == "吉神" {
-			score += 2
-		} else {
-			score -= 2
-		}
-	}
-
-	// 限制范围
-	if score > 100 {
-		score = 100
-	}
-	if score < 0 {
-		score = 0
-	}
-
-	// 生成综合断语
-	verdict := generateVerdict(tenGod, tenGodFav, stage, stageFav, advanceRetreat.Phase, yongShen, score)
-
-	// 特殊格局标注
-	if isSpecialPattern && bazi.PatternAnalysis.PatternName != "" {
-		verdict = fmt.Sprintf("【%s】喜%s忌%s。%s",
-			bazi.PatternAnalysis.PatternName,
-			formatElements(bazi.PatternAnalysis.FavorableElements, ""),
-			formatElements(bazi.PatternAnalysis.UnfavorableElements, ""),
-			verdict)
-	}
-
-	return verdict, score
-}
-
-// formatElements 格式化五行列表
-func formatElements(elems []string, prefix string) string {
-	if len(elems) == 0 {
-		return ""
-	}
-	s := ""
-	for _, e := range elems {
-		if s != "" {
-			s += ""
-		}
-		s += e
-	}
-	return s
-}
-
-func generateVerdict(tenGod string, tenGodFav bool, stage string, stageFav bool, phase string, yongShen YongShenImpact, score int) string {
-	v := ""
-
-	// 十神部分
-	if tenGodFav {
-		v += fmt.Sprintf("今日%s透出，喜用神当值，", tenGod)
-	} else {
-		v += fmt.Sprintf("今日%s透出，忌神当权，", tenGod)
-	}
-
-	// 长生部分
-	if stageFav {
-		v += fmt.Sprintf("日主%s得力。", stage)
-	} else {
-		v += fmt.Sprintf("日主%s失力。", stage)
-	}
-
-	// 进退气
-	if phase == "进气" {
-		v += "五行进气，后劲十足。"
-	} else if phase == "退气" {
-		v += "五行退气，力不从心。"
-	}
-
-	// 用神
-	if yongShen.TiaoHouHit {
-		v += "调候用神得力，大吉之兆。"
-	}
-
-	// 总评
-	if score >= 75 {
-		v += "综合判断：今日运势上佳，宜把握机遇。"
-	} else if score >= 60 {
-		v += "综合判断：今日运势尚可，顺势而为。"
-	} else if score >= 40 {
-		v += "综合判断：今日运势平平，谨慎行事。"
-	} else {
-		v += "综合判断：今日运势欠佳，宜守不宜进。"
-	}
-
-	return v
-}
-
-func boolToFavStr(b bool) string {
-	if b {
-		return "有利"
-	}
-	return "不利"
+	evidence.Name = huangDaoTwelveGods[(todayIdx+(8-monthIdx%6)*2)%12]
+	evidence.Status = "observed"
+	return evidence
 }

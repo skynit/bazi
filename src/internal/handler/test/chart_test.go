@@ -134,15 +134,31 @@ func TestChartCreatePersistsDaYun(t *testing.T) {
 	}
 
 	var dayun struct {
-		StartAge  int            `json:"start_age"`
-		Direction string         `json:"direction"`
-		Pillars   []model.Pillar `json:"pillars"`
+		Calculated     bool                 `json:"calculated"`
+		StartAge       int                  `json:"start_age"`
+		StartAgeDetail bazi.DaYunStartAge   `json:"start_age_detail"`
+		StartAt        string               `json:"start_at"`
+		Direction      string               `json:"direction"`
+		DirectionBasis string               `json:"direction_basis"`
+		PreviousJie    *bazi.DaYunSolarTerm `json:"previous_jie"`
+		NextJie        *bazi.DaYunSolarTerm `json:"next_jie"`
+		ReferenceJie   *bazi.DaYunSolarTerm `json:"reference_jie"`
+		Pillars        []model.Pillar       `json:"pillars"`
 	}
 	if err := json.Unmarshal(store.chart.DaYunStart, &dayun); err != nil {
 		t.Fatalf("unmarshal DaYunStart: %v", err)
 	}
 	if dayun.Direction == "" {
 		t.Error("expected dayun direction")
+	}
+	if !dayun.Calculated || dayun.StartAt == "" {
+		t.Errorf("expected date-level dayun start, got %+v", dayun)
+	}
+	if dayun.StartAge != dayun.StartAgeDetail.Years {
+		t.Errorf("start_age = %d, detail years = %d", dayun.StartAge, dayun.StartAgeDetail.Years)
+	}
+	if dayun.DirectionBasis == "" || dayun.PreviousJie == nil || dayun.NextJie == nil || dayun.ReferenceJie == nil {
+		t.Errorf("expected dayun calculation evidence, got %+v", dayun)
 	}
 	if len(dayun.Pillars) == 0 {
 		t.Error("expected dayun pillars")

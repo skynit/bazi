@@ -15,7 +15,6 @@ import (
 
 const (
 	maxFeedbackCommentRunes = 1000
-	maxFeedbackVersionRunes = 64
 )
 
 type FeedbackChartStore interface {
@@ -24,7 +23,7 @@ type FeedbackChartStore interface {
 
 type FeedbackStore interface {
 	Create(feedback *model.FortuneFeedback) error
-	SummaryByChartID(userID, chartID uint) ([]model.FeedbackSummaryItem, int64, error)
+	SummaryByChartID(userID, chartID uint) ([]model.FeedbackSummaryItem, int64, int64, error)
 }
 
 type FeedbackHandler struct {
@@ -67,16 +66,13 @@ func (h *FeedbackHandler) Create(c *gin.Context) {
 		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
-	engineVersion, ok := feedbackVersion(req.EngineVersion, chart.EngineVersion, bazi.EngineVersion)
-	if !ok {
-		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "engine_version is too long")
+	resolved, err := bazi.ResolveStoredBirth(&bazi.BaziService{}, chart)
+	if err != nil || resolved == nil || resolved.Result == nil {
+		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "chart calculation cannot be reproduced")
 		return
 	}
-	ruleVersion, ok := feedbackVersion(req.RuleVersion, chart.RuleVersion, bazi.RuleVersion)
-	if !ok {
-		respondError(c, http.StatusBadRequest, ErrCodeInvalidRequest, "rule_version is too long")
-		return
-	}
+	engineVersion := bazi.EngineVersion
+	ruleVersion := resolved.Result.RuleVersion
 
 	tagsJSON, err := json.Marshal(cleanFeedbackTags(req.Tags))
 	if err != nil {
@@ -95,8 +91,6 @@ func (h *FeedbackHandler) Create(c *gin.Context) {
 		Rating:          rating,
 		Tags:            string(tagsJSON),
 		Comment:         comment,
-		EventYear:       req.EventYear,
-		EventCategory:   strings.TrimSpace(req.EventCategory),
 		ConsentResearch: req.ConsentResearch,
 		ConsentTraining: req.ConsentTraining,
 		EngineVersion:   engineVersion,
@@ -130,15 +124,17 @@ func (h *FeedbackHandler) Summary(c *gin.Context) {
 		respondError(c, http.StatusNotFound, ErrCodeNotFound, "chart not found")
 		return
 	}
-	items, total, err := h.Feedback.SummaryByChartID(uid, uint(chartID))
+	items, total, researchEligible, err := h.Feedback.SummaryByChartID(uid, uint(chartID))
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, ErrCodeServiceError, "failed to query feedback")
 		return
 	}
 	respondJSON(c, http.StatusOK, model.FeedbackSummaryResponse{
-		ChartID: uint(chartID),
-		Total:   total,
-		Items:   items,
+		ChartID:          uint(chartID),
+		Total:            total,
+		ResearchEligible: researchEligible,
+		Scope:            model.FeedbackSummaryScopeInterpretationQuality,
+		Items:            items,
 	})
 }
 
@@ -155,20 +151,6 @@ func authUserID(c *gin.Context) (uint, bool) {
 	}
 	uid, ok := userID.(uint)
 	return uid, ok
-}
-
-func feedbackVersion(requested, stored, fallback string) (string, bool) {
-	requested = strings.TrimSpace(requested)
-	if utf8.RuneCountInString(requested) > maxFeedbackVersionRunes {
-		return "", false
-	}
-	if requested != "" {
-		return requested, true
-	}
-	if stored = strings.TrimSpace(stored); stored != "" {
-		return stored, true
-	}
-	return fallback, true
 }
 
 func validFeedbackRating(rating string) bool {

@@ -79,6 +79,31 @@ func testChart(userID uint) *model.BirthChart {
 	return chart
 }
 
+func eligibleInterpretationMetadata(book, chapter, sourcePath string) map[string]string {
+	return map[string]string{
+		"domain":                 "bazi",
+		"book":                   book,
+		"author":                 "审阅作者",
+		"edition":                "审阅版次",
+		"chapter":                chapter,
+		"locator":                "chapter:" + chapter,
+		"source_path":            sourcePath,
+		"artifact_path":          "library/reviewed.pdf",
+		"artifact_sha256":        strings.Repeat("a", 64),
+		"document_sha256":        strings.Repeat("b", 64),
+		"source_tier":            "classical_text_local",
+		"verification_status":    "bibliography_page_mapping_and_support_verified",
+		"artifact_kind":          "published_scan",
+		"provenance_status":      "bibliographic_provenance_verified",
+		"independence_status":    "independent_primary_artifact_verified",
+		"coverage_status":        "complete_primary_text_verified",
+		"catalog_claim_eligible": "true",
+		"catalog_schema":         "bazi_rag_source_catalog_v1",
+		"catalog_version":        "reviewed-test-v1",
+		"catalog_sha256":         strings.Repeat("c", 64),
+	}
+}
+
 func TestBaziInterpretationNoJWT(t *testing.T) {
 	router := setupInterpretationRouter(&mockInterpretationChartStore{chart: testChart(1)}, mockRetriever{})
 
@@ -125,15 +150,10 @@ func TestBaziInterpretationOtherUsersChartNotFound(t *testing.T) {
 func TestBaziInterpretationOK(t *testing.T) {
 	router := setupInterpretationRouter(&mockInterpretationChartStore{chart: testChart(1)}, mockRetriever{
 		chunks: []rag.RetrievedChunk{{
-			ID:      "chunk-1",
-			Content: "月令为提纲，格局当以月令为主。",
-			Score:   0.82,
-			Metadata: map[string]string{
-				"domain":      "bazi",
-				"book":        "子平真诠",
-				"chapter":     "001",
-				"source_path": "bazi/子平真诠/001.md",
-			},
+			ID:       "chunk-1",
+			Content:  "月令为提纲，格局当以月令为主。",
+			Score:    0.82,
+			Metadata: eligibleInterpretationMetadata("子平真诠", "001", "bazi/子平真诠/001.md"),
 		}},
 	})
 	token, _ := middleware.GenerateToken(1, "testuser")

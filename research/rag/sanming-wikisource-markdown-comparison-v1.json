@@ -1,0 +1,6295 @@
+{
+  "schema": "sanming_cross_source_text_comparison_v1",
+  "version": "2026-07-17.1",
+  "status": "machine_comparison_not_independence_or_claim_adjudication",
+  "observed_at": "2026-07-17",
+  "purpose": "Freeze a reproducible, chapter-level textual-overlap audit between the complete Wikisource transcription and the external Markdown corpus without promoting either source to runtime evidence.",
+  "sources": {
+    "snapshot_manifest_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/snapshot-manifest.json",
+    "snapshot_manifest_sha256": "38a03d0ee048a097620de3765f2793e9f0a5383a3238748fcd583ac79bb26974",
+    "attribution_path": "research/rag/snapshots/sanming-siku-wikisource-12vol-v1/ATTRIBUTION.md",
+    "attribution_sha256": "84aad48ff04e5220b0dc999ffda2de4fd5e86157896a7f14b7f2f9511461c6b2",
+    "candidate_id": "sanming-siku-wikisource-12vol-v1",
+    "provider": "zh.wikisource.org",
+    "revision_volume_count": 12,
+    "markdown_root_label": "external_mingli_db/md/bazi/三命通会",
+    "markdown_manifest_scheme": "sorted_filename_tab_sha256_lf_v1",
+    "markdown_manifest_sha256": "ddef8e89beac4d106336d17e47899e8220b139c36117524b3ea71518dbb91bb7",
+    "markdown_file_count": 382,
+    "numbered_chapter_count": 381
+  },
+  "normalization": {
+    "wikitext_extraction": "balanced_template_render_v1_preserve_SK_anchor_SK_notes_YL_payload_drop_SKchar_and_layout_templates",
+    "markdown_extraction": "numbered_markdown_exact_section_from_原文_to_next_h2_or_eof_v1",
+    "script_conversion": "opencc_t2s_fixed_assets",
+    "character_filter": "unicode_letters_and_numbers_without_compatibility_fold",
+    "anchor_sampling": "unique_evenly_spaced_fixed_width_v1",
+    "anchor_width_runes": 20,
+    "maximum_anchors_per_chapter": 48,
+    "opencc_version": "1.3.2.dirty",
+    "opencc_asset_sha256": {
+      "CJK_Compatibility_Ideographs.ocd2": "4b1faa6649012f524068ec18c0fb520ead343c11cbe0a8e4c8853ca61369d666",
+      "TSCharacters.ocd2": "014a1c9615f2a0800a56f0e6ce132c01ec233b089cd6160da66df9c346c0274b",
+      "TSCharactersExt.ocd2": "2ee61f852d05a3241326ae8d7eeae00818a80c0a0f4e03704050312b9561bf33",
+      "TSPhrases.ocd2": "e7f9d419d54f71a66d7f0283b29910913f08defdb6d4322e00c459c7ebe3f991",
+      "t2s.json": "96fe5cc374a80ccc49e3370006cce3aefe4af955868ae0b14fb3079ec695be4f"
+    },
+    "local_normalized_chapter_manifest_sha256": "e2bb2a0498b0a765a8b635b2a484ff27bfd159d04252e18c53e9a8b9d2023915",
+    "remote_normalized_volume_manifest_sha256": "485261c008439e6fc9ff83e6ccb4e359e4794e27a9b69f89bc5ffa827bd7cf8c"
+  },
+  "summary": {
+    "compared_chapters": 381,
+    "zero_hit_chapters": 0,
+    "score_below_0_10_chapters": 5,
+    "score_0_10_to_below_0_25_chapters": 35,
+    "score_0_25_to_below_0_50_chapters": 206,
+    "score_0_50_to_below_0_80_chapters": 125,
+    "score_at_least_0_80_chapters": 10,
+    "title_located_chapters": 226,
+    "ambiguous_best_volume_chapters": 0,
+    "best_volume_counts": [
+      {
+        "volume": 1,
+        "count": 13
+      },
+      {
+        "volume": 2,
+        "count": 26
+      },
+      {
+        "volume": 3,
+        "count": 23
+      },
+      {
+        "volume": 4,
+        "count": 7
+      },
+      {
+        "volume": 5,
+        "count": 47
+      },
+      {
+        "volume": 6,
+        "count": 45
+      },
+      {
+        "volume": 7,
+        "count": 22
+      },
+      {
+        "volume": 8,
+        "count": 60
+      },
+      {
+        "volume": 9,
+        "count": 60
+      },
+      {
+        "volume": 10,
+        "count": 41
+      },
+      {
+        "volume": 11,
+        "count": 21
+      },
+      {
+        "volume": 12,
+        "count": 16
+      }
+    ],
+    "machine_textual_overlap_observed": true
+  },
+  "volumes": [
+    {
+      "volume": 1,
+      "page_id": "260840",
+      "revision_id": 657365,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260840&oldid=657365",
+      "artifact_path": "volumes/volume-01.wikitext",
+      "local_sha256": "9b9f86a4f1f859dc9da60db672a00b37a5956c3ea141132f6f879c3a1a172c07",
+      "normalized_runes": 36731,
+      "normalized_sha256": "91ed904f472c2fd0b9089a0c2e040a0e451649395051ea860219046b80b2d523"
+    },
+    {
+      "volume": 2,
+      "page_id": "260841",
+      "revision_id": 761691,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260841&oldid=761691",
+      "artifact_path": "volumes/volume-02.wikitext",
+      "local_sha256": "748da85cc60441c0e0ffe783644db152b70b4320b134650d80a086bb27987273",
+      "normalized_runes": 36266,
+      "normalized_sha256": "930b079a3e273d7d2f9d7e0b0e69c344e2f42cd3150347b65cc0a9c7721792b9"
+    },
+    {
+      "volume": 3,
+      "page_id": "260842",
+      "revision_id": 657369,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260842&oldid=657369",
+      "artifact_path": "volumes/volume-03.wikitext",
+      "local_sha256": "a3fed515e8167657e7fbc2be7bf95dbb5d356d18b608c9bd260e006a66fd6ebe",
+      "normalized_runes": 34598,
+      "normalized_sha256": "df0dc184db3138477443a2551422f234053a7a61745dc94b08225bc3169641c3"
+    },
+    {
+      "volume": 4,
+      "page_id": "260843",
+      "revision_id": 657371,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260843&oldid=657371",
+      "artifact_path": "volumes/volume-04.wikitext",
+      "local_sha256": "8919d99f6d48b0c420b0c885534b3988c5039a296acc0ad056723c8255387d76",
+      "normalized_runes": 35862,
+      "normalized_sha256": "3ba5dde1ebd887bdb847dd7f67a96c14a1ed234eb84f9da805757b2f5d45c50d"
+    },
+    {
+      "volume": 5,
+      "page_id": "260844",
+      "revision_id": 2082207,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260844&oldid=2082207",
+      "artifact_path": "volumes/volume-05.wikitext",
+      "local_sha256": "1268b6c220a88d06d49e8b8709b94cf19c2fdceef87ac897e7621af202d58f00",
+      "normalized_runes": 36104,
+      "normalized_sha256": "d6ad65f04652258ecb9fa59849cc875c23606d9faba0ea164cf383d83bc386be"
+    },
+    {
+      "volume": 6,
+      "page_id": "260845",
+      "revision_id": 657375,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260845&oldid=657375",
+      "artifact_path": "volumes/volume-06.wikitext",
+      "local_sha256": "af1c6faccc1e42d224b86e2216a130eadfd2510abd8da46f47f6cb36450acf0c",
+      "normalized_runes": 36862,
+      "normalized_sha256": "c0301ba9da9a91736d53ba539b7a9ac1a965af8499e37a2ba515d6bb4cace8bc"
+    },
+    {
+      "volume": 7,
+      "page_id": "260846",
+      "revision_id": 2082208,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260846&oldid=2082208",
+      "artifact_path": "volumes/volume-07.wikitext",
+      "local_sha256": "df2002e56bf3f96b43b8ce3e6972863682948207cea0cb4aa680efee3d543372",
+      "normalized_runes": 32414,
+      "normalized_sha256": "b962652d532c204af55491bffc5ea2de09ac5efd89a822e5da073f5f5dd5c51f"
+    },
+    {
+      "volume": 8,
+      "page_id": "260847",
+      "revision_id": 761697,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260847&oldid=761697",
+      "artifact_path": "volumes/volume-08.wikitext",
+      "local_sha256": "2bf8df667cb92d371d5d01c09ef6919be019d4f6da619a525bb5a872871a74d4",
+      "normalized_runes": 40567,
+      "normalized_sha256": "9e1ab1bb08d2cd1353fbb7d5e5c1b88d764beb6d2116ef4aa90a888648cc263f"
+    },
+    {
+      "volume": 9,
+      "page_id": "260848",
+      "revision_id": 761700,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260848&oldid=761700",
+      "artifact_path": "volumes/volume-09.wikitext",
+      "local_sha256": "08716c6eb49c8ccb2e51d749b950060b0063d725bfee7886a02ffb9f109861d7",
+      "normalized_runes": 39970,
+      "normalized_sha256": "240fedf30951decd632ac990949fd6a0576c53950d7c264e13ea5d2da989cae6"
+    },
+    {
+      "volume": 10,
+      "page_id": "260849",
+      "revision_id": 761703,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260849&oldid=761703",
+      "artifact_path": "volumes/volume-10.wikitext",
+      "local_sha256": "0a20dc53a4156211b5c8ba89dbb6a8f07f056fde573e37699e28b021b6d026b6",
+      "normalized_runes": 33022,
+      "normalized_sha256": "4dbb8d6b74c056b25d74729523951947a115a360ffaff82cae18e1679c1d8e1e"
+    },
+    {
+      "volume": 11,
+      "page_id": "260850",
+      "revision_id": 761705,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260850&oldid=761705",
+      "artifact_path": "volumes/volume-11.wikitext",
+      "local_sha256": "d1bd610ac7878b19cc5270ccd17ffb213cd3e219611317d0d1621bbb0a09698d",
+      "normalized_runes": 42997,
+      "normalized_sha256": "470ec0871077aa6296446cbd5dcb3cc13dfb46c160f06b5e58765b9a54bfea9c"
+    },
+    {
+      "volume": 12,
+      "page_id": "260851",
+      "revision_id": 761707,
+      "source_url": "https://zh.wikisource.org/w/index.php?curid=260851&oldid=761707",
+      "artifact_path": "volumes/volume-12.wikitext",
+      "local_sha256": "089270bfb30b00a359ce69b282c5184c752f1cf56417db8fb42dc5946005d163",
+      "normalized_runes": 27378,
+      "normalized_sha256": "565bfeb3d751358830aaf9926947fe772806ba2c7ce016ad782fde80682ae72a"
+    }
+  ],
+  "chapters": [
+    {
+      "chapter": 1,
+      "file": "001.md",
+      "title": "原造化之始",
+      "original_sha256": "a7ab7c0fd661b5471e0da04ae9df318906da9c351200228eb1e3ff269a5bb6da",
+      "normalized_runes": 3651,
+      "anchor_count": 48,
+      "best_anchor_hits": 43,
+      "score_basis_points": 8958,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 2,
+      "file": "002.md",
+      "title": "论五行生成",
+      "original_sha256": "30278127338fd95461055038fa1541ceffdcabdcf3e9244387d8b93317d31604",
+      "normalized_runes": 540,
+      "anchor_count": 48,
+      "best_anchor_hits": 43,
+      "score_basis_points": 8958,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1
+      ]
+    },
+    {
+      "chapter": 3,
+      "file": "003.md",
+      "title": "论五行生克",
+      "original_sha256": "fef79f61ed1635e877d5a9bd012e7edac4758fbf2ab6a8cf466cf943450c3e6b",
+      "normalized_runes": 525,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 4,
+      "file": "004.md",
+      "title": "论支干源流",
+      "original_sha256": "5b4ddaf3dd8596095466c725e723f243bc0133b9e720fa13f544f2185b31f987",
+      "normalized_runes": 435,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1
+      ]
+    },
+    {
+      "chapter": 5,
+      "file": "005.md",
+      "title": "总论纳音",
+      "original_sha256": "647f6f77f2e746ae2528de7d3e1041e9228f8e03c97146fd6e19edae7db2e5a3",
+      "normalized_runes": 399,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1
+      ]
+    },
+    {
+      "chapter": 6,
+      "file": "006.md",
+      "title": "论纳音取象",
+      "original_sha256": "f7e3f15abe2c6ef4e8b9bb189627d128859ceb55f3ec223f8e6a680d9a35f24e",
+      "normalized_runes": 1910,
+      "anchor_count": 48,
+      "best_anchor_hits": 34,
+      "score_basis_points": 7083,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1
+      ]
+    },
+    {
+      "chapter": 7,
+      "file": "007.md",
+      "title": "释六十甲子性质吉凶",
+      "original_sha256": "c12d8b661d7ee47b824612698725f849b8233b8ff772037c98e8841a4362b2bf",
+      "normalized_runes": 1550,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": [
+        1
+      ]
+    },
+    {
+      "chapter": 8,
+      "file": "008.md",
+      "title": "释六十甲子性质吉凶二",
+      "original_sha256": "a5f6f4b3158d985a81911a61cfe7d19d7458d5409b29cf5e5535455ccd8632c7",
+      "normalized_runes": 3188,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 9,
+      "file": "009.md",
+      "title": "释六十甲子性质吉凶三",
+      "original_sha256": "f6bddb8be86d6a89153894a75850a8b9681720eaa02cb736922310daf90a5a93",
+      "normalized_runes": 1921,
+      "anchor_count": 48,
+      "best_anchor_hits": 32,
+      "score_basis_points": 6666,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 10,
+      "file": "010.md",
+      "title": "释六十甲子性质吉凶四",
+      "original_sha256": "b547bcaf57f9b29aa2e8510db268c59e1834e45cfae31e1dfd2824ac331f2cb9",
+      "normalized_runes": 3680,
+      "anchor_count": 48,
+      "best_anchor_hits": 31,
+      "score_basis_points": 6458,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 11,
+      "file": "011.md",
+      "title": "释六十甲子性质吉凶五",
+      "original_sha256": "f47b9c5814c1b5c16a4641fce53e9fe329c8256cb696a0a48a83a69176a1c0f0",
+      "normalized_runes": 2330,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 12,
+      "file": "012.md",
+      "title": "释六十甲子性质吉凶六",
+      "original_sha256": "54a6e87f309a8429f04f5d9e8830cfabff6b7250f81f00eaaa71d3618153d4ca",
+      "normalized_runes": 1696,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 13,
+      "file": "013.md",
+      "title": "释六十甲子性质吉凶七",
+      "original_sha256": "0041e9859bd427bb798af49f0f45034d8847773391da2ea6530b1d462aba7791",
+      "normalized_runes": 2838,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        1
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 14,
+      "file": "014.md",
+      "title": "论天干阴阳生死",
+      "original_sha256": "f57a3d94c5b599f0480bea10e20c34ffde541ceb779045f19574a38e03d8810b",
+      "normalized_runes": 2083,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 15,
+      "file": "015.md",
+      "title": "论地支",
+      "original_sha256": "01b17b85e006b756db8b95f15f87f92da364e5e33677ef9e8744d8da31865651",
+      "normalized_runes": 1102,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2,
+        10,
+        11
+      ]
+    },
+    {
+      "chapter": 16,
+      "file": "016.md",
+      "title": "十干分配天文",
+      "original_sha256": "6b69829544f8c42df3fc590f739be01c481397717f493cdac7b94c4de872d805",
+      "normalized_runes": 1174,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 17,
+      "file": "017.md",
+      "title": "十二支分配地理",
+      "original_sha256": "eab017d230549d737caac0dbb910a867b4bbbc84987bcc3d0d7c888cb7e8c86e",
+      "normalized_runes": 608,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 18,
+      "file": "018.md",
+      "title": "论地支属相",
+      "original_sha256": "906a309d6a3e8fbb3a1c65d3626de92edb95ebc8955aa786016b659e9ee603ba",
+      "normalized_runes": 471,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 19,
+      "file": "019.md",
+      "title": "论人元司事",
+      "original_sha256": "f78b9d4aa967b633a82e3a57ce7407d8fd20bb489e4f8748e72e16fd589ff02f",
+      "normalized_runes": 441,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 20,
+      "file": "020.md",
+      "title": "论四时节气",
+      "original_sha256": "26f32008e938a81abe56afab8d96e8c88541c63346875dfce594966b2f0529dd",
+      "normalized_runes": 466,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 21,
+      "file": "021.md",
+      "title": "论五行旺相休囚死并寄",
+      "original_sha256": "1a16018c6f39442e134fa8d55ea81c57e2e2056114d2838a718500c5fdf27029",
+      "normalized_runes": 760,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 22,
+      "file": "022.md",
+      "title": "论遁月时",
+      "original_sha256": "c81c218e91a524a4927f6f0586802616995b911733362976ea606e48e59c7182",
+      "normalized_runes": 370,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 23,
+      "file": "023.md",
+      "title": "论年月日时",
+      "original_sha256": "7a817f8231ffee684b94aa0773f9fea76f5f254756ee3d336f312e5c0426ea0d",
+      "normalized_runes": 912,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 24,
+      "file": "024.md",
+      "title": "论胎元",
+      "original_sha256": "a36c70254b00e8eeb6973f09c85749bc261f997d2081de50ccaa1f3c4f890173",
+      "normalized_runes": 204,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 25,
+      "file": "025.md",
+      "title": "论坐命官",
+      "original_sha256": "7b159fa272b5497f017a0a979a1fe9aef3443098af73bca6aa3c11b2c7beabb5",
+      "normalized_runes": 226,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 26,
+      "file": "026.md",
+      "title": "论大运",
+      "original_sha256": "b9e9e5ce27e5df285d56457d8c674297973be8077637be15b15c9e421d40d1c1",
+      "normalized_runes": 756,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2,
+        11
+      ]
+    },
+    {
+      "chapter": 27,
+      "file": "027.md",
+      "title": "论小运",
+      "original_sha256": "ad10dcc6360fa60cda3bc9e54924196e72ddcfba226383e682e5717cb56ecec9",
+      "normalized_runes": 283,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 28,
+      "file": "028.md",
+      "title": "论太岁",
+      "original_sha256": "7b54d4c426d7b8f57814451ff54b92115cec8505340fb48259c000bce3a97655",
+      "normalized_runes": 807,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 29,
+      "file": "029.md",
+      "title": "总论岁运",
+      "original_sha256": "c8ba46d650e79946c176acea24bc836d14b9f79d8ec99197f7d97bcf2e56363b",
+      "normalized_runes": 444,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 30,
+      "file": "030.md",
+      "title": "论十干合",
+      "original_sha256": "e81c62d047be7cc5d02c7cc133e687915ffbd16502a3d574ed6680cc1620f9c4",
+      "normalized_runes": 748,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 31,
+      "file": "031.md",
+      "title": "论进交退伏",
+      "original_sha256": "99ccf8f791ee2c9f0e6d11b91956ab3d6db4453e6fd68ecb873969ee9d206558",
+      "normalized_runes": 142,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 32,
+      "file": "032.md",
+      "title": "论十干化气",
+      "original_sha256": "230aab638fa2088014f4943a16c0abb08c2551572cb1fa568a5312ceef19f49a",
+      "normalized_runes": 1416,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 33,
+      "file": "033.md",
+      "title": "论支元六合",
+      "original_sha256": "1fb19304b18d20257baf56b34f694bcf383bc1d4deae82ed9cb571522a499e6e",
+      "normalized_runes": 388,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 34,
+      "file": "034.md",
+      "title": "论支元三合",
+      "original_sha256": "b74a7e431de13c927cc0fc85be851563d8a03ab2005a6395d3727c2d27a72fc9",
+      "normalized_runes": 622,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 35,
+      "file": "035.md",
+      "title": "论将星华盖",
+      "original_sha256": "406ce18a3afc8dbb058270665f8360c05b1cd2c40210ad06cd3d6c2514651612",
+      "normalized_runes": 269,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 36,
+      "file": "036.md",
+      "title": "论咸池",
+      "original_sha256": "8fd7d86c6a2b280c661ee02e39c3d418e8c2674ab453d91fa2d5ca848770ca96",
+      "normalized_runes": 214,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 37,
+      "file": "037.md",
+      "title": "论六害",
+      "original_sha256": "8482a97802f32296e06c52d9a89224152639db3c92311c865b161c6dcb0b50bf",
+      "normalized_runes": 681,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 38,
+      "file": "038.md",
+      "title": "论三刑",
+      "original_sha256": "49dae3d7bfc1e1ebe6422d9769858436ae8a6fc172b3a5d5606f51d350ded7ae",
+      "normalized_runes": 1494,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2,
+        7
+      ]
+    },
+    {
+      "chapter": 39,
+      "file": "039.md",
+      "title": "论冲击",
+      "original_sha256": "d3f23aca7be9217348c96a753549c0d9c9f0db7cd261180805716e8c8957621d",
+      "normalized_runes": 568,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        2
+      ],
+      "title_candidate_volumes": [
+        2
+      ]
+    },
+    {
+      "chapter": 40,
+      "file": "040.md",
+      "title": "论十干禄",
+      "original_sha256": "b8bda52ce801bfb8b43083b7d9fd8eaa1476498730f16d399dbb0b058631c649",
+      "normalized_runes": 1611,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 41,
+      "file": "041.md",
+      "title": "论金舆",
+      "original_sha256": "6230ebcc576a05d6b9166f4f7295748c6fcf2051b5cf7d588aed720813c40144",
+      "normalized_runes": 163,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 42,
+      "file": "042.md",
+      "title": "论驿马",
+      "original_sha256": "2afb2327a655801129659524bbf8175cad451df1d43eed654a35f0db77b088cf",
+      "normalized_runes": 2490,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 43,
+      "file": "043.md",
+      "title": "总论禄马",
+      "original_sha256": "825d0bc65ca7f32004a4134f185d3fe82090fd73b7285e66feda18511aedecd0",
+      "normalized_runes": 393,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 44,
+      "file": "044.md",
+      "title": "论天乙贵人",
+      "original_sha256": "8838ca25512b35bebce40998cda62edd779e295e2de0b6659d99b0ed37ef5331",
+      "normalized_runes": 1645,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 45,
+      "file": "045.md",
+      "title": "论三奇",
+      "original_sha256": "cbe21f41e7a10d93c56d9d3a1f625f8be412ddbbc1dac67d9ac81a6fe67ce990",
+      "normalized_runes": 895,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 46,
+      "file": "046.md",
+      "title": "论天月德",
+      "original_sha256": "eb9d558d25eb228892c25deab78f847cc2391ac83fe779785a6dd9b664609b15",
+      "normalized_runes": 961,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 47,
+      "file": "047.md",
+      "title": "论太极贵",
+      "original_sha256": "8d83df68fee561110fe47229ee3eba606409553752ce549638677d657c954413",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 48,
+      "file": "048.md",
+      "title": "论学堂词馆",
+      "original_sha256": "3dbe2f735c78df528e7d8134ea04af0cd3d02a01ba037c630db908d3b6f70e91",
+      "normalized_runes": 529,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 49,
+      "file": "049.md",
+      "title": "论正印",
+      "original_sha256": "1ac59cefa106bc8f0efefbf618ab19d770156db101d1fd9a1eb508ecd8d42323",
+      "normalized_runes": 660,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 50,
+      "file": "050.md",
+      "title": "论德秀",
+      "original_sha256": "55273d0f2da1f4685c068c2a6bde8fba7276fe459348c2c47c4b2e3498d08611",
+      "normalized_runes": 139,
+      "anchor_count": 48,
+      "best_anchor_hits": 3,
+      "score_basis_points": 625,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 51,
+      "file": "051.md",
+      "title": "论劫煞亡神",
+      "original_sha256": "91ae32df4ce400aa9addf2c79721a31b97107cfceb4e6d1bb7d37f115e86cd77",
+      "normalized_runes": 456,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 52,
+      "file": "052.md",
+      "title": "论羊刃",
+      "original_sha256": "f68a63e69f3ceacec0d8b61437380a450d65c8021ce5755bf660d957db13a565",
+      "normalized_runes": 851,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 53,
+      "file": "053.md",
+      "title": "论空亡",
+      "original_sha256": "a8bcdd3cbcdbedbdefdfa7b9d7cfcf12e66c7320be69fc9ce50f91e1ec093fba",
+      "normalized_runes": 1563,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 54,
+      "file": "054.md",
+      "title": "论元辰",
+      "original_sha256": "5b6276cc1f789409670ebf87958e1375b98084115a0ea639279f6fccf9d1834f",
+      "normalized_runes": 601,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3,
+        11
+      ]
+    },
+    {
+      "chapter": 55,
+      "file": "055.md",
+      "title": "论暗金的煞",
+      "original_sha256": "787b51743860b3c2b0655d3a264b31cea91c2b91f2d66886fc40faf84fb9ac27",
+      "normalized_runes": 504,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 56,
+      "file": "056.md",
+      "title": "论灾煞",
+      "original_sha256": "14b99a2d559ae48b3bb1cbb55364a2d62c953fd7cba82ccd285a4f153408da58",
+      "normalized_runes": 136,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 57,
+      "file": "057.md",
+      "title": "论六厄",
+      "original_sha256": "019000ba7b4d8427a98872980e83149919f3e67e6f5a24da86d16a55b0202ab8",
+      "normalized_runes": 105,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 58,
+      "file": "058.md",
+      "title": "论勾绞",
+      "original_sha256": "9779a36195d0ec1d9b0a6c9b30f0fcf30f05fb0c054b32dc9d03404102109044",
+      "normalized_runes": 231,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 59,
+      "file": "059.md",
+      "title": "论孤辰寡宿",
+      "original_sha256": "fd01815ec543382aba7c2b20fca15234a4230a5492215405769d1579c1b61aea",
+      "normalized_runes": 675,
+      "anchor_count": 48,
+      "best_anchor_hits": 34,
+      "score_basis_points": 7083,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 60,
+      "file": "060.md",
+      "title": "论天罗地网",
+      "original_sha256": "6259ee9d595b67a667b676a99b2ee04876b69d1126c43893a78c7a8a454761a4",
+      "normalized_runes": 418,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 61,
+      "file": "061.md",
+      "title": "论十恶大败",
+      "original_sha256": "8ad620569f4b23f2935a23b08f277f9facd999194d64198c6a855dba01ff8ca0",
+      "normalized_runes": 255,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 62,
+      "file": "062.md",
+      "title": "总论诸神煞",
+      "original_sha256": "0b8624f442259fbba38abb693665da9deaa1947b15af1ae22531cf67825820cb",
+      "normalized_runes": 2358,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        3
+      ],
+      "title_candidate_volumes": [
+        3
+      ]
+    },
+    {
+      "chapter": 63,
+      "file": "063.md",
+      "title": "论十二月支得日干吉凶",
+      "original_sha256": "7e946348acaf7fedc1a095f3f7bbfca7c94a9a770cc0d2bcf73d238b90ed73d0",
+      "normalized_runes": 3293,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 64,
+      "file": "064.md",
+      "title": "论五行时地分野吉凶",
+      "original_sha256": "8aaee43c1c5b83944174aebbe8f9326af53f2c6b24b47153bfe7cf64889ce35d",
+      "normalized_runes": 338,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 65,
+      "file": "065.md",
+      "title": "论木",
+      "original_sha256": "d262825695622060d7ecddf46e4a39aa9557bdaa24a93edfec06d8684790a3ff",
+      "normalized_runes": 1128,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": [
+        1,
+        4
+      ]
+    },
+    {
+      "chapter": 66,
+      "file": "066.md",
+      "title": "论火",
+      "original_sha256": "7090721bd6086ec849589112a2f1de82a8b3f442cb8f0a298b077faa078760f8",
+      "normalized_runes": 753,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": [
+        1,
+        3,
+        4,
+        12
+      ]
+    },
+    {
+      "chapter": 67,
+      "file": "067.md",
+      "title": "论土",
+      "original_sha256": "4a5b87360125595f5806ed971febf12cf00624f79dad0918eb3a6bd961cf88b4",
+      "normalized_runes": 804,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": [
+        1,
+        4
+      ]
+    },
+    {
+      "chapter": 68,
+      "file": "068.md",
+      "title": "论金",
+      "original_sha256": "184c2f94c5d5a9ffcdf3e6317303e84f34ca1a278b6c43ff31890a1fb1b4ec70",
+      "normalized_runes": 804,
+      "anchor_count": 48,
+      "best_anchor_hits": 38,
+      "score_basis_points": 7916,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": [
+        3,
+        4,
+        7,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 69,
+      "file": "069.md",
+      "title": "论水",
+      "original_sha256": "1f2369dfc4e1860abb13737a477cb8b151580d46558d40e268416f08fb903bbd",
+      "normalized_runes": 780,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        4
+      ],
+      "title_candidate_volumes": [
+        4,
+        9,
+        11
+      ]
+    },
+    {
+      "chapter": 70,
+      "file": "070.md",
+      "title": "论古人立印食官财名义",
+      "original_sha256": "43a4c91eb2884aacde6240fa743a369a50ae63c9467d295b56bdd55425994158",
+      "normalized_runes": 1263,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 71,
+      "file": "071.md",
+      "title": "论正官",
+      "original_sha256": "89a9f3cb781f3c41ad247fabe81d50d673f50be59a11823d52a05c4ab2154045",
+      "normalized_runes": 1820,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 72,
+      "file": "072.md",
+      "title": "天福贵人",
+      "original_sha256": "8a4827317fd1b239438c3c3992684c5ae9f2e17c5f826527a2eb2c0189857797",
+      "normalized_runes": 85,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 73,
+      "file": "073.md",
+      "title": "天元作禄",
+      "original_sha256": "d1d59b7c3393abba04e3737dcd063f257d264faac212bc5ddc0f0aabab2a6d21",
+      "normalized_runes": 350,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 74,
+      "file": "074.md",
+      "title": "岁德正官",
+      "original_sha256": "4a689c99a43a9eea4d47d5f7708ed9121f9fa15312c7079b224a98d291ea5262",
+      "normalized_runes": 188,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 75,
+      "file": "075.md",
+      "title": "时上正官",
+      "original_sha256": "c9848acff867b8ce561a8c4c25a22a7a53f89e1dab77e190f9363d106bbaf7f8",
+      "normalized_runes": 69,
+      "anchor_count": 48,
+      "best_anchor_hits": 4,
+      "score_basis_points": 833,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        12
+      ]
+    },
+    {
+      "chapter": 76,
+      "file": "076.md",
+      "title": "官印禄库",
+      "original_sha256": "5789c32962fa731e596975b827174fcd8a08823f453bb391e3014391fa1c06b5",
+      "normalized_runes": 95,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 77,
+      "file": "077.md",
+      "title": "相刑遇贵",
+      "original_sha256": "79c8cc58681ddc95f9a6e2fe53161a843531023a91bbf489776f2fd89fa78f27",
+      "normalized_runes": 103,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 78,
+      "file": "078.md",
+      "title": "三合遇贵",
+      "original_sha256": "5950050abbfa372bba1cfe7a13dbd3eb30e879ebc93047c53f4c636d4a211231",
+      "normalized_runes": 54,
+      "anchor_count": 35,
+      "best_anchor_hits": 3,
+      "score_basis_points": 857,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 79,
+      "file": "079.md",
+      "title": "金木间隔",
+      "original_sha256": "a57afebaf4b07ebea73dae7109e4a505b642baf2de5368c5d038770496b10ee2",
+      "normalized_runes": 52,
+      "anchor_count": 33,
+      "best_anchor_hits": 28,
+      "score_basis_points": 8484,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 80,
+      "file": "080.md",
+      "title": "水火既济",
+      "original_sha256": "1b0b9719b706e4f7440b512032913e40c383fe6499707315e7c7e1a809790472",
+      "normalized_runes": 82,
+      "anchor_count": 48,
+      "best_anchor_hits": 32,
+      "score_basis_points": 6666,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        1,
+        4,
+        5,
+        6,
+        7,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 81,
+      "file": "081.md",
+      "title": "金火相成",
+      "original_sha256": "08618062a177ea3119136620d6b308bf8ad041e7d3752cf6c1e37ff04d0508ad",
+      "normalized_runes": 82,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 82,
+      "file": "082.md",
+      "title": "天元坐煞",
+      "original_sha256": "42871e4bf00b46ae4453c3f40a4dada739eca194df46b9f79f0e8ef94e90238e",
+      "normalized_runes": 155,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 83,
+      "file": "083.md",
+      "title": "时上一位贵",
+      "original_sha256": "9c5fe527fbd47c53160b50d1b3f93155a28dedc5ab0e0ee7e3aa15824ca5a700",
+      "normalized_runes": 333,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        4,
+        5,
+        12
+      ]
+    },
+    {
+      "chapter": 84,
+      "file": "084.md",
+      "title": "年上七煞",
+      "original_sha256": "0303281ecf341d07e010bccbdb1c9166354c48970a3e4c4f9fa87451845e4768",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 85,
+      "file": "085.md",
+      "title": "官煞混杂",
+      "original_sha256": "d08d3598f942f6ac9142cab63dc62fa04cfe679b32ef5f7389d09731d504bc32",
+      "normalized_runes": 182,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 86,
+      "file": "086.md",
+      "title": "专禄要制",
+      "original_sha256": "a84268252906f3dd52439d38399e83741afc2dbb284e2e7a22938a0d47f6a15c",
+      "normalized_runes": 75,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 87,
+      "file": "087.md",
+      "title": "弃命从煞",
+      "original_sha256": "1d3f1abb7b53c006eab5fa68f5aa4a6ce7ea623c40a497f7c2282564510b6f51",
+      "normalized_runes": 208,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 88,
+      "file": "088.md",
+      "title": "官煞去留杂论",
+      "original_sha256": "40f4f13d40351397758c83dda294e251e148de11f489bbc3d5428b1e56eb3e4a",
+      "normalized_runes": 1354,
+      "anchor_count": 48,
+      "best_anchor_hits": 32,
+      "score_basis_points": 6666,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 89,
+      "file": "089.md",
+      "title": "壬骑龙背",
+      "original_sha256": "a4bf2022912bf2007ce8eaa0741b31fd40e1eeda5767eb88cad6ac329219f770",
+      "normalized_runes": 438,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        3,
+        4,
+        6,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 90,
+      "file": "090.md",
+      "title": "子遥巳禄",
+      "original_sha256": "58cd881f1b03bc4fe43f5134ca0983777320c5a1223d1ca128b26e3461bfa77e",
+      "normalized_runes": 428,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 91,
+      "file": "091.md",
+      "title": "丑遥巳禄",
+      "original_sha256": "a0fb841d55e71577ad51a9f401056bae213113345e09409591087e4fd0214d18",
+      "normalized_runes": 425,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 92,
+      "file": "092.md",
+      "title": "冲合禄马",
+      "original_sha256": "96897401342d955f2a149f5da7ed09bfe99d35d94f53d9f7e040de1f41abb116",
+      "normalized_runes": 370,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 93,
+      "file": "093.md",
+      "title": "破官",
+      "original_sha256": "8bf49c28e1e4fb7b418cbbcba992b5643cac743ba2d7dec21556062259e02214",
+      "normalized_runes": 164,
+      "anchor_count": 48,
+      "best_anchor_hits": 6,
+      "score_basis_points": 1250,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        9
+      ]
+    },
+    {
+      "chapter": 94,
+      "file": "094.md",
+      "title": "飞财",
+      "original_sha256": "919146ca3d9d52c5c58c7ba699ecf8c1c7c8192f837d188038ebccc27801fb7f",
+      "normalized_runes": 147,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 95,
+      "file": "095.md",
+      "title": "破财",
+      "original_sha256": "5756fe45abb53acdf8bc6ca6b87ce6b76ad00bbf246fbe57de9705490d7ae808",
+      "normalized_runes": 201,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 96,
+      "file": "096.md",
+      "title": "虎午奔巳",
+      "original_sha256": "e7553360bde9f14567c126386715de37924861952fd750c811de1b11c2338fc7",
+      "normalized_runes": 104,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 97,
+      "file": "097.md",
+      "title": "羊击猪蛇",
+      "original_sha256": "d1f449ec5251d036cb2e68acb4e094477963980bbdbf7963bca3020461cc9266",
+      "normalized_runes": 115,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6,
+        11
+      ]
+    },
+    {
+      "chapter": 98,
+      "file": "098.md",
+      "title": "六阴朝阳",
+      "original_sha256": "1f4a6c8dbf9d0968dd09233016c45bcaaa29ae0f4cacc25a1bfed875a4f66156",
+      "normalized_runes": 347,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        9,
+        11
+      ]
+    },
+    {
+      "chapter": 99,
+      "file": "099.md",
+      "title": "六乙鼠贵",
+      "original_sha256": "e5ce241e302949e57eb708adca07a449641cc019e8e4f5924db545814d598fb9",
+      "normalized_runes": 474,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 100,
+      "file": "100.md",
+      "title": "日禄归时",
+      "original_sha256": "ab978bb6c7a8dcb8445eeec672d8e06eaf06274a428991614ad8025cb6ef0d0c",
+      "normalized_runes": 919,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "chapter": 101,
+      "file": "101.md",
+      "title": "拱禄拱贵",
+      "original_sha256": "3e76f56fb17739c21ac1ff7a04f540fecc899f55784030ed4b91326d24cc7735",
+      "normalized_runes": 403,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        4,
+        6,
+        7,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 102,
+      "file": "102.md",
+      "title": "冲禄",
+      "original_sha256": "9df72ef05404318923c75e0c50bdf5ad33ccd3994b774674a55178ed8f0acd10",
+      "normalized_runes": 103,
+      "anchor_count": 48,
+      "best_anchor_hits": 36,
+      "score_basis_points": 7500,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        8,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 103,
+      "file": "103.md",
+      "title": "六壬趋艮",
+      "original_sha256": "ab96e7b4193609ad0eb2001c1d02d967ce8436b55f2fe3197a3eb5edbca4f693",
+      "normalized_runes": 187,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6,
+        10,
+        12
+      ]
+    },
+    {
+      "chapter": 104,
+      "file": "104.md",
+      "title": "六甲趋乾",
+      "original_sha256": "0036ba4c278843d31a11df4aa045c551d685772971574f92c1bfadd703d4952b",
+      "normalized_runes": 199,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 105,
+      "file": "105.md",
+      "title": "财官双美",
+      "original_sha256": "e9ac4419c4dc47609db8c454fa673f24758f4468b831fa7d361298335b3ad0f5",
+      "normalized_runes": 527,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        4,
+        7,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 106,
+      "file": "106.md",
+      "title": "日贵",
+      "original_sha256": "3ea6012e2815b830a10c993585a1e626d8bdb571c3ee862b48b5861db12d6dbc",
+      "normalized_runes": 285,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        4,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 107,
+      "file": "107.md",
+      "title": "日德",
+      "original_sha256": "aaab20a5513e7699ede2d203b75be439359096872afa1aa90384e0daaf6e5e6a",
+      "normalized_runes": 435,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        4,
+        6,
+        9
+      ]
+    },
+    {
+      "chapter": 108,
+      "file": "108.md",
+      "title": "魁罡",
+      "original_sha256": "f7d3fad213f33d12f5c78cd599d55b094d072dcec5b3967b5e9592172d705c62",
+      "normalized_runes": 582,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 109,
+      "file": "109.md",
+      "title": "福德秀气",
+      "original_sha256": "47b0c2ed64ab0dd2e4e8b6847940a2bfea132f43c5acbf2748c49c472751c737",
+      "normalized_runes": 637,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6,
+        9,
+        11
+      ]
+    },
+    {
+      "chapter": 110,
+      "file": "110.md",
+      "title": "禄元互换",
+      "original_sha256": "b6d1c576a6e3396e131df7cccc82e76edb989ab45725db6c01f244f80a915e50",
+      "normalized_runes": 155,
+      "anchor_count": 48,
+      "best_anchor_hits": 41,
+      "score_basis_points": 8541,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 111,
+      "file": "111.md",
+      "title": "子午双包",
+      "original_sha256": "aac6635728b1d872c215fe798f97e2e976507078319ec39e9b9c1df3751f3109",
+      "normalized_runes": 108,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        8,
+        12
+      ]
+    },
+    {
+      "chapter": 112,
+      "file": "112.md",
+      "title": "青龙伏形",
+      "original_sha256": "69e78f1c909a15bee3505687ac244e66440ae27845519ac2076ba47829ea72ab",
+      "normalized_runes": 113,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 113,
+      "file": "113.md",
+      "title": "白虎持势",
+      "original_sha256": "904812c54c40f1e5229d8a3e2081bd8a49183e76e6b51998e08f2ac6d3a17f46",
+      "normalized_runes": 128,
+      "anchor_count": 48,
+      "best_anchor_hits": 32,
+      "score_basis_points": 6666,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 114,
+      "file": "114.md",
+      "title": "朱雀乘风",
+      "original_sha256": "a9e5b0a1473d84050a68f4477d7a4cd78fa5df0d2391b76c72d3e766fa6320ab",
+      "normalized_runes": 173,
+      "anchor_count": 48,
+      "best_anchor_hits": 36,
+      "score_basis_points": 7500,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 115,
+      "file": "115.md",
+      "title": "玄武当权",
+      "original_sha256": "d553208a10c98f3000de2a0ee7555bb33e4df7e5b9359e8d886eb5a1612f5549",
+      "normalized_runes": 176,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 116,
+      "file": "116.md",
+      "title": "勾陈得位",
+      "original_sha256": "f8b3e61978eb3c3bc504fc463cdd3433d462fc1e99d38deb5adfe06000fda1cf",
+      "normalized_runes": 128,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        4,
+        6,
+        8,
+        10,
+        11
+      ]
+    },
+    {
+      "chapter": 117,
+      "file": "117.md",
+      "title": "还魂借气",
+      "original_sha256": "e298570e35f6f17df306f35aa965f63475a87ccbbbc37685aaeffb0097cc95fd",
+      "normalized_runes": 41,
+      "anchor_count": 22,
+      "best_anchor_hits": 13,
+      "score_basis_points": 5909,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 118,
+      "file": "118.md",
+      "title": "八专禄旺",
+      "original_sha256": "0150c0f02552dd7af57ee850de19fd130d931c1b40b320fad57737fd46301e3d",
+      "normalized_runes": 335,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 119,
+      "file": "119.md",
+      "title": "曲直",
+      "original_sha256": "eb392f4fbfad82d3aa5cbbe046a8c6fc5c469818774302a87abd4d0c489bc5ad",
+      "normalized_runes": 137,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        4,
+        6,
+        7,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 120,
+      "file": "120.md",
+      "title": "炎上",
+      "original_sha256": "279fbc93b99c01306a5caa6bf3b18da2fc6286d7ad732094f602c3b8df2526e5",
+      "normalized_runes": 105,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        4,
+        6,
+        7,
+        8,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 121,
+      "file": "121.md",
+      "title": "从革",
+      "original_sha256": "721c688af5ec32e0f51e690d1e6f2cd8cff7260ac365646a8a6725b3b961c92c",
+      "normalized_runes": 117,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 122,
+      "file": "122.md",
+      "title": "润下",
+      "original_sha256": "9f10ec464804ce578d922216af778f5aeb0040814d1eb759c9d9e70e4f601670",
+      "normalized_runes": 145,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        6,
+        7,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 123,
+      "file": "123.md",
+      "title": "稼穑",
+      "original_sha256": "59ccede80fed1f12bf7d3eff59c3bdd80ed9ebe42651e7f1e5bb887f46d4b4c0",
+      "normalized_runes": 193,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        6,
+        7,
+        10,
+        12
+      ]
+    },
+    {
+      "chapter": 124,
+      "file": "124.md",
+      "title": "土局润下",
+      "original_sha256": "8015792b4f1651c9c74369daae165ff389ff75a9eafe72f636d866dc05362afb",
+      "normalized_runes": 159,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 125,
+      "file": "125.md",
+      "title": "金白水清",
+      "original_sha256": "6bc0ab78aa47cb80b05049577de886e48f862d291fed7da644191d101e684247",
+      "normalized_runes": 131,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        3,
+        4,
+        6,
+        7,
+        10,
+        12
+      ]
+    },
+    {
+      "chapter": 126,
+      "file": "126.md",
+      "title": "木火交辉",
+      "original_sha256": "176ecc71f8cdc959a034b3738896103a5a7da859ff0f851b511c872b0062773d",
+      "normalized_runes": 152,
+      "anchor_count": 48,
+      "best_anchor_hits": 48,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 127,
+      "file": "127.md",
+      "title": "火金铸印",
+      "original_sha256": "c3eabb6d0a48c019e852ab9e8f588a3fafb144d9e1ec4c1ff67548f73ea43ecd",
+      "normalized_runes": 52,
+      "anchor_count": 33,
+      "best_anchor_hits": 33,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 128,
+      "file": "128.md",
+      "title": "火土夹杂",
+      "original_sha256": "cea1a621dcfccd708238b5efbe998effa661fd9ac719829b89579d63a1411f93",
+      "normalized_runes": 83,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        1,
+        6,
+        12
+      ]
+    },
+    {
+      "chapter": 129,
+      "file": "129.md",
+      "title": "墓煞",
+      "original_sha256": "7932f9df2ccaaf27ee12563feb745d0bac580b5df5bde7aa283fa4a9471de440",
+      "normalized_runes": 179,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        3,
+        6,
+        11
+      ]
+    },
+    {
+      "chapter": 130,
+      "file": "130.md",
+      "title": "四位纯全",
+      "original_sha256": "3b6480b673267fa843c9ef9c24a8491ae2ae448ea2ab1ec46d717434241c1ac3",
+      "normalized_runes": 359,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 131,
+      "file": "131.md",
+      "title": "一气生成",
+      "original_sha256": "a72404eda446a3591c667ccc5f4009b32a566ba8d84d212cb0351dd27d5d5d33",
+      "normalized_runes": 685,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6,
+        9
+      ]
+    },
+    {
+      "chapter": 132,
+      "file": "132.md",
+      "title": "背禄逐马",
+      "original_sha256": "33895642f4618f8b9a00e72e9b1501df73da9ddd135a97034a844229b38a08b7",
+      "normalized_runes": 150,
+      "anchor_count": 48,
+      "best_anchor_hits": 7,
+      "score_basis_points": 1458,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 133,
+      "file": "133.md",
+      "title": "十干十二年生大贵人例",
+      "original_sha256": "484f4e6746ed99174a302761b1513166a17c8b3f1cdbabe2280dd8dc61f5cf5b",
+      "normalized_runes": 793,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        6
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 134,
+      "file": "134.md",
+      "title": "论正财",
+      "original_sha256": "18f42c232969b19347fb4f7af560f4870b46929431962d9add33e1146af05bcc",
+      "normalized_runes": 1310,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 135,
+      "file": "135.md",
+      "title": "带正马",
+      "original_sha256": "e2a0e090351f7a851d1cb372728bce5657761ef556dbe3974c5eb856afd1fc08",
+      "normalized_runes": 79,
+      "anchor_count": 48,
+      "best_anchor_hits": 5,
+      "score_basis_points": 1041,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 136,
+      "file": "136.md",
+      "title": "时带正马",
+      "original_sha256": "6c6edbedaea710638fadb44a375a5970606b6b38a4baa2c5e08cf1ba4dc2c4d5",
+      "normalized_runes": 51,
+      "anchor_count": 32,
+      "best_anchor_hits": 18,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 137,
+      "file": "137.md",
+      "title": "财旺生官",
+      "original_sha256": "9e954c3d6d3f84c9acad0fef894586c6d94864d6ba223c4d1d95e1ccdf54bc97",
+      "normalized_runes": 128,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 138,
+      "file": "138.md",
+      "title": "天元坐财",
+      "original_sha256": "c2738ff0b4a695c5207b786f6c8fe498e3749bc6d2578c9e0be9b666f00f546f",
+      "normalized_runes": 103,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 139,
+      "file": "139.md",
+      "title": "论偏财",
+      "original_sha256": "42fd3d070bbfe8a5a8223e15a0d095b065680a04d56211dbb00eadfcbf5c5031",
+      "normalized_runes": 758,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 140,
+      "file": "140.md",
+      "title": "时上偏财",
+      "original_sha256": "e9bd2a15868ec9365652b3d0b2916cc424e0c8d8b3bd94fb78c1b059a6d210ac",
+      "normalized_runes": 151,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        8,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 141,
+      "file": "141.md",
+      "title": "弃命从财",
+      "original_sha256": "7520a5316256e2dbd9f5db6faaa039a5d1508c8a490aa91875bb5bd6a2e62e2c",
+      "normalized_runes": 86,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        6
+      ]
+    },
+    {
+      "chapter": 142,
+      "file": "142.md",
+      "title": "日坐天财",
+      "original_sha256": "f804996d4573314db90bce5cf1f49eb5432ceffe1e2887306c7b76f3f93766ce",
+      "normalized_runes": 58,
+      "anchor_count": 39,
+      "best_anchor_hits": 3,
+      "score_basis_points": 769,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 143,
+      "file": "143.md",
+      "title": "偏正财合论",
+      "original_sha256": "81d135b01f6e90d47c9f8af8ae5419a4bc585c65fb9002dfccf776bb314dd270",
+      "normalized_runes": 459,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 144,
+      "file": "144.md",
+      "title": "论印绶",
+      "original_sha256": "379978a46224c6f93cc8a0cde853940c07d2e045030301ea28a2c531798cb860",
+      "normalized_runes": 1909,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        3,
+        5,
+        11
+      ]
+    },
+    {
+      "chapter": 145,
+      "file": "145.md",
+      "title": "时逢生印",
+      "original_sha256": "690b19f4c33badd69a9606faabac6bf842c5a5f04d2bc0f48851573201e67928",
+      "normalized_runes": 76,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 146,
+      "file": "146.md",
+      "title": "胞胎逢印绶",
+      "original_sha256": "a63d651c9bb854f8c56210c84b1f866a278f1842a7522d0202d89546891feab4",
+      "normalized_runes": 54,
+      "anchor_count": 35,
+      "best_anchor_hits": 24,
+      "score_basis_points": 6857,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        12
+      ]
+    },
+    {
+      "chapter": 147,
+      "file": "147.md",
+      "title": "弃印就财",
+      "original_sha256": "1292ef33487b350f193970ccb261bcad1138ee6d8e1ea07d3dd5d446eea3204a",
+      "normalized_runes": 109,
+      "anchor_count": 48,
+      "best_anchor_hits": 48,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        12
+      ]
+    },
+    {
+      "chapter": 148,
+      "file": "148.md",
+      "title": "论倒食",
+      "original_sha256": "779648fd3c648dfa522ab5ba05460beefb07b095766d758841f020b459338f25",
+      "normalized_runes": 616,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 149,
+      "file": "149.md",
+      "title": "论杂气",
+      "original_sha256": "3acfc138f12051f4755744abe07c9f23da70511f75e9231c575907344a747aec",
+      "normalized_runes": 1269,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 150,
+      "file": "150.md",
+      "title": "附论墓运",
+      "original_sha256": "10f2f8ca567c48d957973d9e2629da515d5b3e57c33c38ad743000011881ffc6",
+      "normalized_runes": 80,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 151,
+      "file": "151.md",
+      "title": "论伤官",
+      "original_sha256": "db8276075ca103646767f8761e46f04b4d26db0ede81f096f4a7b508b21b74ca",
+      "normalized_runes": 2015,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 152,
+      "file": "152.md",
+      "title": "论食神",
+      "original_sha256": "a4ff8992b0abc3a80b3c222740f472e4e93b4e011ffd3a54de53195878aa8496",
+      "normalized_runes": 1893,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 153,
+      "file": "153.md",
+      "title": "飞天禄马",
+      "original_sha256": "a15a9ad804184eb6bc86e78a89c13068e5bfb1f454eea65d4cbbd4f9e7c0416f",
+      "normalized_runes": 482,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 154,
+      "file": "154.md",
+      "title": "倒冲禄",
+      "original_sha256": "bd3697fc34385e548fad03c5a21e8a06e663830647ce83b3d284735a1337e233",
+      "normalized_runes": 300,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 155,
+      "file": "155.md",
+      "title": "福星贵人",
+      "original_sha256": "d95a8acda582082d7170655673eea60742c2fc3d3a49e874d9ea5591556b5dce",
+      "normalized_runes": 64,
+      "anchor_count": 45,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5555,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        3,
+        5
+      ]
+    },
+    {
+      "chapter": 156,
+      "file": "156.md",
+      "title": "食神同窠",
+      "original_sha256": "65fba25482f778faa17442e86ded26917da97d9dd35bebf91b167177e6d8ae94",
+      "normalized_runes": 112,
+      "anchor_count": 48,
+      "best_anchor_hits": 48,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5,
+        8
+      ]
+    },
+    {
+      "chapter": 157,
+      "file": "157.md",
+      "title": "食神带合",
+      "original_sha256": "8140fdf497cfa6bfa66f4ef66acd841954e9795b74c482bdd49cfac485fc4f8a",
+      "normalized_runes": 39,
+      "anchor_count": 20,
+      "best_anchor_hits": 11,
+      "score_basis_points": 5500,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 158,
+      "file": "158.md",
+      "title": "红鸾天印",
+      "original_sha256": "18c69e16f3756bd21b0feda28104ecc6a66ac921a958dce130fa0fa74ddfb6a1",
+      "normalized_runes": 28,
+      "anchor_count": 9,
+      "best_anchor_hits": 9,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 159,
+      "file": "159.md",
+      "title": "墨池涌泉",
+      "original_sha256": "861dd546cb14129a0f786c93843e84ba92330d95df0f03eb0bed7a2fa70975d5",
+      "normalized_runes": 62,
+      "anchor_count": 43,
+      "best_anchor_hits": 43,
+      "score_basis_points": 10000,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 160,
+      "file": "160.md",
+      "title": "论阳刃",
+      "original_sha256": "96419a574decf2c99dfc505caf4d794e02949083d4172d70bb2d6e2464c7e0df",
+      "normalized_runes": 2405,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        3,
+        5
+      ]
+    },
+    {
+      "chapter": 161,
+      "file": "161.md",
+      "title": "论建禄",
+      "original_sha256": "63fd17c12dc30729978cda3c95bd133bbdc0497054ec60ede3dc032c24676a37",
+      "normalized_runes": 1138,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        5
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 162,
+      "file": "162.md",
+      "title": "论性情相貌",
+      "original_sha256": "8502ed2d66895ab6d72d921abcb5e992eb0b89e3f24d11a2cc3299739e140fc6",
+      "normalized_runes": 1146,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 163,
+      "file": "163.md",
+      "title": "论疾病先知五脏六腑所",
+      "original_sha256": "6698836836cc4c8eda55c65f4246ab8f8dba9839b88bad30578573a18d1fbceb",
+      "normalized_runes": 2739,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 164,
+      "file": "164.md",
+      "title": "论女命",
+      "original_sha256": "65a70214f607b4698c137cc697eeccae661467dde2f4e836d73f7840c0d0e060",
+      "normalized_runes": 258,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7,
+        12
+      ]
+    },
+    {
+      "chapter": 165,
+      "file": "165.md",
+      "title": "纯",
+      "original_sha256": "ef80776f876dadcb9722d29a5d2857e424839ec3aa56762c08b3c017d02556e3",
+      "normalized_runes": 124,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 166,
+      "file": "166.md",
+      "title": "和",
+      "original_sha256": "9d01f957436fcf5476e0beffcb049c862b9014570bf908ffd5ecbff9c30b7fd1",
+      "normalized_runes": 116,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 167,
+      "file": "167.md",
+      "title": "清",
+      "original_sha256": "0bb22d1a8d9a37708e16d7c239c5451030eb946abb56c1becf538ea64295766b",
+      "normalized_runes": 124,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 168,
+      "file": "168.md",
+      "title": "贵",
+      "original_sha256": "0fe22107e17c9f4daa88ace31767e6de0ab9c474d5fdcda7eede0474fdfc80d9",
+      "normalized_runes": 156,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 169,
+      "file": "169.md",
+      "title": "浊",
+      "original_sha256": "54685bc462f69f78c518a0b8f93d814adedf359d792da589fe77ed646afec01d",
+      "normalized_runes": 118,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 170,
+      "file": "170.md",
+      "title": "滥",
+      "original_sha256": "9db0568e999b55bd108abc89f9b23021c5c6e013ab670942b419e35cc9fd241a",
+      "normalized_runes": 104,
+      "anchor_count": 48,
+      "best_anchor_hits": 7,
+      "score_basis_points": 1458,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10,
+        12
+      ]
+    },
+    {
+      "chapter": 171,
+      "file": "171.md",
+      "title": "娼",
+      "original_sha256": "48375a8a406cf4b79dfeecaae29d5b7f070a04dd58d2ea02cb5aa019922bcfbf",
+      "normalized_runes": 123,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        3,
+        7,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 172,
+      "file": "172.md",
+      "title": "淫",
+      "original_sha256": "470d4564060c510b4489116151b027051ef82b484cca99813e4cea8693027de0",
+      "normalized_runes": 143,
+      "anchor_count": 48,
+      "best_anchor_hits": 37,
+      "score_basis_points": 7708,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        1,
+        2,
+        3,
+        5,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 173,
+      "file": "173.md",
+      "title": "旺夫克子",
+      "original_sha256": "b8910a6451d922189516b1b2f438ca39376c822cdfbcc811d8c5a68ae0b615ec",
+      "normalized_runes": 150,
+      "anchor_count": 48,
+      "best_anchor_hits": 33,
+      "score_basis_points": 6875,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 174,
+      "file": "174.md",
+      "title": "旺子伤夫",
+      "original_sha256": "48b8ee0aa0d65d165dfae882eba319370f0cbf1dc9ce1006171710e43412f307",
+      "normalized_runes": 153,
+      "anchor_count": 48,
+      "best_anchor_hits": 5,
+      "score_basis_points": 1041,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 175,
+      "file": "175.md",
+      "title": "伤夫克子",
+      "original_sha256": "3a15ffea1e23c54577377ebac3540913a3e258326059e76ffe96c35999a2fc4e",
+      "normalized_runes": 148,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 176,
+      "file": "176.md",
+      "title": "安静守分",
+      "original_sha256": "2b54ed1a18d48df37561b8af817ce9c0e48ef905f952bb32d4aefb3c42f1897e",
+      "normalized_runes": 132,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 177,
+      "file": "177.md",
+      "title": "横夭少年",
+      "original_sha256": "dad238d53f0fd1d0669c41569480c2f5f5a8ecb0a5d5ed457f39537c583ce63c",
+      "normalized_runes": 166,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 178,
+      "file": "178.md",
+      "title": "福寿两备",
+      "original_sha256": "2c119b11bc303d4ce14fc488ad3c890d9881bc186910d6f2aae3f4faf34b5d77",
+      "normalized_runes": 187,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 179,
+      "file": "179.md",
+      "title": "正偏自处",
+      "original_sha256": "f175f17a4a3b9c3a1903907fc90869f024bc66de7f306d7c6e67cb2785d3d980",
+      "normalized_runes": 245,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 180,
+      "file": "180.md",
+      "title": "招嫁不定",
+      "original_sha256": "60de2fbb37bfb6b94be4ccf07c74c558ef02a69752a63dffe1fbaa1670f5875c",
+      "normalized_runes": 1171,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 181,
+      "file": "181.md",
+      "title": "论小儿",
+      "original_sha256": "fbaad959bb506feb4caef4ae729651ba7e55fd2392bdd02d089bc5dd24dfa2a8",
+      "normalized_runes": 1318,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 182,
+      "file": "182.md",
+      "title": "论六亲",
+      "original_sha256": "9919e8aec50816eedc6b1a127065b861a129b31977184f6f587e5373ac3a34c9",
+      "normalized_runes": 2250,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 183,
+      "file": "183.md",
+      "title": "定妇人孕生男女",
+      "original_sha256": "5ee4d2b995a7031c2e8d7d298ec9865aeab558623b148a4e91d9ad1d272ca8c1",
+      "normalized_runes": 181,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        7
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 184,
+      "file": "184.md",
+      "title": "六甲日甲子时断",
+      "original_sha256": "e034623a6cca7ed6a3bad4c95c435fe8889177a76cec6a440cae915d8bae815e",
+      "normalized_runes": 587,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 185,
+      "file": "185.md",
+      "title": "六甲日乙丑时断",
+      "original_sha256": "66122e176eef3337662c58a901ca7342625a435f64ff70723791a6a3fb5b68f2",
+      "normalized_runes": 358,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 186,
+      "file": "186.md",
+      "title": "六甲日丙寅时断",
+      "original_sha256": "51c0fa50f8971c82c740b902c0ef250d6a842a759a23bbaa2739f56f0fb5e0da",
+      "normalized_runes": 449,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 187,
+      "file": "187.md",
+      "title": "六甲日丁卯时断",
+      "original_sha256": "7d17f94438a40cd37204d20c4bd6b79db578a316d9659f0deac9eba03edc1a82",
+      "normalized_runes": 393,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 188,
+      "file": "188.md",
+      "title": "六甲日戊辰时断",
+      "original_sha256": "8f89936ac75ec3d4f8e97cbf6b1651d1930b1bc184c97beeeaaaeb4dbf77990f",
+      "normalized_runes": 345,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 189,
+      "file": "189.md",
+      "title": "六甲日己巳时断",
+      "original_sha256": "c2cb2a3abd7a876a32190d34051420f5878d8ee937c7d5054d7163ee3a75408e",
+      "normalized_runes": 367,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 190,
+      "file": "190.md",
+      "title": "六甲日庚午时断",
+      "original_sha256": "a4103d30cf3663b7b6540e40df0d3194e44abd89fd53527dffa9347ee5327d7b",
+      "normalized_runes": 354,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 191,
+      "file": "191.md",
+      "title": "六甲日辛未时断",
+      "original_sha256": "f69282bb4031d1fc820acf30af2c30831c5bcd77818c7f148d3403f0cc00ba19",
+      "normalized_runes": 280,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 192,
+      "file": "192.md",
+      "title": "六甲日壬申时断",
+      "original_sha256": "d51b0f4bfd4bca9d96e0da9f1941c0c71e001430db07c5f17dd9730bc531cb08",
+      "normalized_runes": 361,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 193,
+      "file": "193.md",
+      "title": "六甲日癸酉时断",
+      "original_sha256": "3d63ca7f75696f2984734aef908fc0fa2600b74b74c16149cef44a4bbf3d55b3",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 194,
+      "file": "194.md",
+      "title": "六甲日甲戌时断",
+      "original_sha256": "7a01995b1792c9eeb8eef349c0731f671657cfc85ec0ec986e295f898442e6da",
+      "normalized_runes": 377,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 195,
+      "file": "195.md",
+      "title": "六甲日乙亥时断",
+      "original_sha256": "0a7cf2c1e29f6c4cf627cb857cc8161e57e9f2642b45138c3350c355ba793ff8",
+      "normalized_runes": 370,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 196,
+      "file": "196.md",
+      "title": "六乙日丙子时断",
+      "original_sha256": "43b9d1f31d11664f0216530c7de5cafadcb953f565f50d4a0da2a4ca078d64aa",
+      "normalized_runes": 427,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 197,
+      "file": "197.md",
+      "title": "六乙日丁丑时断",
+      "original_sha256": "1791846f3f717293b235329224d50c7831b0f0d3cb284caae26f4d923b3dd964",
+      "normalized_runes": 329,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 198,
+      "file": "198.md",
+      "title": "六乙日戊寅时断",
+      "original_sha256": "26a2368de66a0ca75578cfbbcff1880d9a24080eedb122c5d75fdc9f61c880a2",
+      "normalized_runes": 313,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 199,
+      "file": "199.md",
+      "title": "六乙日己卯时断",
+      "original_sha256": "ef47fac551f39f269aa00ec338d9e841422d64e3093ff7cd58bf974f6953221f",
+      "normalized_runes": 352,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 200,
+      "file": "200.md",
+      "title": "六乙日庚辰时断",
+      "original_sha256": "72b3a81ee82eafe9c416885c081558cc0d5c5d8efa9ae86c74a88fab1f951bc0",
+      "normalized_runes": 350,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 201,
+      "file": "201.md",
+      "title": "六乙日辛巳时断",
+      "original_sha256": "54f3379de94322bb72057521f0a939cde9fc6cf8680264da24fbcdee9596b71c",
+      "normalized_runes": 363,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 202,
+      "file": "202.md",
+      "title": "六乙日壬午时断",
+      "original_sha256": "ea0599d7f63f91f32b1ae6b0f19cf8fc33878ce4a68ddf8511feffbf852e126e",
+      "normalized_runes": 326,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 203,
+      "file": "203.md",
+      "title": "六乙日癸未时断",
+      "original_sha256": "1c76de621db1047eec90f491067d21887de50ddbab6395eb5a7648a55b18944d",
+      "normalized_runes": 324,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 204,
+      "file": "204.md",
+      "title": "六乙日甲申时断",
+      "original_sha256": "80a43375ac1f80b0ab819ff7398f976e4ea59905e0ebed99844edee8e5eeca8a",
+      "normalized_runes": 341,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 205,
+      "file": "205.md",
+      "title": "六乙日乙酉时断",
+      "original_sha256": "0f70936e81560a3a64c8599b8a0ab291247954fd92bc3fb9be88d269863fca4d",
+      "normalized_runes": 361,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 206,
+      "file": "206.md",
+      "title": "六乙日丙戌时断",
+      "original_sha256": "4da9aaef230d0b9ab66af327e677a2367ad94e7aab7d82ddbaa626c7bf424ed3",
+      "normalized_runes": 408,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 207,
+      "file": "207.md",
+      "title": "六乙日丁亥时断",
+      "original_sha256": "bde7198bccd09648178899c5c08d74b494f11215b53e43520e9caf45152a81b6",
+      "normalized_runes": 375,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 208,
+      "file": "208.md",
+      "title": "六丙日戊子时断",
+      "original_sha256": "ca1ca16c1fe9f0978ea334a9d02b6268d8c7536a2eb034c2ddcf21ce0e9f1f97",
+      "normalized_runes": 481,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 209,
+      "file": "209.md",
+      "title": "六丙日己丑时断",
+      "original_sha256": "aa1f831b1f3b91fbd0abba1783c76dc59558a5ee0cb7a5384d201d4fded3fbcc",
+      "normalized_runes": 354,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 210,
+      "file": "210.md",
+      "title": "六丙日庚寅时断",
+      "original_sha256": "6ce8e046dd86293145218a4265cbad788b9f090536df8a34af708fca344ebc46",
+      "normalized_runes": 380,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 211,
+      "file": "211.md",
+      "title": "六丙日辛卯时断",
+      "original_sha256": "7d2258866f48a41ff35d1577288a442ba8dbd23cca1ed139d6d5ed7e429e058e",
+      "normalized_runes": 400,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 212,
+      "file": "212.md",
+      "title": "六丙日壬辰时断",
+      "original_sha256": "15575987d93804a9bfd4b49ea9814c5572b8f715f6050f197cb645117eb26079",
+      "normalized_runes": 366,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 213,
+      "file": "213.md",
+      "title": "六丙日癸巳时断",
+      "original_sha256": "256b3788dd0cec199ab17a51942aaecc90efec41365a9a0437784f5be979d269",
+      "normalized_runes": 326,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 214,
+      "file": "214.md",
+      "title": "六丙日甲午时断",
+      "original_sha256": "7c3409a4af7dfd1b43a62886e34ab3b795b5ceeb5bdfa0fa3fe1cdb96d3039ff",
+      "normalized_runes": 360,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 215,
+      "file": "215.md",
+      "title": "六丙日乙未时断",
+      "original_sha256": "51e42644be0c3979d5d9d0a7095c27dcc953e50ad66ae91a22cf1478b0b7fb41",
+      "normalized_runes": 321,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 216,
+      "file": "216.md",
+      "title": "六丙日丙申时断",
+      "original_sha256": "e9c8ec020a61336f0a777f8635227ffb945f0664f39a9625598d0857cc9f8326",
+      "normalized_runes": 336,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 217,
+      "file": "217.md",
+      "title": "六丙日丁酉时断",
+      "original_sha256": "1f6a724048d5b88a516d59dd3dbb86ac43fe931c42c4470824d1bdf12b0ee756",
+      "normalized_runes": 403,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 218,
+      "file": "218.md",
+      "title": "六丙日戊戌时断",
+      "original_sha256": "39ec17387b297ae112691b9b20e91a33ddb1716082144adcbae0ac85b1af1188",
+      "normalized_runes": 381,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 219,
+      "file": "219.md",
+      "title": "六丙日己亥时断",
+      "original_sha256": "e9a97936316886c05347c33bd4c1a4141cd9b2b363d92120cd768ebeb6955875",
+      "normalized_runes": 420,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 220,
+      "file": "220.md",
+      "title": "六丁日庚子时断",
+      "original_sha256": "3bf1255dc2c6156b296cec8ba5a799e231953098319eb7a58bb63e9237ad94c3",
+      "normalized_runes": 404,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 221,
+      "file": "221.md",
+      "title": "六丁日辛丑时断",
+      "original_sha256": "52b65705f7cc37299c607268cc2a9566a9caed82d80d04e39356efcffc038776",
+      "normalized_runes": 380,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 222,
+      "file": "222.md",
+      "title": "六丁日壬寅时断",
+      "original_sha256": "a5acdf5d7d21c19b35dacc162401aaf19e26d0b01c4de94341a2153f7830515c",
+      "normalized_runes": 357,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 223,
+      "file": "223.md",
+      "title": "六丁日癸卯时断",
+      "original_sha256": "dbe5f6f1870a4d0ebd68cd5d730848f9fa36755c0cf636ffb956928118a6973c",
+      "normalized_runes": 323,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 224,
+      "file": "224.md",
+      "title": "六丁日甲辰时断",
+      "original_sha256": "d95559bfecce768785ffb5289d4b69babe7f212e4f320e3a72bd9d59389dfc13",
+      "normalized_runes": 354,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 225,
+      "file": "225.md",
+      "title": "六丁日乙巳时断",
+      "original_sha256": "be42c5f4eeff7a45e32555adc8c4eed131bf3e721a2f733e3818418e7f6f5cfb",
+      "normalized_runes": 314,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 226,
+      "file": "226.md",
+      "title": "六丁日丙午时断",
+      "original_sha256": "41ec66b0e5fd2a02b758c3b3b16352171139be2196205e3ada0ac520eef7d236",
+      "normalized_runes": 324,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 227,
+      "file": "227.md",
+      "title": "六丁日丁未时断",
+      "original_sha256": "ca5996476f88120ee706e30d00454de4c07b179648b60bd951f1ae769f6b84de",
+      "normalized_runes": 360,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 228,
+      "file": "228.md",
+      "title": "六丁日戊申时断",
+      "original_sha256": "ce18aa206a5a556b10e2122549f6d22c8c80f14fbb033bd31f8a83dda2e41a11",
+      "normalized_runes": 299,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 229,
+      "file": "229.md",
+      "title": "六丁日己酉时断",
+      "original_sha256": "9c56b525bee08a864d186dbc61d6aa29e6f40a4df50b65e814471bd44d8b4463",
+      "normalized_runes": 292,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 230,
+      "file": "230.md",
+      "title": "六丁日庚戌时断",
+      "original_sha256": "2860ed9f838ac044e6f16ba02ca2509fa6a8d1e00afe158ffb4050ce9ae1117b",
+      "normalized_runes": 386,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 231,
+      "file": "231.md",
+      "title": "六丁日辛亥时断",
+      "original_sha256": "e32bd6d1086c56308ee3b60db97d16b0745136c8d74b26a7c3689822fe5d5fda",
+      "normalized_runes": 378,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 232,
+      "file": "232.md",
+      "title": "六戊日壬子时断",
+      "original_sha256": "2d79aac678674049bee603071b3fb6fb6ceaf992e30286a534a9bd9eb25c4d87",
+      "normalized_runes": 498,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 233,
+      "file": "233.md",
+      "title": "六戊日癸丑时断",
+      "original_sha256": "23a4991ffb6294062aace0d4fa40b6d76f19d55031450e4bdccae7b256cd3496",
+      "normalized_runes": 415,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 234,
+      "file": "234.md",
+      "title": "六戊日甲寅时断",
+      "original_sha256": "6de39804f2a5e1415ede0b47d46ed6d67974f67063cd5cabff6f9c3bf6d2e0e4",
+      "normalized_runes": 433,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 235,
+      "file": "235.md",
+      "title": "六戊日乙卯时断",
+      "original_sha256": "f79e1d88c7c39c6e46f52d5ece123a5f98d01cd9cc5e82b357fed9140b001584",
+      "normalized_runes": 345,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 236,
+      "file": "236.md",
+      "title": "六戊日丙辰时断",
+      "original_sha256": "465d09531b9c67086c6ce7b2090e120123ecda736ca461fbc71b435fec511582",
+      "normalized_runes": 348,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 237,
+      "file": "237.md",
+      "title": "六戊日丁巳时断",
+      "original_sha256": "ed2eb21fd9fb5e4788e5d0006f35553e76a497ca7ecc77b4f634014137c2b18b",
+      "normalized_runes": 407,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 238,
+      "file": "238.md",
+      "title": "六戊日戊午时断",
+      "original_sha256": "23f1848a23107d88e86b9e54fdee5d94b387ea83039d7506ac52c70ed46efed2",
+      "normalized_runes": 401,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 239,
+      "file": "239.md",
+      "title": "六戊日己未时断",
+      "original_sha256": "6f86972dc5cb8ada5ed61e0590b6518300ef71e56dbc09d4e1251b214f66b6d8",
+      "normalized_runes": 371,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 240,
+      "file": "240.md",
+      "title": "六戊日庚申时断",
+      "original_sha256": "8b4c848b59e9c5e6b5905a5a3c447afcfd45cdd8c1604bf0add5dcf375f0512c",
+      "normalized_runes": 363,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 241,
+      "file": "241.md",
+      "title": "六戊日辛酉时断",
+      "original_sha256": "9b9e655f717a277361201433ef85976cac63d1b79eeeb9b5006bd6281d4c74fd",
+      "normalized_runes": 347,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 242,
+      "file": "242.md",
+      "title": "六戊日壬戌时断",
+      "original_sha256": "5c6ac87df9c170336040d3ba625ba18c869ecbf296773c236a54c456fc802857",
+      "normalized_runes": 315,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 243,
+      "file": "243.md",
+      "title": "六戊日癸亥时断",
+      "original_sha256": "f003f561708ef9bc5475b24d47551e80d4bc2d30b20f1035efed4b3c5e3a4037",
+      "normalized_runes": 373,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        8
+      ],
+      "title_candidate_volumes": [
+        8
+      ]
+    },
+    {
+      "chapter": 244,
+      "file": "244.md",
+      "title": "六己日甲子时断",
+      "original_sha256": "0b2af5fb3db977efaeca10f03a76ebe36bd84923c3d73075692717d031620d95",
+      "normalized_runes": 488,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 245,
+      "file": "245.md",
+      "title": "六己日乙丑时断",
+      "original_sha256": "c5080d53f0dd4b5a9e2caca939f8b69f48277ecb15aa142a194ce0c1e5285b5c",
+      "normalized_runes": 318,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 246,
+      "file": "246.md",
+      "title": "六己日丙寅时断",
+      "original_sha256": "f96e3a97265198bcec230c09c597c99170b4a73722de2435b0182d5f3947fc4e",
+      "normalized_runes": 344,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 247,
+      "file": "247.md",
+      "title": "六己日丁卯时断",
+      "original_sha256": "3d1dfe0cee3233cd15db60d0f42a6fc68eedf43fb81fbebdc532ab888964fef8",
+      "normalized_runes": 360,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 248,
+      "file": "248.md",
+      "title": "六己日戊辰时断",
+      "original_sha256": "74f175a256660ed55d4e85ce04c97b6085de1ece0f0b7671b8ecf0a50a9df9cc",
+      "normalized_runes": 345,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 249,
+      "file": "249.md",
+      "title": "六己日己巳时断",
+      "original_sha256": "9df23292e6aac6918c2ca10f063e8f625351f33933195ec2d3602dfab12cf09a",
+      "normalized_runes": 416,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 250,
+      "file": "250.md",
+      "title": "六己日庚午时断",
+      "original_sha256": "8b368381998e8733fc091ba6dcfeea0f1073e4d4385d6b5daeed301c142ae7c9",
+      "normalized_runes": 318,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 251,
+      "file": "251.md",
+      "title": "六己日辛未时断",
+      "original_sha256": "8a1509a0621e108e3f9d867e4d4b32450bcf0eaf426a70aef78deaf73abfce9b",
+      "normalized_runes": 360,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 252,
+      "file": "252.md",
+      "title": "六己日壬申时断",
+      "original_sha256": "3e2e9f61322c0f23033da576ff52ad1dffd5be9ec6e978368348eb7eb7bcab82",
+      "normalized_runes": 382,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 253,
+      "file": "253.md",
+      "title": "六己日癸酉时断",
+      "original_sha256": "5244a736689e843906fd70d08efbe505b512fbfe99811d87d8abe7cc0a56129c",
+      "normalized_runes": 364,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 254,
+      "file": "254.md",
+      "title": "六己日甲戌时断",
+      "original_sha256": "ae82b0133876c520cddfcd0ce76460856e52f3f7856619c2371ccd50054d297e",
+      "normalized_runes": 430,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 255,
+      "file": "255.md",
+      "title": "六己日乙亥时断",
+      "original_sha256": "752d093a98bf210128bc97f7108dd1ced87b300c77a4971454ad1c35cdaedb96",
+      "normalized_runes": 423,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 256,
+      "file": "256.md",
+      "title": "六庚日丙子时断",
+      "original_sha256": "a3ca5f571e12afde47992be8fa968f33694fd32152f41d016d15a0b6e0981c9d",
+      "normalized_runes": 498,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 257,
+      "file": "257.md",
+      "title": "六庚日丁丑时断",
+      "original_sha256": "97f9aad2ec0a0710165e381f975d77cf97ce510164fbc7398ce28ab635d2dd3d",
+      "normalized_runes": 334,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 258,
+      "file": "258.md",
+      "title": "六庚日戊寅时断",
+      "original_sha256": "149ff341803bec5f29220aed733f354be14c3da129b439eaf20990aba41fbe45",
+      "normalized_runes": 380,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 259,
+      "file": "259.md",
+      "title": "六庚日己卯时断",
+      "original_sha256": "24dd3526ce76554ef351e9d4dd8ac07d5ebd7407ea71c4f10c7723f8c89adf88",
+      "normalized_runes": 345,
+      "anchor_count": 48,
+      "best_anchor_hits": 6,
+      "score_basis_points": 1250,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 260,
+      "file": "260.md",
+      "title": "六庚日庚辰时断",
+      "original_sha256": "52b3397243fee992fd76f511c1543807eb955c14695973d7511105d4182758e3",
+      "normalized_runes": 415,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 261,
+      "file": "261.md",
+      "title": "六庚日辛巳时断",
+      "original_sha256": "c1ff0119c1941224b3a7511da3960404959e9f786f0b3aa041c079c89e78fab9",
+      "normalized_runes": 371,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 262,
+      "file": "262.md",
+      "title": "六庚日壬午时断",
+      "original_sha256": "76f6cb6998cc14be635430f5c65156bf6076898c549b47559a79d9b9001eadea",
+      "normalized_runes": 330,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 263,
+      "file": "263.md",
+      "title": "六庚日癸未时断",
+      "original_sha256": "ae9711b9cdcedbbd2c8bfa7283219f7d982e51fa2aa7becfd26ec69b5b050bce",
+      "normalized_runes": 326,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 264,
+      "file": "264.md",
+      "title": "六庚日甲申时断",
+      "original_sha256": "d31f09c6f34373399fa402331efc94390cab7fe409b89c86b9985bc92cd9c2a1",
+      "normalized_runes": 351,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 265,
+      "file": "265.md",
+      "title": "六庚日乙酉时断",
+      "original_sha256": "9fb79a562515a37b90e66735c572a7f39d82043c985c0366b124a73d5c2a3f6b",
+      "normalized_runes": 361,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 266,
+      "file": "266.md",
+      "title": "六庚日丙戌时断",
+      "original_sha256": "90f5221089d5fb12cf1f2ea98c5d5d97b8220f59029695f9ed66ad80470b2b6f",
+      "normalized_runes": 387,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 267,
+      "file": "267.md",
+      "title": "六庚日丁亥时断",
+      "original_sha256": "eed98192de6ccb8704ff659d0259cc7fa9168f8a5fd9edfb504e411029aebe20",
+      "normalized_runes": 354,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 268,
+      "file": "268.md",
+      "title": "六辛日戊子时断",
+      "original_sha256": "569b297b522ec3690231eb95d2d630b643c9ac9f3297cdcb7932aa3d471ac6f0",
+      "normalized_runes": 520,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 269,
+      "file": "269.md",
+      "title": "六辛日己丑时断",
+      "original_sha256": "a009de5560eee516a568207e4e9a96c4f10a0b71997778c04e9cf69b4e0566a2",
+      "normalized_runes": 341,
+      "anchor_count": 48,
+      "best_anchor_hits": 8,
+      "score_basis_points": 1666,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 270,
+      "file": "270.md",
+      "title": "六辛日庚寅时断",
+      "original_sha256": "e9888f3ca0a5f025dc9a9927cd45c1559ff8ad66765f5a0f6bac772a73daf031",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 271,
+      "file": "271.md",
+      "title": "六辛日辛卯时断",
+      "original_sha256": "e5353ca79806baec3ecca87252089985d626531d4ec3b2b195ad9fa049654df8",
+      "normalized_runes": 400,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 272,
+      "file": "272.md",
+      "title": "六辛日壬辰时断",
+      "original_sha256": "500ee6b3d2f70686eab9f6e80e8a89afa2ef04ce4f2ff3d600b14c4b50b243f8",
+      "normalized_runes": 421,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 273,
+      "file": "273.md",
+      "title": "六辛日癸巳时断",
+      "original_sha256": "2f8d485c1bc7ab25fa38747b23227b9dcc89274faea906a68ba9e65894e00395",
+      "normalized_runes": 347,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 274,
+      "file": "274.md",
+      "title": "六辛日甲午时断",
+      "original_sha256": "21d1dfb345e564ee9575f6b7d0abc6367d788e730e46b78ec40b26dcae790c5c",
+      "normalized_runes": 319,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 275,
+      "file": "275.md",
+      "title": "六辛日乙未时断",
+      "original_sha256": "5088c80bf5f4dc534f801c54dc64de0df0c7d078e8fde236febe748ad6f87c0f",
+      "normalized_runes": 316,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 276,
+      "file": "276.md",
+      "title": "六辛日丙申时断",
+      "original_sha256": "beccab9be44a513f87d83e2bfd51520743cd29c194f7e0b6194238cac78550d7",
+      "normalized_runes": 360,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 277,
+      "file": "277.md",
+      "title": "六辛日丁酉时断",
+      "original_sha256": "c2629f79317e794ca0a296a1320311d5f2644c7c4b2e708eb88cd967dae2df6a",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 278,
+      "file": "278.md",
+      "title": "六辛日戊戌时断",
+      "original_sha256": "b18478c62b74ba30016d5b8315de38921e7523620255c4af07cbc58fd8fa1e7d",
+      "normalized_runes": 328,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 279,
+      "file": "279.md",
+      "title": "六辛日己亥时断",
+      "original_sha256": "5504664439e1e284132969604445487216f2bcfef645263374ec445df9c56a9f",
+      "normalized_runes": 359,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 280,
+      "file": "280.md",
+      "title": "六壬日庚子时断",
+      "original_sha256": "c2b07442ab05573c49cc6422040e3a3290c69dba0a40f5ef59061e250a379c5a",
+      "normalized_runes": 513,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 281,
+      "file": "281.md",
+      "title": "六壬日辛丑时断",
+      "original_sha256": "fd93d45408b6dd0f1b24d3d810a77ad68b2b0db94af1c4cf48006b5e0a1533cf",
+      "normalized_runes": 357,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 282,
+      "file": "282.md",
+      "title": "六壬日壬寅时断",
+      "original_sha256": "07bd43666e43e48a6c2e4c257afb4eaa6a2aca58a2744e6ad036c668f85e05fe",
+      "normalized_runes": 436,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 283,
+      "file": "283.md",
+      "title": "六壬日癸卯时断",
+      "original_sha256": "e0e23660e1ebb1652ffa80f2b937d1b0ef6ecf81b9250d66b8750538080a1e13",
+      "normalized_runes": 349,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 284,
+      "file": "284.md",
+      "title": "六壬日甲辰时断",
+      "original_sha256": "1f99547ad272ff4990562ae8d39bcafa625bdb87b2b4c36858834dafa3fc4342",
+      "normalized_runes": 343,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 285,
+      "file": "285.md",
+      "title": "六壬日乙巳时断",
+      "original_sha256": "48ae650224a08483aefb9c25477fd0584bbda5c4761849590bc05a10877c2d85",
+      "normalized_runes": 343,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 286,
+      "file": "286.md",
+      "title": "六壬日丙午时断",
+      "original_sha256": "56fdbbcb48987a262d71a8d30260de29d3a977a82ac3f6838916b535bd7c57a5",
+      "normalized_runes": 315,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 287,
+      "file": "287.md",
+      "title": "六壬日丁未时断",
+      "original_sha256": "8f5afac77102cf94c25902c8b93e0a89c0658bf1e843aa1e97ca39ae35813f28",
+      "normalized_runes": 321,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 288,
+      "file": "288.md",
+      "title": "六壬日戊申时断",
+      "original_sha256": "abe486582c3dbb573ce601f37925e2849d0bcef5b81fd2897f2c4d1794f0a67c",
+      "normalized_runes": 358,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 289,
+      "file": "289.md",
+      "title": "六壬日己酉时断",
+      "original_sha256": "62bf47fc8e3c7c31e9fd0c9058bbde90f15b8be1cfb238163e49734ef047d665",
+      "normalized_runes": 320,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 290,
+      "file": "290.md",
+      "title": "六壬日庚戌时断",
+      "original_sha256": "2987966d757d517c774006aaee0dcde5a487f8859424acbe2d253a4f3626f032",
+      "normalized_runes": 376,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 291,
+      "file": "291.md",
+      "title": "六壬日辛亥时断",
+      "original_sha256": "688506a479226be32724b260b99448095146fd48b659ae415dccc4ed75d0954a",
+      "normalized_runes": 346,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 292,
+      "file": "292.md",
+      "title": "六癸日壬子时断",
+      "original_sha256": "80bb8f285cb5b104d8d82d54ddb38715a229e23b619482d797e9392c4c869dbb",
+      "normalized_runes": 457,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 293,
+      "file": "293.md",
+      "title": "六癸日癸丑时断",
+      "original_sha256": "1c750649e3a54f8228213fbe48480161857846830e124b7b699d83458fc91049",
+      "normalized_runes": 372,
+      "anchor_count": 48,
+      "best_anchor_hits": 13,
+      "score_basis_points": 2708,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 294,
+      "file": "294.md",
+      "title": "六癸日甲寅时断",
+      "original_sha256": "5e68074c99197cfc8dff2f782a607818c9fb2b76c654a47c933f29108cd81635",
+      "normalized_runes": 356,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 295,
+      "file": "295.md",
+      "title": "六癸日乙卯时断",
+      "original_sha256": "26eafc4b55df0094edcaa8415a97a37aee7b969dc6456f9cd7dac708745b505b",
+      "normalized_runes": 323,
+      "anchor_count": 48,
+      "best_anchor_hits": 7,
+      "score_basis_points": 1458,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 296,
+      "file": "296.md",
+      "title": "六癸日丙辰时断",
+      "original_sha256": "7e030bb32a7b0cb955d456d6b5c0d7ecb7cb8290ad18f955dff795b5db4df420",
+      "normalized_runes": 310,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 297,
+      "file": "297.md",
+      "title": "六癸日丁巳时断",
+      "original_sha256": "0a632997f63ca25dfd5e3cae0f7cd92f80d664fb77b5bfa378bdd8a012d88a9c",
+      "normalized_runes": 313,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 298,
+      "file": "298.md",
+      "title": "六癸日戊午时断",
+      "original_sha256": "59595f7ece7198c1d50990f396c0d7d26df4d39b4b813336bfd9b0dc9f061ad5",
+      "normalized_runes": 274,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 299,
+      "file": "299.md",
+      "title": "六癸日己未时断",
+      "original_sha256": "813b8dc9e42b4572a34b76c7a437842e5b53f3761b48784e3f1cf5d6427e1072",
+      "normalized_runes": 317,
+      "anchor_count": 48,
+      "best_anchor_hits": 10,
+      "score_basis_points": 2083,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 300,
+      "file": "300.md",
+      "title": "六癸日庚申时断",
+      "original_sha256": "c794f81f83145dfea4fefb5d682ab218732e885401ea62381e28751a68bb596c",
+      "normalized_runes": 368,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 301,
+      "file": "301.md",
+      "title": "六癸日辛酉时断",
+      "original_sha256": "407aa574b5a02a987d285c6954d63c189101f0f76d3c6fe780b9b5a0227e80a4",
+      "normalized_runes": 331,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 302,
+      "file": "302.md",
+      "title": "六癸日壬戌时断",
+      "original_sha256": "341d9602fad351e9d284b252e24a35dad0605a637bd897262af3b38cb985dfdf",
+      "normalized_runes": 371,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 303,
+      "file": "303.md",
+      "title": "六癸日癸亥时断",
+      "original_sha256": "c98de456d17ebd192e94893d08e26ff8bfe7a93295e471792c663f4493d29919",
+      "normalized_runes": 472,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        9
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 304,
+      "file": "304.md",
+      "title": "看命口诀一",
+      "original_sha256": "8788ac5fcbe36b751cfddf232d8727468257aebf1b3ee66301d561a1076d523c",
+      "normalized_runes": 301,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 305,
+      "file": "305.md",
+      "title": "看命口诀二",
+      "original_sha256": "c9ecd834a666864dafd471eeb9709b8f9c6c9d6d446930b41aeea98ca711f8a7",
+      "normalized_runes": 697,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 306,
+      "file": "306.md",
+      "title": "看命口诀三",
+      "original_sha256": "aa0828cbcddd21a44d9877f30f9a8f1c11711658eb793f9b837085a4860be7d9",
+      "normalized_runes": 456,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 307,
+      "file": "307.md",
+      "title": "看命口诀四",
+      "original_sha256": "06f8d320a2f0a81491c2e1b0e8c41693c741760ac4c1471d52fb5ba8744ceac0",
+      "normalized_runes": 343,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 308,
+      "file": "308.md",
+      "title": "看命口诀五",
+      "original_sha256": "61f410a9f05694c0202f641f21d8d0f406b6cf97045a78e7fb3127add46df470",
+      "normalized_runes": 598,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 309,
+      "file": "309.md",
+      "title": "看命口诀六",
+      "original_sha256": "b38921b62e6df7a45dddd12d799122581c4a9579ca1b3b7cc50ac91acfb3215b",
+      "normalized_runes": 472,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 310,
+      "file": "310.md",
+      "title": "看命口诀七",
+      "original_sha256": "b929b1008b73fd570788aaf0f0c49ea0a014ef68592c2cd47524060b92955128",
+      "normalized_runes": 642,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 311,
+      "file": "311.md",
+      "title": "看命口诀八",
+      "original_sha256": "fdacba57f682b40d730bd6e296501ff3c822c4aaeb8aaa8a83e85dc89c86e314",
+      "normalized_runes": 499,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 312,
+      "file": "312.md",
+      "title": "看命口诀九",
+      "original_sha256": "96c1fb035d7428354606bc3e3d36b1bca081b4bb0fa805d168fca3282ec625d9",
+      "normalized_runes": 497,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 313,
+      "file": "313.md",
+      "title": "看命口诀十",
+      "original_sha256": "af14da5808a03e861b78b6fe4102529c353191964e9af801cdcaca5f2e8df4aa",
+      "normalized_runes": 711,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 314,
+      "file": "314.md",
+      "title": "看命口诀十一",
+      "original_sha256": "9cbdabdbcd79852640e99d007a2c749dbd617298e81cb5ad1c42aede1586e126",
+      "normalized_runes": 1128,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 315,
+      "file": "315.md",
+      "title": "看命口诀十二",
+      "original_sha256": "8568395cb6f170c02ed8802319270b0742d942e93e050193eb07fbf2fd0b427b",
+      "normalized_runes": 746,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 316,
+      "file": "316.md",
+      "title": "看命口诀十三",
+      "original_sha256": "59fd56a90280a8e62e264b426e863388885f5074eb9b5df697ab7c1100f83fb8",
+      "normalized_runes": 1340,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 317,
+      "file": "317.md",
+      "title": "看命口诀十四",
+      "original_sha256": "8ccad62af07d191d0b0434ec8ee518f3dc370ad603d9a32f2d2c6e610761d955",
+      "normalized_runes": 1248,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 318,
+      "file": "318.md",
+      "title": "巫咸撮要一",
+      "original_sha256": "b172253e01ae68ab92c313694816d569b1bb26e166690606f21fa578592a0c86",
+      "normalized_runes": 486,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 319,
+      "file": "319.md",
+      "title": "巫咸撮要二",
+      "original_sha256": "95c9d220c99aec738b7028ad82d397eb815c532d0575ccf2f295c5f7fbd4c6b5",
+      "normalized_runes": 572,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 320,
+      "file": "320.md",
+      "title": "巫咸撮要三",
+      "original_sha256": "f046eee168d1b69ffe6ee85d13a97af93e453bcbbc35b19dd4391cef8df1972d",
+      "normalized_runes": 1204,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 321,
+      "file": "321.md",
+      "title": "巫咸撮要四",
+      "original_sha256": "9e96a43394bbf1cfc4e3f522f5b442d1984a460679c3a62de789f1a24fd6087d",
+      "normalized_runes": 609,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 322,
+      "file": "322.md",
+      "title": "巫咸撮要五",
+      "original_sha256": "a72a5512e4409481134af2c4379c58384814e3bca76dd3068e33a370af6c3724",
+      "normalized_runes": 437,
+      "anchor_count": 48,
+      "best_anchor_hits": 28,
+      "score_basis_points": 5833,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 323,
+      "file": "323.md",
+      "title": "巫咸撮要六",
+      "original_sha256": "8d2654e3e4bcf5af8b981a58f4f0fd22e1422a7b226bb9f175386f01ba8aef88",
+      "normalized_runes": 1371,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 324,
+      "file": "324.md",
+      "title": "玉井奥诀一",
+      "original_sha256": "dd515e627f701697545612fe18c8e6782874b06b12f44b7a2ea2b828395e0391",
+      "normalized_runes": 943,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 325,
+      "file": "325.md",
+      "title": "玉井奥诀二",
+      "original_sha256": "f2f7ee1e48277802aa68a58bfac48709774b0e09489927afd7b6a1c496cd4971",
+      "normalized_runes": 280,
+      "anchor_count": 48,
+      "best_anchor_hits": 16,
+      "score_basis_points": 3333,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 326,
+      "file": "326.md",
+      "title": "玉井奥诀三",
+      "original_sha256": "52007d428b11bbb433f3647551fa4d31602b45a89d6afc7498ca326f82432d10",
+      "normalized_runes": 1378,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 327,
+      "file": "327.md",
+      "title": "玉井奥诀四",
+      "original_sha256": "52007d428b11bbb433f3647551fa4d31602b45a89d6afc7498ca326f82432d10",
+      "normalized_runes": 1378,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 328,
+      "file": "328.md",
+      "title": "玉井奥诀五",
+      "original_sha256": "27bcdcfd43e849fcb10050d2bac2a7a44f6560e6ec380c48b8279ee1baf88b4c",
+      "normalized_runes": 347,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 329,
+      "file": "329.md",
+      "title": "玉井奥诀六",
+      "original_sha256": "5896cde1553e3db344b584eee7c47d53342470217ae9c7c75d14c5942550f50a",
+      "normalized_runes": 826,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 330,
+      "file": "330.md",
+      "title": "玉井奥诀七",
+      "original_sha256": "c39bcc73004e79b7f23f92ff8f374db259d98aadaba07f0b9304efeb134e833e",
+      "normalized_runes": 2565,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 331,
+      "file": "331.md",
+      "title": "玉井奥诀八",
+      "original_sha256": "52823807bdac963ce7dbf8fb8862f25a44a9af2ce56432046ec365e608af3e5b",
+      "normalized_runes": 410,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 332,
+      "file": "332.md",
+      "title": "玉井奥诀九",
+      "original_sha256": "2501a68ce7ef4230f926bd297ffc5337b5dac20cb6d404085b9dba69dc0f46a6",
+      "normalized_runes": 985,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 333,
+      "file": "333.md",
+      "title": "玉井奥诀十",
+      "original_sha256": "2c665f9aed7b0dc0961ca7c6b0b04eff2b023e952eab7f5d67a809c937ae1195",
+      "normalized_runes": 545,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 334,
+      "file": "334.md",
+      "title": "玉井奥诀十一",
+      "original_sha256": "464848b9d83d5c79838255def47e74c74a8067abdd66ce3025a5792a14414ea0",
+      "normalized_runes": 1300,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 335,
+      "file": "335.md",
+      "title": "玉井奥诀十二",
+      "original_sha256": "83e318f9df78858c4b84f8e7b6d4f5a8d180d87d80447f3956dc69a0362c52d6",
+      "normalized_runes": 1521,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 336,
+      "file": "336.md",
+      "title": "玉井奥诀十三",
+      "original_sha256": "1fd376209d6734ed6e6af1452526c55068b995ffe0e5cacb8ea5953e8c5e387c",
+      "normalized_runes": 487,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 337,
+      "file": "337.md",
+      "title": "玉井奥诀十四",
+      "original_sha256": "318c07680a13b79a97dd472a33d9846ce47a7fe3b73dfee66ddb6d8ea365ecc2",
+      "normalized_runes": 881,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 338,
+      "file": "338.md",
+      "title": "玉井奥诀十五",
+      "original_sha256": "e6a70ad3ae4804cbe6a3df923f92c4a417a7be609afa0160cf463086b4c12c6d",
+      "normalized_runes": 616,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 339,
+      "file": "339.md",
+      "title": "玉井奥诀十六",
+      "original_sha256": "a63c1abd1d438a192fa04e80ad9e8ca8b515d221b3413e9754a3e1c6624a92db",
+      "normalized_runes": 1025,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 340,
+      "file": "340.md",
+      "title": "玉井奥诀十七",
+      "original_sha256": "9a71646501452f7b91153155918444c50266388ab2dda0af5735252cc9e1924d",
+      "normalized_runes": 755,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 341,
+      "file": "341.md",
+      "title": "玉井奥诀十八",
+      "original_sha256": "ae3a268ee0c3f64f60facea1e8ab26d3199ba4ac8319b2013c04bb4750700470",
+      "normalized_runes": 729,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 342,
+      "file": "342.md",
+      "title": "玉井奥诀十九",
+      "original_sha256": "aef270e6161f49f93a131bc2e19bc5493bd6c6cff116b793c76365fc7f7667c4",
+      "normalized_runes": 657,
+      "anchor_count": 48,
+      "best_anchor_hits": 15,
+      "score_basis_points": 3125,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 343,
+      "file": "343.md",
+      "title": "玉井奥诀二十",
+      "original_sha256": "49e7dfbe456a1eb47155d9fe538c2088842c7b87385831a7fc625d9cda1a85fc",
+      "normalized_runes": 1254,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 344,
+      "file": "344.md",
+      "title": "玉井奥诀二十一",
+      "original_sha256": "3449cc6f65a66cb604db303f403c3aa9a6f662f743243901fa752bf4ab74da72",
+      "normalized_runes": 1148,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        10
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 345,
+      "file": "345.md",
+      "title": "气象篇一",
+      "original_sha256": "a76b8e7af28c9ccaa706187532ff0fa673bac47d6e3ea2b8f53b1aa9ec306f28",
+      "normalized_runes": 659,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 346,
+      "file": "346.md",
+      "title": "气象篇二",
+      "original_sha256": "6d772362d0771e134e7a1ca0d46573039f22e84974597119e1d2a8408bfd5b5e",
+      "normalized_runes": 1027,
+      "anchor_count": 48,
+      "best_anchor_hits": 21,
+      "score_basis_points": 4375,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 347,
+      "file": "347.md",
+      "title": "气象篇三",
+      "original_sha256": "60cd53ab131c256e799fee4270f63062514c4599edf94c69295d490533e40674",
+      "normalized_runes": 1122,
+      "anchor_count": 48,
+      "best_anchor_hits": 12,
+      "score_basis_points": 2500,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 348,
+      "file": "348.md",
+      "title": "气象篇四",
+      "original_sha256": "513a543cb9715497a304397eaf7efca512706d57a2676bd3dba5eaba1ff9e530",
+      "normalized_runes": 1154,
+      "anchor_count": 48,
+      "best_anchor_hits": 3,
+      "score_basis_points": 625,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 349,
+      "file": "349.md",
+      "title": "六神篇",
+      "original_sha256": "afeb8134c5e5162541858034802c1c15260e912bf9802ec58b68ab955f7eb81a",
+      "normalized_runes": 2922,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": [
+        11
+      ]
+    },
+    {
+      "chapter": 350,
+      "file": "350.md",
+      "title": "憎爱赋",
+      "original_sha256": "f1647622bc74e7efe0c6eb74a73ca9a61464321c6800dd58f6de955e69ceac22",
+      "normalized_runes": 1426,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": [
+        11
+      ]
+    },
+    {
+      "chapter": 351,
+      "file": "351.md",
+      "title": "消息赋一",
+      "original_sha256": "c313ce5aea62e257a1145cbd17ae54b5b8895658211aa4e5f1b4eef438bbaec8",
+      "normalized_runes": 2584,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": [
+        7
+      ]
+    },
+    {
+      "chapter": 352,
+      "file": "352.md",
+      "title": "消息赋二",
+      "original_sha256": "fd25348286c9d9fc525291fe38cf680f8d317f3f7b44bcfdf4fdb6b5137bf51d",
+      "normalized_runes": 2561,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 353,
+      "file": "353.md",
+      "title": "消息赋三",
+      "original_sha256": "a77d3751ea61ad97633da81e09fa394db336db2b1a2d0ac38946cc82fe99f5ae",
+      "normalized_runes": 1993,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 354,
+      "file": "354.md",
+      "title": "消息赋四",
+      "original_sha256": "cd9f6d742c3d8c337762784a7b5f02a6fda5f8822e79e5380af83422e2812e5b",
+      "normalized_runes": 919,
+      "anchor_count": 48,
+      "best_anchor_hits": 18,
+      "score_basis_points": 3750,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 355,
+      "file": "355.md",
+      "title": "消息赋五",
+      "original_sha256": "7d3cb254c3c47b8285ebe1742c235fee4ca1bbdc710f6913f9017872bc7b6914",
+      "normalized_runes": 2527,
+      "anchor_count": 48,
+      "best_anchor_hits": 35,
+      "score_basis_points": 7291,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 356,
+      "file": "356.md",
+      "title": "消息赋六",
+      "original_sha256": "8342597cc9b9cfa64cc085774dbc05f43d93bb2d6a72dc2e1b855a7048a56764",
+      "normalized_runes": 2538,
+      "anchor_count": 48,
+      "best_anchor_hits": 29,
+      "score_basis_points": 6041,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 357,
+      "file": "357.md",
+      "title": "消息赋八",
+      "original_sha256": "a99cd26fe3b4cc57f94e8e62544cae1ad44e44021eaa29672b0cb6f0b8441e17",
+      "normalized_runes": 1610,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 358,
+      "file": "358.md",
+      "title": "通玄子撰集",
+      "original_sha256": "a8b8a05580722501551413debd55c562c5d499fa30201f7bca17aa14d893b823",
+      "normalized_runes": 128,
+      "anchor_count": 48,
+      "best_anchor_hits": 7,
+      "score_basis_points": 1458,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 359,
+      "file": "359.md",
+      "title": "明通赋一",
+      "original_sha256": "831e06237a20b05641299b9d3519c79822ea13c442ecc9a0fdb707fd73643976",
+      "normalized_runes": 934,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 360,
+      "file": "360.md",
+      "title": "明通赋二",
+      "original_sha256": "896ea8446fd4728baf553e5205fe788a78430202ae370ba8595fefabfa83cf4c",
+      "normalized_runes": 2451,
+      "anchor_count": 48,
+      "best_anchor_hits": 30,
+      "score_basis_points": 6250,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 361,
+      "file": "361.md",
+      "title": "明通赋三",
+      "original_sha256": "5e7d4579956a23963ab74de6a89047ff024c9f7c0ca8d54dd1904976b1b5e579",
+      "normalized_runes": 2460,
+      "anchor_count": 48,
+      "best_anchor_hits": 25,
+      "score_basis_points": 5208,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 362,
+      "file": "362.md",
+      "title": "明通赋四",
+      "original_sha256": "8793c29a78d09bc686c1100debf223a598a9889d066ebd149c2438523d922db7",
+      "normalized_runes": 2458,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 363,
+      "file": "363.md",
+      "title": "明通赋五",
+      "original_sha256": "8b0cb2836ffdf11c085845e04bb1926cfbd4469c3bf77a18dc6529a2f2801295",
+      "normalized_runes": 1309,
+      "anchor_count": 48,
+      "best_anchor_hits": 26,
+      "score_basis_points": 5416,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 364,
+      "file": "364.md",
+      "title": "喜忌篇",
+      "original_sha256": "9851cebe6c3365c34e65b7daad12df786767cb032e812af517118d352610f376",
+      "normalized_runes": 666,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        11,
+        12
+      ]
+    },
+    {
+      "chapter": 365,
+      "file": "365.md",
+      "title": "继善篇",
+      "original_sha256": "16d10c268142c77a124bfaebdd611a9ea778114929fd53425ae5f7ba7577bdf0",
+      "normalized_runes": 955,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        11
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        7,
+        11
+      ]
+    },
+    {
+      "chapter": 366,
+      "file": "366.md",
+      "title": "元理赋",
+      "original_sha256": "6bf8ea513b7f5313435dae708714a5a74d0373558a14901967f576252b896cb5",
+      "normalized_runes": 4340,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        5,
+        6,
+        12
+      ]
+    },
+    {
+      "chapter": 367,
+      "file": "367.md",
+      "title": "真宝赋",
+      "original_sha256": "d0048f15fed3b19328f1f19726066ed5a95547a946a7f0625f8873cae6a9ea93",
+      "normalized_runes": 5577,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        6
+      ]
+    },
+    {
+      "chapter": 368,
+      "file": "368.md",
+      "title": "金声玉振赋",
+      "original_sha256": "f931dbcd69253cde703061a21d3cc54c677ad7638bd54ce2963f644b691c8763",
+      "normalized_runes": 2878,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 369,
+      "file": "369.md",
+      "title": "金鼎神秘赋",
+      "original_sha256": "07848155f008db7ef2ac6a3528d75f0c3d9d4ed4d18011baf6d196756ed76920",
+      "normalized_runes": 2901,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 370,
+      "file": "370.md",
+      "title": "络绎赋",
+      "original_sha256": "ba00e022b516cb896a9f35ad3331f6926cb7b2323ecab969b131a41f044d99cb",
+      "normalized_runes": 663,
+      "anchor_count": 48,
+      "best_anchor_hits": 14,
+      "score_basis_points": 2916,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        5,
+        12
+      ]
+    },
+    {
+      "chapter": 371,
+      "file": "371.md",
+      "title": "金玉赋",
+      "original_sha256": "e49d03bba75c028b50169a7df53e62381d94fea24dd6efb07ecb6c59219e6f1c",
+      "normalized_runes": 1359,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 372,
+      "file": "372.md",
+      "title": "心镜五七赋",
+      "original_sha256": "528b57bcf7a37c336295a4a1d3aa9edf5f5974dc840879db6c152d56bb7cb2d5",
+      "normalized_runes": 640,
+      "anchor_count": 48,
+      "best_anchor_hits": 17,
+      "score_basis_points": 3541,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 373,
+      "file": "373.md",
+      "title": "造微论",
+      "original_sha256": "edf8f02e190042851a97a84b65d42371cdd78b0d4117b98bd6e32249456dc2f2",
+      "normalized_runes": 770,
+      "anchor_count": 48,
+      "best_anchor_hits": 9,
+      "score_basis_points": 1875,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        5
+      ]
+    },
+    {
+      "chapter": 374,
+      "file": "374.md",
+      "title": "人鉴论",
+      "original_sha256": "021f87a3d380953a61339abdb1983db533a4e72bfd9e0bf1110a014c70b3e141",
+      "normalized_runes": 772,
+      "anchor_count": 48,
+      "best_anchor_hits": 19,
+      "score_basis_points": 3958,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 375,
+      "file": "375.md",
+      "title": "元妙论",
+      "original_sha256": "7314ffe0868e2e0a3bedca1e40afeeb699942c858e4281c804c5bf85b3e64155",
+      "normalized_runes": 1294,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 376,
+      "file": "376.md",
+      "title": "精微论",
+      "original_sha256": "55006e825bab5752c658f5c404fd3ff34588e7d1b6e50c5286baa32cfe9e149d",
+      "normalized_runes": 779,
+      "anchor_count": 48,
+      "best_anchor_hits": 20,
+      "score_basis_points": 4166,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 377,
+      "file": "377.md",
+      "title": "惊神论",
+      "original_sha256": "bd96e817702c9765727867705c13f8d3b26e70b3c0debb93c7eaab02cdb5672b",
+      "normalized_runes": 740,
+      "anchor_count": 48,
+      "best_anchor_hits": 11,
+      "score_basis_points": 2291,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 378,
+      "file": "378.md",
+      "title": "明津先生骨髓歌",
+      "original_sha256": "a29932796a32b54bbe6fd4ca1e3976eb66f190892ebda36611b64e12505369bf",
+      "normalized_runes": 798,
+      "anchor_count": 48,
+      "best_anchor_hits": 22,
+      "score_basis_points": 4583,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 379,
+      "file": "379.md",
+      "title": "搜髓歌",
+      "original_sha256": "c6a8d06061545f5b2bbb0f43ac1cc6a73aad04140632bb23038ce0cc8bef5039",
+      "normalized_runes": 868,
+      "anchor_count": 48,
+      "best_anchor_hits": 24,
+      "score_basis_points": 5000,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": [
+        12
+      ]
+    },
+    {
+      "chapter": 380,
+      "file": "380.md",
+      "title": "四言独步",
+      "original_sha256": "8b3c35c5dfea34c1484c561c371df05ad16a356bf5c0b21685bcea0b4fc4d27a",
+      "normalized_runes": 1744,
+      "anchor_count": 48,
+      "best_anchor_hits": 23,
+      "score_basis_points": 4791,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": []
+    },
+    {
+      "chapter": 381,
+      "file": "381.md",
+      "title": "五言独步",
+      "original_sha256": "5ddc068043b7d99e39582f0839dfa1dfd8f2e3aebfe0eecf1c839d2301ffbf6d",
+      "normalized_runes": 460,
+      "anchor_count": 48,
+      "best_anchor_hits": 27,
+      "score_basis_points": 5625,
+      "best_candidate_volumes": [
+        12
+      ],
+      "title_candidate_volumes": []
+    }
+  ],
+  "boundaries": {
+    "machine_comparison_only": true,
+    "textual_overlap_is_not_artifact_identity": true,
+    "textual_overlap_is_not_independence_verification": true,
+    "bibliography_adjudicated": false,
+    "independence_verified": false,
+    "page_mapping_verified": false,
+    "claim_support_reviewed": false,
+    "runtime_ingestion_allowed": false,
+    "claim_eligible": false,
+    "publishable_accuracy": false
+  }
+}

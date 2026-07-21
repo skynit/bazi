@@ -4,15 +4,15 @@ package bazi
 // 主气表的真理源是 tyme.MAIN（参考 bazi.go:380-391），此处缓存为查表以避免对 tyme 的强依赖；
 // 如果 tyme 主气定义发生变化，需要同步更新本表。
 
-// ZhiMainQi 地支主气（本气）映射。
-var ZhiMainQi = map[string]string{
+// zhiMainQi 地支主气（本气）映射。
+var zhiMainQi = map[string]string{
 	"子": "水", "丑": "土", "寅": "木", "卯": "木",
 	"辰": "土", "巳": "火", "午": "火", "未": "土",
 	"申": "金", "酉": "金", "戌": "土", "亥": "水",
 }
 
-// ZhiAllElements 地支藏干所含五行集合（含本气、中气、余气）。
-var ZhiAllElements = map[string][]string{
+// zhiAllElements 地支藏干所含五行集合（含本气、中气、余气）。
+var zhiAllElements = map[string][]string{
 	"子": {"水"},
 	"丑": {"土", "水", "金"},
 	"寅": {"木", "火", "土"},
@@ -29,7 +29,7 @@ var ZhiAllElements = map[string][]string{
 
 // mainQi 返回地支本气五行；未知地支返回空字符串。
 func mainQi(zhi string) string {
-	return ZhiMainQi[zhi]
+	return zhiMainQi[zhi]
 }
 
 // shengWo 返回生我者（印星五行）。
@@ -67,97 +67,6 @@ func WoKe(elem string) string { return woKe(elem) }
 // KeWo 是 keWo 的导出版本，供其他包调用。
 func KeWo(elem string) string { return keWo(elem) }
 
-// ResolveTouganBenqi 透干本气冲突取舍规则。
-// 经典依据：《滴天髓阐微》"透干力量大于本气，则以透干论；
-// 透干被克则以本气论；透干生本气，二者皆取；本气生透干，透干泄本气。"
-// 参数:
-//   - touganGan: 透出的天干
-//   - touganElem: 透干五行
-//   - branchZhi: 地支
-//   - dayElem: 日主五行（用于判断力量对比）
-// 返回: "tougan" | "benqi" | "both"
-//   - "tougan": 透干主导
-//   - "benqi": 本气主导
-//   - "both": 两者皆取
-func ResolveTouganBenqi(touganGan, touganElem, branchZhi, dayElem string) string {
-	benqiElem := mainQi(branchZhi)
-	if benqiElem == "" {
-		return "tougan" // 无本气信息，默许透干
-	}
-	// 1. 透干被克：本气主导
-	if keWo(touganElem) == benqiElem {
-		// 透干被本气所克（如本气金克透干木）
-		return "benqi"
-	}
-	// 2. 透干生本气：两者皆取
-	if woSheng(touganElem) == benqiElem {
-		return "both"
-	}
-	// 3. 本气生透干：透干泄本气，力量分流
-	if shengWo(touganElem) == benqiElem {
-		// 本气生透干：透干仍主事，但本气不灭
-		return "tougan"
-	}
-	// 4. 同五行：透干与本气同属，透干代表外显，本气代表根基
-	if touganElem == benqiElem {
-		return "tougan"
-	}
-	// 5. 透干克本气：透干强势但本气受伤
-	if woKe(touganElem) == benqiElem {
-		return "tougan"
-	}
-	// 默认：透干主导
-	return "tougan"
-}
-
-// ResolveTouganBenqiForChart 批量解析命局中所有地支的透干本气冲突。
-// 返回一个 map[地支]resolution 字符串。
-func ResolveTouganBenqiForChart(pillars []string) map[string]string {
-	result := make(map[string]string)
-	// pillars 是天干数组（年月日时），地支从固定顺序取
-	zhis := []string{}
-	for i := 0; i < len(pillars) && i < 4; i++ {
-		// 这里需要外部传入实际地支，简化为空
-		_ = pillars[i]
-	}
-	// 占位实现：实际调用方应传入干支对
-	for _, z := range zhis {
-		result[z] = ResolveTouganBenqi("", "", z, "")
-	}
-	return result
-}
-
-// favorHuaQi 返回化气格的喜用：生扶化神及化神所生（印 + 比劫 + 食伤）。
-func favorHuaQi(huaQi string) []string {
-	return []string{shengWo(huaQi), huaQi, woSheng(huaQi)}
-}
-
-// tongGuan 返回两神成像格的通关五行（生二者之一的五行）。
-func tongGuan(a, b string) string {
-	if shengWo(b) == a {
-		return b
-	}
-	if shengWo(a) == b {
-		return a
-	}
-	if keWuXing(a) == b {
-		return woSheng(a)
-	}
-	if keWuXing(b) == a {
-		return woSheng(b)
-	}
-	return ""
-}
-
-// totalScore 累加五行得分。
-func totalScore(scores map[string]int) int {
-	sum := 0
-	for _, s := range scores {
-		sum += s
-	}
-	return sum
-}
-
 // absInt 返回 int 绝对值。
 func absInt(x int) int {
 	if x < 0 {
@@ -174,24 +83,4 @@ func inStrings(s string, values ...string) bool {
 		}
 	}
 	return false
-}
-
-// computeFavorByDayElem 基于日主五行返回喜忌列表。
-// congRuo=false 时：身旺型喜忌反转由调用方按 verdict 决定；本函数返回 (生扶, 克泄耗)。
-// congRuo=true  时：从弱格 like=克泄耗, dislike=生扶。
-//
-// 调用约定：
-//   like, dislike := computeFavorByDayElem(dayElem, true)
-//   // 从弱：like 给克泄耗，dislike 给生扶
-//
-//   like, dislike := computeFavorByDayElem(dayElem, false)
-//   // like = [印, 比劫], dislike = [官杀, 食伤, 财]
-//   // 身旺时调用方对调即可
-func computeFavorByDayElem(dayElem string, congRuo bool) (like, dislike []string) {
-	support := []string{shengWo(dayElem), dayElem}                  // 印 + 比劫
-	restrict := []string{keWo(dayElem), woSheng(dayElem), woKe(dayElem)} // 官杀 + 食伤 + 财
-	if congRuo {
-		return restrict, support
-	}
-	return support, restrict
 }

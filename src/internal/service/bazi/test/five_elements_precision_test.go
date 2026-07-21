@@ -18,8 +18,8 @@ import (
 
 // validGanZhi 返回第 i 个六十甲子的干支（0=甲子, 59=癸亥）
 func validGanZhi(i int) (string, string) {
-	gans := []string{"甲","乙","丙","丁","戊","己","庚","辛","壬","癸"}
-	zhis := []string{"子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"}
+	gans := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	zhis := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
 	gan := gans[i%10]
 	zhi := zhis[i%12]
 	return gan, zhi
@@ -32,7 +32,7 @@ func TestFiveElements_TianGanScore(t *testing.T) {
 	// 每个天干选择一个合法的六十甲子序号（相同天干每隔10个序号）
 	// 同一 gan 出现时，zhi 也会周期性变化
 	for ganIdx := 0; ganIdx < 10; ganIdx++ {
-		gan, zhi := validGanZhi(ganIdx) // ganIdx=0→甲子
+		gan, zhi := validGanZhi(ganIdx)        // ganIdx=0→甲子
 		gan2, zhi2 := validGanZhi(ganIdx + 10) // +10→甲戌
 		gan3, zhi3 := validGanZhi(ganIdx + 20) // +20→甲申
 		gan4, zhi4 := validGanZhi(ganIdx + 30) // +30→甲午
@@ -46,9 +46,9 @@ func TestFiveElements_TianGanScore(t *testing.T) {
 		p1, p2, p3, p4 := gan+zhi, gan2+zhi2, gan3+zhi3, gan4+zhi4
 
 		t.Run(gan+"日", func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(p1, p2, p3, p4, "MALE")
+			result, err := svc.CalculateSyntheticPillars(p1, p2, p3, p4, "MALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars(%s,%s,%s,%s) 失败: %v", p1, p2, p3, p4, err)
+				t.Fatalf("CalculateSyntheticPillars(%s,%s,%s,%s) 失败: %v", p1, p2, p3, p4, err)
 			}
 			score := result.FiveElements[elem]
 			t.Logf("天干%s: 五行%s得分=%d (天干20+藏干)", gan, elem, score)
@@ -84,8 +84,8 @@ func TestFiveElements_HiddenStemsWeight(t *testing.T) {
 
 	// 藏干结构
 	type hiddenStem struct {
-		gan    string
-		elem   string
+		gan  string
+		elem string
 	}
 
 	// 12 地支藏干（按 tyme4go 的 MAIN/MIDDLE/RESIDUAL 顺序）
@@ -111,7 +111,7 @@ func TestFiveElements_HiddenStemsWeight(t *testing.T) {
 			pillar := gan + branch
 
 			// 验证该干支是否合法
-			result, err := svc.CalculateFromPillars(pillar, pillar, pillar, pillar, "MALE")
+			result, err := svc.CalculateSyntheticPillars(pillar, pillar, pillar, pillar, "MALE")
 			if err != nil {
 				t.Skipf("跳过地支%s (干支%s不合法: %v)", branch, pillar, err)
 				return
@@ -151,8 +151,8 @@ func TestFiveElements_TotalConsistency(t *testing.T) {
 
 	// 使用 10 种不同的合法四柱组合
 	testCases := []struct {
-		name        string
-		y, m, d, h  string
+		name       string
+		y, m, d, h string
 	}{
 		{"甲子乙丑丙寅丁卯", "甲子", "乙丑", "丙寅", "丁卯"},
 		{"戊辰己巳庚午辛未", "戊辰", "己巳", "庚午", "辛未"},
@@ -168,9 +168,9 @@ func TestFiveElements_TotalConsistency(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := svc.CalculateFromPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
+			result, err := svc.CalculateSyntheticPillars(tc.y, tc.m, tc.d, tc.h, "MALE")
 			if err != nil {
-				t.Fatalf("CalculateFromPillars 失败: %v", err)
+				t.Fatalf("CalculateSyntheticPillars 失败: %v", err)
 			}
 
 			total := 0
@@ -241,7 +241,7 @@ func TestFiveElements_ValidGanZhiPairs(t *testing.T) {
 			break
 		}
 		p := pair.gan + pair.zhi
-		result, err := svc.CalculateFromPillars(p, "甲子", p, "甲子", "MALE")
+		result, err := svc.CalculateSyntheticPillars(p, "甲子", p, "甲子", "MALE")
 		if err != nil {
 			continue // 跳过但不报错（有些组合可能不被tyme4go接受）
 		}
