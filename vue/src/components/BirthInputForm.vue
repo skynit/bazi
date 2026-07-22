@@ -8,6 +8,7 @@ import {
   type ChartPreviewResponse,
 } from '../api/chart'
 import { Button } from '@/components/ui/button'
+import { getApiErrorMessage } from '../api/client'
 
 const router = useRouter()
 const errMsg = ref('')
@@ -137,10 +138,6 @@ function validateLocally(): string {
   return ''
 }
 
-function apiError(err: any, fallback: string): string {
-  return err.response?.data?.message || err.response?.data?.error || err.message || fallback
-}
-
 async function handlePreview() {
   const validationError = validateLocally()
   if (validationError) {
@@ -153,8 +150,8 @@ async function handlePreview() {
     preview.value = await previewChart(requestPayload())
     const candidates = preview.value.candidate_charts ?? []
     selectedCandidateId.value = candidates.length === 1 ? candidates[0].candidate_id : ''
-  } catch (err: any) {
-    errMsg.value = apiError(err, '校验失败，请检查出生信息')
+  } catch (reason: unknown) {
+    errMsg.value = getApiErrorMessage(reason, '校验失败，请检查出生信息。')
   } finally {
     loading.value = false
   }
@@ -205,8 +202,8 @@ async function confirmCreate() {
       }),
     )
     router.push('/chart/new?_t=' + Date.now())
-  } catch (err: any) {
-    errMsg.value = apiError(err, '保存命盘失败，请稍后重试')
+  } catch (reason: unknown) {
+    errMsg.value = getApiErrorMessage(reason, '保存命盘失败，请稍后重试。')
   } finally {
     confirming.value = false
   }
@@ -434,40 +431,49 @@ async function confirmCreate() {
           <div class="validation-item">
             <span>对应农历</span><strong>{{ preview.birth_validation.lunar_date }}</strong>
           </div>
-          <div class="validation-item">
-            <span>当前节气</span
-            ><strong
-              >{{ preview.birth_validation.current_solar_term }} ·
-              {{ preview.birth_validation.current_solar_term_started_at }}</strong
-            >
-          </div>
-          <div class="validation-item">
-            <span>时区与 UTC</span
-            ><strong
-              >{{ preview.birth_validation.timezone }} ·
-              {{ preview.birth_validation.utc_date_time }}</strong
-            >
-          </div>
-          <div class="validation-item">
-            <span>晚子时日柱口径</span>
-            <strong>{{
-              preview.birth_validation.zi_hour_policy === 'late_zi_same_day'
-                ? '午夜换日（晚子时日柱算当天）'
-                : '子初换日（晚子时日柱算次日）'
-            }}</strong>
-          </div>
-          <div v-if="preview.birth_validation.true_solar_time_applied" class="validation-item">
-            <span>真太阳时校正</span
-            ><strong
-              >{{ preview.birth_validation.true_solar_adjustment_minutes >= 0 ? '+' : ''
-              }}{{ preview.birth_validation.true_solar_adjustment_minutes }} 分钟</strong
-            >
-          </div>
-          <div v-if="preview.birth_validation.local_time_ambiguous" class="validation-item">
-            <span>重复本地时刻采用偏移</span>
-            <strong>UTC {{ preview.birth_validation.timezone_offset_seconds / 3600 >= 0 ? '+' : '' }}{{ preview.birth_validation.timezone_offset_seconds / 3600 }}</strong>
-          </div>
         </div>
+
+        <details class="validation-details">
+          <summary>查看历法与时间换算</summary>
+          <div class="validation-grid">
+            <div class="validation-item">
+              <span>当前节气</span>
+              <strong>
+                {{ preview.birth_validation.current_solar_term }} ·
+                {{ preview.birth_validation.current_solar_term_started_at }}
+              </strong>
+            </div>
+            <div class="validation-item">
+              <span>时区与 UTC</span>
+              <strong>
+                {{ preview.birth_validation.timezone }} ·
+                {{ preview.birth_validation.utc_date_time }}
+              </strong>
+            </div>
+            <div class="validation-item">
+              <span>晚子时换日方式</span>
+              <strong>{{
+                preview.birth_validation.zi_hour_policy === 'late_zi_same_day'
+                  ? '午夜换日（晚子时日柱算当天）'
+                  : '子初换日（晚子时日柱算次日）'
+              }}</strong>
+            </div>
+            <div v-if="preview.birth_validation.true_solar_time_applied" class="validation-item">
+              <span>真太阳时校正</span>
+              <strong>
+                {{ preview.birth_validation.true_solar_adjustment_minutes >= 0 ? '+' : ''
+                }}{{ preview.birth_validation.true_solar_adjustment_minutes }} 分钟
+              </strong>
+            </div>
+            <div v-if="preview.birth_validation.local_time_ambiguous" class="validation-item">
+              <span>重复时刻采用时区偏移</span>
+              <strong>
+                UTC {{ preview.birth_validation.timezone_offset_seconds / 3600 >= 0 ? '+' : ''
+                }}{{ preview.birth_validation.timezone_offset_seconds / 3600 }}
+              </strong>
+            </div>
+          </div>
+        </details>
 
         <div v-if="preview.uncertainty" class="uncertainty-box">
           <strong>时间评估范围</strong>
@@ -475,12 +481,7 @@ async function confirmCreate() {
             输入范围：{{ preview.uncertainty.input_range_start }} 至
             {{ preview.uncertainty.input_range_end }}
           </p>
-          <p v-if="preview.uncertainty.algorithm_uncertainty_seconds">
-            真太阳时算法名义误差：±{{ preview.uncertainty.algorithm_uncertainty_seconds }} 秒；已纳入候选评估。
-          </p>
-          <p v-if="preview.unstable_fields.length">
-            不稳定字段：{{ preview.unstable_fields.join('、') }}
-          </p>
+          <p v-if="preview.candidate_charts.length > 1">这个时间范围跨越了排盘边界，请从下方候选命盘中选择。</p>
         </div>
 
         <div v-if="preview.candidate_charts.length > 1" class="candidate-list">
@@ -694,10 +695,24 @@ async function confirmCreate() {
   padding: 13px 14px;
   border: 1px solid var(--line-subtle);
   border-radius: 10px;
-  background: color-mix(in oklab, var(--surface) 85%, transparent);
+  background: var(--surface-1);
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+.validation-details {
+  margin-top: 12px;
+  border-top: 1px solid var(--line-subtle);
+}
+.validation-details summary {
+  padding: 12px 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.validation-details .validation-grid {
+  padding-bottom: 4px;
 }
 .validation-item span,
 .pillar-item span {
@@ -775,7 +790,7 @@ async function confirmCreate() {
   padding: 14px 16px;
   border: 1px solid var(--line-subtle);
   border-radius: 10px;
-  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  background: var(--surface-1);
   color: var(--text-muted);
   text-align: left;
 }

@@ -10,7 +10,7 @@ interface Props {
   caption?: string
 }
 const props = withDefaults(defineProps<Props>(), {
-  label: '结构指数',
+  label: '关系活跃度',
   caption: '',
 })
 

@@ -12,6 +12,7 @@ import {
 } from '@lucide/vue'
 import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
+import { getApiErrorMessage } from '../api/client'
 import {
   blessingProfiles,
   isBlessingElement,
@@ -70,7 +71,6 @@ const guide = computed(() => ({
   avoid_direction: { value: profile.value.avoidDirection },
   avoid_element: '',
   analysis: '用短暂静驻、环境整理和一个明确动作承接今日节奏。',
-  evidence_completeness: fortune.value?.evidence_completeness,
 }))
 const colorText = computed(() => profile.value.colors)
 const colorChips = computed(() => splitValues(colorText.value))
@@ -145,7 +145,6 @@ const heroEvidence = computed(() => {
   return [
     day.jie_qi || day.seasonal_state?.season,
     day.ten_god?.status === 'observed' ? day.ten_god.name : '',
-    `证据完整度 ${Math.round(day.evidence_completeness)}%`,
   ].filter(Boolean)
 })
 const presenceText = computed(() => {
@@ -211,8 +210,7 @@ function readChartId() {
 }
 
 function errorMessage(reason: unknown) {
-  const response = reason as { response?: { data?: { error?: string } } }
-  return response.response?.data?.error || '加载运势加持失败'
+  return getApiErrorMessage(reason, '运势加持加载失败，请稍后重试。')
 }
 
 function profileForElement(elementName?: string): BlessingProfile | undefined {
@@ -527,10 +525,7 @@ onUnmounted(() => {
         <span class="footer-seal">福</span>
         <div>
           <p>愿今日所行，皆有回响</p>
-          <small v-if="guide?.evidence_completeness !== undefined"
-            >排盘证据完整度 {{ guide.evidence_completeness }}%</small
-          >
-          <small v-else>以传统命理为参考，以清醒行动为根本</small>
+          <small>以传统命理为参考，以清醒行动为根本</small>
         </div>
       </footer>
     </div>

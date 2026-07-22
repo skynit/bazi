@@ -5,9 +5,9 @@ const props = defineProps<{ modelValue: InterpretationLevel }>()
 const emit = defineEmits<{ 'update:modelValue': [value: InterpretationLevel] }>()
 
 const levels: Array<{ value: InterpretationLevel; label: string; hint: string }> = [
-  { value: 'basic', label: '普通', hint: '结论与行动' },
-  { value: 'advanced', label: '进阶', hint: '正反证据' },
-  { value: 'professional', label: '专业', hint: '规则与版本' },
+  { value: 'basic', label: '简明', hint: '重点关系' },
+  { value: 'advanced', label: '详细', hint: '原因与依据' },
+  { value: 'professional', label: '推算', hint: '计算过程' },
 ]
 </script>
 
@@ -38,8 +38,7 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
   padding: var(--space-xs);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
-  background: var(--surface-2);
-  box-shadow: inset 0 1px 0 var(--line-subtle);
+  background: color-mix(in oklab, var(--accent) 3%, var(--surface-1));
 }
 
 .level-option {
@@ -79,7 +78,7 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
 .level-option.active {
   color: var(--text);
   border-color: var(--line-focus);
-  background: var(--surface-0);
+  background: color-mix(in oklab, var(--accent) 7%, var(--surface-0));
   box-shadow: var(--shadow-xs);
 }
 

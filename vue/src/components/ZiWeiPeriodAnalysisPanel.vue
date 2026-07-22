@@ -22,8 +22,6 @@ const highlights = computed<ZiWeiPeriodHighlight[]>(() => list(props.analysis?.h
 const evidence = computed<ZiWeiPeriodEvidence[]>(() => list(props.analysis?.evidence))
 const crossLayerRelations = computed(() => list(props.analysis?.cross_layer_relations))
 const methods = computed<string[]>(() => list(props.analysis?.method))
-const reviewNotes = computed<string[]>(() => list(props.analysis?.review_notes))
-const limitations = computed<string[]>(() => list(props.analysis?.limitations))
 const currentStage = computed(() => stages.value.find((stage) => stage.current))
 const dayunContext = computed(() => props.analysis?.dayun_context)
 
@@ -86,8 +84,8 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
   <section v-if="analysis" class="zw-period-panel">
     <header class="zw-period-desk">
       <div class="zw-structure-seal">
-        <strong>结构</strong>
-        <span>未裁决</span>
+        <strong>周期</strong>
+        <span>参考</span>
       </div>
       <div class="zw-period-copy">
         <div class="zw-period-meta-line">
@@ -174,8 +172,8 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
 
     <section class="zw-focus-board">
       <div class="zw-section-head">
-        <h4>触发宫位</h4>
-        <span>{{ focusPalaces.length }} 个触发宫位</span>
+        <h4>重点宫位</h4>
+        <span>{{ focusPalaces.length }} 个重点</span>
       </div>
 
       <div v-if="focusPalaces.length" class="zw-focus-list">
@@ -213,7 +211,7 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
         </article>
       </div>
 
-      <p v-else class="zw-empty-line">本层没有明显的流曜或四化集中触发。</p>
+      <p v-else class="zw-empty-line">本层没有明显集中的流曜或四化。</p>
     </section>
 
     <div class="zw-reading-grid">
@@ -226,7 +224,6 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
           <li v-for="item in evidence" :key="`${item.label}-${item.value}`">
             <span>{{ item.label }}</span>
             <strong>{{ item.value }}</strong>
-            <p>{{ item.basis }}</p>
           </li>
         </ul>
         <div v-if="crossLayerRelations.length" class="zw-cross-layer-list">
@@ -239,36 +236,21 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
             {{ item.relation }}<template v-if="item.subtype">（{{ item.subtype }}）</template> ·
             {{ item.target_gan_zhi }}（{{ periodLayerLabel(item.target_layer) }}）
           </span>
-          <small>仅记录周期干支结构，不换算为吉凶或概率</small>
-        </div>
-      </section>
-
-      <section v-if="reviewNotes.length || limitations.length" class="zw-action-panel">
-        <div class="zw-section-head">
-          <h4>解释边界</h4>
-          <span>{{ reviewNotes.length + limitations.length }} 条</span>
-        </div>
-        <div v-if="reviewNotes.length" class="zw-note-block">
-          <strong>复核说明</strong>
-          <p v-for="item in reviewNotes" :key="item">{{ item }}</p>
-        </div>
-        <div v-if="limitations.length" class="zw-note-block is-risk">
-          <strong>解释限制</strong>
-          <p v-for="item in limitations" :key="item">{{ item }}</p>
+          <small>展示周期之间的干支关系，供理解整体节奏。</small>
         </div>
       </section>
     </div>
 
+    <p class="zw-boundary-note">周期分析用于观察宫位、星曜和干支关系，不直接判断具体事件。</p>
+
     <details class="zw-method-fold">
       <summary>
-        <span>规则依据</span>
-        <b>{{ analysis.rule_version }}</b>
+        <span>计算方法</span>
       </summary>
       <div class="zw-method-body">
         <ol>
           <li v-for="item in methods" :key="item">{{ item }}</li>
         </ol>
-        <p>{{ analysis.school }}</p>
       </div>
     </details>
   </section>
@@ -550,6 +532,13 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
 
 .zw-cross-layer-list small {
   color: var(--period-muted);
+}
+
+.zw-boundary-note {
+  margin: 0;
+  color: var(--period-muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
 }
 
 .zw-token-row {

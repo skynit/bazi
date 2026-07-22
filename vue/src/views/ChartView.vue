@@ -2,9 +2,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchChart, fetchCharts } from '../api/chart'
+import { getApiErrorMessage } from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
-import ComputationLog from '../components/ComputationLog.vue'
 import { Button } from '@/components/ui/button'
 
 interface SavedChart {
@@ -35,8 +35,6 @@ const isNew = computed(() => route.params.id === 'new')
 const chartData = ref<any>(null)
 const loading = ref(false)
 const error = ref('')
-const showComputation = ref(false)
-const computationDone = ref(false)
 
 const savedCharts = ref<SavedChart[]>([])
 const showPicker = ref(false)
@@ -60,9 +58,6 @@ function tryLoadChart() {
     if (raw) {
       chartData.value = JSON.parse(raw)
       sessionStorage.removeItem('lastChart')
-      // Trigger computation animation for newly submitted chart
-      showComputation.value = true
-      computationDone.value = false
     } else {
       fetchSavedCharts()
     }
@@ -108,9 +103,8 @@ async function fetchSavedCharts() {
     const data = await fetchCharts(1, 10)
     savedCharts.value = data.charts
     showPicker.value = data.charts.length > 0
-  } catch (err: any) {
-    chartsError.value =
-      err.response?.data?.message || err.response?.data?.error || err.message || '已有命盘加载失败'
+  } catch (reason: unknown) {
+    chartsError.value = getApiErrorMessage(reason, '已有命盘加载失败，请稍后重试。')
     savedCharts.value = []
     showPicker.value = false
   } finally {
@@ -147,8 +141,8 @@ async function selectChart(chart: SavedChart) {
       }),
     )
     router.push(`/chart/${chart.id}`)
-  } catch (err: any) {
-    error.value = err.message || '打开命盘失败，请稍后重试'
+  } catch {
+    error.value = '打开命盘失败，请稍后重试。'
   }
 }
 
@@ -172,8 +166,8 @@ async function loadChart() {
     const chart = await fetchChart(String(route.params.id))
     chartData.value = chart
     cacheLastBirthFromChart(chart)
-  } catch (err: any) {
-    error.value = err.response?.data?.error || err.message || '加载命盘失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '命盘加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -187,10 +181,6 @@ function goZiWei() {
   router.push(`/ziwei/${chartData.value.id}`)
 }
 
-function onComputationComplete(): void {
-  computationDone.value = true
-  showComputation.value = false
-}
 </script>
 <template>
   <div class="chart-page">
@@ -351,13 +341,8 @@ function onComputationComplete(): void {
         </template>
       </div>
 
-      <!-- Computation log animation -->
-      <div v-if="showComputation && !computationDone" class="computation-wrapper">
-        <ComputationLog :chart-data="chartData" @complete="onComputationComplete" />
-      </div>
-
       <!-- Chart display -->
-      <div v-else-if="chartData && (!showComputation || computationDone)" class="chart-result">
+      <div v-if="chartData" class="chart-result">
         <BaziChart :chart="chartData" />
 
         <!-- Action buttons -->

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { getApiErrorMessage } from '../api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,8 +26,8 @@ async function handleLogin() {
     await auth.login(form.value.username, form.value.password)
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
-  } catch (e: any) {
-    error.value = e.response?.data?.error || '登录失败，请检查用户名和密码'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '登录失败，请检查用户名和密码。')
   } finally {
     loading.value = false
   }

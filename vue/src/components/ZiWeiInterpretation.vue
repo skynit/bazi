@@ -116,7 +116,6 @@ function evidenceClass(type: string) {
       <span class="header-kicker">命盘详解</span>
       <span class="header-title">{{ palaceReading.palaceName }}</span>
       <span v-if="palaceReading.palaceFocus" class="focus-pill">{{ palaceReading.palaceFocus }}</span>
-      <span v-if="palaceReading.validationStatus === 'not_adjudicated'" class="validation-pill">未独立裁决</span>
       <span class="toggle-icon">{{ expanded ? '收起' : '展开' }}</span>
     </button>
 
@@ -184,7 +183,7 @@ function evidenceClass(type: string) {
             <div v-for="pattern in palaceReading.patternDetails" :key="pattern.name + pattern.basis" class="pattern-card">
               <div class="pattern-head">
                 <strong>{{ pattern.name }}</strong>
-                <span>{{ pattern.structure_status === 'matched' ? '结构匹配' : pattern.structure_status }}</span>
+                <span>结构线索</span>
               </div>
               <p>{{ pattern.basis }}</p>
               <div v-if="pattern.stars?.length" class="mini-tags">
@@ -194,20 +193,7 @@ function evidenceClass(type: string) {
           </div>
         </section>
 
-        <section class="advice-risk-grid">
-          <div v-if="palaceReading.reviewNotes?.length" class="reading-block advice-block">
-            <h4 class="block-title">复核说明</h4>
-            <ul class="note-list">
-              <li v-for="item in palaceReading.reviewNotes" :key="item">{{ item }}</li>
-            </ul>
-          </div>
-          <div v-if="palaceReading.limitations?.length" class="reading-block risk-block">
-            <h4 class="block-title">解释限制</h4>
-            <ul class="note-list">
-              <li v-for="item in palaceReading.limitations" :key="item">{{ item }}</li>
-            </ul>
-          </div>
-        </section>
+        <p class="reading-boundary-note">宫位解读用于理解星曜与宫位结构，不直接判断具体事件。</p>
 
         <section v-if="!orderedEvidence.length && legacySections.length" class="reading-block legacy-block">
           <h4 class="block-title">基础解读</h4>
@@ -314,6 +300,13 @@ function evidenceClass(type: string) {
   @apply flex flex-col gap-3;
   padding-top: 0.75rem;
   border-top: 1px solid var(--line-subtle);
+}
+
+.reading-boundary-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
 }
 
 .block-title-row {

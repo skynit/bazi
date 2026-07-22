@@ -88,7 +88,7 @@ const option = computed(() => {
 
   const series: any[] = [
     {
-      name: '结构关系指数',
+      name: '关系活跃度',
       type: 'line',
       yAxisIndex: 0,
       data: scores,

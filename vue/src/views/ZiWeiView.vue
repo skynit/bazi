@@ -233,11 +233,12 @@ async function loadZiWeiChart() {
     selectedLiunianYear.value = defaultYear
     availableYears.value = Array.from({ length: 11 }, (_, i) => defaultYear - 5 + i)
     await ensureDayunAnalysis(Number(chartId), true)
-  } catch (err: any) {
-    if (err.response?.status === 404) {
+  } catch (reason: unknown) {
+    const status = (reason as { response?: { status?: number } }).response?.status
+    if (status === 404) {
       error.value = '该命盘不存在或已被删除，请重新创建。'
     } else {
-      error.value = err.response?.data?.message || err.message || '加载命盘失败'
+      error.value = getApiErrorMessage(reason, '紫微命盘加载失败，请稍后重试。')
     }
   } finally {
     loading.value = false
@@ -564,7 +565,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
           </span>
           <span class="birth-item" v-if="chartData">
             <span class="birth-label">排盘口径</span>
-            <span class="birth-val">{{ chartData.profile_id }}</span>
+            <span class="birth-val">传统紫微排盘</span>
           </span>
           <span
             class="birth-item"
@@ -652,7 +653,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
                     pattern
                   }}</span>
                 </div>
-                <p v-else>暂无可由当前规则直接验证的格局标签</p>
+                <p v-else>当前没有可直接列出的格局线索</p>
               </div>
             </section>
 

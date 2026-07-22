@@ -19,17 +19,14 @@ const evidence = {
 beforeEach(() => localStorage.clear())
 
 describe('DailyFortune interpretation levels', () => {
-  it('defaults to ordinary mode and progressively reveals advanced and professional content', async () => {
+  it('defaults to concise mode and progressively reveals detailed calculation content', async () => {
     const wrapper = mount(DailyFortune, {
       props: {
         solarDate: '2026-07-10',
         dayGanZhi: '甲子',
         fortuneScore: 68,
-        evidenceCompleteness: 88,
         supportingEvidence: [evidence],
         counterEvidence: [],
-        engineVersion: 'fortune-engine-test',
-        ruleVersion: 'rules-test',
         scoreBreakdown: {
           pipeline_version: 'pipeline-test',
           score_kind: 'structural_relation_index',
@@ -155,7 +152,7 @@ describe('DailyFortune interpretation levels', () => {
 
     const tabLabels = () => wrapper.findAll('.df-tab-btn').map((tab) => tab.text())
 
-    expect(wrapper.text()).toContain('普通')
+    expect(wrapper.text()).toContain('简明')
     expect(tabLabels()).not.toContain('结构分析')
     for (const removedLabel of ['开运指南', '幸运色', '幸运数', '财位', '吉时', '宜忌']) {
       expect(wrapper.text()).not.toContain(removedLabel)
@@ -176,9 +173,12 @@ describe('DailyFortune interpretation levels', () => {
     expect(wrapper.text()).toContain('天干五合')
     expect(wrapper.text()).toContain('周期层结构')
     expect(wrapper.text()).toContain('岁运月联动结构')
-    expect(wrapper.text()).toContain('仅记录干支结构，不进入当前未验证评分')
-    expect(wrapper.text()).toContain('exact_start_time_and_query_time')
-    expect(wrapper.text()).toContain('解释未裁决')
+    expect(wrapper.text()).toContain('依据出生时间与查询日期定位')
+    expect(wrapper.text()).toContain('这里只展示周期之间的干支关系')
+    expect(wrapper.text()).not.toContain('exact_start_time_and_query_time')
+    expect(wrapper.text()).not.toContain('解释未裁决')
+    expect(wrapper.text()).not.toContain('not_validated')
+    expect(wrapper.text()).not.toContain('not_adjudicated')
     for (const removedLabel of ['格局喜忌', '进退气', '用神影响', '偏有利', '需留意']) {
       expect(wrapper.text()).not.toContain(removedLabel)
     }

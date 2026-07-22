@@ -7,6 +7,7 @@ import {
   type MonthlyFortuneResponse,
   type FortuneDay,
 } from '../api/fortune'
+import { getApiErrorMessage } from '../api/client'
 import FortuneChart from '../components/FortuneChart.vue'
 import AuroraMeshBackground from '../components/fortune/AuroraMeshBackground.vue'
 import ScoreOrb from '../components/fortune/ScoreOrb.vue'
@@ -61,7 +62,7 @@ function rhythmWord(): string {
 const monthBriefTitle = computed(() => {
   const summary = data.value?.summary
   if (!summary) return '月内结构统计待定'
-  return `结构指数分布：${rhythmWord()}`
+  return `本月关系节奏：${rhythmWord()}`
 })
 
 const monthBriefText = computed(() => {
@@ -73,13 +74,7 @@ const monthBriefText = computed(() => {
     ? `五行频次以${summary.dominant_element}为最高`
     : '五行频次无单一最高项'
   const tenGod = summary.dominant_ten_god ? `，十神频次以${summary.dominant_ten_god}为最高` : ''
-  return `本月结构关系指数均值 ${summary.average_index.toFixed(1)}，标准差 ${summary.index_standard_deviation.toFixed(1)}；${phaseMeans}。${element}${tenGod}。以上仅为结构统计，现实结果未裁决。`
-})
-
-const scoreSpread = computed(() => {
-  const summary = data.value?.summary
-  if (!summary) return 0
-  return Math.max(0, summary.highest_index - summary.lowest_index)
+  return `本月平均活跃度 ${summary.average_index.toFixed(1)}；${phaseMeans}。${element}${tenGod}。这些数值用于比较月内不同日期，不代表吉凶。`
 })
 
 const overviewStats = computed(() => {
@@ -87,19 +82,19 @@ const overviewStats = computed(() => {
   if (!summary) return []
   return [
     {
-      label: '月均指数',
+      label: '月均活跃度',
       value: summary.average_index.toFixed(1),
-      detail: '结构关系指数均值',
+      detail: '用于比较月内日期',
     },
     {
-      label: '振幅',
-      value: scoreSpread.value.toString(),
-      detail: `最高 ${formatMonthDay(summary.highest_index_day)} · 最低 ${formatMonthDay(summary.lowest_index_day)}`,
+      label: '关系较多日',
+      value: formatMonthDay(summary.highest_index_day),
+      detail: `活跃度 ${summary.highest_index}`,
     },
     {
-      label: '标准差',
-      value: summary.index_standard_deviation.toFixed(1),
-      detail: '月内日指数离散度',
+      label: '关系较少日',
+      value: formatMonthDay(summary.lowest_index_day),
+      detail: `活跃度 ${summary.lowest_index}`,
     },
     {
       label: '主气',
@@ -178,12 +173,12 @@ const extremeDayCards = computed<ExtremeDayCard[]>(() => {
       score: day.score,
       pillar: day.day_gan_zhi,
       variant,
-      detail: `干支 ${day.day_gan_zhi} · 结构指数 ${day.score}`,
+      detail: `干支 ${day.day_gan_zhi} · 关系活跃度 ${day.score}`,
     })
   }
 
-  push(summary.highest_index_day, '月内最高值', 'highest')
-  push(summary.lowest_index_day, '月内最低值', 'lowest')
+  push(summary.highest_index_day, '关系较多', 'highest')
+  push(summary.lowest_index_day, '关系较少', 'lowest')
 
   return cards
 })
@@ -245,8 +240,8 @@ async function load() {
 
   try {
     data.value = await fetchMonthly(cid, year, month)
-  } catch (e: any) {
-    error.value = e?.response?.data?.error || '加载月运势失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '本月内容加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -301,8 +296,8 @@ onMounted(load)
           <div class="hero-right">
             <ScoreOrb
               :score="data.structural_relation_index"
-              label="月均结构指数"
-              :caption="`标准差 ${data.summary.index_standard_deviation.toFixed(1)}`"
+              label="月均关系活跃度"
+              caption="用于日期间比较"
             />
           </div>
         </section>
@@ -338,7 +333,7 @@ onMounted(load)
         <section class="rhythm-card">
           <header class="card-head">
             <span class="card-eyebrow">上中下旬</span>
-            <span class="card-meta">按日历旬段汇总结构指数</span>
+            <span class="card-meta">按上旬、中旬、下旬比较</span>
           </header>
           <div class="phase-grid">
             <article v-for="phase in phaseSegments" :key="phase.name" class="phase-card">
@@ -370,14 +365,13 @@ onMounted(load)
 
         <section class="glass-card trend-card">
           <header class="card-head">
-            <span class="card-eyebrow">月内结构指数</span>
+            <span class="card-eyebrow">月内关系变化</span>
             <span class="card-meta">
-              均值 {{ data.summary.average_index.toFixed(1) }} · 标准差
-              {{ data.summary.index_standard_deviation.toFixed(1) }}
+              平均 {{ data.summary.average_index.toFixed(1) }}
             </span>
           </header>
           <FortuneChart :daily-data="trendData" height="320px" :show-elements="false" />
-          <div class="trend-legend" aria-label="月内结构指数说明">
+          <div class="trend-legend" aria-label="月内关系活跃度说明">
             <span
               ><i class="legend-dot highest"></i>最高
               {{ formatMonthDay(data.summary.highest_index_day) }}</span
@@ -404,7 +398,7 @@ onMounted(load)
               <span class="key-date tabular-nums">{{ formatMonthDay(day.date) }}</span>
               <div class="key-main">
                 <strong>{{ day.label }}</strong>
-                <span>{{ day.pillar }} · 结构指数 {{ day.score }}</span>
+                <span>{{ day.pillar }} · 关系活跃度 {{ day.score }}</span>
               </div>
               <p>{{ day.detail }}</p>
             </article>
@@ -421,7 +415,7 @@ onMounted(load)
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">结构指数与五行走势</span>
+              <span class="card-eyebrow">关系活跃度与五行走势</span>
               <span class="card-meta tabular-nums"
                 >均 {{ data.summary.average_index.toFixed(1) }}</span
               >

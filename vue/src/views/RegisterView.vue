@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { getApiErrorMessage } from '../api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,8 +31,8 @@ async function handleRegister() {
     await auth.register(username, email, password)
     const redirect = (route.query.redirect as string) || '/'
     router.push(redirect)
-  } catch (e: any) {
-    error.value = e.response?.data?.error || '注册失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '注册失败，请检查填写内容。')
   } finally {
     loading.value = false
   }

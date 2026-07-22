@@ -13,6 +13,7 @@ import {
   type InterpretationFocus,
 } from '../api/interpretation'
 import { submitFeedback, type FeedbackRating } from '../api/feedback'
+import { getApiErrorMessage } from '../api/client'
 
 const props = defineProps<{
   chartId?: number
@@ -55,9 +56,9 @@ async function loadInterpretation() {
   error.value = ''
   try {
     response.value = await fetchBaziInterpretation(props.chartId, focus.value)
-  } catch (err: any) {
+  } catch (reason: unknown) {
     response.value = null
-    error.value = err?.response?.data?.error || err?.message || '经典依据解读加载失败'
+    error.value = getApiErrorMessage(reason, '经典依据加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -96,13 +97,13 @@ async function sendSectionFeedback(sectionTitle: string, rating: FeedbackRating)
       ...feedbackState.value,
       [key]: { rating, loading: false, error: '' },
     }
-  } catch (err: any) {
+  } catch (reason: unknown) {
     feedbackState.value = {
       ...feedbackState.value,
       [key]: {
         ...feedbackState.value[key],
         loading: false,
-        error: err?.response?.data?.error || err?.message || '反馈提交失败',
+        error: getApiErrorMessage(reason, '反馈提交失败，请稍后重试。'),
       },
     }
   }
@@ -129,10 +130,10 @@ const statusText = computed(() => {
       <div class="ai-title-wrap">
         <div class="ai-eyebrow">
           <BookOpenTextIcon class="ai-eyebrow-icon" />
-          经典依据解读
+          经典参考
         </div>
         <div class="ai-title-row">
-          <h3 class="ai-title">八字经典依据解读</h3>
+          <h3 class="ai-title">八字经典参考</h3>
           <span v-if="statusText" class="ai-status">{{ statusText }}</span>
         </div>
       </div>
@@ -158,7 +159,7 @@ const statusText = computed(() => {
       <TriangleAlertIcon class="ai-empty-icon" />
       <div>
         <p class="ai-empty-title">先创建或打开一个命盘</p>
-        <p class="ai-empty-text">这里会显示基于经典典籍的补充解读。</p>
+        <p class="ai-empty-text">这里会显示与命盘结构相关的典籍条目。</p>
       </div>
     </div>
 
@@ -242,25 +243,10 @@ const statusText = computed(() => {
               <span class="ai-citation-meta">
                 {{ citation.chapter }} · {{ citation.page || citation.locator || '定位缺失' }}
               </span>
-              <span class="ai-citation-score">{{ citation.score.toFixed(2) }}</span>
             </button>
             <div v-if="expandedCitations.includes(citation.id)" class="ai-citation-body">
               <p class="ai-citation-path">{{ citation.author }} · {{ citation.edition }}</p>
-              <p class="ai-citation-path">{{ citation.path }}</p>
-              <p class="ai-citation-path">
-                {{ citation.verification_status }} ·
-                {{ citation.claim_eligible ? '可用于声明证据' : '元数据不完整，仅供审计' }}
-              </p>
-              <p class="ai-citation-path">
-                {{ citation.artifact_kind }} · {{ citation.provenance_status }} ·
-                {{ citation.independence_status }} · {{ citation.coverage_status }}
-              </p>
-              <p class="ai-citation-path">
-                {{ citation.catalog_schema }} · {{ citation.catalog_version }}
-              </p>
               <p class="ai-citation-quote">{{ citation.quote }}</p>
-              <p class="ai-citation-hash">引文 SHA-256：{{ citation.quote_sha256 }}</p>
-              <p class="ai-citation-hash">目录 SHA-256：{{ citation.catalog_sha256 }}</p>
             </div>
           </article>
         </div>

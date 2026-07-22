@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchWeekly, parseTrend, type WeeklyFortuneResponse } from '../api/fortune'
+import { getApiErrorMessage } from '../api/client'
 import FortuneChart from '../components/FortuneChart.vue'
 import AuroraMeshBackground from '../components/fortune/AuroraMeshBackground.vue'
 import ScoreOrb from '../components/fortune/ScoreOrb.vue'
@@ -75,8 +76,8 @@ async function load() {
 
   try {
     data.value = await fetchWeekly(cid, todayStr())
-  } catch (e: any) {
-    error.value = e?.response?.data?.error || '加载周运势失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '本周内容加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -110,7 +111,7 @@ onMounted(load)
         <section class="hero">
           <div class="hero-left">
             <span class="eyebrow">BaZi · Weekly</span>
-            <h1 class="title">本周结构观察</h1>
+            <h1 class="title">本周关系节奏</h1>
             <p class="range tabular-nums">{{ weekRange }}</p>
             <div class="chips">
               <BestWorstChip
@@ -137,8 +138,8 @@ onMounted(load)
           <div class="hero-right">
             <ScoreOrb
               :score="data.structural_relation_index"
-              label="周均结构指数"
-              :caption="`标准差 ${data.summary.index_standard_deviation.toFixed(1)}`"
+              label="周均关系活跃度"
+              caption="用于日期间比较"
             />
           </div>
         </section>
@@ -146,9 +147,9 @@ onMounted(load)
         <!-- Heat strip -->
         <section class="glass-card heat-card">
           <header class="card-head">
-            <span class="card-eyebrow">每日结构指数</span>
+            <span class="card-eyebrow">每日关系活跃度</span>
             <span class="card-meta">
-              最高 {{ data.summary.highest_index }} · 最低 {{ data.summary.lowest_index }}
+              较多 {{ data.summary.highest_index }} · 较少 {{ data.summary.lowest_index }}
             </span>
           </header>
           <FortuneHeatStrip :days="heatDays" :weekday-labels="weekdayLabels" />
@@ -165,7 +166,7 @@ onMounted(load)
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">结构指数曲线</span>
+              <span class="card-eyebrow">关系变化曲线</span>
               <span class="card-meta tabular-nums"
                 >均 {{ data.summary.average_index.toFixed(1) }}</span
               >

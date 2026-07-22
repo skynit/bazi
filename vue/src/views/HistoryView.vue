@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchCharts as fetchChartList, type ChartSummary } from '../api/chart'
+import { getApiErrorMessage } from '../api/client'
 
 const router = useRouter()
 
@@ -45,8 +46,8 @@ async function loadCharts(p: number) {
     charts.value = data.charts
     total.value = data.total
     page.value = data.page
-  } catch (e: any) {
-    error.value = e.response?.data?.error || '加载列表失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '命盘列表加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }

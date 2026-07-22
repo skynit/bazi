@@ -11,7 +11,7 @@ defineProps<Props>()
 <template>
   <span class="chip" :class="variant">
     <span class="dot" aria-hidden="true"></span>
-    <span class="label">{{ variant === 'highest' ? '最高值' : '最低值' }}</span>
+    <span class="label">{{ variant === 'highest' ? '关系较多' : '关系较少' }}</span>
     <span v-if="date" class="date">{{ date.slice(5) }}</span>
     <span v-if="typeof score === 'number'" class="score tabular-nums">{{ score }}</span>
   </span>

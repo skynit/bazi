@@ -189,12 +189,12 @@ func TestBuildPatternContentUsesMonthCommandEvidence(t *testing.T) {
 		t.Fatalf("calculate from pillars: %v", err)
 	}
 	content := buildPatternContent(result)
-	for _, want := range []string{"1项月令藏干透出候选", "正印格", "月支卯藏乙", "透于月干", "不表示优先级、成格结论或唯一格局"} {
+	for _, want := range []string{"1项月令藏干透出线索", "正印格", "月支卯藏乙", "透于月干", "不等同于已经确定格局、喜忌或现实结果"} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("pattern content missing %q: %s", want, content)
 		}
 	}
-	if strings.Contains(content, "未取得完整格局候选证据") {
+	if strings.Contains(content, "暂未观察到可直接列出的格局线索") {
 		t.Fatalf("month-command evidence was discarded: %s", content)
 	}
 }
@@ -213,20 +213,22 @@ func TestInterpretBaziPatternReturnsCandidateEvidenceOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if resp.Status != StatusOK || len(resp.Sections) != 1 || resp.Sections[0].Title != "格局规则候选" {
+	if resp.Status != StatusOK || len(resp.Sections) != 1 || resp.Sections[0].Title != "格局线索" {
 		t.Fatalf("unexpected response: %+v", resp)
 	}
 	content := resp.Sections[0].Content
 	for _, want := range []string{
-		"classical_structural_detectors_v45",
-		"古籍直接结构检测器",
-		"not_validated",
-		"not_adjudicated",
-		"不决定喜忌或现实结果",
-		"仅作为传统规则引用",
+		"当前没有观察到可直接列出的格局线索",
+		"月令为提纲",
+		"不等同于已经确定格局、喜忌或现实结果",
 	} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("pattern evidence missing %q: %s", want, content)
+		}
+	}
+	for _, internal := range []string{"classical_structural_detectors_v45", "not_validated", "not_adjudicated", "Gold"} {
+		if strings.Contains(content, internal) {
+			t.Fatalf("pattern content exposed internal field %q: %s", internal, content)
 		}
 	}
 	for _, forbidden := range []string{
@@ -255,7 +257,7 @@ func TestInterpretBaziFallbackDisabled(t *testing.T) {
 	if len(resp.Sections) == 0 || resp.Summary == "" {
 		t.Fatalf("expected rule-only content: %+v", resp)
 	}
-	if len(resp.Sections) != 3 || resp.Sections[1].Title != "调候查表证据" {
+	if len(resp.Sections) != 3 || resp.Sections[1].Title != "调候参考" {
 		t.Fatalf("fallback mislabeled raw Tiaohou candidates: %+v", resp.Sections)
 	}
 }
@@ -310,8 +312,8 @@ func TestInterpretBaziOKFiltersAndCitations(t *testing.T) {
 	content := resp.Sections[0].Content
 	if !strings.Contains(content, "十神透藏") ||
 		!strings.Contains(content, "[1]") ||
-		!strings.Contains(content, "等权计次") ||
-		!strings.Contains(content, "不代表性格、职业、财富、关系或事件概率") {
+		!strings.Contains(content, "出现次数较高") ||
+		!strings.Contains(content, "不直接代表性格、职业、财富、关系或事件概率") {
 		t.Fatalf("expected evidence in section content: %s", resp.Sections[0].Content)
 	}
 	for _, forbidden := range []string{"事业有成", "财运", "婚姻", "适合投资", "行动建议"} {
@@ -343,15 +345,15 @@ func TestInterpretBaziOverviewUsesSectionSpecificEvidence(t *testing.T) {
 	if len(resp.Sections) != 3 {
 		t.Fatalf("expected 3 sections, got %+v", resp.Sections)
 	}
-	if resp.Sections[1].Title != "调候查表证据" {
+	if resp.Sections[1].Title != "调候参考" {
 		t.Fatalf("Tiaohou section title implies an adjudicated conclusion: %+v", resp.Sections[1])
 	}
 	if !strings.Contains(resp.Sections[0].Content, "月令为提纲") ||
 		!strings.Contains(resp.Sections[1].Content, "调候用神") ||
 		!strings.Contains(resp.Sections[2].Content, "十神组合") ||
 		!containsAny(resp.Sections[0].Content, "制杀", "成败", "格局") ||
-		!strings.Contains(resp.Sections[1].Content, "表首候选") ||
-		!strings.Contains(resp.Sections[1].Content, "未裁决") ||
+		!strings.Contains(resp.Sections[1].Content, "首先列出") ||
+		!strings.Contains(resp.Sections[1].Content, "不代表唯一用神") ||
 		!containsAny(resp.Sections[2].Content, "食伤", "财官食伤", "十神") {
 		t.Fatalf("expected evidence-rich sections: %+v", resp.Sections)
 	}

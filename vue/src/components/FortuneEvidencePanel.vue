@@ -5,20 +5,14 @@ import type { FortuneScoreBreakdown, InterpretationLevel, ScoreEvidence } from '
 const props = withDefaults(
   defineProps<{
     level: InterpretationLevel
-    completeness?: number
     supporting?: ScoreEvidence[]
     counter?: ScoreEvidence[]
     breakdown?: FortuneScoreBreakdown
-    engineVersion?: string
-    ruleVersion?: string
   }>(),
   {
-    completeness: 0,
     supporting: () => [],
     counter: () => [],
     breakdown: undefined,
-    engineVersion: '',
-    ruleVersion: '',
   },
 )
 
@@ -34,89 +28,58 @@ const visibleCounter = computed(() =>
   <section class="evidence-panel glass-card" aria-label="运势证据">
     <header class="evidence-head">
       <div>
-        <span class="evidence-eyebrow">结构关系指数</span>
-        <h2>正向权重与负向权重</h2>
+        <span class="evidence-eyebrow">今日干支关系</span>
+        <h2>生扶与冲克</h2>
       </div>
-      <span class="completeness">证据完整度 {{ completeness }}%</span>
     </header>
 
     <p class="evidence-note">
-      权重为本地启发式配置，未经 Gold 验证；完整度只表示计算输入是否齐备，不是事件发生概率。
+      这里只展示今日干支与命盘之间的关系，不据此判断具体事件。
     </p>
 
     <div class="evidence-grid">
       <article class="evidence-column support">
         <div class="evidence-title">
-          <strong>正向权重</strong><span>{{ supporting.length }} 条</span>
+          <strong>生扶关系</strong><span>{{ supporting.length }} 条</span>
         </div>
         <ul v-if="visibleSupporting.length">
           <li v-for="item in visibleSupporting" :key="item.code">
             <div>
               <strong>{{ item.label }}</strong
-              ><em>+{{ item.impact }}</em>
+              ><em v-if="level === 'professional'">影响值 +{{ item.impact }}</em>
             </div>
             <p v-if="level !== 'basic'">{{ item.description }}</p>
-            <small v-if="level === 'professional'"
-              >{{ item.code }} · {{ item.validation_status }} · {{ item.interpretation_status }} ·
-              {{ item.source }}</small
-            >
+            <small v-if="level === 'professional'">依据：{{ item.source }}</small>
           </li>
         </ul>
-        <p v-else class="empty-evidence">当前结构规则没有正向权重项。</p>
+        <p v-else class="empty-evidence">今天没有记录到明显的生扶关系。</p>
       </article>
 
       <article class="evidence-column counter">
         <div class="evidence-title">
-          <strong>负向权重</strong><span>{{ counter.length }} 条</span>
+          <strong>冲克关系</strong><span>{{ counter.length }} 条</span>
         </div>
         <ul v-if="visibleCounter.length">
           <li v-for="item in visibleCounter" :key="item.code">
             <div>
               <strong>{{ item.label }}</strong
-              ><em>{{ item.impact }}</em>
+              ><em v-if="level === 'professional'">影响值 {{ item.impact }}</em>
             </div>
             <p v-if="level !== 'basic'">{{ item.description }}</p>
-            <small v-if="level === 'professional'"
-              >{{ item.code }} · {{ item.validation_status }} · {{ item.interpretation_status }} ·
-              {{ item.source }}</small
-            >
+            <small v-if="level === 'professional'">依据：{{ item.source }}</small>
           </li>
         </ul>
-        <p v-else class="empty-evidence">当前结构规则没有负向权重项。</p>
+        <p v-else class="empty-evidence">今天没有记录到明显的冲克关系。</p>
       </article>
     </div>
 
     <div v-if="level === 'professional'" class="professional-meta" data-testid="professional-meta">
       <div class="score-flow" v-if="breakdown">
-        <span>中性起分 {{ breakdown.base_score }}</span>
-        <span>关系分 {{ breakdown.relation_score }}</span>
-        <strong>结构指数 {{ breakdown.final_score }}</strong>
+        <span>起始值 {{ breakdown.base_score }}</span>
+        <span>关系调整 {{ breakdown.relation_score }}</span>
+        <strong>最终值 {{ breakdown.final_score }}</strong>
       </div>
-      <dl>
-        <div>
-          <dt>评分流水线</dt>
-          <dd>{{ breakdown?.pipeline_version || '—' }}</dd>
-        </div>
-        <div>
-          <dt>指数类型</dt>
-          <dd>{{ breakdown?.score_kind || '—' }}</dd>
-        </div>
-        <div>
-          <dt>验证状态</dt>
-          <dd>
-            {{ breakdown?.evidence_basis || '—' }} · {{ breakdown?.validation_status || '—' }} ·
-            {{ breakdown?.interpretation_status || '—' }}
-          </dd>
-        </div>
-        <div>
-          <dt>引擎版本</dt>
-          <dd>{{ engineVersion || '—' }}</dd>
-        </div>
-        <div>
-          <dt>规则版本</dt>
-          <dd>{{ ruleVersion || '—' }}</dd>
-        </div>
-      </dl>
+      <p class="calculation-note">数值只用于比较同一命盘在不同日期的关系变化，不表示吉凶或事件发生概率。</p>
     </div>
   </section>
 </template>
@@ -142,15 +105,6 @@ h2 {
   font-size: var(--fs-lg, 1.1rem);
   letter-spacing: 0;
 }
-.completeness {
-  white-space: nowrap;
-  padding: 0.26rem 0.55rem;
-  border: 1px solid var(--line-focus);
-  border-radius: var(--radius-sm);
-  color: color-mix(in oklab, var(--accent) 48%, var(--text));
-  background: var(--accent-dim);
-  font-size: var(--fs-xs, 0.76rem);
-}
 .evidence-note {
   max-width: 72ch;
   margin: 0.55rem 0 1rem;
@@ -161,18 +115,17 @@ h2 {
 .evidence-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--line-subtle);
-  border-bottom: 1px solid var(--line-subtle);
+  gap: 0.75rem;
 }
 .evidence-column {
   min-width: 0;
-  padding: 1rem 0.75rem 1rem 0;
-  background: transparent;
+  padding: 0.85rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: var(--surface-0);
 }
 .evidence-column.counter {
-  padding-right: 0;
-  padding-left: 0.75rem;
-  border-left: 1px solid var(--line-subtle);
+  background: color-mix(in oklab, var(--crimson) 2%, var(--surface-0));
 }
 .evidence-title,
 li > div {
@@ -252,35 +205,21 @@ li small {
   background: color-mix(in oklab, var(--accent) 8%, transparent);
   font-size: var(--fs-xs, 0.76rem);
 }
-dl {
-  display: grid;
-  gap: 0.4rem;
-  margin: 0.75rem 0 0;
-}
-dl div {
-  display: grid;
-  grid-template-columns: 6rem minmax(0, 1fr);
-  gap: 0.6rem;
-}
-dt {
+.calculation-note {
+  margin: 0.65rem 0 0;
   color: var(--text-muted);
-}
-dd {
-  margin: 0;
-  overflow-wrap: anywhere;
+  font-size: var(--fs-xs, 0.76rem);
+  line-height: 1.55;
 }
 @media (max-width: 680px) {
   .evidence-grid {
     grid-template-columns: 1fr;
   }
   .evidence-column {
-    padding-right: 0;
+    padding: 0.85rem;
   }
   .evidence-column.counter {
-    padding-top: 1rem;
-    padding-left: 0;
-    border-top: 1px solid var(--line-subtle);
-    border-left: 0;
+    padding: 0.85rem;
   }
 }
 @media (max-width: 480px) {

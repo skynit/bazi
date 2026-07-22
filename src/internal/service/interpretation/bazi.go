@@ -185,9 +185,9 @@ func sectionFocuses(focus string) []string {
 func sectionTitle(focus string) string {
 	switch focus {
 	case "pattern":
-		return "格局规则候选"
+		return "格局线索"
 	case "tiaohou":
-		return "调候查表证据"
+		return "调候参考"
 	case "ten_gods":
 		return "十神结构"
 	default:
@@ -790,27 +790,23 @@ func buildEvidenceContent(result *bazipkg.BaziResult, focus string, points []evi
 func buildPatternEvidenceContent(result *bazipkg.BaziResult, points []evidencePoint) string {
 	p := result.PatternAnalysis
 	explanation := []string{fmt.Sprintf(
-		"格局检测采用%s，共登记%d个古籍直接结构检测器；权威输入为四柱%s与月支%s。",
-		p.DetectorProfile,
-		p.DetectorCount,
+		"命盘四柱为%s，月支为%s。以下结合月令、透干和干支关系整理格局线索。",
 		pillarText(result),
 		p.Inputs.MonthBranch,
 	)}
 	if len(p.Candidates) > 0 {
-		explanation = append(explanation, "检测器命中记录按规则ID稳定排列，不表示格局优先级："+formatPatternCandidates(p.Candidates))
+		explanation = append(explanation, "当前观察到的格局线索："+formatPatternCandidates(p.Candidates)+"。")
+	} else {
+		explanation = append(explanation, "当前没有观察到可直接列出的格局线索。")
 	}
 	if len(p.MonthCommandEvidence) > 0 {
-		explanation = append(explanation, "月令藏干透出形成的普通格局候选："+formatMonthCommandPatternEvidence(p.MonthCommandEvidence)+"。这些记录用于收窄检索范围，不表示已经裁决成格、格局优先级或喜忌。")
+		explanation = append(explanation, "月令藏干透出关系："+formatMonthCommandPatternEvidence(p.MonthCommandEvidence)+"。")
 	}
 	evidenceText := formatEvidencePoints(points)
 	if evidenceText != "" {
-		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，不用于把候选升级为成立结论："+evidenceText)
+		explanation = append(explanation, "相关典籍原文："+evidenceText)
 	}
-	explanation = append(explanation, fmt.Sprintf(
-		"整组候选的验证状态为%s，现实解释状态为%s；当前检测器条件尚未取得专家 Gold 裁决，候选不决定喜忌或现实结果。",
-		p.ValidationStatus,
-		p.InterpretationStatus,
-	))
+	explanation = append(explanation, "这些内容用于理解命盘结构，不等同于已经确定格局、喜忌或现实结果。")
 	return strings.Join(explanation, "\n\n")
 }
 
@@ -818,10 +814,9 @@ func formatPatternCandidates(candidates []bazipkg.PatternCandidate) string {
 	parts := make([]string, 0, len(candidates))
 	for _, candidate := range candidates {
 		item := fmt.Sprintf(
-			"%s（%s，规则%s，来源%s）",
+			"%s（%s，来源：%s）",
 			candidate.PatternName,
 			candidate.Category,
-			candidate.RuleID,
 			candidate.Source,
 		)
 		parts = append(parts, item)
@@ -855,16 +850,15 @@ func buildTiaohouEvidenceContent(result *bazipkg.BaziResult, points []evidencePo
 	explanation := []string{"当前未取得完整调候查表证据。"}
 	if result.Tiaohou != nil {
 		explanation[0] = fmt.Sprintf(
-			"按日干%s与月支%s查表，共记录%d条规则；表首候选为%s。表序未经独立 Gold 裁决，候选不代表现实吉凶或行动建议。",
+			"按日干%s与月支%s查阅传统调候表，表内首先列出%s作为参考。",
 			result.Tiaohou.Stem,
 			result.Tiaohou.Month,
-			len(result.Tiaohou.Rules),
 			result.Tiaohou.TablePrimaryCandidate,
 		)
 		depth := result.Tiaohou.DepthEvidence
 		if depth.Status == "observed" {
 			explanation = append(explanation, fmt.Sprintf(
-				"出生时刻位于%s至%s节令区间的%s，位置为%.1f%%；该深浅事实不改变候选顺序，解释状态未裁决。",
+				"出生时刻位于%s至%s节令区间的%s，约处于该区间的%.1f%%。",
 				depth.StartTerm,
 				depth.EndTerm,
 				depth.Phase,
@@ -876,8 +870,9 @@ func buildTiaohouEvidenceContent(result *bazipkg.BaziResult, points []evidencePo
 	}
 	evidenceText := formatEvidencePoints(points)
 	if evidenceText != "" {
-		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，现实解释尚未裁决："+evidenceText)
+		explanation = append(explanation, "相关典籍原文："+evidenceText)
 	}
+	explanation = append(explanation, "调候条目是传统查表参考，不代表唯一用神、现实吉凶或行动建议。")
 	return strings.Join(explanation, "\n\n")
 }
 
@@ -886,12 +881,13 @@ func buildTenGodEvidenceContent(result *bazipkg.BaziResult, points []evidencePoi
 	topText := formatTopTenGods(top)
 	evidenceText := formatEvidencePoints(points)
 	explanation := []string{fmt.Sprintf(
-		"按三处非日主透干与四支全部藏干等权计次，当前出现次数较高的项目为：%s。该占比不含藏干深浅、月令强度或成败裁决，不代表性格、职业、财富、关系或事件概率。",
+		"按命盘中的非日主透干与四支藏干统计，当前出现次数较高的项目为：%s。",
 		topText,
 	)}
 	if evidenceText != "" {
-		explanation = append(explanation, "相关古籍条目仅作为传统规则引用，尚未裁决其现实解释："+evidenceText)
+		explanation = append(explanation, "相关典籍原文："+evidenceText)
 	}
+	explanation = append(explanation, "出现次数只表示命盘中的分布，不直接代表性格、职业、财富、关系或事件概率。")
 	return strings.Join(explanation, "\n\n")
 }
 
@@ -972,16 +968,16 @@ func buildSummary(result *bazipkg.BaziResult, focus string, withCitations bool) 
 
 	switch focus {
 	case "pattern":
-		return fmt.Sprintf("%s，记录月支%s与日主%s对应的%d个特殊结构候选、%d项月令藏干透出候选；候选不表示优先级或成立结论，未经专家 Gold 验证，现实解释未裁决。", source, result.MonthPillar.Zhi, dayMaster, candidateCount, monthCommandCount)
+		return fmt.Sprintf("%s，月支%s与日主%s形成%d项格局线索和%d项月令透干线索。以下内容用于理解结构，不直接确定格局或喜忌。", source, result.MonthPillar.Zhi, dayMaster, candidateCount, monthCommandCount)
 	case "tiaohou":
 		if result.Tiaohou != nil {
-			return fmt.Sprintf("%s，记录%s生%s月的调候查表事实；表首候选%s，验证状态未验证，现实解释未裁决。", source, result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.TablePrimaryCandidate)
+			return fmt.Sprintf("%s，按%s日主与%s月查阅传统调候表，表内首先列出%s作为参考。", source, result.Tiaohou.Stem, result.Tiaohou.Month, result.Tiaohou.TablePrimaryCandidate)
 		}
-		return fmt.Sprintf("%s，日主%s与月令%s的调候查表证据不可用。", source, dayMaster, result.MonthPillar.Zhi)
+		return fmt.Sprintf("%s，暂未找到日主%s与月令%s对应的调候条目。", source, dayMaster, result.MonthPillar.Zhi)
 	case "ten_gods":
 		return fmt.Sprintf("%s，重点记录日主%s对应的十神透藏映射。%s", source, dayMaster, buildTenGodContent(result))
 	default:
-		return fmt.Sprintf("%s，四柱为%s%s、%s%s、%s%s、%s%s；日主%s，月支%s，格局检测记录%d个特殊结构候选、%d项月令藏干透出候选，身强本地评分分段候选为%s。格局与身强分段均未经专家 Gold 验证，现实解释未裁决。",
+		return fmt.Sprintf("%s，四柱为%s%s、%s%s、%s%s、%s%s；日主为%s，月支为%s。当前整理出%d项格局线索、%d项月令透干线索，五行强弱参考区间为%s。",
 			source,
 			result.YearPillar.Gan, result.YearPillar.Zhi,
 			result.MonthPillar.Gan, result.MonthPillar.Zhi,
@@ -1011,13 +1007,13 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 	switch focus {
 	case "pattern":
 		return []model.InterpretationSection{{
-			Title:     "格局规则候选",
+			Title:     "格局线索",
 			Content:   buildPatternContent(result),
 			Citations: ids(3),
 		}}
 	case "tiaohou":
 		return []model.InterpretationSection{{
-			Title:     "调候查表证据",
+			Title:     "调候参考",
 			Content:   buildTiaohouContent(result),
 			Citations: ids(3),
 		}}
@@ -1029,8 +1025,8 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 		}}
 	default:
 		return []model.InterpretationSection{
-			{Title: "格局规则候选", Content: buildPatternContent(result), Citations: ids(2)},
-			{Title: "调候查表证据", Content: buildTiaohouContent(result), Citations: ids(4)},
+			{Title: "格局线索", Content: buildPatternContent(result), Citations: ids(2)},
+			{Title: "调候参考", Content: buildTiaohouContent(result), Citations: ids(4)},
 			{Title: "十神结构", Content: buildTenGodContent(result), Citations: ids(5)},
 		}
 	}
@@ -1039,10 +1035,10 @@ func buildSections(result *bazipkg.BaziResult, focus string, citations []model.I
 func buildPatternContent(result *bazipkg.BaziResult) string {
 	p := result.PatternAnalysis
 	if len(p.Candidates) == 0 && len(p.MonthCommandEvidence) == 0 {
-		return fmt.Sprintf("月支%s、日主%s未取得完整格局候选证据。", result.MonthPillar.Zhi, result.DayPillar.Gan)
+		return fmt.Sprintf("月支%s与日主%s之间暂未观察到可直接列出的格局线索。", result.MonthPillar.Zhi, result.DayPillar.Gan)
 	}
 	parts := []string{fmt.Sprintf(
-		"古籍规则依据四柱%s与月支%s记录%d个特殊结构候选、%d项月令藏干透出候选。",
+		"命盘四柱为%s，月支为%s。当前观察到%d项特殊结构线索和%d项月令藏干透出线索。",
 		pillarText(result),
 		p.Inputs.MonthBranch,
 		len(p.Candidates),
@@ -1051,20 +1047,16 @@ func buildPatternContent(result *bazipkg.BaziResult) string {
 	if len(p.MonthCommandEvidence) > 0 {
 		parts = append(parts, "月令候选为"+formatMonthCommandPatternEvidence(p.MonthCommandEvidence)+"。")
 	}
-	parts = append(parts, fmt.Sprintf(
-		"所有候选只用于收窄规则检索，不表示优先级、成格结论或唯一格局。验证状态%s，现实解释状态%s；候选不决定喜忌或现实结果。",
-		p.ValidationStatus,
-		p.InterpretationStatus,
-	))
+	parts = append(parts, "这些线索用于理解命盘结构，不等同于已经确定格局、喜忌或现实结果。")
 	return strings.Join(parts, "")
 }
 
 func buildTiaohouContent(result *bazipkg.BaziResult) string {
 	if result.Tiaohou == nil {
-		return "当前未取得完整调候查表证据。"
+		return "当前没有找到与日干、月支相对应的调候条目。"
 	}
 	return fmt.Sprintf(
-		"按日干%s与月支%s查表，共记录%d条规则；表首候选%s。候选未经 Gold 验证，现实解释未裁决，节令区间深浅不改变候选顺序。",
+		"按日干%s与月支%s查阅传统调候表，共找到%d条对应条目，首先列出%s作为参考。调候条目用于观察寒暖燥湿，不代表唯一用神或现实吉凶。",
 		result.Tiaohou.Stem,
 		result.Tiaohou.Month,
 		len(result.Tiaohou.Rules),
@@ -1075,13 +1067,13 @@ func buildTiaohouContent(result *bazipkg.BaziResult) string {
 func buildTenGodContent(result *bazipkg.BaziResult) string {
 	if result.TenGodAnalysis != nil && result.TenGodAnalysis.Status == "observed" {
 		return fmt.Sprintf(
-			"十神等权出现次数共%d；最高频项为%s（%.2f%%）。该统计未经 Gold 验证，解释状态为未裁决，不用于推断性格、职业、财富、关系或未来事件。",
+			"按命盘中的非日主透干与四支藏干统计，共记录%d次十神对应关系，其中出现较多的是%s（%.2f%%）。次数只表示命盘中的分布，不直接代表性格、职业、财富、关系或具体事件。",
 			result.TenGodAnalysis.TotalOccurrences,
 			strings.Join(result.TenGodAnalysis.DominantGods, "、"),
 			result.TenGodAnalysis.DominantPercent,
 		)
 	}
-	return "当前未取得完整十神等权计次数据，十神结构不可用。"
+	return "当前没有取得可用于汇总的十神透藏数据。"
 }
 
 func cleanContent(s string) string {

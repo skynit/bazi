@@ -35,11 +35,8 @@ interface Props {
   shengXiao?: string
   elementImages?: ElementImage[]
   scoreBreakdown?: FortuneScoreBreakdown
-  evidenceCompleteness?: number
   supportingEvidence?: ScoreEvidence[]
   counterEvidence?: ScoreEvidence[]
-  engineVersion?: string
-  ruleVersion?: string
   todayElements?: Record<string, number>
   // 黄历字段
   jiShen?: string
@@ -70,11 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
   elementImages: () => [],
   todayElements: () => ({}),
   scoreBreakdown: undefined,
-  evidenceCompleteness: 0,
   supportingEvidence: () => [],
   counterEvidence: () => [],
-  engineVersion: '',
-  ruleVersion: '',
   jiShen: '',
   xiongShen: '',
   taiShen: '',
@@ -173,6 +167,17 @@ function seasonElementBasisLabel(evidence?: SeasonElementEvidence) {
   return `日主 ${evidence.reference_stem}${evidence.reference_element} · 查询月支 ${evidence.query_month_branch} · ${evidence.season}`
 }
 
+function calculationBasisLabel(value?: string) {
+  const labels: Record<string, string> = {
+    exact_start_time_and_query_time: '依据出生时间与查询日期定位',
+    period_pillar_and_natal_chart: '依据周期干支与本命四柱对照',
+    period_layer_stem_pair: '依据周期天干关系',
+    period_stem_and_target_stem_all_structures: '依据周期天干与本命天干关系',
+    period_branch_and_target_branch_all_structures: '依据周期地支与本命地支关系',
+  }
+  return value ? labels[value] || '依据干支关系计算' : ''
+}
+
 const fortuneLayerList = computed(() => {
   const layers = props.fortuneLayers
   if (!layers) return []
@@ -218,12 +223,9 @@ const fortuneLayerList = computed(() => {
     <div v-show="activeTab === 'overview'" class="df-tab-content">
       <FortuneEvidencePanel
         :level="interpretationLevel"
-        :completeness="evidenceCompleteness"
         :supporting="supportingEvidence"
         :counter="counterEvidence"
         :breakdown="scoreBreakdown"
-        :engine-version="engineVersion"
-        :rule-version="ruleVersion"
       />
     </div>
     <!-- /overview tab -->
@@ -345,7 +347,6 @@ const fortuneLayerList = computed(() => {
           <div v-if="seasonElement?.status === 'observed'" class="analysis-item">
             <span class="analysis-label">月令季节</span>
             <span class="analysis-value">{{ seasonElementBasisLabel(seasonElement) }}</span>
-            <span class="rikuyo-evidence-meta">结构命中 · 解释未裁决</span>
           </div>
         </div>
       </div>
@@ -362,7 +363,7 @@ const fortuneLayerList = computed(() => {
         class="df-rikuyo-core glass-card"
       >
         <div class="df-sec-header">
-          <span class="df-sec-title">日课规则命中</span>
+          <span class="df-sec-title">传统日课</span>
         </div>
         <div class="rikuyo-core-grid">
           <!-- 十神 -->
@@ -370,27 +371,24 @@ const fortuneLayerList = computed(() => {
             <span class="rikuyo-core-label">今日十神</span>
             <span class="rikuyo-core-value rikuyo-evidence-value">{{ tenGod.name }}</span>
             <span class="rikuyo-core-desc">{{ tenGodBasisLabel(tenGod) }}</span>
-            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
           <div v-if="twelveStage?.name" class="rikuyo-core-item rikuyo-evidence-item">
             <span class="rikuyo-core-label">十二长生</span>
             <span class="rikuyo-core-value rikuyo-evidence-value">{{ twelveStage.name }}</span>
             <span class="rikuyo-core-desc">{{ evidenceBasisLabel(twelveStage) }}</span>
-            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
           <div v-if="jianChu?.name" class="rikuyo-core-item rikuyo-evidence-item">
             <span class="rikuyo-core-label">建除十二神</span>
             <span class="rikuyo-core-value rikuyo-evidence-value">{{ jianChu.name }}</span>
             <span class="rikuyo-core-desc">{{ evidenceBasisLabel(jianChu) }}</span>
-            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
           <div v-if="huangDao?.name" class="rikuyo-core-item rikuyo-evidence-item">
             <span class="rikuyo-core-label">十二值神</span>
             <span class="rikuyo-core-value rikuyo-evidence-value">{{ huangDao.name }}</span>
             <span class="rikuyo-core-desc">{{ evidenceBasisLabel(huangDao) }}</span>
-            <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
           </div>
         </div>
+        <p class="section-boundary-note">以上为传统日课查表结果，仅供理解当天干支结构。</p>
       </div>
 
       <!-- 月令状态 -->
@@ -421,7 +419,6 @@ const fortuneLayerList = computed(() => {
           查询日干 {{ seasonalState.query_stem }}（{{ seasonalState.query_element }}） · 查询月支
           {{ seasonalState.query_month_branch }} · {{ seasonalState.season }}季
         </p>
-        <span class="rikuyo-evidence-meta">查表命中 · 解释未裁决</span>
       </div>
 
       <!-- 藏干分析 -->
@@ -489,7 +486,7 @@ const fortuneLayerList = computed(() => {
               >查询日干 {{ sr.query_stem }} · {{ sr.target_pillar }} {{ sr.target_stem }}</span
             >
             <span v-if="sr.combined_element" class="rel-note"
-              >合化候选 {{ sr.combined_element }} · 未裁决</span
+              >合化方向为{{ sr.combined_element }}，仍需结合全盘条件判断</span
             >
           </div>
           <div v-for="(br, i) in branchRelations" :key="'br' + i" class="relation-item">
@@ -517,8 +514,8 @@ const fortuneLayerList = computed(() => {
         <div class="shensha-list">
           <div v-for="ss in activatedShenSha" :key="ss.name" class="shensha-item">
             <span class="ss-name">{{ ss.name }}</span>
-            <span class="ss-type-tag">规则命中</span>
-            <p class="ss-desc">取法 · {{ ss.basis }}</p>
+            <span class="ss-type-tag">传统查法</span>
+            <p class="ss-desc">依据 · {{ ss.basis }}</p>
             <p class="ss-activation">{{ ss.activation }}</p>
           </div>
         </div>
@@ -541,7 +538,7 @@ const fortuneLayerList = computed(() => {
             <span v-if="layer.start_age" class="yun-age"
               >{{ layer.start_age }}-{{ layer.end_age }}岁</span
             >
-            <p class="yun-desc">{{ layer.basis }} · 解释未裁决</p>
+            <p class="yun-desc">{{ calculationBasisLabel(layer.basis) }}</p>
             <p v-if="layer.relations?.length" class="yun-taisui">
               <span
                 v-for="relation in layer.relations.slice(0, 4)"
@@ -562,7 +559,7 @@ const fortuneLayerList = computed(() => {
             {{ relation.source }}{{ relation.source_value }} · {{ relation.name }} ·
             {{ relation.target }}{{ relation.target_value }}
           </span>
-          <small>仅记录干支结构，不进入当前未验证评分</small>
+          <small>这里只展示周期之间的干支关系，不据此判断具体事件。</small>
         </div>
       </div>
     </div>
@@ -1509,6 +1506,16 @@ const fortuneLayerList = computed(() => {
   font-size: var(--fs-xs);
   color: var(--text-muted);
   line-height: 1.5;
+}
+
+.section-boundary-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line-subtle);
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
 }
 
 .rikuyo-evidence-meta {

@@ -10,6 +10,7 @@ import type {
   BodyStrengthResult,
   FortuneLayer,
   FortuneLayerSet,
+  GanRelation,
   MonthCommandStemExposure,
   MonthSeasonEvidence,
   NaYinEvidence,
@@ -18,6 +19,7 @@ import type {
   ShenShaMeta,
   TenGodAnalysis,
   TenGodRatio,
+  ZhiRelation,
 } from '@/api/chart'
 
 type PillarKey = 'year' | 'month' | 'day' | 'hour'
@@ -161,8 +163,39 @@ function zhiRelSymbol(type: string): string {
   return '会'
 }
 
-function relationSummary(detail: string): string {
-  return String(detail || '').split('\n')[0] || ''
+function ganRelationSummary(relation: GanRelation): string {
+  const [stemA = '', stemB = ''] = relation.stems || []
+  const left = `${relation.pillar1 || ''}${stemA}`
+  const right = `${relation.pillar2 || ''}${stemB}`
+  const elementA = ganElement[stemA]?.name || ''
+  const elementB = ganElement[stemB]?.name || ''
+
+  if (relation.type === '相生') {
+    return produces(elementA, elementB)
+      ? `${left}生助${right}。`
+      : `${right}生助${left}。`
+  }
+  if (relation.type === '相克') {
+    return controls(elementA, elementB)
+      ? `${left}克制${right}。`
+      : `${right}克制${left}。`
+  }
+  if (relation.type === '比和') return `${left}与${right}同属${elementA}行。`
+  if (relation.type === '五合') {
+    const dispute = relation.status === 'disputed' ? '，同时参与其他五合' : ''
+    return `${left}与${right}形成天干五合${dispute}。`
+  }
+  if (relation.type === '天干相冲') return `${left}与${right}形成天干相冲。`
+  return `${left}与${right}形成${relation.type}关系。`
+}
+
+function zhiRelationSummary(relation: ZhiRelation): string {
+  const parts = (relation.pillars || []).map(
+    (pillar, index) => `${pillar}${relation.branches?.[index] || ''}`,
+  )
+  const subject = parts.length > 1 ? parts.join('与') : parts[0] || '相关地支'
+  const subtype = relation.subtype && relation.subtype !== relation.type ? `（${relation.subtype}）` : ''
+  return `${subject}形成${relation.type}${subtype}。`
 }
 
 const elemColor = (e: string) => {
@@ -304,49 +337,10 @@ const groupedShenSha = computed(() => {
 
 const globalShenSha = computed(() => (props.chart.global_shen_sha || []).map(parseShenSha))
 
-const ruleMeta = computed(() => props.chart.rule_meta || null)
-const ruleTablePreview = computed(() => ruleMeta.value?.tables || [])
-
 const bodyStrengthComponents = computed(() => props.chart.body_strength?.components || [])
-const bodyStrengthEvidence = computed(() => (props.chart.body_strength?.evidence || []).slice(0, 8))
 
 function monthCommandExposureLabel(exposures: MonthCommandStemExposure[]): string {
   return exposures.map((item) => `${item.pillar}${item.stem}`).join('、')
-}
-
-function bodyStrengthBandRuleLabel(operator: string, threshold?: number): string {
-  if (operator === 'gt') return `得分 > ${Number(threshold || 0).toFixed(1)}`
-  return '其余得分'
-}
-
-function bodyStrengthLimitationLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'component weights and normalizers are local profile parameters without Gold calibration':
-      '组件权重和归一化参数尚未经过 Gold 校准',
-    'score-band thresholds and posterior adjustments are not learned from Train Gold':
-      '分段阈值与后验修正并非从 Train Gold 学习',
-    'officer-killer restriction is counted once in the influence component without a second whole-score multiplier':
-      '官杀克身只在得势组件计入一次，不再重复折减总分',
-    'the complete same-element branch-group floor is supported by four classical element cases but still awaits expert Gold validation':
-      '同气三合、三会的中和下限有古籍案例依据，但仍待专家 Gold 验证',
-    'the score-band candidate does not determine favorable elements or real-world outcomes':
-      '分段候选不决定喜忌五行或现实结果',
-    'earth-month seasonal scoring is an unsegmented whole-month candidate; classical day-command profiles differ and are not adjudicated':
-      '四库月当前采用未分日的整月候选；古籍分日司令口径存在差异，尚未裁决',
-  }
-  return labels[value] || value
-}
-
-function patternLimitationLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'detector conditions are local classical-text Profiles without expert Gold adjudication':
-      '检测条件来自本地古籍 Profile，尚未经过专家 Gold 裁决',
-    'candidate list order is deterministic serialization only and does not rank or adjudicate patterns':
-      '候选顺序只用于确定性序列化，不表示格局排序或裁决',
-    'candidates do not determine favorable elements or real-world outcomes':
-      '候选不决定喜忌五行或现实结果',
-  }
-  return labels[value] || value
 }
 
 const shenShaDetails = computed(() => {
@@ -526,22 +520,6 @@ const tiaohouElem = computed(() => {
   return g ? map[g] || '金' : '金'
 })
 
-function tiaohouLimitationLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'table order is not an independently adjudicated unique selection':
-      '表格顺序不是经独立裁决的唯一选择',
-    'only explicitly structured four-pillar conditions can become chart matches; remaining conditional table text stays source evidence':
-      '仅对已结构化复核的四柱条件进行命中判断，其余条件文字仍保留为原始证据',
-    'chart condition matches do not adjudicate a unique useful god':
-      '命中条件只收窄适用候选，不等于已经裁决唯一用神',
-    'solar-term depth does not change candidate order': '节令区间深浅不改变候选顺序',
-    'table candidates do not imply favorable real-world outcomes': '表内候选不代表现实吉凶结果',
-    'earth-month day-command profiles remain parallel evidence and do not alter body-strength or tiaohou selection':
-      '四库月分日司令按不同古籍并列展示，不改变身强得分或调候候选顺序',
-  }
-  return labels[value] || value
-}
-
 function monthCommandSegmentLabel(startDay: number, endDay?: number): string {
   return endDay ? `第 ${startDay}-${endDay} 天` : `第 ${startDay} 天起`
 }
@@ -560,7 +538,7 @@ const chartTabs = computed(() => {
     { key: 'shensha', label: '神煞' },
     { key: 'fortune', label: '运势详批' },
   ]
-  if (ruleMeta.value || props.chart.id) tabs.push({ key: 'rules', label: '规则依据' })
+  if (props.chart.id) tabs.push({ key: 'rules', label: '经典依据' })
   return tabs
 })
 
@@ -682,15 +660,6 @@ const tenGodChartOptions = computed(() => {
   }
 })
 
-function tenGodLimitationLabel(value: string): string {
-  const labels: Record<string, string> = {
-    'visible stems and hidden stems are counted equally': '透干与藏干按相同权重计次',
-    'hidden-stem depth and seasonal strength are not weighted': '未计入藏干深浅和月令强度',
-    'occurrence share is not influence strength or outcome probability':
-      '出现占比不代表影响强度或事件概率',
-  }
-  return labels[value] || value
-}
 </script>
 
 <template>
@@ -883,7 +852,7 @@ function tenGodLimitationLabel(value: string): string {
                       <span class="gz-tag" :class="'tag-' + ganRelClass(rel.type)">{{
                         rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
                       }}</span>
-                      <span class="gz-text">{{ relationSummary(rel.detail) }}</span>
+                      <span class="gz-text">{{ ganRelationSummary(rel) }}</span>
                     </div>
                   </div>
                 </div>
@@ -920,7 +889,7 @@ function tenGodLimitationLabel(value: string): string {
                       <span class="gz-tag" :class="'tag-' + zhiRelClass(rel.type)">{{
                         rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
                       }}</span>
-                      <span class="gz-text">{{ relationSummary(rel.detail) }}</span>
+                      <span class="gz-text">{{ zhiRelationSummary(rel) }}</span>
                     </div>
                   </div>
                 </div>
@@ -929,6 +898,9 @@ function tenGodLimitationLabel(value: string): string {
                 </div>
               </div>
             </div>
+            <p class="relation-boundary-note">
+              这里只展示命盘中的干支与五行关系，不据此判断具体事件。
+            </p>
           </section>
         </div>
         <!-- /overview tab -->
@@ -975,7 +947,7 @@ function tenGodLimitationLabel(value: string): string {
               <div>
                 <div class="block-title">当前大运结构</div>
                 <span class="block-desc"
-                  >记录当前周期干支、十神映射与命局关系，结果解释尚未裁决</span
+                  >结合当前周期干支、十神映射与命局关系理解阶段重点</span
                 >
               </div>
               <span v-if="currentDayunLayer" class="dayun-current-score">结构已记录</span>
@@ -1000,8 +972,8 @@ function tenGodLimitationLabel(value: string): string {
                     >天干 {{ currentDayunStage.ganElement }}</span
                   >
                 </div>
-                <p v-if="currentDayunLayer">{{ currentDayunLayer.basis }} · 解释未裁决</p>
-                <p v-else>仅记录大运干支、年龄区间、五行与十神映射，现实解释未裁决。</p>
+                <p v-if="currentDayunLayer">{{ currentDayunLayer.basis }}</p>
+                <p v-else>这里展示大运干支、年龄区间、五行与十神之间的对应关系。</p>
                 <div v-if="currentDayunLayer?.relations.length" class="dayun-evidence-list">
                   <span
                     v-for="item in currentDayunLayer.relations"
@@ -1144,8 +1116,8 @@ function tenGodLimitationLabel(value: string): string {
 
           <!-- TenGodAnalysis -->
           <div v-if="chart.ten_god_analysis?.status === 'observed'" class="analysis-block">
-            <div class="block-title">计次证据</div>
-            <span class="block-desc">结构已记录 · 未经 Gold 验证 · 现实解释未裁决</span>
+            <div class="block-title">十神分布</div>
+            <span class="block-desc">按当前命盘中的天干与藏干统计出现次数</span>
             <div class="tg-summary">
               共记录 {{ chart.ten_god_analysis.total_occurrences }} 次；最高频项为
               {{ chart.ten_god_analysis.dominant_gods.join('、') }}（{{
@@ -1162,14 +1134,10 @@ function tenGodLimitationLabel(value: string): string {
                   <span class="tg-god-name">#{{ god.rank }} {{ god.god }}</span>
                   <span class="tg-god-pct">{{ god.percent }}%</span>
                 </div>
-                <div class="tg-god-meaning">出现 {{ god.count }} 次 · 解释未裁决</div>
+                <div class="tg-god-meaning">出现 {{ god.count }} 次</div>
               </div>
             </div>
-            <div class="tg-limitations">
-              <span v-for="item in chart.ten_god_analysis.limitations" :key="item">
-                {{ tenGodLimitationLabel(item) }}
-              </span>
-            </div>
+            <p class="section-boundary-note">次数只表示命盘中的分布，不直接代表性格、职业或具体事件。</p>
           </div>
         </div>
         <!-- /shishen tab -->
@@ -1178,29 +1146,9 @@ function tenGodLimitationLabel(value: string): string {
         <div v-show="activeTab === 'pattern'" class="tab-content">
           <!-- Pattern Analysis -->
           <div v-if="chart.pattern_analysis" class="analysis-block">
-            <div class="block-title">格局规则候选</div>
-            <span class="block-desc"
-              >古籍直接结构检测器的命中记录；未经 Gold 验证，现实解释未裁决</span
-            >
+            <div class="block-title">格局线索</div>
+            <span class="block-desc">根据四柱与月令结构整理出的传统格局参考</span>
             <div class="pattern-detail">
-              <div class="pattern-contract-grid">
-                <div>
-                  <span>检测器 Profile</span>
-                  <strong>{{ chart.pattern_analysis.detector_profile }}</strong>
-                </div>
-                <div>
-                  <span>登记检测器</span>
-                  <strong>{{ chart.pattern_analysis.detector_count }} 个</strong>
-                </div>
-                <div>
-                  <span>验证状态</span>
-                  <strong>未验证</strong>
-                </div>
-                <div>
-                  <span>解释状态</span>
-                  <strong>未裁决</strong>
-                </div>
-              </div>
               <div class="pattern-inputs">
                 <div class="pattern-input-row">
                   <span>四柱输入</span>
@@ -1212,7 +1160,7 @@ function tenGodLimitationLabel(value: string): string {
                 </div>
               </div>
               <div v-if="chart.pattern_analysis.candidates?.length" class="pattern-candidates">
-                <div class="pattern-candidates-title">检测器命中记录</div>
+                <div class="pattern-candidates-title">结构线索</div>
                 <div
                   v-for="candidate in chart.pattern_analysis.candidates"
                   :key="candidate.rule_id"
@@ -1220,9 +1168,8 @@ function tenGodLimitationLabel(value: string): string {
                 >
                   <div class="pattern-candidate-heading">
                     <strong>{{ candidate.pattern_name }}</strong>
-                    <span>规则候选</span>
+                    <span>{{ candidate.category }}</span>
                   </div>
-                  <small>{{ candidate.rule_id }} · {{ candidate.category }}</small>
                   <small>{{ candidate.source }}</small>
                 </div>
               </div>
@@ -1238,7 +1185,7 @@ function tenGodLimitationLabel(value: string): string {
                 >
                   <div class="pattern-candidate-heading">
                     <strong>{{ evidence.candidate_names.join('、') }}</strong>
-                    <span>未裁决候选</span>
+                    <span>月令线索</span>
                     <span v-if="evidence.month_special_structure">{{
                       evidence.month_special_structure
                     }}</span>
@@ -1251,29 +1198,20 @@ function tenGodLimitationLabel(value: string): string {
                   <small>{{ evidence.source }}</small>
                 </div>
               </div>
-              <div class="pattern-limitations">
-                <span v-for="item in chart.pattern_analysis.limitations" :key="item">
-                  {{ patternLimitationLabel(item) }}
-                </span>
-              </div>
+              <p class="section-boundary-note">格局线索用于辅助理解命盘结构，不等同于已经确定格局或喜忌。</p>
             </div>
           </div>
 
           <!-- Body Strength -->
           <div v-if="chart.body_strength" class="analysis-block">
-            <div class="block-title">身强本地评分证据</div>
-            <span class="block-desc">连续分数与固定阈值分段；未经 Gold 验证，不是强弱裁决</span>
+            <div class="block-title">五行强弱参考</div>
+            <span class="block-desc">根据月令、根气、透干与生克关系整理</span>
             <div class="body-strength">
               <div class="bs-primary">
-                <span>本地分段候选</span>
+                <span>参考区间</span>
                 <strong>{{ chart.body_strength.score_band_candidate }}</strong>
-                <code>score {{ chart.body_strength.total_score.toFixed(4) }}</code>
               </div>
               <div class="bs-contract-grid">
-                <div>
-                  <span>评分 Profile</span>
-                  <strong>{{ chart.body_strength.scoring_profile }}</strong>
-                </div>
                 <div>
                   <span>四柱输入</span>
                   <strong>{{ chart.body_strength.inputs.pillars.join('、') }}</strong>
@@ -1286,16 +1224,6 @@ function tenGodLimitationLabel(value: string): string {
                     {{ chart.body_strength.inputs.month_branch }}</strong
                   >
                 </div>
-                <div>
-                  <span>证据状态</span>
-                  <strong>已记录 · 未验证 · 未裁决</strong>
-                </div>
-              </div>
-              <div class="bs-band-rules">
-                <span v-for="rule in chart.body_strength.band_rules" :key="rule.candidate">
-                  {{ rule.candidate }} ·
-                  {{ bodyStrengthBandRuleLabel(rule.operator, rule.threshold) }}
-                </span>
               </div>
               <div v-if="bodyStrengthComponents.length" class="evidence-bars body-strength-bars">
                 <div
@@ -1310,48 +1238,26 @@ function tenGodLimitationLabel(value: string): string {
                       :style="{ width: componentWidth(component.normalized_score) }"
                     ></span>
                   </div>
-                  <span class="evidence-bar-value">{{ component.normalized_score }}</span>
+                  <span class="evidence-bar-value">{{ Math.round(component.normalized_score * 100) }}%</span>
                 </div>
               </div>
-              <div v-if="bodyStrengthEvidence.length" class="evidence-notes body-strength-notes">
-                <span
-                  v-for="item in bodyStrengthEvidence"
-                  :key="item.rule_id"
-                  class="evidence-note"
-                  :title="item.reason"
-                >
-                  {{ item.source }}·{{ item.item }}{{ item.score >= 0 ? ' +' : ' '
-                  }}{{ item.score.toFixed(2) }}
-                </span>
-              </div>
-              <div v-if="chart.body_strength.adjustments?.length" class="bs-adjustments">
-                <div v-for="item in chart.body_strength.adjustments || []" :key="item.rule_id">
-                  <strong>{{ item.name }}</strong>
-                  <span>{{ item.before.toFixed(4) }} → {{ item.after.toFixed(4) }}</span>
-                  <p>{{ item.reason }}</p>
-                </div>
-              </div>
-              <div class="bs-limitations">
-                <span v-for="item in chart.body_strength.limitations" :key="item">
-                  {{ bodyStrengthLimitationLabel(item) }}
-                </span>
-              </div>
+              <p class="section-boundary-note">该区间是结构参考，不直接决定喜忌五行或现实结果。</p>
             </div>
           </div>
 
           <!-- Tiaohou table evidence -->
           <div v-if="chart.tiaohou" class="analysis-block">
             <div class="block-title">
-              调候原始查表证据 <span class="tiaohou-source">《穷通宝鉴》资料表</span>
+              调候参考 <span class="tiaohou-source">《穷通宝鉴》资料表</span>
             </div>
-            <span class="block-desc">查表已记录 · 未经 Gold 验证 · 现实解释未裁决</span>
+            <span class="block-desc">按日干与月支查表，结合出生时刻所在节令区间</span>
             <div class="tiaohou-card">
               <div class="tiaohou-header">
                 <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
                 <span class="tiaohou-arrow">生</span>
                 <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
                 <span class="tiaohou-divider">|</span>
-                <span class="tiaohou-label">表首条目</span>
+                <span class="tiaohou-label">表内首项</span>
                 <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{
                   chart.tiaohou.table_primary_candidate
                 }}</span>
@@ -1369,7 +1275,7 @@ function tenGodLimitationLabel(value: string): string {
                 <div class="tiaohou-chart-heading">
                   <strong>完整命局条件已命中</strong>
                   <span
-                    >适用候选 {{ chart.tiaohou.chart_candidates.join('、') }} · 非唯一用神裁决</span
+                    >可参考 {{ chart.tiaohou.chart_candidates.join('、') }}</span
                   >
                 </div>
                 <div
@@ -1392,7 +1298,6 @@ function tenGodLimitationLabel(value: string): string {
               <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
                 <div v-for="rule in chart.tiaohou.rules" :key="rule.rule_id" class="tiaohou-rule">
                   <span class="tiaohou-xi">原表用字 {{ rule.xi_shen }}</span>
-                  <span class="tiaohou-ji">忌神状态 {{ rule.ji_shen }}</span>
                   <span class="tiaohou-reason">{{ rule.source_text }}</span>
                 </div>
               </div>
@@ -1401,8 +1306,8 @@ function tenGodLimitationLabel(value: string): string {
                 class="month-command-candidates"
               >
                 <div class="month-command-heading">
-                  <strong>四库月分日司令候选</strong>
-                  <span>多来源并列 · 未裁决</span>
+                  <strong>四库月分日司令参考</strong>
+                  <span>不同古籍口径并列</span>
                 </div>
                 <div
                   v-for="candidate in chart.tiaohou.depth_evidence.month_command_candidates"
@@ -1426,11 +1331,7 @@ function tenGodLimitationLabel(value: string): string {
                   </p>
                 </div>
               </div>
-              <div class="tiaohou-limitations">
-                <span v-for="item in chart.tiaohou.limitations" :key="item">
-                  {{ tiaohouLimitationLabel(item) }}
-                </span>
-              </div>
+              <p class="section-boundary-note">调候条目是传统查表参考，不代表唯一用神或现实吉凶。</p>
             </div>
           </div>
         </div>
@@ -1558,7 +1459,7 @@ function tenGodLimitationLabel(value: string): string {
                   >
                   <span v-if="layer.year" class="fortune-layer-chip">{{ layer.year }}年</span>
                   <span v-if="layer.month" class="fortune-layer-chip">{{ layer.month }}月</span>
-                  <span class="fortune-layer-chip">解释未裁决</span>
+                  <span class="fortune-layer-chip">结构参考</span>
                 </div>
                 <div class="fortune-layer-evidence">
                   {{ layer.basis
@@ -1612,61 +1513,10 @@ function tenGodLimitationLabel(value: string): string {
         </div>
         <!-- /fortune tab -->
 
-        <!-- ═══ Tab: 规则依据 (rules) ═══ -->
+        <!-- ═══ Tab: 经典依据 (rules) ═══ -->
         <div v-show="activeTab === 'rules'" class="tab-content">
           <div v-if="chart.id" class="classical-rules-block">
             <ClassicalInterpretationPanel :chart-id="chart.id" />
-          </div>
-
-          <div v-if="ruleMeta" class="analysis-block">
-            <div class="block-title">bazi-rules</div>
-            <span class="block-desc"
-              >后端确定性规则集版本，用来标记本次排盘采用的规则表、权重和流派，不是新的命理结论</span
-            >
-            <div class="rule-meta-card">
-              <div class="rule-meta-row">
-                <span class="rule-meta-label">版本</span>
-                <span class="rule-meta-value">{{ ruleMeta.rule_version }}</span>
-              </div>
-              <div class="rule-meta-row">
-                <span class="rule-meta-label">流派</span>
-                <span class="rule-meta-value">{{ ruleMeta.school }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="ruleMeta?.body_strength" class="analysis-block">
-            <div class="block-title">身强评分权重</div>
-            <span class="block-desc"
-              >这里展示评分规则本身；实际得分见上方身强本地评分证据，分段候选不生成喜忌结论</span
-            >
-            <div class="rule-weight-grid">
-              <span
-                v-for="(value, key) in ruleMeta.body_strength.weights"
-                :key="'w' + key"
-                class="rule-weight-chip"
-              >
-                {{ key }} · {{ value }}
-              </span>
-            </div>
-          </div>
-
-          <div v-if="ruleTablePreview.length" class="analysis-block">
-            <div class="block-title">规则表清单</div>
-            <span class="block-desc"
-              >这些表分别支撑十神、藏干、纳音、神煞、调候、身强和运势分层的确定性计算</span
-            >
-            <div class="rule-table-list">
-              <article v-for="table in ruleTablePreview" :key="table.key" class="rule-table-card">
-                <div class="rule-table-head">
-                  <span class="rule-table-name">{{ table.name }}</span>
-                  <span class="rule-table-version">v{{ table.version }}</span>
-                </div>
-                <div class="rule-table-source">{{ table.school }} · {{ table.source }}</div>
-                <p class="rule-table-desc">{{ table.description }}</p>
-                <span v-if="table.count" class="rule-table-count">{{ table.count }} 条</span>
-              </article>
-            </div>
           </div>
         </div>
         <!-- /rules tab -->
@@ -1904,6 +1754,21 @@ function tenGodLimitationLabel(value: string): string {
   border-bottom: 1px solid var(--line-subtle);
 }
 
+.relation-boundary-note,
+.section-boundary-note {
+  margin: 0;
+  padding: 0.72rem 1rem;
+  border-top: 1px solid var(--line-subtle);
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
+}
+
+.analysis-block .section-boundary-note {
+  padding-right: 0;
+  padding-left: 0;
+}
+
 .relations-title {
   display: flex;
   align-items: center;
@@ -1959,8 +1824,8 @@ function tenGodLimitationLabel(value: string): string {
   gap: 0.55rem;
   min-height: 40px;
   padding: 0.48rem 0.62rem;
+  border: 1px solid color-mix(in oklab, var(--rel-color) 26%, var(--line-subtle));
   border-radius: 7px;
-  border-left: 3px solid color-mix(in oklab, var(--rel-color) 62%, transparent);
   background: color-mix(in oklab, var(--surface-0) 58%, transparent);
   transition:
     background 0.18s ease,

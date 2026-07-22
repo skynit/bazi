@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
 import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
+import { getApiErrorMessage } from '../api/client'
 
 const route = useRoute()
 const fortune = ref<FortuneDay | null>(null)
@@ -32,8 +33,8 @@ async function fetchFortune() {
   chartId.value = cid
   try {
     fortune.value = await fetchDaily(Number(chartId.value), todayString())
-  } catch (e: any) {
-    error.value = e.response?.data?.error || '加载运势失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '今日运势加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -101,7 +102,7 @@ function scoreGlow(s: number) {
             <div class="sphere-glow-a"></div>
             <div class="sphere-glow-b"></div>
             <div class="sphere-value">{{ fortune.score }}</div>
-            <div class="sphere-label">结构指数</div>
+            <div class="sphere-label">关系活跃度</div>
           </div>
 
           <!-- Info block -->
@@ -113,8 +114,8 @@ function scoreGlow(s: number) {
               <span class="pillar-prefix">日柱</span>
               <span class="pillar-value">{{ fortune.day_gan_zhi }}</span>
             </div>
-            <p class="hero-summary">本地启发式权重 · 未经 Gold 验证</p>
-            <p class="hero-tip">仅表示干支关系规则的数值映射，不是现实事件概率。</p>
+            <p class="hero-summary">今日干支关系概览</p>
+            <p class="hero-tip">数值用于比较不同日期的关系变化，不代表吉凶或事件概率。</p>
           </div>
         </div>
       </header>
@@ -128,11 +129,8 @@ function scoreGlow(s: number) {
           :lunar-date="fortune.lunar_date"
           :sheng-xiao="fortune.sheng_xiao"
           :score-breakdown="fortune.score_breakdown"
-          :evidence-completeness="fortune.evidence_completeness"
           :supporting-evidence="fortune.supporting_evidence"
           :counter-evidence="fortune.counter_evidence"
-          :engine-version="fortune.engine_version"
-          :rule-version="fortune.rule_version"
           :chong-sha="fortune.clash_zodiac"
           :element-images="fortune.element_images"
           :today-elements="fortune.today_elements"

@@ -51,20 +51,21 @@ const breakdown: FortuneScoreBreakdown = {
 describe('FortuneEvidencePanel', () => {
   it('separates supporting and counter evidence', () => {
     const wrapper = mount(FortuneEvidencePanel, {
-      props: { level: 'advanced', completeness: 90, supporting, counter, breakdown },
+      props: { level: 'advanced', supporting, counter, breakdown },
     })
 
-    expect(wrapper.text()).toContain('正向权重')
-    expect(wrapper.text()).toContain('负向权重')
+    expect(wrapper.text()).toContain('生扶关系')
+    expect(wrapper.text()).toContain('冲克关系')
     expect(wrapper.text()).toContain('流日五行生扶日主')
     expect(wrapper.text()).toContain('流日支与日支命中六冲结构')
-    expect(wrapper.text()).toContain('证据完整度 90%')
-    expect(wrapper.text()).not.toContain('置信度')
+    expect(wrapper.text()).not.toContain('证据完整度')
+    expect(wrapper.text()).not.toContain('not_validated')
+    expect(wrapper.text()).not.toContain('not_adjudicated')
   })
 
-  it('only exposes rule codes and versions in professional mode', () => {
+  it('keeps internal rule codes and versions hidden in every mode', () => {
     const basic = mount(FortuneEvidencePanel, {
-      props: { level: 'basic', completeness: 90, supporting, counter, breakdown },
+      props: { level: 'basic', supporting, counter, breakdown },
     })
     expect(basic.find('[data-testid="professional-meta"]').exists()).toBe(false)
     expect(basic.text()).not.toContain('relation.stem.shengWo')
@@ -72,22 +73,19 @@ describe('FortuneEvidencePanel', () => {
     const professional = mount(FortuneEvidencePanel, {
       props: {
         level: 'professional',
-        completeness: 90,
         supporting,
         counter,
         breakdown,
-        engineVersion: 'fortune-engine-test',
-        ruleVersion: 'bazi-rules-test',
       },
     })
     expect(professional.get('[data-testid="professional-meta"]').attributes('data-testid')).toBe(
       'professional-meta',
     )
-    expect(professional.text()).toContain('relation.stem.shengWo')
-    expect(professional.text()).toContain('fortune-engine-test')
-    expect(professional.text()).toContain('bazi-rules-test')
-    expect(professional.text()).toContain('结构指数 38')
-    expect(professional.text()).toContain('not_validated')
-    expect(professional.text()).toContain('not_adjudicated')
+    expect(professional.text()).toContain('最终值 38')
+    expect(professional.text()).toContain('依据：《三命通会》十神生克规则')
+    expect(professional.text()).not.toContain('relation.stem.shengWo')
+    expect(professional.text()).not.toContain('fortune-score-pipeline-test')
+    expect(professional.text()).not.toContain('not_validated')
+    expect(professional.text()).not.toContain('not_adjudicated')
   })
 })

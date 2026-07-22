@@ -408,7 +408,7 @@ function overlaySummary(): string {
           <h3>{{ selectedYear }}年 <span>{{ analysis?.gan_zhi || '流年' }}</span></h3>
           <div class="zw-contract-status">
             <strong>结构</strong>
-            <span>未裁决</span>
+            <span>参考</span>
           </div>
         </div>
         <div class="zw-guide-reading">

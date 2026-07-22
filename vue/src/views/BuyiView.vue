@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { CircleDotIcon, RefreshCwIcon, SparklesIcon, TriangleAlertIcon } from '@lucide/vue'
 import { drawBuyiToday, fetchBuyiToday, type BuyiTodayResponse } from '../api/buyi'
+import { getApiErrorMessage } from '../api/client'
 
 const data = ref<BuyiTodayResponse | null>(null)
 const loading = ref(true)
@@ -17,8 +18,8 @@ async function loadToday() {
   error.value = ''
   try {
     data.value = await fetchBuyiToday()
-  } catch (e: any) {
-    error.value = e?.response?.data?.error || '加载卜易失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '今日卜易加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -29,8 +30,8 @@ async function drawToday() {
   error.value = ''
   try {
     data.value = await drawBuyiToday()
-  } catch (e: any) {
-    error.value = e?.response?.data?.error || '卜易失败'
+  } catch (reason: unknown) {
+    error.value = getApiErrorMessage(reason, '起卦失败，请稍后重试。')
   } finally {
     drawing.value = false
   }
