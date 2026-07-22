@@ -34,11 +34,12 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
 .level-switch {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
-  padding: 0.32rem;
-  border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent);
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--surface, #111827) 90%, transparent);
+  gap: 0.25rem;
+  padding: var(--space-xs);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  box-shadow: inset 0 1px 0 var(--line-subtle);
 }
 
 .level-option {
@@ -46,14 +47,18 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
   align-items: baseline;
   justify-content: center;
   gap: 0.4rem;
-  min-height: 42px;
-  padding: 0.45rem 0.65rem;
-  border: 0;
-  border-radius: 9px;
-  color: var(--text-muted);
+  min-height: 44px;
+  padding: var(--space-sm) 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
   background: transparent;
   cursor: pointer;
-  transition: 160ms ease;
+  transition:
+    color 160ms ease-out,
+    border-color 160ms ease-out,
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out;
 }
 
 .level-option strong {
@@ -63,14 +68,29 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
 
 .level-option span {
   font-size: var(--fs-2xs, 0.68rem);
-  opacity: 0.72;
+  color: var(--text-soft);
 }
 
-.level-option:hover,
+.level-option:hover {
+  color: var(--text);
+  background: var(--surface-1);
+}
+
 .level-option.active {
   color: var(--text);
-  background: color-mix(in oklab, var(--accent) 12%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 18%, transparent);
+  border-color: var(--line-focus);
+  background: var(--surface-0);
+  box-shadow: var(--shadow-xs);
+}
+
+.level-option.active strong {
+  color: color-mix(in oklab, var(--accent) 48%, var(--text));
+}
+
+.level-option:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 @media (max-width: 560px) {

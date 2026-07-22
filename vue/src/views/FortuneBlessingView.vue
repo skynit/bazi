@@ -795,24 +795,29 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 1.5rem;
   width: min(100%, 230px);
-  padding-top: 1rem;
-  border-top: 1px solid color-mix(in oklab, var(--blessing-accent) 35%, var(--line-strong));
 }
 
 .presence-readout span {
   display: block;
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
+  color: oklch(96% 0.01 155);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-shadow:
+    0 1px 2px oklch(18% 0.02 155 / 0.9),
+    0 0 8px oklch(18% 0.02 155 / 0.65);
 }
 
 .presence-readout strong {
   display: block;
-  margin-top: 0.2rem;
-  color: var(--text);
+  margin-top: 0.3rem;
+  color: oklch(96% 0.01 155);
   font-family: var(--font-mono);
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   letter-spacing: 0;
+  text-shadow:
+    0 1px 2px oklch(18% 0.02 155 / 0.9),
+    0 0 8px oklch(18% 0.02 155 / 0.65);
 }
 
 .field-toggle {

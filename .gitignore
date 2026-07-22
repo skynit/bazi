@@ -54,3 +54,5 @@ src/cmd/*
 !src/cmd/precision-report/main.go
 !src/cmd/precision-report/main_test.go
 __debug_*
+
+*.db

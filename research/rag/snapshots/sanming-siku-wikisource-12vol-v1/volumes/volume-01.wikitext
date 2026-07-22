@@ -218,4 +218,4 @@
 
 　　{{SK anchor|三命通㑹卷一}}
 <子部,術數類,命書相書之屬,三命通會>
-</poem></onlyinclude>{{SKQS footer|title=三命通會|section=卷一|prev=|prev_link=|next=卷二|next_link=卷02|type=子}}{{PD-old}}
+</poem></onlyinclude>{{SKQS footer|title=三命通會|section=卷一|prev=|prev_link=|next=卷二|next_link=卷02|type=子}}{{PD-old}}https://s1.hdslb.com/bfs/static/player/img/ploading.png
