@@ -155,8 +155,8 @@ func authUserID(c *gin.Context) (uint, bool) {
 
 func validFeedbackRating(rating string) bool {
 	switch rating {
-	case model.FeedbackRatingAccurate,
-		model.FeedbackRatingInaccurate,
+	case model.FeedbackRatingClear,
+		model.FeedbackRatingInsufficientBasis,
 		model.FeedbackRatingTooGeneric,
 		model.FeedbackRatingConfusing,
 		model.FeedbackRatingHelpful:

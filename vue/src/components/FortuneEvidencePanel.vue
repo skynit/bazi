@@ -16,12 +16,36 @@ const props = withDefaults(
   },
 )
 
-const visibleSupporting = computed(() =>
-  props.level === 'basic' ? props.supporting.slice(0, 2) : props.supporting,
+const allEvidence = computed(() => {
+  const seen = new Set<string>()
+  return [...props.supporting, ...props.counter].filter((item) => {
+    if (seen.has(item.code)) return false
+    seen.add(item.code)
+    return true
+  })
+})
+
+const visibleEvidence = computed(() =>
+  props.level === 'basic' ? allEvidence.value.slice(0, 2) : allEvidence.value,
 )
-const visibleCounter = computed(() =>
-  props.level === 'basic' ? props.counter.slice(0, 2) : props.counter,
-)
+
+const countText = computed(() => {
+  const total = allEvidence.value.length
+  if (props.level === 'basic' && visibleEvidence.value.length < total) {
+    return `已展示 ${visibleEvidence.value.length}/${total} 条`
+  }
+  return `${total} 条`
+})
+
+function categoryLabel(item: ScoreEvidence) {
+  if (item.code.includes('.stem.')) return '天干关系'
+  if (item.code.includes('.branch.')) return '地支关系'
+  return item.category || '结构关系'
+}
+
+function formatImpact(value: number) {
+  return value > 0 ? `+${value}` : String(value)
+}
 </script>
 
 <template>
@@ -29,57 +53,43 @@ const visibleCounter = computed(() =>
     <header class="evidence-head">
       <div>
         <span class="evidence-eyebrow">今日干支关系</span>
-        <h2>生扶与冲克</h2>
+        <h2>命中的结构关系</h2>
       </div>
+      <span class="evidence-count">{{ countText }}</span>
     </header>
 
     <p class="evidence-note">
-      这里只展示今日干支与命盘之间的关系，不据此判断具体事件。
+      按关系类型记录今日干支与命盘的对应项，不按权重正负判断“生扶”或“冲克”，也不据此推断具体事件。
     </p>
 
-    <div class="evidence-grid">
-      <article class="evidence-column support">
-        <div class="evidence-title">
-          <strong>生扶关系</strong><span>{{ supporting.length }} 条</span>
+    <ul v-if="visibleEvidence.length" class="evidence-list">
+      <li v-for="item in visibleEvidence" :key="item.code">
+        <div class="evidence-item-head">
+          <div>
+            <span class="relation-kind">{{ categoryLabel(item) }}</span>
+            <strong>{{ item.label }}</strong>
+          </div>
+          <em v-if="level === 'professional'">本地权重 {{ formatImpact(item.impact) }}</em>
         </div>
-        <ul v-if="visibleSupporting.length">
-          <li v-for="item in visibleSupporting" :key="item.code">
-            <div>
-              <strong>{{ item.label }}</strong
-              ><em v-if="level === 'professional'">影响值 +{{ item.impact }}</em>
-            </div>
-            <p v-if="level !== 'basic'">{{ item.description }}</p>
-            <small v-if="level === 'professional'">依据：{{ item.source }}</small>
-          </li>
-        </ul>
-        <p v-else class="empty-evidence">今天没有记录到明显的生扶关系。</p>
-      </article>
+        <p>{{ item.description }}</p>
+        <small v-if="level === 'professional'">规则口径：{{ item.source }}</small>
+      </li>
+    </ul>
+    <p v-else class="empty-evidence">今天没有记录到可展示的干支关系。</p>
 
-      <article class="evidence-column counter">
-        <div class="evidence-title">
-          <strong>冲克关系</strong><span>{{ counter.length }} 条</span>
-        </div>
-        <ul v-if="visibleCounter.length">
-          <li v-for="item in visibleCounter" :key="item.code">
-            <div>
-              <strong>{{ item.label }}</strong
-              ><em v-if="level === 'professional'">影响值 {{ item.impact }}</em>
-            </div>
-            <p v-if="level !== 'basic'">{{ item.description }}</p>
-            <small v-if="level === 'professional'">依据：{{ item.source }}</small>
-          </li>
-        </ul>
-        <p v-else class="empty-evidence">今天没有记录到明显的冲克关系。</p>
-      </article>
-    </div>
+    <p v-if="level === 'basic' && visibleEvidence.length < allEvidence.length" class="more-note">
+      切换到“详细”可查看其余关系。
+    </p>
 
     <div v-if="level === 'professional'" class="professional-meta" data-testid="professional-meta">
       <div class="score-flow" v-if="breakdown">
-        <span>起始值 {{ breakdown.base_score }}</span>
-        <span>关系调整 {{ breakdown.relation_score }}</span>
-        <strong>最终值 {{ breakdown.final_score }}</strong>
+        <span>比较基准 {{ breakdown.base_score }}</span>
+        <span>关系权重合计 {{ breakdown.relation_score }}</span>
+        <strong>内部比较值 {{ breakdown.final_score }}</strong>
       </div>
-      <p class="calculation-note">数值只用于比较同一命盘在不同日期的关系变化，不表示吉凶或事件发生概率。</p>
+      <p class="calculation-note">
+        这些权重由本地启发式规则设定，尚未验证，只用于复核计算过程；不表示吉凶、可靠性或事件发生概率。
+      </p>
     </div>
   </section>
 </template>
@@ -94,6 +104,10 @@ const visibleCounter = computed(() =>
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+.evidence-count {
+  color: var(--text-muted);
+  font-size: var(--fs-xs, 0.76rem);
 }
 .evidence-eyebrow {
   color: var(--text-muted);
@@ -112,81 +126,59 @@ h2 {
   font-size: var(--fs-xs, 0.76rem);
   line-height: 1.6;
 }
-.evidence-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-.evidence-column {
-  min-width: 0;
-  padding: 0.85rem;
-  border: 1px solid var(--line-subtle);
-  border-radius: 8px;
-  background: var(--surface-0);
-}
-.evidence-column.counter {
-  background: color-mix(in oklab, var(--crimson) 2%, var(--surface-0));
-}
-.evidence-title,
-li > div {
+.evidence-item-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.7rem;
 }
-.evidence-title span {
-  color: var(--text-muted);
-  font-size: var(--fs-xs, 0.76rem);
+.evidence-item-head > div {
+  display: grid;
+  gap: 0.2rem;
 }
-.evidence-title strong {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-.evidence-title strong::before {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--accent);
-  content: '';
-}
-.counter .evidence-title strong::before {
-  background: var(--crimson);
-}
-ul {
+.evidence-list {
   display: grid;
   gap: 0.55rem;
-  margin: 0.65rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
-li {
-  padding-top: 0.55rem;
-  border-top: 1px solid color-mix(in oklab, var(--text) 7%, transparent);
+.evidence-list li {
+  padding: 0.8rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
 }
-li strong {
+.evidence-list li strong {
   font-size: var(--fs-sm, 0.88rem);
 }
-li em {
+.evidence-list li em {
   color: color-mix(in oklab, var(--accent) 48%, var(--text));
   font-style: normal;
   font-variant-numeric: tabular-nums;
+  font-size: var(--fs-xs, 0.76rem);
 }
-.counter li em {
-  color: color-mix(in oklab, var(--crimson) 58%, var(--text));
+.relation-kind {
+  color: var(--text-soft, var(--text-muted));
+  font-size: var(--fs-2xs, 0.68rem);
 }
-li p,
+.evidence-list li p,
 .empty-evidence {
   margin: 0.32rem 0 0;
   color: var(--text-muted);
   font-size: var(--fs-xs, 0.76rem);
   line-height: 1.55;
 }
-li small {
+.evidence-list li small {
   display: block;
   margin-top: 0.3rem;
   color: var(--text-soft, var(--text-muted));
   overflow-wrap: anywhere;
+}
+.more-note {
+  margin: 0.65rem 0 0;
+  color: var(--text-soft, var(--text-muted));
+  font-size: var(--fs-xs, 0.76rem);
 }
 .professional-meta {
   margin-top: 0.8rem;
@@ -212,14 +204,8 @@ li small {
   line-height: 1.55;
 }
 @media (max-width: 680px) {
-  .evidence-grid {
-    grid-template-columns: 1fr;
-  }
-  .evidence-column {
-    padding: 0.85rem;
-  }
-  .evidence-column.counter {
-    padding: 0.85rem;
+  .evidence-item-head {
+    align-items: flex-start;
   }
 }
 @media (max-width: 480px) {

@@ -9,7 +9,7 @@ describe('InterpretationLevelSwitch', () => {
     expect(wrapper.get('[data-level="basic"]').attributes('aria-checked')).toBe('true')
     expect(wrapper.text()).toContain('简明')
     expect(wrapper.text()).toContain('详细')
-    expect(wrapper.text()).toContain('推算')
+    expect(wrapper.text()).toContain('规则明细')
     expect(wrapper.text()).not.toContain('规则与版本')
 
     await wrapper.get('[data-level="professional"]').trigger('click')

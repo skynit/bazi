@@ -1,6 +1,11 @@
 import client from './client'
 
-export type FeedbackRating = 'accurate' | 'inaccurate' | 'too_generic' | 'confusing' | 'helpful'
+export type FeedbackRating =
+  | 'clear'
+  | 'helpful'
+  | 'insufficient_basis'
+  | 'too_generic'
+  | 'confusing'
 
 export interface FeedbackRequest {
   chart_id: number

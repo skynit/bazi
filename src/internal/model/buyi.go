@@ -26,8 +26,6 @@ type BuyiRecordResponse struct {
 	ID             uint   `json:"id"`
 	HexagramNumber int    `json:"hexagram_number"`
 	HexagramName   string `json:"hexagram_name"`
-	Score          int    `json:"score"`
-	Level          string `json:"level"`
 	Summary        string `json:"summary"`
 	HumanWay       string `json:"human_way"`
 	ImageReading   string `json:"image_reading"`

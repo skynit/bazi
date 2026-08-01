@@ -15,11 +15,42 @@ const route = useRoute()
 const data = ref<WeeklyFortuneResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
+const errorKind = ref<'missing-chart' | 'request' | ''>('')
 const chartId = ref<number | null>(null)
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'] as const
 
-const trendData = computed(() => parseTrend(data.value?.element_trend ?? ''))
+function relationCount(day: WeeklyFortuneResponse['daily_fortunes'][number]) {
+  return (day.supporting_evidence?.length ?? 0) + (day.counter_evidence?.length ?? 0)
+}
+
+const periodStats = computed(() => {
+  const days = data.value?.daily_fortunes ?? []
+  const rows = days.map((day) => ({ day, count: relationCount(day) }))
+  const sorted = [...rows].sort((left, right) => right.count - left.count)
+  const highest = sorted[0]
+  const lowest = sorted[sorted.length - 1]
+  const average = rows.length ? rows.reduce((sum, row) => sum + row.count, 0) / rows.length : 0
+  return { highest, lowest, average }
+})
+
+const trendData = computed(() => {
+  const elementByDate = new Map(
+    parseTrend(data.value?.element_trend ?? '').map((item) => [item.date, item]),
+  )
+  return (data.value?.daily_fortunes ?? []).map((day) => ({
+    ...(elementByDate.get(day.solar_date) ?? {
+      date: day.solar_date,
+      metal: 0,
+      wood: 0,
+      water: 0,
+      fire: 0,
+      earth: 0,
+    }),
+    date: day.solar_date,
+    score: relationCount(day),
+  }))
+})
 
 const weekRange = computed(() => {
   const days = data.value?.daily_fortunes ?? []
@@ -28,13 +59,12 @@ const weekRange = computed(() => {
 })
 
 const heatDays = computed(() => {
-  const summary = data.value?.summary
   return (data.value?.daily_fortunes ?? []).map((d) => ({
     date: d.solar_date,
-    score: d.score,
+    relationCount: relationCount(d),
     dayPillar: d.day_gan_zhi,
-    isHighest: summary?.highest_index_day === d.solar_date,
-    isLowest: summary?.lowest_index_day === d.solar_date,
+    isHighest: periodStats.value.highest?.day.solar_date === d.solar_date,
+    isLowest: periodStats.value.lowest?.day.solar_date === d.solar_date,
   }))
 })
 
@@ -56,6 +86,10 @@ function todayStr(): string {
 }
 
 async function load() {
+  loading.value = true
+  error.value = ''
+  errorKind.value = ''
+  data.value = null
   let cid: number | null = null
   const q = route.query.chart_id
   if (typeof q === 'string' && q) cid = Number(q)
@@ -69,6 +103,7 @@ async function load() {
   }
   if (!cid) {
     error.value = '请先创建命盘'
+    errorKind.value = 'missing-chart'
     loading.value = false
     return
   }
@@ -77,7 +112,12 @@ async function load() {
   try {
     data.value = await fetchWeekly(cid, todayStr())
   } catch (reason: unknown) {
-    error.value = getApiErrorMessage(reason, '本周内容加载失败，请稍后重试。')
+    const status = (reason as { response?: { status?: number } }).response?.status
+    errorKind.value = status === 404 ? 'missing-chart' : 'request'
+    error.value =
+      status === 404
+        ? '命盘不存在或已被删除，请重新排盘。'
+        : getApiErrorMessage(reason, '本周内容加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -102,7 +142,10 @@ onMounted(load)
 
     <div v-else-if="error" class="state error">
       <p>{{ error }}</p>
-      <router-link to="/chart/new" class="btn-link">去排盘 →</router-link>
+      <router-link v-if="errorKind === 'missing-chart'" to="/chart/new" class="btn-link"
+        >去排盘</router-link
+      >
+      <button v-else type="button" class="btn-link state-retry" @click="load">重新加载</button>
     </div>
 
     <template v-else-if="data">
@@ -113,22 +156,27 @@ onMounted(load)
             <span class="eyebrow">BaZi · Weekly</span>
             <h1 class="title">本周关系节奏</h1>
             <p class="range tabular-nums">{{ weekRange }}</p>
+            <p class="week-brief">
+              本周每天平均命中
+              {{ periodStats.average.toFixed(1) }}
+              条干支关系。可先查看关系较多日，再结合具体关系类型阅读；条数不代表吉凶。
+            </p>
             <div class="chips">
               <BestWorstChip
-                v-if="data.summary.highest_index_day"
+                v-if="periodStats.highest"
                 variant="highest"
-                :date="data.summary.highest_index_day"
-                :score="data.summary.highest_index"
+                :date="periodStats.highest.day.solar_date"
+                :count="periodStats.highest.count"
               />
               <BestWorstChip
-                v-if="data.summary.lowest_index_day"
+                v-if="periodStats.lowest"
                 variant="lowest"
-                :date="data.summary.lowest_index_day"
-                :score="data.summary.lowest_index"
+                :date="periodStats.lowest.day.solar_date"
+                :count="periodStats.lowest.count"
               />
               <span v-if="data.summary.dominant_element" class="meta-chip">
                 <span class="dot" :style="{ background: 'var(--jade-accent)' }"></span>
-                {{ data.summary.dominant_element }}主气
+                {{ data.summary.dominant_element }}在样本中出现较多
               </span>
               <span v-if="data.summary.dominant_ten_god" class="meta-chip">
                 {{ data.summary.dominant_ten_god }}
@@ -137,9 +185,9 @@ onMounted(load)
           </div>
           <div class="hero-right">
             <ScoreOrb
-              :score="data.structural_relation_index"
-              label="周均关系活跃度"
-              caption="用于日期间比较"
+              :value="periodStats.average"
+              label="每天平均命中关系"
+              caption="按实际关系条数统计"
             />
           </div>
         </section>
@@ -147,9 +195,10 @@ onMounted(load)
         <!-- Heat strip -->
         <section class="glass-card heat-card">
           <header class="card-head">
-            <span class="card-eyebrow">每日关系活跃度</span>
+            <span class="card-eyebrow">每日命中关系数</span>
             <span class="card-meta">
-              较多 {{ data.summary.highest_index }} · 较少 {{ data.summary.lowest_index }}
+              较多 {{ periodStats.highest?.count ?? 0 }} 条 · 较少
+              {{ periodStats.lowest?.count ?? 0 }} 条
             </span>
           </header>
           <FortuneHeatStrip :days="heatDays" :weekday-labels="weekdayLabels" />
@@ -160,15 +209,15 @@ onMounted(load)
           <div class="glass-card">
             <header class="card-head">
               <span class="card-eyebrow">五行雷达</span>
-              <span class="card-meta">{{ data.summary.dominant_element }}主导</span>
+              <span class="card-meta">{{ data.summary.dominant_element }}出现较多</span>
             </header>
             <FortuneRadar :distribution="distribution" height="260px" />
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">关系变化曲线</span>
+              <span class="card-eyebrow">命中关系数变化</span>
               <span class="card-meta tabular-nums"
-                >均 {{ data.summary.average_index.toFixed(1) }}</span
+                >平均 {{ periodStats.average.toFixed(1) }} 条</span
               >
             </header>
             <FortuneChart :daily-data="trendData" height="260px" />
@@ -187,11 +236,11 @@ onMounted(load)
               :key="d.solar_date"
               :date="d.solar_date"
               :day-pillar="d.day_gan_zhi"
-              :score="d.score"
+              :relation-count="relationCount(d)"
               :ten-god="d.ten_god?.name"
               :weekday="weekdayFor(d.solar_date)"
-              :is-highest="data!.summary.highest_index_day === d.solar_date"
-              :is-lowest="data!.summary.lowest_index_day === d.solar_date"
+              :is-highest="periodStats.highest?.day.solar_date === d.solar_date"
+              :is-lowest="periodStats.lowest?.day.solar_date === d.solar_date"
             />
           </div>
         </section>
@@ -203,6 +252,11 @@ onMounted(load)
         </nav>
       </main>
     </template>
+
+    <div v-else class="state">
+      <p>本周暂无可显示的关系记录。</p>
+      <button type="button" class="btn-link state-retry" @click="load">重新加载</button>
+    </div>
   </div>
 </template>
 
@@ -243,6 +297,11 @@ onMounted(load)
   text-decoration: none;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+.state-retry {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 .orb-skeleton {
   width: 100px;
@@ -319,6 +378,13 @@ onMounted(load)
   margin: 0;
   letter-spacing: 0.06em;
   font-size: var(--fs-sm);
+}
+.week-brief {
+  max-width: 64ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
 }
 .chips {
   display: flex;

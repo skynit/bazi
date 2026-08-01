@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { fetchMe as fetchCurrentUser, login as loginApi, register as registerApi } from '../api/auth'
+import {
+  fetchMe as fetchCurrentUser,
+  login as loginApi,
+  register as registerApi,
+} from '../api/auth'
 
 export interface User {
   id: number
@@ -41,6 +45,8 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     clearToken()
     user.value = null
+    localStorage.removeItem('bazi_last_birth')
+    sessionStorage.removeItem('lastChart')
   }
 
   async function fetchMe() {

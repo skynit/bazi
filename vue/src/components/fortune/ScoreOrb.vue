@@ -1,45 +1,23 @@
 <script setup lang="ts">
-/**
- * ScoreOrb — central 0-100 structural index with a progress ring.
- */
-import { computed } from 'vue'
-
 interface Props {
-  score: number
+  value: number
   label?: string
   caption?: string
+  unit?: string
 }
-const props = withDefaults(defineProps<Props>(), {
-  label: '关系活跃度',
-  caption: '',
-})
 
-const clamped = computed(() => Math.max(0, Math.min(100, props.score)))
-const progress = computed(() => clamped.value / 100)
-const ringDash = computed(() => `${progress.value * 283} 283`) // 2πr ≈ 283 for r=45
-const tone = computed(() => {
-  const t = progress.value
-  return `color-mix(in oklab, var(--jade-accent) ${Math.round(52 + t * 48)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
+withDefaults(defineProps<Props>(), {
+  label: '平均命中关系',
+  caption: '',
+  unit: '条/日',
 })
 </script>
 
 <template>
-  <div class="orb">
-    <div class="halo" aria-hidden="true"></div>
-    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
-      <circle class="ring-track" cx="50" cy="50" r="45" />
-      <circle
-        class="ring-fill"
-        cx="50"
-        cy="50"
-        r="45"
-        :stroke-dasharray="ringDash"
-        :style="{ stroke: tone }"
-      />
-    </svg>
+  <div class="metric">
     <div class="content">
-      <span class="number tabular-nums" :style="{ color: tone }">{{ clamped }}</span>
-      <span class="unit">0-100</span>
+      <span class="number tabular-nums">{{ value.toFixed(1) }}</span>
+      <span class="unit">{{ unit }}</span>
       <span class="label">{{ label }}</span>
       <span v-if="caption" class="caption">{{ caption }}</span>
     </div>
@@ -47,52 +25,24 @@ const tone = computed(() => {
 </template>
 
 <style scoped>
-.orb {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  display: grid;
-  place-items: center;
-}
-
-.halo {
-  position: absolute;
-  inset: -30%;
-  background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.32), transparent 70%);
-  filter: blur(20px);
-  pointer-events: none;
-  animation: pulse 5s ease-in-out infinite alternate;
-}
-
-.ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.ring-track {
-  fill: none;
-  stroke: var(--line-strong);
-  stroke-width: 2.4;
-  opacity: 0.55;
-}
-
-.ring-fill {
-  fill: none;
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 8px rgba(var(--jade-accent-rgb), 0.55));
-  transition: stroke-dasharray 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+.metric {
+  width: min(220px, 100%);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-1) 78%, transparent);
 }
 
 .content {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
+  text-align: center;
 }
 
 .number {
@@ -100,50 +50,24 @@ const tone = computed(() => {
   font-size: var(--fs-hero-strong);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-shadow: 0 0 24px rgba(var(--jade-accent-rgb), 0.45);
+  color: var(--accent);
 }
 
-.unit {
-  font-size: var(--fs-xs);
+.unit,
+.caption {
   color: var(--text-soft);
-  letter-spacing: 0.2em;
-  margin-top: -2px;
+  font-size: var(--fs-xs);
 }
 
 .label {
-  margin-top: 6px;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.32em;
+  margin-top: 8px;
   color: var(--text-muted);
-  text-transform: uppercase;
+  font-size: var(--fs-xs);
+  font-weight: 700;
 }
 
 .caption {
   margin-top: 2px;
-  font-size: var(--fs-xs);
-  color: var(--text-soft);
-  letter-spacing: 0.06em;
-}
-
-@keyframes pulse {
-  from {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .halo {
-    animation: none;
-  }
-  .ring-fill {
-    transition: none;
-  }
 }
 
 .tabular-nums {

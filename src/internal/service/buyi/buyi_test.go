@@ -1,6 +1,9 @@
 package buyi
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestHexagramsIntegrity(t *testing.T) {
 	if len(Hexagrams) != 64 {
@@ -17,45 +20,31 @@ func TestHexagramsIntegrity(t *testing.T) {
 			t.Fatalf("duplicate hexagram number %d", hexagram.Number)
 		}
 		seen[hexagram.Number] = true
-		if hexagram.Name == "" || hexagram.HumanWay == "" || hexagram.ImageReading == "" {
-			t.Fatalf("hexagram %d has empty required text", hexagram.Number)
+		if hexagram.Name == "" {
+			t.Fatalf("hexagram %d has an empty name", hexagram.Number)
 		}
 	}
 }
 
-func TestScoreHexagramRangeAndLevel(t *testing.T) {
+func TestHexagramProfilesAreComplete(t *testing.T) {
+	if len(hexagramThemes) != len(Hexagrams) {
+		t.Fatalf("expected %d hexagram themes, got %d", len(Hexagrams), len(hexagramThemes))
+	}
 	for _, hexagram := range Hexagrams {
-		score := ScoreHexagram(hexagram)
-		if score < 35 || score > 90 {
-			t.Fatalf("%s score out of range: %d", hexagram.Name, score)
+		if themeFor(hexagram) == "" {
+			t.Fatalf("hexagram %d has no theme", hexagram.Number)
 		}
-		level := LevelForScore(score)
-		if level == "" {
-			t.Fatalf("%s got empty level for score %d", hexagram.Name, score)
+		if _, _, ok := trigramsFor(hexagram); !ok {
+			t.Fatalf("hexagram %d cannot be decomposed into trigrams", hexagram.Number)
 		}
 	}
 }
 
-func TestLevelForScoreThresholds(t *testing.T) {
-	tests := []struct {
-		score int
-		want  string
-	}{
-		{90, "大吉"},
-		{82, "大吉"},
-		{81, "吉"},
-		{70, "吉"},
-		{69, "平"},
-		{55, "平"},
-		{54, "谨慎"},
-		{40, "谨慎"},
-		{39, "凶险"},
-		{35, "凶险"},
-	}
-
-	for _, tt := range tests {
-		if got := LevelForScore(tt.score); got != tt.want {
-			t.Fatalf("LevelForScore(%d): want %s, got %s", tt.score, tt.want, got)
+func TestBuildReadingUsesNeutralReflectionLanguage(t *testing.T) {
+	for _, hexagram := range Hexagrams {
+		reading := BuildReading(hexagram)
+		if reading.Summary == "" || reading.Reflection == "" || reading.ImagePrompt == "" || reading.Advice == "" {
+			t.Fatalf("%s produced an incomplete reading: %+v", hexagram.Name, reading)
 		}
 	}
 }
@@ -65,7 +54,30 @@ func TestBuildReadingUsesHexagramContent(t *testing.T) {
 	if reading.Hexagram.Name != "地天泰" {
 		t.Fatalf("expected 地天泰, got %s", reading.Hexagram.Name)
 	}
-	if reading.Score == 0 || reading.Level == "" || reading.Summary == "" || reading.Advice == "" {
+	if reading.Summary == "" || reading.Reflection == "" || reading.ImagePrompt == "" || reading.Advice == "" {
 		t.Fatalf("expected complete reading, got %+v", reading)
+	}
+}
+
+func TestXunReadingExplainsTheHexagram(t *testing.T) {
+	reading := BuildReading(Hexagrams[56])
+	if reading.Hexagram.Name != "巽为风" {
+		t.Fatalf("expected 巽为风, got %s", reading.Hexagram.Name)
+	}
+	wants := []struct {
+		name string
+		got  string
+		want string
+	}{
+		{name: "summary", got: reading.Summary, want: "上卦与下卦皆为巽（风）"},
+		{name: "summary theme", got: reading.Summary, want: "持续沟通"},
+		{name: "reflection", got: reading.Reflection, want: "目标、底线和可调整部分"},
+		{name: "observation", got: reading.ImagePrompt, want: "反复摇摆"},
+		{name: "advice", got: reading.Advice, want: "确认对方反馈"},
+	}
+	for _, item := range wants {
+		if !strings.Contains(item.got, item.want) {
+			t.Errorf("%s = %q, want it to contain %q", item.name, item.got, item.want)
+		}
 	}
 }

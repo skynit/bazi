@@ -68,11 +68,11 @@ func (h *BuyiHandler) DrawToday(c *gin.Context) {
 		DivinationDate: date,
 		HexagramNumber: reading.Hexagram.Number,
 		HexagramName:   reading.Hexagram.Name,
-		Score:          reading.Score,
-		Level:          reading.Level,
+		Score:          0,
+		Level:          "随机参考",
 		Summary:        reading.Summary,
-		HumanWay:       reading.Hexagram.HumanWay,
-		ImageReading:   reading.Hexagram.ImageReading,
+		HumanWay:       reading.Reflection,
+		ImageReading:   reading.ImagePrompt,
 		Advice:         reading.Advice,
 	}
 	if err := h.Store.Create(record); err != nil {
@@ -118,16 +118,15 @@ func buyiRecordResponse(record *model.BuyiRecord) *model.BuyiRecordResponse {
 	if record == nil {
 		return nil
 	}
+	reading := buyi.BuildReading(buyi.Hexagram{Number: record.HexagramNumber, Name: record.HexagramName})
 	return &model.BuyiRecordResponse{
 		ID:             record.ID,
 		HexagramNumber: record.HexagramNumber,
 		HexagramName:   record.HexagramName,
-		Score:          record.Score,
-		Level:          record.Level,
-		Summary:        record.Summary,
-		HumanWay:       record.HumanWay,
-		ImageReading:   record.ImageReading,
-		Advice:         record.Advice,
+		Summary:        reading.Summary,
+		HumanWay:       reading.Reflection,
+		ImageReading:   reading.ImagePrompt,
+		Advice:         reading.Advice,
 		Source:         buyi.Source,
 		CreatedAt:      formatAPITime(record.CreatedAt),
 	}

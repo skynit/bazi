@@ -190,7 +190,7 @@ func (e *FortuneEngine) CalculateDaily(userChart *bazipkg.BaziResult, queryDate 
 	score := scoreBreakdown.FinalScore
 
 	shengKe := ShengKeAnalysis{
-		DayStemRelation:   stemRelLabel(stemRel, userDayStem, dayPillar.Gan),
+		DayStemRelation:   stemRelDisplayLabel(stemRel),
 		DayBranchRelation: branchRelLabel(branchRel),
 		Summary:           shengKeSummary(stemRel, branchRel),
 	}
@@ -447,6 +447,23 @@ func stemRelLabel(rel, userStem, queryStem string) string {
 	}
 }
 
+func stemRelDisplayLabel(rel string) string {
+	switch rel {
+	case "same":
+		return "今日天干与日主同类"
+	case "shengWo":
+		return "今日天干生助日主"
+	case "woSheng":
+		return "日主生助今日天干"
+	case "keWo":
+		return "今日天干克日主"
+	case "woKe":
+		return "日主克今日天干"
+	default:
+		return "今日天干与日主无特殊关系"
+	}
+}
+
 func branchRelLabel(rel string) string {
 	switch rel {
 	case "same":
@@ -479,10 +496,10 @@ func branchRelLabel(rel string) string {
 func shengKeSummary(stemRel, branchRel string) string {
 	var parts []string
 	if stemRel != "unknown" {
-		parts = append(parts, fmt.Sprintf("日干关系: %s", stemRelLabel(stemRel, "", "")))
+		parts = append(parts, stemRelDisplayLabel(stemRel))
 	}
 	if branchRel != "neutral" && branchRel != "unknown" {
-		parts = append(parts, fmt.Sprintf("日支关系: %s", branchRelLabel(branchRel)))
+		parts = append(parts, fmt.Sprintf("今日本命日支形成%s", branchRelLabel(branchRel)))
 	}
 
 	base := strings.Join(parts, "；")
@@ -490,7 +507,7 @@ func shengKeSummary(stemRel, branchRel string) string {
 		base = "干支平和"
 	}
 
-	return base + "。仅记录干支结构，现实结果未裁决。"
+	return base + "。这里只记录干支结构，不据此判断现实事件。"
 }
 
 func (e *FortuneEngine) elementTrend(date time.Time, score int) ElementTrendPoint {

@@ -7,7 +7,9 @@ defineProps<{
 <template>
   <section class="narrative-panel">
     <div class="np-kicker">月度总述</div>
-    <p v-if="placeholder" class="np-text">本月走势已按每日评分、五行分布与关键日期生成，可结合下方每日详记查看节奏变化。</p>
+    <p v-if="placeholder" class="np-text">
+      本月概览按每日关系条数、五行样本与关键日期整理，可结合下方每日详记查看变化。
+    </p>
     <slot v-else />
   </section>
 </template>

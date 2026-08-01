@@ -19,11 +19,42 @@ const route = useRoute()
 const data = ref<MonthlyFortuneResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
+const errorKind = ref<'missing-chart' | 'request' | ''>('')
 const chartId = ref<number | null>(null)
 const expanded = ref(false)
 
-const trendData = computed(() => parseTrend(data.value?.element_trend ?? ''))
 const monthDays = computed(() => data.value?.daily_fortunes ?? [])
+
+function relationCount(day: FortuneDay): number {
+  return (day.supporting_evidence?.length ?? 0) + (day.counter_evidence?.length ?? 0)
+}
+
+const monthStats = computed(() => {
+  const rows = monthDays.value.map((day) => ({ day, count: relationCount(day) }))
+  const sorted = [...rows].sort((left, right) => right.count - left.count)
+  const highest = sorted[0]
+  const lowest = sorted[sorted.length - 1]
+  const average = rows.length ? rows.reduce((sum, row) => sum + row.count, 0) / rows.length : 0
+  return { highest, lowest, average }
+})
+
+const trendData = computed(() => {
+  const elementByDate = new Map(
+    parseTrend(data.value?.element_trend ?? '').map((item) => [item.date, item]),
+  )
+  return monthDays.value.map((day) => ({
+    ...(elementByDate.get(day.solar_date) ?? {
+      date: day.solar_date,
+      metal: 0,
+      wood: 0,
+      water: 0,
+      fire: 0,
+      earth: 0,
+    }),
+    date: day.solar_date,
+    score: relationCount(day),
+  }))
+})
 
 const monthLabel = computed(() => {
   const days = monthDays.value
@@ -39,9 +70,13 @@ const monthRange = computed(() => {
 
 const distribution = computed(() => data.value?.summary?.element_distribution ?? {})
 
-function averageScore(days: FortuneDay[]): number {
+function averageRelationCount(days: FortuneDay[]): number {
   if (!days.length) return 0
-  return days.reduce((sum, day) => sum + day.score, 0) / days.length
+  return days.reduce((sum, day) => sum + relationCount(day), 0) / days.length
+}
+
+function asPercentage(value: number): number {
+  return value <= 1 ? value * 100 : value
 }
 
 function formatMonthDay(date?: string): string {
@@ -53,10 +88,9 @@ function rhythmWord(): string {
   if (phases.length < 2) return '旬段样本不足'
   const first = phases[0].average
   const last = phases[phases.length - 1].average
-  if (last - first >= 8) return '后段均值较高'
-  if (first - last >= 8) return '前段均值较高'
-  if (data.value && data.value.summary.index_standard_deviation >= 12) return '日值离散度较高'
-  return '旬段均值接近'
+  if (last - first >= 1) return '后段命中关系较多'
+  if (first - last >= 1) return '前段命中关系较多'
+  return '各旬命中关系数接近'
 }
 
 const monthBriefTitle = computed(() => {
@@ -69,12 +103,14 @@ const monthBriefText = computed(() => {
   const summary = data.value?.summary
   if (!summary) return ''
   const phases = phaseSegments.value
-  const phaseMeans = phases.map((phase) => `${phase.name} ${phase.average.toFixed(1)}`).join('、')
+  const phaseMeans = phases
+    .map((phase) => `${phase.name}平均 ${phase.average.toFixed(1)} 条`)
+    .join('、')
   const element = summary.dominant_element
-    ? `五行频次以${summary.dominant_element}为最高`
+    ? `日柱样本中${summary.dominant_element}出现较多`
     : '五行频次无单一最高项'
-  const tenGod = summary.dominant_ten_god ? `，十神频次以${summary.dominant_ten_god}为最高` : ''
-  return `本月平均活跃度 ${summary.average_index.toFixed(1)}；${phaseMeans}。${element}${tenGod}。这些数值用于比较月内不同日期，不代表吉凶。`
+  const tenGod = summary.dominant_ten_god ? `，十神样本中${summary.dominant_ten_god}出现较多` : ''
+  return `本月每天平均命中 ${monthStats.value.average.toFixed(1)} 条干支关系；${phaseMeans}。${element}${tenGod}。关系条数只反映规则命中数量，不代表吉凶。`
 })
 
 const overviewStats = computed(() => {
@@ -82,24 +118,24 @@ const overviewStats = computed(() => {
   if (!summary) return []
   return [
     {
-      label: '月均活跃度',
-      value: summary.average_index.toFixed(1),
-      detail: '用于比较月内日期',
+      label: '每天平均命中',
+      value: `${monthStats.value.average.toFixed(1)} 条`,
+      detail: '按实际关系条数统计',
     },
     {
       label: '关系较多日',
-      value: formatMonthDay(summary.highest_index_day),
-      detail: `活跃度 ${summary.highest_index}`,
+      value: formatMonthDay(monthStats.value.highest?.day.solar_date),
+      detail: `${monthStats.value.highest?.count ?? 0} 条关系`,
     },
     {
       label: '关系较少日',
-      value: formatMonthDay(summary.lowest_index_day),
-      detail: `活跃度 ${summary.lowest_index}`,
+      value: formatMonthDay(monthStats.value.lowest?.day.solar_date),
+      detail: `${monthStats.value.lowest?.count ?? 0} 条关系`,
     },
     {
-      label: '主气',
+      label: '样本中较多五行',
       value: summary.dominant_element || '—',
-      detail: summary.dominant_ten_god ? `十神 ${summary.dominant_ten_god}` : '五行占优',
+      detail: summary.dominant_ten_god ? `十神频次：${summary.dominant_ten_god}` : '按日柱样本累计',
     },
   ]
 })
@@ -128,10 +164,10 @@ const phaseSegments = computed<PhaseSegment[]>(() => {
     })
     if (!chunk.length) return []
 
-    const avg = averageScore(chunk)
-    const sorted = [...chunk].sort((a, b) => b.score - a.score)
-    const drift = chunk[chunk.length - 1].score - chunk[0].score
-    const driftLabel = drift >= 4 ? '末值较高' : drift <= -4 ? '末值较低' : '首末接近'
+    const avg = averageRelationCount(chunk)
+    const sorted = [...chunk].sort((a, b) => relationCount(b) - relationCount(a))
+    const drift = relationCount(chunk[chunk.length - 1]) - relationCount(chunk[0])
+    const driftLabel = drift >= 1 ? '旬末关系较多' : drift <= -1 ? '旬初关系较多' : '旬初旬末相近'
     const highest = sorted[0]
     const lowest = sorted[sorted.length - 1]
     return [
@@ -142,7 +178,7 @@ const phaseSegments = computed<PhaseSegment[]>(() => {
         driftLabel,
         highest,
         lowest,
-        description: `旬均值 ${avg.toFixed(1)}；最高 ${formatMonthDay(highest.solar_date)}，最低 ${formatMonthDay(lowest.solar_date)}。`,
+        description: `每天平均 ${avg.toFixed(1)} 条；较多日 ${formatMonthDay(highest.solar_date)}，较少日 ${formatMonthDay(lowest.solar_date)}。`,
       },
     ]
   })
@@ -151,34 +187,34 @@ const phaseSegments = computed<PhaseSegment[]>(() => {
 interface ExtremeDayCard {
   date: string
   label: string
-  score: number
+  count: number
   pillar: string
   variant: 'highest' | 'lowest'
   detail: string
 }
 
 const extremeDayCards = computed<ExtremeDayCard[]>(() => {
-  const summary = data.value?.summary
-  if (!summary) return []
-  const byDate = new Map(monthDays.value.map((day) => [day.solar_date, day]))
   const cards: ExtremeDayCard[] = []
 
-  function push(date: string | undefined, label: string, variant: ExtremeDayCard['variant']) {
-    if (!date) return
-    const day = byDate.get(date)
-    if (!day) return
+  function push(
+    row: typeof monthStats.value.highest,
+    label: string,
+    variant: ExtremeDayCard['variant'],
+  ) {
+    if (!row) return
+    const { day, count } = row
     cards.push({
-      date,
+      date: day.solar_date,
       label,
-      score: day.score,
+      count,
       pillar: day.day_gan_zhi,
       variant,
-      detail: `干支 ${day.day_gan_zhi} · 关系活跃度 ${day.score}`,
+      detail: `干支 ${day.day_gan_zhi} · 命中 ${count} 条关系`,
     })
   }
 
-  push(summary.highest_index_day, '关系较多', 'highest')
-  push(summary.lowest_index_day, '关系较少', 'lowest')
+  push(monthStats.value.highest, '关系较多', 'highest')
+  push(monthStats.value.lowest, '关系较少', 'lowest')
 
   return cards
 })
@@ -197,7 +233,7 @@ const elementFocus = computed(() => {
     .sort((a, b) => Number(b[1]) - Number(a[1]))
     .map(([name, value]) => ({
       name,
-      value: Number(value),
+      value: asPercentage(Number(value)),
       width: `${Math.max(8, (Number(value) / max) * 100)}%`,
       color: colors[name] ?? 'var(--jade-accent)',
     }))
@@ -219,6 +255,10 @@ function currentYearMonth(): { year: number; month: number } {
 }
 
 async function load() {
+  loading.value = true
+  error.value = ''
+  errorKind.value = ''
+  data.value = null
   let cid: number | null = null
   const q = route.query.chart_id
   if (typeof q === 'string' && q) cid = Number(q)
@@ -232,6 +272,7 @@ async function load() {
   }
   if (!cid) {
     error.value = '请先创建命盘'
+    errorKind.value = 'missing-chart'
     loading.value = false
     return
   }
@@ -241,7 +282,12 @@ async function load() {
   try {
     data.value = await fetchMonthly(cid, year, month)
   } catch (reason: unknown) {
-    error.value = getApiErrorMessage(reason, '本月内容加载失败，请稍后重试。')
+    const status = (reason as { response?: { status?: number } }).response?.status
+    errorKind.value = status === 404 ? 'missing-chart' : 'request'
+    error.value =
+      status === 404
+        ? '命盘不存在或已被删除，请重新排盘。'
+        : getApiErrorMessage(reason, '本月内容加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -261,7 +307,10 @@ onMounted(load)
 
     <div v-else-if="error" class="state error">
       <p>{{ error }}</p>
-      <router-link to="/chart/new" class="btn-link">去排盘 →</router-link>
+      <router-link v-if="errorKind === 'missing-chart'" to="/chart/new" class="btn-link"
+        >去排盘 →</router-link
+      >
+      <button v-else type="button" class="btn-link state-retry" @click="load">重新加载</button>
     </div>
 
     <template v-else-if="data">
@@ -273,20 +322,20 @@ onMounted(load)
             <p class="range tabular-nums">{{ monthRange }}</p>
             <div class="chips">
               <BestWorstChip
-                v-if="data.summary.highest_index_day"
+                v-if="monthStats.highest"
                 variant="highest"
-                :date="data.summary.highest_index_day"
-                :score="data.summary.highest_index"
+                :date="monthStats.highest.day.solar_date"
+                :count="monthStats.highest.count"
               />
               <BestWorstChip
-                v-if="data.summary.lowest_index_day"
+                v-if="monthStats.lowest"
                 variant="lowest"
-                :date="data.summary.lowest_index_day"
-                :score="data.summary.lowest_index"
+                :date="monthStats.lowest.day.solar_date"
+                :count="monthStats.lowest.count"
               />
               <span v-if="data.summary.dominant_element" class="meta-chip">
                 <span class="dot"></span>
-                {{ data.summary.dominant_element }}主气
+                {{ data.summary.dominant_element }}在样本中出现较多
               </span>
               <span v-if="data.summary.dominant_ten_god" class="meta-chip">
                 {{ data.summary.dominant_ten_god }}
@@ -295,9 +344,9 @@ onMounted(load)
           </div>
           <div class="hero-right">
             <ScoreOrb
-              :score="data.structural_relation_index"
-              label="月均关系活跃度"
-              caption="用于日期间比较"
+              :value="monthStats.average"
+              label="每天平均命中关系"
+              caption="按实际关系条数统计"
             />
           </div>
         </section>
@@ -316,7 +365,7 @@ onMounted(load)
             <h2>{{ monthBriefTitle }}</h2>
             <p>{{ monthBriefText }}</p>
           </div>
-          <div class="element-bars" aria-label="五行占比">
+          <div class="element-bars" aria-label="月内日柱样本五行频次">
             <div v-for="item in elementFocus" :key="item.name" class="element-row">
               <span class="element-name">{{ item.name }}</span>
               <div class="element-track">
@@ -325,7 +374,7 @@ onMounted(load)
                   :style="{ width: item.width, background: item.color }"
                 ></span>
               </div>
-              <span class="element-value tabular-nums">{{ item.value }}</span>
+              <span class="element-value tabular-nums">{{ item.value.toFixed(1) }}%</span>
             </div>
           </div>
         </section>
@@ -342,19 +391,25 @@ onMounted(load)
                   <span class="phase-name">{{ phase.name }}</span>
                   <span class="phase-range tabular-nums">{{ phase.range }}</span>
                 </div>
-                <strong class="phase-score tabular-nums">{{ phase.average.toFixed(1) }}</strong>
+                <strong class="phase-score tabular-nums"
+                  >{{ phase.average.toFixed(1) }} 条/日</strong
+                >
               </div>
               <div class="phase-meter" aria-hidden="true">
-                <span :style="{ width: `${Math.max(6, Math.min(100, phase.average))}%` }"></span>
+                <span
+                  :style="{
+                    width: `${Math.max(6, (phase.average / Math.max(monthStats.highest?.count ?? 1, 1)) * 100)}%`,
+                  }"
+                ></span>
               </div>
               <div class="phase-days">
                 <span v-if="phase.highest"
-                  >最高 {{ formatMonthDay(phase.highest.solar_date) }} ·
-                  {{ phase.highest.score }}</span
+                  >较多 {{ formatMonthDay(phase.highest.solar_date) }} ·
+                  {{ relationCount(phase.highest) }} 条</span
                 >
                 <span v-if="phase.lowest"
-                  >最低 {{ formatMonthDay(phase.lowest.solar_date) }} ·
-                  {{ phase.lowest.score }}</span
+                  >较少 {{ formatMonthDay(phase.lowest.solar_date) }} ·
+                  {{ relationCount(phase.lowest) }} 条</span
                 >
                 <span>{{ phase.driftLabel }}</span>
               </div>
@@ -365,28 +420,26 @@ onMounted(load)
 
         <section class="glass-card trend-card">
           <header class="card-head">
-            <span class="card-eyebrow">月内关系变化</span>
-            <span class="card-meta">
-              平均 {{ data.summary.average_index.toFixed(1) }}
-            </span>
+            <span class="card-eyebrow">月内命中关系数</span>
+            <span class="card-meta"> 平均 {{ monthStats.average.toFixed(1) }} 条 </span>
           </header>
           <FortuneChart :daily-data="trendData" height="320px" :show-elements="false" />
-          <div class="trend-legend" aria-label="月内关系活跃度说明">
+          <div class="trend-legend" aria-label="月内命中关系数说明">
             <span
-              ><i class="legend-dot highest"></i>最高
-              {{ formatMonthDay(data.summary.highest_index_day) }}</span
+              ><i class="legend-dot highest"></i>关系较多
+              {{ formatMonthDay(monthStats.highest?.day.solar_date) }}</span
             >
             <span
-              ><i class="legend-dot lowest"></i>最低
-              {{ formatMonthDay(data.summary.lowest_index_day) }}</span
+              ><i class="legend-dot lowest"></i>关系较少
+              {{ formatMonthDay(monthStats.lowest?.day.solar_date) }}</span
             >
           </div>
         </section>
 
         <section class="key-days-card">
           <header class="card-head">
-            <span class="card-eyebrow">指数极值日期</span>
-            <span class="card-meta">仅表示本月内相对最高与最低</span>
+            <span class="card-eyebrow">关系条数较多与较少日期</span>
+            <span class="card-meta">仅按命中的规则关系数量比较</span>
           </header>
           <div class="key-day-grid">
             <article
@@ -398,7 +451,7 @@ onMounted(load)
               <span class="key-date tabular-nums">{{ formatMonthDay(day.date) }}</span>
               <div class="key-main">
                 <strong>{{ day.label }}</strong>
-                <span>{{ day.pillar }} · 关系活跃度 {{ day.score }}</span>
+                <span>{{ day.pillar }} · {{ day.count }} 条关系</span>
               </div>
               <p>{{ day.detail }}</p>
             </article>
@@ -409,15 +462,15 @@ onMounted(load)
           <div class="glass-card">
             <header class="card-head">
               <span class="card-eyebrow">五行雷达</span>
-              <span class="card-meta">{{ data.summary.dominant_element }}主导</span>
+              <span class="card-meta">{{ data.summary.dominant_element }}出现较多</span>
             </header>
             <FortuneRadar :distribution="distribution" height="280px" />
           </div>
           <div class="glass-card">
             <header class="card-head">
-              <span class="card-eyebrow">关系活跃度与五行走势</span>
+              <span class="card-eyebrow">关系条数与五行样本走势</span>
               <span class="card-meta tabular-nums"
-                >均 {{ data.summary.average_index.toFixed(1) }}</span
+                >平均 {{ monthStats.average.toFixed(1) }} 条</span
               >
             </header>
             <FortuneChart :daily-data="trendData" height="280px" />
@@ -438,11 +491,11 @@ onMounted(load)
               :key="d.solar_date"
               :date="d.solar_date"
               :day-pillar="d.day_gan_zhi"
-              :score="d.score"
+              :relation-count="relationCount(d)"
               :ten-god="d.ten_god?.name"
               :weekday="weekdayShort(d.solar_date)"
-              :is-highest="data!.summary.highest_index_day === d.solar_date"
-              :is-lowest="data!.summary.lowest_index_day === d.solar_date"
+              :is-highest="monthStats.highest?.day.solar_date === d.solar_date"
+              :is-lowest="monthStats.lowest?.day.solar_date === d.solar_date"
             />
           </div>
         </section>
@@ -454,6 +507,11 @@ onMounted(load)
         </nav>
       </main>
     </template>
+
+    <div v-else class="state">
+      <p>本月暂无可显示的关系记录。</p>
+      <button type="button" class="btn-link state-retry" @click="load">重新加载</button>
+    </div>
   </div>
 </template>
 
@@ -659,11 +717,9 @@ onMounted(load)
 .overview-detail,
 .phase-range,
 .phase-days,
-.key-main span,
-.element-value {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.key-main span {
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .overview-label {
   font-size: var(--fs-xs);
@@ -722,7 +778,7 @@ onMounted(load)
 }
 .element-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 34px;
+  grid-template-columns: 28px minmax(0, 1fr) 48px;
   gap: 10px;
   align-items: center;
 }
@@ -730,6 +786,10 @@ onMounted(load)
 .element-value {
   font-size: var(--fs-xs);
   color: var(--text-muted);
+}
+.element-value {
+  text-align: right;
+  white-space: nowrap;
 }
 .element-track {
   position: relative;

@@ -396,13 +396,13 @@ func calcStemRelations(todayGan string, bazi *bazipkg.BaziResult) []StemRelation
 		case queryElement == targetElement:
 			elementMatch.relationType, elementMatch.relationName = "same_element", "同五行"
 		case elementGeneratesMap[queryElement] == targetElement:
-			elementMatch.relationType, elementMatch.relationName = "query_generates_target", "查询干生目标干"
+			elementMatch.relationType, elementMatch.relationName = "query_generates_target", "今日天干生本命天干"
 		case elementGeneratesMap[targetElement] == queryElement:
-			elementMatch.relationType, elementMatch.relationName = "target_generates_query", "目标干生查询干"
+			elementMatch.relationType, elementMatch.relationName = "target_generates_query", "本命天干生今日天干"
 		case elementOvercomesMap[queryElement] == targetElement:
-			elementMatch.relationType, elementMatch.relationName = "query_overcomes_target", "查询干克目标干"
+			elementMatch.relationType, elementMatch.relationName = "query_overcomes_target", "今日天干克本命天干"
 		case elementOvercomesMap[targetElement] == queryElement:
-			elementMatch.relationType, elementMatch.relationName = "target_overcomes_query", "目标干克查询干"
+			elementMatch.relationType, elementMatch.relationName = "target_overcomes_query", "本命天干克今日天干"
 		}
 		if elementMatch.relationType != "" {
 			matches = append(matches, elementMatch)

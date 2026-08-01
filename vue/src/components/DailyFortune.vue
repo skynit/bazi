@@ -89,7 +89,6 @@ const props = withDefaults(defineProps<Props>(), {
   seasonalState: undefined,
   fortuneLayers: undefined,
 })
-const showAiModal = ref(false)
 const activeTab = ref('overview')
 const savedLevel = localStorage.getItem('fortune-interpretation-level')
 const interpretationLevel = ref<InterpretationLevel>(
@@ -114,7 +113,7 @@ const allDfTabs = [
   { key: 'almanac', label: '黄历', minimum: 'basic' },
   { key: 'analysis', label: '结构分析', minimum: 'advanced' },
   { key: 'elements', label: '五行结构', minimum: 'advanced' },
-  { key: 'rikuyo', label: '日课推算', minimum: 'professional' },
+  { key: 'rikuyo', label: '日课规则', minimum: 'professional' },
 ]
 const levelRank: Record<InterpretationLevel, number> = { basic: 0, advanced: 1, professional: 2 }
 const dfTabs = computed(() =>
@@ -152,19 +151,19 @@ function elPct(el: string) {
 function evidenceBasisLabel(evidence?: TwelveStageEvidence | TraditionalCalendarEvidence) {
   if (!evidence) return ''
   if ('reference_stem' in evidence) {
-    return `日主 ${evidence.reference_stem} · 查询日支 ${evidence.query_branch}`
+    return `日主 ${evidence.reference_stem} · 今日地支 ${evidence.query_branch}`
   }
-  return `查询月支 ${evidence.month_branch} · 查询日支 ${evidence.query_branch}`
+  return `当月地支 ${evidence.month_branch} · 今日地支 ${evidence.query_branch}`
 }
 
 function tenGodBasisLabel(evidence?: TenGodEvidence) {
   if (!evidence) return ''
-  return `日主 ${evidence.reference_stem} · 查询日干 ${evidence.query_stem}`
+  return `日主 ${evidence.reference_stem} · 今日天干 ${evidence.query_stem}`
 }
 
 function seasonElementBasisLabel(evidence?: SeasonElementEvidence) {
   if (!evidence) return ''
-  return `日主 ${evidence.reference_stem}${evidence.reference_element} · 查询月支 ${evidence.query_month_branch} · ${evidence.season}`
+  return `日主 ${evidence.reference_stem}${evidence.reference_element} · 当月地支 ${evidence.query_month_branch} · ${evidence.season}`
 }
 
 function calculationBasisLabel(value?: string) {
@@ -176,6 +175,79 @@ function calculationBasisLabel(value?: string) {
     period_branch_and_target_branch_all_structures: '依据周期地支与本命地支关系',
   }
   return value ? labels[value] || '依据干支关系计算' : ''
+}
+
+function seasonalStateLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    旺: '旺势（传统季节标签）',
+    相: '相势（传统季节标签）',
+    休: '休势（传统季节标签）',
+    囚: '囚势（传统季节标签）',
+    死: '弱势（传统“死”标签）',
+  }
+  return value ? labels[value] || `${value}（传统季节标签）` : ''
+}
+
+function fortuneLayerLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    dayun: '大运',
+    liunian: '流年',
+    liuyue: '流月',
+    xiaoyun: '小运',
+    natal: '本命',
+    周期天干: '周期天干',
+    周期地支: '周期地支',
+    查询日干: '今日天干',
+    查询日支: '今日地支',
+    日干: '日主',
+    年支: '本命年支',
+    月支: '本命月支',
+    日支: '本命日支',
+    时支: '本命时支',
+  }
+  return value ? labels[value] || '周期层' : '周期层'
+}
+
+function natalPillarLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    year: '本命年柱',
+    month: '本命月柱',
+    day: '本命日柱',
+    hour: '本命时柱',
+    年干: '本命年干',
+    月干: '本命月干',
+    日干: '本命日干',
+    时干: '本命时干',
+    年支: '本命年支',
+    月支: '本命月支',
+    日支: '本命日支',
+    时支: '本命时支',
+  }
+  return value ? labels[value] || '本命四柱' : '本命四柱'
+}
+
+function fortuneRelationLabel(type?: string, fallback?: string): string {
+  const labels: Record<string, string> = {
+    shengWo: '生助',
+    woSheng: '受生于',
+    keWo: '克制',
+    woKe: '受制于',
+    same: '同支',
+    same_stem: '同干',
+    same_element: '同五行',
+    five_combine: '天干五合',
+    clash: '相冲',
+    harm: '相害',
+    combine: '六合',
+    punish: '相刑',
+    break: '相破',
+    banHe: '半合',
+    gongHe: '拱合',
+    banHui: '半会',
+    sanHe: '三合',
+    sanHui: '三会',
+  }
+  return type ? labels[type] || fallback || '形成关系' : fallback || '形成关系'
 }
 
 const fortuneLayerList = computed(() => {
@@ -232,6 +304,9 @@ const fortuneLayerList = computed(() => {
 
     <!-- ═══ Tab: 黄历 ═══ -->
     <div v-show="activeTab === 'almanac'" class="df-tab-content">
+      <p class="section-boundary-note almanac-boundary-note">
+        黄历展示当天传统历书标签，参考对象是日期本身，不结合个人命盘，也不代表现实风险或行动结果。
+      </p>
       <!-- 黄历信息 -->
       <div
         v-if="jiShen || xiongShen || taiShen || pengZu || gua || jieQi"
@@ -413,11 +488,11 @@ const fortuneLayerList = computed(() => {
             />
           </svg>
           <span class="df-sec-title">月令状态</span>
-          <span class="rikuyo-phase-tag">{{ seasonalState.state }}</span>
+          <span class="rikuyo-phase-tag">{{ seasonalStateLabel(seasonalState.state) }}</span>
         </div>
         <p class="rikuyo-advance-text">
-          查询日干 {{ seasonalState.query_stem }}（{{ seasonalState.query_element }}） · 查询月支
-          {{ seasonalState.query_month_branch }} · {{ seasonalState.season }}季
+          当天日干 {{ seasonalState.query_stem }}（{{ seasonalState.query_element }}）在月支
+          {{ seasonalState.query_month_branch }}所对应的{{ seasonalState.season }}季状态
         </p>
       </div>
 
@@ -483,7 +558,8 @@ const fortuneLayerList = computed(() => {
           <div v-for="(sr, i) in stemRelations" :key="'sr' + i" class="relation-item">
             <span class="rel-type-tag">{{ sr.name }}</span>
             <span class="rel-detail"
-              >查询日干 {{ sr.query_stem }} · {{ sr.target_pillar }} {{ sr.target_stem }}</span
+              >今日天干 {{ sr.query_stem }} · {{ natalPillarLabel(sr.target_pillar) }}
+              {{ sr.target_stem }}</span
             >
             <span v-if="sr.combined_element" class="rel-note"
               >合化方向为{{ sr.combined_element }}，仍需结合全盘条件判断</span
@@ -492,7 +568,8 @@ const fortuneLayerList = computed(() => {
           <div v-for="(br, i) in branchRelations" :key="'br' + i" class="relation-item">
             <span class="rel-type-tag">{{ br.name }}</span>
             <span class="rel-detail"
-              >查询日支 {{ br.query_branch }} · {{ br.target_pillar }} {{ br.target_branch }}</span
+              >今日地支 {{ br.query_branch }} · {{ natalPillarLabel(br.target_pillar) }}
+              {{ br.target_branch }}</span
             >
           </div>
         </div>
@@ -515,7 +592,7 @@ const fortuneLayerList = computed(() => {
           <div v-for="ss in activatedShenSha" :key="ss.name" class="shensha-item">
             <span class="ss-name">{{ ss.name }}</span>
             <span class="ss-type-tag">传统查法</span>
-            <p class="ss-desc">依据 · {{ ss.basis }}</p>
+            <p class="ss-desc">按当天干支与本命四柱对应传统表项</p>
             <p class="ss-activation">{{ ss.activation }}</p>
           </div>
         </div>
@@ -544,8 +621,9 @@ const fortuneLayerList = computed(() => {
                 v-for="relation in layer.relations.slice(0, 4)"
                 :key="`${relation.source}-${relation.target}-${relation.type}`"
               >
-                {{ relation.source_value }} {{ relation.name }} {{ relation.target
-                }}{{ relation.target_value }}
+                {{ fortuneLayerLabel(relation.source) }}{{ relation.source_value }} ·
+                {{ fortuneRelationLabel(relation.type, relation.name) }} ·
+                {{ fortuneLayerLabel(relation.target) }}{{ relation.target_value }}
               </span>
             </p>
           </div>
@@ -556,8 +634,9 @@ const fortuneLayerList = computed(() => {
             v-for="relation in fortuneLayers.inter_layer_relations"
             :key="`${relation.source}-${relation.target}-${relation.type}`"
           >
-            {{ relation.source }}{{ relation.source_value }} · {{ relation.name }} ·
-            {{ relation.target }}{{ relation.target_value }}
+            {{ fortuneLayerLabel(relation.source) }}{{ relation.source_value }} ·
+            {{ fortuneRelationLabel(relation.type, relation.name) }} · {{ fortuneLayerLabel(relation.target)
+            }}{{ relation.target_value }}
           </span>
           <small>这里只展示周期之间的干支关系，不据此判断具体事件。</small>
         </div>
@@ -574,8 +653,11 @@ const fortuneLayerList = computed(() => {
               <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1" opacity="0.25" />
               <circle cx="7" cy="7" r="2.5" fill="currentColor" opacity="0.35" />
             </svg>
-            <span class="df-sec-title">今日五行</span>
+            <span class="df-sec-title">当日中午样本的五行结构</span>
           </div>
+          <p class="section-boundary-note">
+            取当天 12:00 的四柱按当前规则权重归一化为百分比，仅作结构参考，不代表全天变化或现实结果。
+          </p>
           <div class="df-el-bars">
             <div v-for="[el, clr] in elementEntries" :key="el" class="df-el-row">
               <span class="df-el-name">{{ el }}</span>
@@ -589,99 +671,13 @@ const fortuneLayerList = computed(() => {
                   }"
                 ></div>
               </div>
-              <span class="df-el-num">{{ todayElements[el] ?? 0 }}</span>
+              <span class="df-el-num">{{ elPct(el) }}%</span>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- AI button -->
-      <button class="df-ai-btn" disabled title="该功能仍在规划中">
-        <span class="df-ai-btn-icon">◈</span>
-        深度解析 · 规划中
-      </button>
     </div>
     <!-- /elements tab -->
-
-    <!-- Modal -->
-    <Teleport to="body">
-      <Transition name="df-modal">
-        <div v-if="showAiModal" class="df-modal-overlay" @click.self="showAiModal = false">
-          <div class="df-modal-box glass-panel">
-            <div class="df-modal-hdr">
-              <div class="df-modal-title-group">
-                <span class="df-modal-orb">☯</span>
-                <h2>AI 深度解析</h2>
-              </div>
-              <button class="df-modal-close" @click="showAiModal = false">✕</button>
-            </div>
-            <div class="df-modal-body">
-              <div class="df-ai-coming">
-                <svg width="90" height="90" viewBox="0 0 90 90" fill="none" class="df-ai-svg">
-                  <circle
-                    cx="45"
-                    cy="45"
-                    r="42"
-                    stroke="currentColor"
-                    stroke-width="0.6"
-                    stroke-dasharray="2 4"
-                    opacity="0.2"
-                  />
-                  <circle
-                    cx="45"
-                    cy="45"
-                    r="28"
-                    stroke="currentColor"
-                    stroke-width="0.6"
-                    stroke-dasharray="1 5"
-                    opacity="0.15"
-                  />
-                  <circle cx="45" cy="45" r="8" fill="currentColor" opacity="0.2" />
-                  <circle
-                    cx="45"
-                    cy="45"
-                    r="13"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="0.5"
-                    opacity="0.3"
-                  />
-                  <circle
-                    cx="22"
-                    cy="24"
-                    r="2.5"
-                    fill="currentColor"
-                    opacity="0.45"
-                    class="df-star-pulse"
-                    style="animation-delay: 0s"
-                  />
-                  <circle
-                    cx="68"
-                    cy="22"
-                    r="2"
-                    fill="currentColor"
-                    opacity="0.35"
-                    class="df-star-pulse"
-                    style="animation-delay: 0.6s"
-                  />
-                  <circle
-                    cx="70"
-                    cy="66"
-                    r="2.5"
-                    fill="currentColor"
-                    opacity="0.4"
-                    class="df-star-pulse"
-                    style="animation-delay: 1.2s"
-                  />
-                </svg>
-                <p class="df-ai-title">AI分析功能即将上线</p>
-                <p class="df-ai-sub">智能运势深度解读</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </div>
 </template>
 

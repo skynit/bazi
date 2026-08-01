@@ -12,13 +12,15 @@ const themeStore = useThemeStore()
 const scrolled = ref(false)
 const isDark = ref(document.documentElement.classList.contains('dark'))
 const mobileOpen = ref(false)
+const fortuneMenuOpen = ref(false)
+const fortuneMenuRef = ref<HTMLElement | null>(null)
 
 const wuxingCycle: Array<{ key: WuxingKey; label: string }> = [
   { key: 'mu', label: '木' },
   { key: 'huo', label: '火' },
   { key: 'tu', label: '土' },
   { key: 'jin', label: '金' },
-  { key: 'shui', label: '水' }
+  { key: 'shui', label: '水' },
 ]
 
 function applyTheme(nextDark: boolean) {
@@ -38,6 +40,7 @@ function toggleTheme() {
 
 function closeMobileMenu() {
   mobileOpen.value = false
+  fortuneMenuOpen.value = false
 }
 
 function toggleMobileMenu() {
@@ -63,7 +66,9 @@ function goZiwei() {
       router.push(`/ziwei/${chartId}`)
       return
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   router.push('/chart/new')
 }
 
@@ -76,7 +81,9 @@ function goBaziChart() {
       router.push(`/chart/${chartId}`)
       return
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   router.push('/chart/new')
 }
 
@@ -86,16 +93,30 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
+function onPointerDown(event: PointerEvent) {
+  if (fortuneMenuRef.value && !fortuneMenuRef.value.contains(event.target as Node)) {
+    fortuneMenuOpen.value = false
+  }
+}
+
+function onAuthExpired() {
+  authStore.logout()
+}
+
 watch(() => route.fullPath, closeMobileMenu)
 
 onMounted(() => {
   document.documentElement.style.colorScheme = isDark.value ? 'dark' : 'light'
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onKeydown)
+  window.addEventListener('pointerdown', onPointerDown)
+  window.addEventListener('auth:expired', onAuthExpired)
 })
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('pointerdown', onPointerDown)
+  window.removeEventListener('auth:expired', onAuthExpired)
 })
 </script>
 <template>
@@ -104,50 +125,115 @@ onUnmounted(() => {
       <div class="mx-auto w-full max-w-[82rem] px-4 sm:px-8">
         <nav
           class="relative flex items-center h-14 rounded-full border px-4 sm:px-5 lg:px-6 transition-all duration-300"
-          :class="scrolled
-            ? 'bg-[var(--nav-bg)] backdrop-blur-md border-[var(--nav-border)] shadow-[var(--shadow-sm)]'
-            : 'bg-[var(--nav-bg-idle)] backdrop-blur-md border-transparent'"
+          :class="
+            scrolled
+              ? 'bg-[var(--nav-bg)] backdrop-blur-md border-[var(--nav-border)] shadow-[var(--shadow-sm)]'
+              : 'bg-[var(--nav-bg-idle)] backdrop-blur-md border-transparent'
+          "
         >
           <!-- Logo (left) -->
-          <router-link to="/" class="flex items-center gap-3 text-decoration-none shrink-0 mr-auto" @click="closeMobileMenu">
+          <router-link
+            to="/"
+            class="flex items-center gap-3 text-decoration-none shrink-0 mr-auto"
+            @click="closeMobileMenu"
+          >
             <div class="relative flex items-center justify-center w-8 h-8">
-              <div class="absolute -inset-[3px] border border-[var(--line-focus)] rounded-full animate-[spin_12s_linear_infinite]"></div>
-              <span class="text-[var(--fs-2xl)] text-[var(--accent)] [text-shadow:0_0_12px_var(--brand-glow)]">☯</span>
+              <div
+                class="absolute -inset-[3px] border border-[var(--line-focus)] rounded-full animate-[spin_12s_linear_infinite]"
+              ></div>
+              <span
+                class="text-[var(--fs-2xl)] text-[var(--accent)] [text-shadow:0_0_12px_var(--brand-glow)]"
+                >☯</span
+              >
             </div>
             <div class="hidden sm:flex flex-col gap-0">
-              <span class="font-[family-name:var(--font-serif)] text-[var(--fs-sm)] font-bold text-[var(--text)] tracking-[2px] leading-[1.1]">八字命理</span>
-              <span class="text-[var(--fs-2xs)] tracking-[1.6px] text-[var(--text-soft)] uppercase">BaZi Fortune</span>
+              <span
+                class="font-[family-name:var(--font-serif)] text-[var(--fs-sm)] font-bold text-[var(--text)] tracking-[2px] leading-[1.1]"
+                >八字命理</span
+              >
+              <span class="text-[var(--fs-2xs)] tracking-[1.6px] text-[var(--text-soft)] uppercase"
+                >BaZi Fortune</span
+              >
             </div>
           </router-link>
 
           <!-- Nav links (absolutely centered, optical balance) -->
-          <nav class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:gap-7 text-[var(--fs-xs)] font-medium text-[var(--text-muted)] whitespace-nowrap">
-            <router-link to="/" class="transition-colors hover:text-[var(--accent)] aria-[current=page]:text-[var(--accent)]" exact-active-class="text-[var(--accent)]">首页</router-link>
+          <nav
+            class="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-5 xl:gap-7 text-[var(--fs-xs)] font-medium text-[var(--text-muted)] whitespace-nowrap"
+          >
+            <router-link
+              to="/"
+              class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] aria-[current=page]:text-[var(--accent)]"
+              exact-active-class="text-[var(--accent)]"
+              >首页</router-link
+            >
             <template v-if="authStore.isLoggedIn()">
-              <router-link to="/history" class="transition-colors hover:text-[var(--accent)]">历史</router-link>
+              <router-link
+                to="/history"
+                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
+                >历史</router-link
+              >
               <button
                 type="button"
                 @click="goBaziChart"
-                class="transition-colors hover:text-[var(--accent)] bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
+                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'Chart' }"
               >
                 八字命盘
               </button>
-              <div class="relative group">
-                <router-link to="/fortune" class="transition-colors hover:text-[var(--accent)] flex items-center gap-1">
+              <div
+                ref="fortuneMenuRef"
+                class="relative"
+                @mouseenter="fortuneMenuOpen = true"
+                @mouseleave="fortuneMenuOpen = false"
+                @focusin="fortuneMenuOpen = true"
+              >
+                <button
+                  type="button"
+                  class="inline-flex min-h-11 items-center gap-1 border-0 bg-transparent p-0 font-medium text-[var(--fs-xs)] text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
+                  :class="{ 'text-[var(--accent)]': route.path.startsWith('/fortune') }"
+                  :aria-expanded="fortuneMenuOpen"
+                  aria-controls="fortune-desktop-menu"
+                  @click="fortuneMenuOpen = !fortuneMenuOpen"
+                >
                   运势 <span class="text-[var(--fs-2xs)] opacity-50">▾</span>
-                </router-link>
-                <div class="hidden group-hover:block absolute top-full left-1/2 -translate-x-1/2 min-w-[136px] py-1.5 mt-1 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[10px] shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-[20px] z-[100]">
-                  <router-link to="/fortune" class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors">今日运势</router-link>
-                  <router-link to="/fortune/blessing" class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors">运势加持</router-link>
-                  <router-link to="/fortune/weekly" class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors">本周运势</router-link>
-                  <router-link to="/fortune/monthly" class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors">本月运势</router-link>
+                </button>
+                <div
+                  v-show="fortuneMenuOpen"
+                  id="fortune-desktop-menu"
+                  class="absolute top-full left-1/2 -translate-x-1/2 min-w-[152px] py-1.5 mt-1 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[8px] shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-[20px] z-[100]"
+                >
+                  <router-link
+                    to="/fortune"
+                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    >今日运势</router-link
+                  >
+                  <router-link
+                    to="/fortune/blessing"
+                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    >运势加持</router-link
+                  >
+                  <router-link
+                    to="/fortune/weekly"
+                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    >本周运势</router-link
+                  >
+                  <router-link
+                    to="/fortune/monthly"
+                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    >本月运势</router-link
+                  >
                 </div>
               </div>
-              <router-link to="/buyi" class="transition-colors hover:text-[var(--accent)]" :class="{ 'text-[var(--accent)]': $route.name === 'Buyi' }">卜易</router-link>
+              <router-link
+                to="/buyi"
+                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
+                :class="{ 'text-[var(--accent)]': $route.name === 'Buyi' }"
+                >卜易</router-link
+              >
               <button
                 @click="goZiwei"
-                class="transition-colors hover:text-[var(--accent)] flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
+                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] gap-1 bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'ZiWei' }"
               >
                 <span class="text-[var(--fs-2xs)] opacity-60">✦</span>
@@ -159,7 +245,9 @@ onUnmounted(() => {
           <!-- Right side -->
           <div class="flex items-center gap-3 shrink-0 ml-auto">
             <!-- Five-element switcher -->
-            <div class="hidden md:flex items-center gap-1 px-1.5 py-1 rounded-full border border-[var(--line-subtle)] bg-[var(--glass-bg)] backdrop-blur-md">
+            <div
+              class="hidden lg:flex items-center gap-1 px-1.5 py-1 rounded-full border border-[var(--line-subtle)] bg-[var(--glass-bg)] backdrop-blur-md"
+            >
               <button
                 v-for="el in wuxingCycle"
                 :key="el.key"
@@ -169,15 +257,17 @@ onUnmounted(() => {
                   'w-6 h-6 flex items-center justify-center rounded-full text-[var(--fs-2xs)] font-[family-name:var(--font-serif)] transition-all',
                   themeStore.elementTheme === el.key
                     ? 'bg-[var(--accent)] text-[var(--bg)] shadow-[0_0_10px_var(--brand-glow)]'
-                    : 'text-[var(--text-muted)] hover:text-[var(--accent)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--accent)]',
                 ]"
                 :aria-label="`切换至${el.label}主题`"
                 :title="`${el.label}行主题`"
-              >{{ el.label }}</button>
+              >
+                {{ el.label }}
+              </button>
             </div>
             <button
               @click="toggleTheme"
-              class="w-8 h-8 flex items-center justify-center rounded-full text-sm transition-colors hover:bg-[var(--glass-bg)]"
+              class="w-11 h-11 flex items-center justify-center rounded-full text-sm transition-colors hover:bg-[var(--glass-bg)]"
               :aria-label="isDark ? '切换到白天模式' : '切换到暗黑模式'"
             >
               <span v-if="isDark" class="text-[var(--fs-sm)] text-[var(--icon)]">☀</span>
@@ -185,22 +275,39 @@ onUnmounted(() => {
             </button>
             <template v-if="authStore.isLoggedIn()">
               <div class="hidden sm:flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--fs-2xs)] font-semibold text-[var(--accent)]">
+                <div
+                  class="w-7 h-7 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--fs-2xs)] font-semibold text-[var(--accent)]"
+                >
                   {{ authStore.user?.username?.charAt(0).toUpperCase() }}
                 </div>
-                <span class="text-[var(--fs-2xs)] font-medium text-[var(--text-muted)] hidden lg:inline">{{ authStore.user?.username }}</span>
+                <span
+                  class="text-[var(--fs-2xs)] font-medium text-[var(--text-muted)] hidden lg:inline"
+                  >{{ authStore.user?.username }}</span
+                >
               </div>
-              <button @click="logout" class="text-[var(--fs-2xs)] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors hidden sm:inline">退出</button>
+              <button
+                @click="logout"
+                class="text-[var(--fs-2xs)] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors hidden sm:inline"
+              >
+                退出
+              </button>
             </template>
             <template v-else>
-              <router-link to="/login" class="text-[var(--fs-xs)] font-medium text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors">登录</router-link>
-              <router-link to="/register" class="inline-flex items-center justify-center h-8 px-4 text-[var(--fs-2xs)] font-medium rounded-full bg-[var(--text)] text-[var(--bg)] hover:bg-[var(--text)]/90 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+              <router-link
+                to="/login"
+                class="text-[var(--fs-xs)] font-medium text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+                >登录</router-link
+              >
+              <router-link
+                to="/register"
+                class="inline-flex items-center justify-center h-8 px-4 text-[var(--fs-2xs)] font-medium rounded-full bg-[var(--text)] text-[var(--bg)] hover:bg-[var(--text)]/90 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+              >
                 注册
               </router-link>
             </template>
             <button
               type="button"
-              class="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-[var(--line-subtle)] text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--glass-bg)] transition-colors"
+              class="lg:hidden w-11 h-11 flex items-center justify-center rounded-full border border-[var(--line-subtle)] text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--glass-bg)] transition-colors"
               :aria-expanded="mobileOpen"
               aria-controls="mobile-navigation"
               :aria-label="mobileOpen ? '关闭导航菜单' : '打开导航菜单'"
@@ -235,48 +342,113 @@ onUnmounted(() => {
           <div
             v-if="mobileOpen"
             id="mobile-navigation"
-            class="md:hidden mt-2 overflow-hidden rounded-[22px] border border-[var(--nav-border)] bg-[var(--nav-bg)]/95 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-xl"
+            class="lg:hidden mt-2 overflow-hidden rounded-[22px] border border-[var(--nav-border)] bg-[var(--nav-bg)]/95 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-xl"
           >
             <div class="grid grid-cols-2 gap-2 text-[var(--fs-sm)]">
-              <router-link to="/" class="mobile-nav-item col-span-2" exact-active-class="mobile-nav-item-active">
+              <router-link
+                to="/"
+                class="mobile-nav-item col-span-2"
+                exact-active-class="mobile-nav-item-active"
+              >
                 <span aria-hidden="true">⌂</span><span>首页</span>
               </router-link>
 
               <template v-if="authStore.isLoggedIn()">
-                <router-link to="/history" class="mobile-nav-item" active-class="mobile-nav-item-active">
+                <router-link
+                  to="/history"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
                   <span aria-hidden="true">◷</span><span>历史</span>
                 </router-link>
-                <button type="button" class="mobile-nav-item" :class="{ 'mobile-nav-item-active': route.name === 'Chart' }" @click="goBaziChart">
+                <button
+                  type="button"
+                  class="mobile-nav-item"
+                  :class="{ 'mobile-nav-item-active': route.name === 'Chart' }"
+                  @click="goBaziChart"
+                >
                   <span aria-hidden="true">八</span><span>八字命盘</span>
                 </button>
-                <router-link to="/fortune" class="mobile-nav-item" active-class="mobile-nav-item-active">
+                <router-link
+                  to="/fortune"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
                   <span aria-hidden="true">今</span><span>今日运势</span>
                 </router-link>
-                <router-link to="/fortune/blessing" class="mobile-nav-item" active-class="mobile-nav-item-active">
-                  <span aria-hidden="true">福</span><span>运势加持</span>
+                <router-link
+                  to="/fortune/blessing"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
+                  <span aria-hidden="true">加</span><span>运势加持</span>
                 </router-link>
-                <router-link to="/fortune/weekly" class="mobile-nav-item" active-class="mobile-nav-item-active">
+                <router-link
+                  to="/fortune/weekly"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
                   <span aria-hidden="true">周</span><span>本周运势</span>
                 </router-link>
-                <router-link to="/fortune/monthly" class="mobile-nav-item" active-class="mobile-nav-item-active">
+                <router-link
+                  to="/fortune/monthly"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
                   <span aria-hidden="true">月</span><span>本月运势</span>
                 </router-link>
-                <router-link to="/buyi" class="mobile-nav-item" active-class="mobile-nav-item-active">
+                <router-link
+                  to="/buyi"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                >
                   <span aria-hidden="true">卦</span><span>卜易</span>
                 </router-link>
-                <button type="button" class="mobile-nav-item" :class="{ 'mobile-nav-item-active': route.name === 'ZiWei' }" @click="goZiwei">
+                <button
+                  type="button"
+                  class="mobile-nav-item"
+                  :class="{ 'mobile-nav-item-active': route.name === 'ZiWei' }"
+                  @click="goZiwei"
+                >
                   <span aria-hidden="true">✦</span><span>紫微斗数</span>
                 </button>
-                <button type="button" class="mobile-nav-item col-span-2 justify-center text-[var(--text-soft)]" @click="logout">
+                <button
+                  type="button"
+                  class="mobile-nav-item col-span-2 justify-center text-[var(--text-soft)]"
+                  @click="logout"
+                >
                   退出登录
                 </button>
               </template>
 
               <template v-else>
-                <router-link to="/login" class="mobile-nav-item" active-class="mobile-nav-item-active">登录</router-link>
-                <router-link to="/register" class="mobile-nav-item justify-center bg-[var(--accent)] text-[var(--bg)]" active-class="mobile-nav-item-active">注册</router-link>
+                <router-link
+                  to="/login"
+                  class="mobile-nav-item"
+                  active-class="mobile-nav-item-active"
+                  >登录</router-link
+                >
+                <router-link
+                  to="/register"
+                  class="mobile-nav-item justify-center bg-[var(--accent)] text-[var(--bg)]"
+                  active-class="mobile-nav-item-active"
+                  >注册</router-link
+                >
               </template>
             </div>
+            <fieldset class="mobile-theme-picker">
+              <legend>界面配色，不影响排盘结果</legend>
+              <button
+                v-for="el in wuxingCycle"
+                :key="`mobile-${el.key}`"
+                type="button"
+                :aria-pressed="themeStore.elementTheme === el.key"
+                :class="{ active: themeStore.elementTheme === el.key }"
+                @click="themeStore.setElementTheme(el.key)"
+              >
+                {{ el.label }}
+              </button>
+            </fieldset>
           </div>
         </Transition>
       </div>
@@ -313,7 +485,10 @@ onUnmounted(() => {
   background: var(--glass-bg);
   color: var(--text-muted);
   text-align: left;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .mobile-nav-item:hover,
@@ -321,5 +496,39 @@ onUnmounted(() => {
   border-color: var(--line-focus);
   background: var(--menu-hover);
   color: var(--accent) !important;
+}
+
+.mobile-theme-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.mobile-theme-picker legend {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0 0 0.5rem;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+}
+
+.mobile-theme-picker button {
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  font: inherit;
+}
+
+.mobile-theme-picker button.active {
+  border-color: var(--line-focus);
+  color: var(--accent);
+  background: var(--accent-dim);
 }
 </style>

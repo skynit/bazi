@@ -2,11 +2,11 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
+import { AriaComponent, GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
 
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
+use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent, AriaComponent])
 
 export interface TrendPoint {
   date: string
@@ -23,15 +23,22 @@ const props = withDefaults(
     dailyData?: TrendPoint[]
     height?: string
     showElements?: boolean
+    metricLabel?: string
   }>(),
   {
     dailyData: () => [],
     height: '320px',
     showElements: true,
+    metricLabel: '命中关系数',
   },
 )
 
 const isDark = ref(document.documentElement.classList.contains('dark'))
+const chartDescription = computed(() =>
+  props.dailyData.length
+    ? props.dailyData.map((item) => `${item.date} ${props.metricLabel}${item.score}条`).join('；')
+    : '暂无趋势数据',
+)
 
 const elementSeries = computed(() => {
   if (isDark.value) {
@@ -85,10 +92,11 @@ const option = computed(() => {
   const accentColor = cssVar('--jade-accent', isDark.value ? '#4ade80' : '#16a34a')
   const dates = props.dailyData.map((d) => d.date)
   const scores = props.dailyData.map((d) => d.score)
+  const metricMax = Math.max(...scores, 1)
 
   const series: any[] = [
     {
-      name: '关系活跃度',
+      name: props.metricLabel,
       type: 'line',
       yAxisIndex: 0,
       data: scores,
@@ -113,6 +121,11 @@ const option = computed(() => {
   ]
 
   return {
+    aria: {
+      enabled: true,
+      decal: { show: true },
+      description: chartDescription.value,
+    },
     backgroundColor: 'transparent',
     grid: {
       left: 45,
@@ -152,10 +165,10 @@ const option = computed(() => {
     yAxis: [
       {
         type: 'value',
-        name: '指数',
+        name: '条',
         min: 0,
-        max: 100,
-        interval: 20,
+        max: Math.max(2, Math.ceil(metricMax)),
+        minInterval: 1,
         axisLabel: { fontSize: 10, color: mutedColor },
         splitLine: { lineStyle: { color: lineColor, type: 'dashed' } },
         axisLine: { show: false },
@@ -179,7 +192,13 @@ const option = computed(() => {
 
 <template>
   <div class="fortune-chart" :style="{ height }">
-    <v-chart v-if="dailyData.length" class="chart-instance" :option="option" autoresize />
+    <v-chart
+      v-if="dailyData.length"
+      class="chart-instance"
+      :option="option"
+      :aria-label="chartDescription"
+      autoresize
+    />
     <div v-else class="chart-empty">
       <div class="empty-constellation">
         <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
@@ -254,9 +273,56 @@ const option = computed(() => {
       <p class="empty-sub">结构趋势数据将显示在这里</p>
     </div>
   </div>
+  <details v-if="dailyData.length" class="chart-data-details">
+    <summary>查看图表数据</summary>
+    <div class="chart-data-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>{{ metricLabel }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in dailyData" :key="item.date">
+            <td>{{ item.date }}</td>
+            <td>{{ item.score }} 条</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
 </template>
 
 <style scoped>
+.chart-data-details {
+  margin-top: 0.65rem;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.chart-data-details summary {
+  width: fit-content;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.chart-data-table-wrap {
+  max-height: 15rem;
+  overflow: auto;
+}
+
+.chart-data-details table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chart-data-details th,
+.chart-data-details td {
+  padding: 0.45rem;
+  border-bottom: 1px solid var(--line-subtle);
+  text-align: left;
+}
 .fortune-chart {
   width: 100%;
 }

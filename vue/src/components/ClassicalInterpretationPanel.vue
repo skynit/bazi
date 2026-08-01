@@ -65,11 +65,11 @@ async function loadInterpretation() {
 }
 
 const feedbackOptions: Array<{ rating: FeedbackRating; label: string }> = [
-  { rating: 'accurate', label: '准' },
-  { rating: 'inaccurate', label: '不准' },
-  { rating: 'too_generic', label: '太泛' },
+  { rating: 'clear', label: '清楚' },
   { rating: 'confusing', label: '看不懂' },
   { rating: 'helpful', label: '有帮助' },
+  { rating: 'insufficient_basis', label: '依据不足' },
+  { rating: 'too_generic', label: '过于笼统' },
 ]
 
 function sectionKey(title: string) {
@@ -81,7 +81,7 @@ async function sendSectionFeedback(sectionTitle: string, rating: FeedbackRating)
   const key = sectionKey(sectionTitle)
   feedbackState.value = {
     ...feedbackState.value,
-    [key]: { ...feedbackState.value[key], loading: true, error: '' },
+    [key]: { loading: true, error: '' },
   }
   try {
     await submitFeedback({
@@ -116,12 +116,21 @@ const statusText = computed(() => {
   if (!response.value) return ''
   if (response.value.status === 'fallback') {
     if (response.value.reason === 'disabled' || response.value.reason === 'not_configured') {
-      return '经典依据暂未启用'
+      return '暂无典籍引用'
     }
-    return '当前以规则解读为主'
+    return '典籍检索暂不可用'
   }
-  return '已检索经典依据'
+  return response.value.citations.length ? '含典籍引用' : '未找到可用引用'
 })
+
+const isRuleSummary = computed(() => response.value?.status === 'fallback')
+const retrievalUnavailable = computed(
+  () =>
+    response.value?.status === 'fallback' &&
+    (response.value.reason === 'disabled' || response.value.reason === 'not_configured'),
+)
+const panelTitle = computed(() => (isRuleSummary.value ? '命盘规则摘要' : '八字典籍参考'))
+const panelEyebrow = computed(() => (isRuleSummary.value ? '规则说明' : '典籍引用'))
 </script>
 
 <template>
@@ -130,16 +139,21 @@ const statusText = computed(() => {
       <div class="ai-title-wrap">
         <div class="ai-eyebrow">
           <BookOpenTextIcon class="ai-eyebrow-icon" />
-          经典参考
+          {{ panelEyebrow }}
         </div>
         <div class="ai-title-row">
-          <h3 class="ai-title">八字经典参考</h3>
+          <h3 class="ai-title">{{ panelTitle }}</h3>
           <span v-if="statusText" class="ai-status">{{ statusText }}</span>
         </div>
       </div>
-      <button class="ai-refresh" :disabled="loading || !available" @click="loadInterpretation">
+      <button
+        v-if="!retrievalUnavailable"
+        class="ai-refresh"
+        :disabled="loading || !available"
+        @click="loadInterpretation"
+      >
         <RefreshCwIcon class="ai-btn-icon" :class="{ spinning: loading }" />
-        重新生成
+        重新加载
       </button>
     </div>
 
@@ -177,11 +191,16 @@ const statusText = computed(() => {
     </div>
 
     <div v-else-if="response" class="ai-body">
+      <p v-if="isRuleSummary" class="ai-source-note">
+        以下内容由当前命盘规则整理，不是检索到的典籍原文；仅用于理解结构，不判断现实事件。
+      </p>
       <p class="ai-summary">{{ response.summary }}</p>
 
       <label class="ai-research-consent">
         <input v-model="consentResearch" type="checkbox" />
-        <span>允许将本次段落反馈用于内部解读准确性研究</span>
+        <span>
+          允许将这条内容质量反馈用于改进规则说明。会记录当前命盘、段落和解读版本，不记录现实事件；取消勾选后，后续反馈不进入研究分析。
+        </span>
       </label>
 
       <div class="ai-sections">
@@ -193,8 +212,8 @@ const statusText = computed(() => {
             </span>
           </div>
           <div class="ai-section-content">{{ section.content }}</div>
-          <div class="ai-feedback" aria-label="段落反馈">
-            <span class="ai-feedback-label">反馈</span>
+          <div class="ai-feedback" aria-label="内容质量反馈">
+            <span class="ai-feedback-label">这段说明是否好理解？</span>
             <button
               v-for="option in feedbackOptions"
               :key="option.rating"
@@ -211,16 +230,16 @@ const statusText = computed(() => {
               提交中
             </span>
             <span
-              v-else-if="feedbackState[sectionKey(section.title)]?.rating"
-              class="ai-feedback-note"
-            >
-              已记录
-            </span>
-            <span
               v-else-if="feedbackState[sectionKey(section.title)]?.error"
               class="ai-feedback-error"
             >
               {{ feedbackState[sectionKey(section.title)]?.error }}
+            </span>
+            <span
+              v-else-if="feedbackState[sectionKey(section.title)]?.rating"
+              class="ai-feedback-note"
+            >
+              已记录
             </span>
           </div>
         </article>
@@ -396,6 +415,17 @@ const statusText = computed(() => {
   line-height: 1.7;
 }
 
+.ai-source-note {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--accent) 6%, var(--surface-1));
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.65;
+}
+
 .ai-sections {
   display: grid;
   gap: 0.75rem;
@@ -405,7 +435,7 @@ const statusText = computed(() => {
   border: 1px solid var(--glass-border);
   border-radius: 0.625rem;
   padding: 0.8rem;
-  background: var(--surface-0);
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
 }
 
 .ai-section-head {
@@ -451,6 +481,7 @@ const statusText = computed(() => {
   gap: 0.45rem;
   color: var(--text-dim);
   font-size: var(--fs-xs);
+  line-height: 1.55;
   cursor: pointer;
 }
 

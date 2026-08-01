@@ -45,8 +45,39 @@ const activeCandidate = computed(() => {
   return candidates.find((candidate) => candidate.candidate_id === selectedCandidateId.value)
 })
 
+const fieldLabels: Record<string, string> = {
+  year_pillar: '年柱',
+  month_pillar: '月柱',
+  day_pillar: '日柱',
+  hour_pillar: '时柱',
+}
+
+const stableFieldLabels = computed(() =>
+  (preview.value?.stable_fields ?? []).map((field) => fieldLabels[field] ?? field),
+)
+const unstableFieldLabels = computed(() =>
+  (preview.value?.unstable_fields ?? []).map((field) => fieldLabels[field] ?? field),
+)
+
+function boundaryLabel(type: string, name?: string) {
+  const labels: Record<string, string> = {
+    hour_branch: '时辰交界',
+    zi_hour_day_boundary: '子初换日边界',
+    civil_day: '公历日期交界',
+    solar_term: name ? `节气交界（${name}）` : '节气交界',
+  }
+  return labels[type] ?? name ?? '排盘边界'
+}
+
+const crossedBoundaryLabels = computed(() =>
+  (preview.value?.uncertainty?.crossed_boundaries ?? []).map((boundary) =>
+    boundaryLabel(boundary.type, boundary.name),
+  ),
+)
+
 const pillars = computed(() => {
   if (!preview.value) return []
+  if (preview.value.requires_candidate_selection && !activeCandidate.value) return []
   const chart = activeCandidate.value ?? preview.value
   return [
     { label: '年柱', value: chart.year_pillar },
@@ -223,9 +254,12 @@ async function confirmCreate() {
         <h2 class="form-title">输入出生信息</h2>
 
         <div class="field-group full-field">
-          <label class="field-label">命盘名称（可选）</label>
+          <label class="field-label" for="birth-name">命盘名称（可选）</label>
           <input
+            id="birth-name"
             v-model="form.name"
+            :aria-invalid="Boolean(errMsg)"
+            aria-errormessage="birth-form-error"
             class="input-dark"
             maxlength="80"
             placeholder="例如：我的命盘"
@@ -234,12 +268,16 @@ async function confirmCreate() {
 
         <div class="calendar-toggle">
           <button
+            type="button"
+            :aria-pressed="form.calendarType === 'SOLAR'"
             :class="form.calendarType === 'SOLAR' ? 'active' : ''"
             @click="form.calendarType = 'SOLAR'"
           >
             公历
           </button>
           <button
+            type="button"
+            :aria-pressed="form.calendarType === 'LUNAR'"
             :class="form.calendarType === 'LUNAR' ? 'active' : ''"
             @click="form.calendarType = 'LUNAR'"
           >
@@ -254,28 +292,65 @@ async function confirmCreate() {
 
         <div class="date-grid">
           <div class="field-group">
-            <label class="field-label">年</label
-            ><input v-model.number="form.year" class="input-dark" type="number" />
+            <label class="field-label" for="birth-year">年</label
+            ><input
+              id="birth-year"
+              v-model.number="form.year"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              type="number"
+            />
           </div>
           <div class="field-group">
-            <label class="field-label">月</label
-            ><input v-model.number="form.month" class="input-dark" min="1" max="12" type="number" />
+            <label class="field-label" for="birth-month">月</label
+            ><input
+              id="birth-month"
+              v-model.number="form.month"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              min="1"
+              max="12"
+              type="number"
+            />
           </div>
           <div class="field-group">
-            <label class="field-label">日</label
-            ><input v-model.number="form.day" class="input-dark" min="1" max="31" type="number" />
+            <label class="field-label" for="birth-day">日</label
+            ><input
+              id="birth-day"
+              v-model.number="form.day"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              min="1"
+              max="31"
+              type="number"
+            />
           </div>
         </div>
 
         <div class="time-grid">
           <div class="field-group">
-            <label class="field-label">小时（0–23）</label
-            ><input v-model.number="form.hour" class="input-dark" min="0" max="23" type="number" />
+            <label class="field-label" for="birth-hour">小时（0–23）</label
+            ><input
+              id="birth-hour"
+              v-model.number="form.hour"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              min="0"
+              max="23"
+              type="number"
+            />
           </div>
           <div class="field-group">
-            <label class="field-label">分钟（0–59）</label
+            <label class="field-label" for="birth-minute">分钟（0–59）</label
             ><input
+              id="birth-minute"
               v-model.number="form.minute"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
               class="input-dark"
               min="0"
               max="59"
@@ -283,39 +358,24 @@ async function confirmCreate() {
             />
           </div>
           <div class="field-group">
-            <label class="field-label">秒（0–59）</label
+            <label class="field-label" for="birth-second">秒（0–59）</label
             ><input
+              id="birth-second"
               v-model.number="form.second"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
               class="input-dark"
               min="0"
               max="59"
               type="number"
             />
-          </div>
-        </div>
-
-        <div class="field-group full-field">
-          <label class="field-label">晚子时日柱口径</label>
-          <div class="policy-toggle">
-            <button
-              type="button"
-              :class="form.ziHourPolicy === 'late_zi_next_day' ? 'active' : ''"
-              @click="form.ziHourPolicy = 'late_zi_next_day'"
-            >
-              子初换日（23:00）
-            </button>
-            <button
-              type="button"
-              :class="form.ziHourPolicy === 'late_zi_same_day' ? 'active' : ''"
-              @click="form.ziHourPolicy = 'late_zi_same_day'"
-            >
-              午夜换日（00:00）
-            </button>
           </div>
         </div>
 
         <div class="gender-toggle">
           <button
+            type="button"
+            :aria-pressed="form.gender === 'MALE'"
             :class="form.gender === 'MALE' ? 'btn-tech' : 'btn-ghost'"
             class="toggle-btn"
             @click="form.gender = 'MALE'"
@@ -323,6 +383,8 @@ async function confirmCreate() {
             <span>♂</span>男
           </button>
           <button
+            type="button"
+            :aria-pressed="form.gender === 'FEMALE'"
             :class="form.gender === 'FEMALE' ? 'btn-tech' : 'btn-ghost'"
             class="toggle-btn"
             @click="form.gender = 'FEMALE'"
@@ -331,47 +393,19 @@ async function confirmCreate() {
           </button>
         </div>
 
-        <div class="location-grid">
-          <div class="field-group">
-            <label class="field-label">出生地（可选）</label
-            ><input v-model="form.birthPlace" class="input-dark" placeholder="例如：上海市" />
-          </div>
-          <div class="field-group">
-            <label class="field-label">IANA 时区</label
-            ><input v-model="form.timezone" class="input-dark" placeholder="Asia/Shanghai" />
-          </div>
-        </div>
         <div class="field-group full-field">
-          <label class="field-label">UTC 偏移秒（夏令时重复时刻时填写）</label>
-          <input
-            v-model.number="form.birthUTCOffsetSeconds"
+          <label class="field-label" for="birth-place">出生地（可选）</label
+          ><input
+            id="birth-place"
+            v-model="form.birthPlace"
+            :aria-invalid="Boolean(errMsg)"
+            aria-errormessage="birth-form-error"
             class="input-dark"
-            min="-50400"
-            max="50400"
-            step="1"
-            type="number"
-            placeholder="例如：-14400"
-          />
-        </div>
-        <div class="field-group full-field">
-          <label class="field-label">出生地经度（真太阳时可选）</label>
-          <input
-            v-model.number="form.longitude"
-            class="input-dark"
-            min="-180"
-            max="180"
-            step="0.0001"
-            type="number"
-            placeholder="例如：121.4737"
+            placeholder="例如：上海市"
           />
         </div>
 
         <div class="check-list">
-          <label class="check-row"
-            ><input v-model="form.useTrueSolarTime" type="checkbox" /><span
-              >按经度与均时差换算真太阳时</span
-            ></label
-          >
           <label class="check-row"
             ><input v-model="form.timeUncertain" type="checkbox" /><span
               >出生时间不确定（生成边界候选盘）</span
@@ -379,9 +413,14 @@ async function confirmCreate() {
           >
         </div>
         <div v-if="form.timeUncertain" class="field-group full-field">
-          <label class="field-label">中心时刻前后误差（秒，最多 86400）</label>
+          <label class="field-label" for="birth-uncertainty"
+            >中心时刻前后误差（秒，最多 86400）</label
+          >
           <input
+            id="birth-uncertainty"
             v-model.number="form.uncertaintySeconds"
+            :aria-invalid="Boolean(errMsg)"
+            aria-errormessage="birth-form-error"
             class="input-dark"
             min="1"
             max="86400"
@@ -390,8 +429,82 @@ async function confirmCreate() {
           />
         </div>
 
+        <details class="advanced-settings">
+          <summary>排盘口径与时间校正</summary>
+          <p>默认设置适合大多数用户；仅在明确知道出生时区或需要真太阳时校正时调整。</p>
+          <div class="field-group full-field">
+            <span class="field-label">晚子时日柱口径</span>
+            <div class="policy-toggle">
+              <button
+                type="button"
+                :aria-pressed="form.ziHourPolicy === 'late_zi_next_day'"
+                :class="form.ziHourPolicy === 'late_zi_next_day' ? 'active' : ''"
+                @click="form.ziHourPolicy = 'late_zi_next_day'"
+              >
+                子初换日（23:00）
+              </button>
+              <button
+                type="button"
+                :aria-pressed="form.ziHourPolicy === 'late_zi_same_day'"
+                :class="form.ziHourPolicy === 'late_zi_same_day' ? 'active' : ''"
+                @click="form.ziHourPolicy = 'late_zi_same_day'"
+              >
+                午夜换日（00:00）
+              </button>
+            </div>
+          </div>
+          <div class="field-group full-field">
+            <label class="field-label" for="birth-timezone">出生地时区</label>
+            <input
+              id="birth-timezone"
+              v-model="form.timezone"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              placeholder="Asia/Shanghai"
+            />
+          </div>
+          <div class="field-group full-field">
+            <label class="field-label" for="birth-utc-offset"
+              >UTC 偏移秒（仅夏令时重复时刻需要）</label
+            >
+            <input
+              id="birth-utc-offset"
+              v-model.number="form.birthUTCOffsetSeconds"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              min="-50400"
+              max="50400"
+              step="1"
+              type="number"
+              placeholder="例如：-14400"
+            />
+          </div>
+          <label class="check-row"
+            ><input v-model="form.useTrueSolarTime" type="checkbox" /><span
+              >按经度与均时差换算真太阳时</span
+            ></label
+          >
+          <div v-if="form.useTrueSolarTime" class="field-group full-field">
+            <label class="field-label" for="birth-longitude">出生地经度（-180 到 180）</label>
+            <input
+              id="birth-longitude"
+              v-model.number="form.longitude"
+              :aria-invalid="Boolean(errMsg)"
+              aria-errormessage="birth-form-error"
+              class="input-dark"
+              min="-180"
+              max="180"
+              step="0.0001"
+              type="number"
+              placeholder="例如：121.4737"
+            />
+          </div>
+        </details>
+
         <p class="privacy-note">出生地点仅用于时区与真太阳时校正。请先核对转换结果，再保存命盘。</p>
-        <p v-if="errMsg" class="error-msg">{{ errMsg }}</p>
+        <p v-if="errMsg" id="birth-form-error" class="error-msg" role="alert">{{ errMsg }}</p>
         <Button
           :disabled="loading"
           class="w-full h-12 rounded-full text-base font-semibold bg-foreground text-background"
@@ -481,7 +594,15 @@ async function confirmCreate() {
             输入范围：{{ preview.uncertainty.input_range_start }} 至
             {{ preview.uncertainty.input_range_end }}
           </p>
-          <p v-if="preview.candidate_charts.length > 1">这个时间范围跨越了排盘边界，请从下方候选命盘中选择。</p>
+          <p v-if="crossedBoundaryLabels.length">跨越：{{ crossedBoundaryLabels.join('、') }}。</p>
+          <p v-if="preview.candidate_charts.length > 1">
+            稳定字段：{{ stableFieldLabels.join('、') || '无' }}；会变化：{{
+              unstableFieldLabels.join('、') || '无'
+            }}。
+          </p>
+          <p v-if="preview.candidate_charts.length > 1">
+            请优先依据出生证明或家人记录选择；无法确认时可返回修改，缩小时间范围后再保存。
+          </p>
         </div>
 
         <div v-if="preview.candidate_charts.length > 1" class="candidate-list">
@@ -492,10 +613,14 @@ async function confirmCreate() {
             type="button"
             class="candidate-card"
             :class="{ selected: selectedCandidateId === candidate.candidate_id }"
+            :aria-pressed="selectedCandidateId === candidate.candidate_id"
             @click="selectedCandidateId = candidate.candidate_id"
           >
             <span class="candidate-heading">候选 {{ index + 1 }}</span>
-            <span>{{ candidate.calculation_range_start }} 至 {{ candidate.calculation_range_end }}</span>
+            <span
+              >{{ candidate.calculation_range_start }} 至
+              {{ candidate.calculation_range_end }}</span
+            >
             <strong>
               {{ candidate.year_pillar.gan }}{{ candidate.year_pillar.zhi }} ·
               {{ candidate.month_pillar.gan }}{{ candidate.month_pillar.zhi }} ·
@@ -508,8 +633,8 @@ async function confirmCreate() {
           </button>
         </div>
 
-        <div class="pillar-title">用于计算的四柱</div>
-        <div class="pillar-grid">
+        <div v-if="pillars.length" class="pillar-title">用于计算的四柱</div>
+        <div v-if="pillars.length" class="pillar-grid">
           <div v-for="pillar in pillars" :key="pillar.label" class="pillar-item">
             <span>{{ pillar.label }}</span>
             <strong>{{ pillar.value.gan }}{{ pillar.value.zhi }}</strong>
@@ -522,7 +647,7 @@ async function confirmCreate() {
             <li v-for="notice in preview.birth_validation.notices" :key="notice">{{ notice }}</li>
           </ul>
         </div>
-        <p v-if="errMsg" class="error-msg">{{ errMsg }}</p>
+        <p v-if="errMsg" class="error-msg" role="alert">{{ errMsg }}</p>
         <div class="action-grid">
           <Button
             variant="outline"
@@ -660,6 +785,29 @@ async function confirmCreate() {
   display: grid;
   gap: 10px;
   margin: 18px 0;
+}
+.advanced-settings {
+  margin: 18px 0;
+  padding: 0 14px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: var(--surface-1);
+}
+.advanced-settings summary {
+  padding: 14px 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.advanced-settings > p {
+  margin: 0 0 14px;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+.advanced-settings[open] {
+  padding-bottom: 14px;
 }
 .check-row {
   display: flex;

@@ -93,7 +93,7 @@ func TestFeedbackNoJWT(t *testing.T) {
 	router := setupFeedbackRouter(feedbackChart(1), &mockFeedbackStore{})
 	req := httptest.NewRequest(http.MethodPost, "/api/feedback", feedbackBody(t, model.FeedbackRequest{
 		ChartID: 1,
-		Rating:  model.FeedbackRatingAccurate,
+		Rating:  model.FeedbackRatingClear,
 	}))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -108,7 +108,7 @@ func TestFeedbackOtherUsersChartNotFound(t *testing.T) {
 	token, _ := middleware.GenerateToken(1, "testuser")
 	req := httptest.NewRequest(http.MethodPost, "/api/feedback", feedbackBody(t, model.FeedbackRequest{
 		ChartID: 1,
-		Rating:  model.FeedbackRatingAccurate,
+		Rating:  model.FeedbackRatingClear,
 	}))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -174,7 +174,7 @@ func TestFeedbackCreateIgnoresClientSuppliedVersions(t *testing.T) {
 	router := setupFeedbackRouter(feedbackChart(1), store)
 	token, _ := middleware.GenerateToken(1, "testuser")
 	req := httptest.NewRequest(http.MethodPost, "/api/feedback", feedbackBody(t, map[string]interface{}{
-		"chart_id": 1, "rating": model.FeedbackRatingAccurate,
+		"chart_id": 1, "rating": model.FeedbackRatingClear,
 		"engine_version": "spoofed-engine", "rule_version": "spoofed-rule",
 	}))
 	req.Header.Set("Content-Type", "application/json")
@@ -227,7 +227,7 @@ func TestFeedbackCreateBindsCurrentInterpretationVersionWhenChartHasHistoricalSn
 	router := setupFeedbackRouter(chart, store)
 	token, _ := middleware.GenerateToken(1, "testuser")
 	req := httptest.NewRequest(http.MethodPost, "/api/feedback", feedbackBody(t, model.FeedbackRequest{
-		ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingAccurate,
+		ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingClear,
 	}))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -248,8 +248,8 @@ func TestFeedbackCreateBindsCurrentInterpretationVersionWhenChartHasHistoricalSn
 func TestFeedbackSummary(t *testing.T) {
 	store := &mockFeedbackStore{
 		items: []model.FortuneFeedback{
-			{UserID: 1, ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingAccurate, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
-			{UserID: 1, ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingAccurate, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
+			{UserID: 1, ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingClear, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
+			{UserID: 1, ChartID: 1, TargetType: "interpretation_section", TargetID: "pattern", Rating: model.FeedbackRatingClear, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
 			{UserID: 1, ChartID: 1, TargetType: "interpretation_section", TargetID: "tiaohou", Rating: model.FeedbackRatingConfusing, EngineVersion: "e2", RuleVersion: "r2"},
 			{UserID: 2, ChartID: 1, Rating: model.FeedbackRatingHelpful},
 		},

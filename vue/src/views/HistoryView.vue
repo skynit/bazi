@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchCharts as fetchChartList, type ChartSummary } from '../api/chart'
+import {
+  fetchCharts as fetchChartList,
+  fetchFortuneHistory,
+  type ChartSummary,
+  type FortuneHistoryItem,
+} from '../api/chart'
 import { getApiErrorMessage } from '../api/client'
 
 const router = useRouter()
@@ -12,13 +17,22 @@ const error = ref('')
 const total = ref(0)
 const page = ref(1)
 const pageSize = 10
+const expandedHistoryChartId = ref<number | null>(null)
+const fortuneHistory = ref<Record<number, FortuneHistoryItem[]>>({})
+const historyLoadingChartId = ref<number | null>(null)
+const historyError = ref('')
 
 function formatBirth(c: ChartSummary): string {
   const m = String(c.birth_month).padStart(2, '0')
   const d = String(c.birth_day).padStart(2, '0')
   const h = String(c.birth_hour).padStart(2, '0')
   const min = String(c.birth_min).padStart(2, '0')
-  return `${c.birth_year}-${m}-${d} ${h}:${min}`
+  const calendar = c.calendar_type === 'LUNAR' ? (c.lunar_leap_month ? '农历闰月' : '农历') : '公历'
+  return `${calendar} ${c.birth_year}-${m}-${d} ${h}:${min}`
+}
+
+function genderLabel(value: string): string {
+  return value === 'FEMALE' || value === '女' ? '女' : '男'
 }
 
 function formatDate(iso: string): string {
@@ -34,8 +48,23 @@ function goChart(id: number) {
   router.push(`/chart/${id}`)
 }
 
-function goFortuneHistory(chartId: number) {
-  router.push(`/fortune?chart_id=${chartId}`)
+async function toggleFortuneHistory(chartId: number) {
+  if (expandedHistoryChartId.value === chartId) {
+    expandedHistoryChartId.value = null
+    return
+  }
+  expandedHistoryChartId.value = chartId
+  historyError.value = ''
+  if (fortuneHistory.value[chartId]) return
+  historyLoadingChartId.value = chartId
+  try {
+    const data = await fetchFortuneHistory(chartId, 1, 10)
+    fortuneHistory.value = { ...fortuneHistory.value, [chartId]: data.items }
+  } catch (reason: unknown) {
+    historyError.value = getApiErrorMessage(reason, '运势记录加载失败，请稍后重试。')
+  } finally {
+    historyLoadingChartId.value = null
+  }
 }
 
 async function loadCharts(p: number) {
@@ -94,8 +123,24 @@ onMounted(() => {
               stroke-dasharray="3 2"
               opacity="0.4"
             />
-            <line x1="20" y1="20" x2="40" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
-            <line x1="40" y1="20" x2="20" y2="40" stroke="currentColor" stroke-width="2" opacity="0.5" />
+            <line
+              x1="20"
+              y1="20"
+              x2="40"
+              y2="40"
+              stroke="currentColor"
+              stroke-width="2"
+              opacity="0.5"
+            />
+            <line
+              x1="40"
+              y1="20"
+              x2="20"
+              y2="40"
+              stroke="currentColor"
+              stroke-width="2"
+              opacity="0.5"
+            />
           </svg>
         </div>
         <p class="error-text">{{ error }}</p>
@@ -104,27 +149,55 @@ onMounted(() => {
 
       <!-- Chart List -->
       <div v-else class="chart-list">
-        <div v-for="chart in charts" :key="chart.id" class="chart-card" @click="goChart(chart.id)">
+        <article v-for="chart in charts" :key="chart.id" class="chart-card">
           <div class="card-glow"></div>
-          <div class="card-main">
-            <div class="card-avatar">{{ chart.name?.charAt(0) || '?' }}</div>
-            <div class="card-info">
-              <h3 class="card-name">{{ chart.name || '未命名' }}</h3>
-              <p class="card-meta">
-                <span class="meta-tag">{{ chart.gender }}</span>
-                <span class="meta-sep">·</span>
-                <span>{{ formatBirth(chart) }}</span>
-              </p>
-              <p class="card-date">创建于 {{ formatDate(chart.created_at || '') }}</p>
+          <button type="button" class="card-main-button" @click="goChart(chart.id)">
+            <div class="card-main">
+              <div class="card-avatar">{{ chart.name?.charAt(0) || '?' }}</div>
+              <div class="card-info">
+                <h3 class="card-name">{{ chart.name || '未命名' }}</h3>
+                <p class="card-meta">
+                  <span class="meta-tag">{{ genderLabel(chart.gender) }}</span>
+                  <span class="meta-sep">·</span>
+                  <span>{{ formatBirth(chart) }}</span>
+                </p>
+                <p class="card-date">创建于 {{ formatDate(chart.created_at || '') }}</p>
+              </div>
             </div>
-          </div>
+          </button>
           <div class="card-actions">
-            <button class="action-btn fortune-btn" @click.stop="goFortuneHistory(chart.id)">
+            <button
+              type="button"
+              class="action-btn fortune-btn"
+              :aria-expanded="expandedHistoryChartId === chart.id"
+              @click="toggleFortuneHistory(chart.id)"
+            >
               <span class="btn-icon">✦</span>
-              运势历史
+              运势记录
             </button>
           </div>
-        </div>
+          <div v-if="expandedHistoryChartId === chart.id" class="fortune-history-panel">
+            <p v-if="historyLoadingChartId === chart.id" class="history-status">
+              正在加载运势记录…
+            </p>
+            <div v-else-if="historyError" class="history-status history-error">
+              <span>{{ historyError }}</span>
+              <button type="button" @click="toggleFortuneHistory(chart.id)">关闭</button>
+            </div>
+            <p v-else-if="!fortuneHistory[chart.id]?.length" class="history-status">
+              该命盘还没有已保存的运势查询记录。
+            </p>
+            <ol v-else class="fortune-history-list">
+              <li v-for="item in fortuneHistory[chart.id]" :key="item.id">
+                <div>
+                  <time>{{ item.query_date }}</time>
+                  <strong>{{ item.day_gan_zhi }}</strong>
+                </div>
+                <p>{{ item.summary || '已保存当日干支关系记录' }}</p>
+              </li>
+            </ol>
+          </div>
+        </article>
       </div>
 
       <!-- Pagination -->
@@ -232,9 +305,26 @@ onMounted(() => {
   border: 1px solid var(--line-strong);
   border-radius: 16px;
   padding: 1rem 1.125rem;
-  cursor: pointer;
   transition: all 0.3s ease;
   overflow: hidden;
+}
+
+.card-main-button {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card-main-button:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
 .card-glow {
@@ -319,10 +409,64 @@ onMounted(() => {
 }
 
 .card-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
   padding-top: 0.5rem;
   border-top: 1px solid rgba(203, 213, 225, 0.05);
+}
+
+.fortune-history-panel {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.history-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+
+.history-error {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--danger);
+}
+
+.fortune-history-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fortune-history-list li {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 7px;
+  background: var(--surface-1);
+}
+
+.fortune-history-list li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--text);
+  font-size: var(--fs-xs);
+}
+
+.fortune-history-list p {
+  margin: 0.3rem 0 0;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
 }
 
 .action-btn {

@@ -1,57 +1,29 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  ArrowLeft,
-  CalendarDays,
-  Clock3,
-  Pause,
-  Play,
-  ShieldAlert,
-  Sparkles,
-} from '@lucide/vue'
+import { ArrowLeft, Pause, Play, ShieldAlert } from '@lucide/vue'
 import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
 import { getApiErrorMessage } from '../api/client'
-import {
-  blessingProfiles,
-  isBlessingElement,
-  resolveBlessingElement,
-  type BlessingProfile,
-} from '../lib/blessing'
+import { blessingProfiles, resolveBlessingElement } from '../lib/blessing'
 
-interface BlessingAsset {
-  url: string
-  thumbnail_url?: string
-  alt_text: string
-  name: string
-  description?: string
-  element: string
-  orientation: 'landscape' | 'portrait' | 'square'
-  tone?: string
-  focal_x?: number
-  focal_y?: number
+interface PracticeStep {
+  key: string
+  label: string
+  title: string
+  description: string
+  image: string
+  alt: string
 }
 
-interface PracticeItem {
+interface EvidenceRow {
   label: string
-  value: string
-  reason: string
-  method?: string
-  category?: string
-  timing?: string
-  element?: string
+  title: string
+  description: string
 }
 
 function todayString(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-function splitValues(value?: string) {
-  return (value ?? '')
-    .split(/[、,，+＋]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
 }
 
 const route = useRoute()
@@ -59,141 +31,86 @@ const fortune = ref<FortuneDay | null>(null)
 const chartId = ref('')
 const loading = ref(true)
 const error = ref('')
-const presenceSeconds = ref(0)
-const fieldActive = ref(true)
-let presenceTimer: ReturnType<typeof setInterval> | undefined
+const practiceSeconds = ref(0)
+const practiceActive = ref(false)
+let practiceTimer: ReturnType<typeof setInterval> | undefined
 
 const element = computed(() => resolveBlessingElement(fortune.value))
 const profile = computed(() => blessingProfiles[element.value])
-const guide = computed(() => ({
-  strategy: profile.value.summary,
-  face_direction: { value: profile.value.direction },
-  avoid_direction: { value: profile.value.avoidDirection },
-  avoid_element: '',
-  analysis: '用短暂静驻、环境整理和一个明确动作承接今日节奏。',
-}))
-const colorText = computed(() => profile.value.colors)
-const colorChips = computed(() => splitValues(colorText.value))
-const objectText = computed(() => profile.value.objects)
-const objectChips = computed(() => splitValues(objectText.value))
-const actionItems = computed<PracticeItem[]>(() =>
-  profile.value.actions.map((action) => ({
-    label: action.title,
-    value: action.title,
-    reason: action.description,
-    method: action.description,
-    category: `${profile.value.element}行行动`,
-    timing: '今日任选一刻',
-    element: profile.value.element,
-  })),
-)
-const actionCards = computed(() =>
-  actionItems.value.map((item, index) => ({
-    item,
-    asset: {
-      url: profile.value.actions[index]?.image || profile.value.image,
-      alt_text: `${profile.value.element}行行动：${item.value}`,
-      name: item.value,
-      element: profile.value.element,
-      orientation: 'square',
-    } satisfies BlessingAsset,
-  })),
-)
-const cautionItems = computed<PracticeItem[]>(() =>
-  (fortune.value?.counter_evidence ?? []).slice(0, 3).map((item) => ({
-    label: item.label,
-    value: item.label,
-    reason: item.description,
-    method: item.description,
-  })),
-)
-const hourItems = computed(() => [
-  { label: '开始前', value: '静驻 3 分钟' },
-  { label: '进行中', value: '专注 20 分钟' },
-  { label: '收尾时', value: '复盘 5 分钟' },
-])
-const galleryProfiles = computed(() => Object.values(blessingProfiles))
-const galleryItems = computed(() => {
-  return galleryProfiles.value.map((item) => ({
-    key: `fallback-${item.element}`,
-    asset: {
-      url: item.image,
-      thumbnail_url: undefined,
-      alt_text: item.alt,
-      name: item.objectLabel,
-      element: item.element,
-      orientation: 'square',
-      tone: item.tone,
-      description: item.summary,
-      focal_x: 0.5,
-      focal_y: 0.5,
-    } satisfies BlessingAsset,
-    profile: item,
-  }))
-})
+const navQuery = computed(() => (chartId.value ? { chart_id: chartId.value } : {}))
 const pageStyle = computed<Record<string, string>>(() => ({
   '--blessing-accent': profile.value.accent,
   '--blessing-accent-dark': profile.value.accentDark,
   '--blessing-accent-rgb': profile.value.accentRgb,
-  '--blessing-backdrop': `url(${profile.value.backdrop})`,
 }))
-const navQuery = computed(() => (chartId.value ? { chart_id: chartId.value } : {}))
+const practiceText = computed(() => {
+  const minutes = Math.floor(practiceSeconds.value / 60)
+  const seconds = practiceSeconds.value % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
 const heroEvidence = computed(() => {
   const day = fortune.value
   if (!day) return []
 
   return [
+    day.solar_date,
     day.jie_qi || day.seasonal_state?.season,
-    day.ten_god?.status === 'observed' ? day.ten_god.name : '',
+    `主题：${profile.value.tone}与整理`,
   ].filter(Boolean)
 })
-const presenceText = computed(() => {
-  const minutes = Math.floor(presenceSeconds.value / 60)
-  const seconds = presenceSeconds.value % 60
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-})
-const imageModules = computed(() => {
-  const steps = [
-    {
-      key: 'prepare',
-      badge: '整境',
-      title: '先让环境安静下来',
-      text: profile.value.objectLabel,
-      note: profile.value.objectPrompt,
-      tone: 'primary',
-    },
-    {
-      key: 'breathe',
-      badge: '调息',
-      title: '三分钟静驻承气',
-      text: '放松肩颈，缓慢呼吸',
-      note: '计时只记录静驻时长；感觉不适时应立即停止。',
-      tone: 'secondary',
-    },
-    {
-      key: 'act',
-      badge: '行持',
-      title: '把主气落到一件小事',
-      text: profile.value.actions[0]?.title || profile.value.objects,
-      note: profile.value.actions[0]?.description || profile.value.summary,
-      tone: 'primary',
-    },
-  ]
-
-  return steps.map((step, index) => ({
-    ...step,
-    profile: profile.value,
-    asset: {
-      url: profile.value.ritualImages[index] || profile.value.image,
-      alt_text: `${profile.value.element}行承气步骤：${step.title}`,
-      name: step.title,
-      element: profile.value.element,
-      orientation: 'landscape',
-      focal_x: 0.5,
-      focal_y: 0.5,
-    } satisfies BlessingAsset,
-  }))
-})
+const practiceSteps = computed<PracticeStep[]>(() => [
+  {
+    key: 'prepare',
+    label: '整境',
+    title: '清出一块空间',
+    description: profile.value.objectPrompt,
+    image: profile.value.image,
+    alt: profile.value.alt,
+  },
+  {
+    key: 'pause',
+    label: '停顿',
+    title: '安静三分钟',
+    description: '放松肩颈，缓慢呼吸。练习计时需要由你主动开始。',
+    image: profile.value.ritualImages[1] || profile.value.ritualImages[0] || profile.value.image,
+    alt: `${profile.value.element}行主题的安静环境`,
+  },
+  {
+    key: 'act',
+    label: '行动',
+    title: '推进最小一步',
+    description:
+      profile.value.actions[0]?.description || '完成一个可以验证的小动作，再根据现实反馈调整方向。',
+    image: profile.value.actions[0]?.image || profile.value.ritualImages[2] || profile.value.image,
+    alt: `${profile.value.element}行主题行动：推进最小一步`,
+  },
+])
+const mainAction = computed(() => profile.value.actions[0])
+const alternativeActions = computed(() => profile.value.actions.slice(1, 2))
+const relationshipCount = computed(
+  () =>
+    (fortune.value?.supporting_evidence?.length ?? 0) +
+    (fortune.value?.counter_evidence?.length ?? 0),
+)
+const evidenceRows = computed<EvidenceRow[]>(() => [
+  {
+    label: '当日结构',
+    title: `${profile.value.element}行主题来自今日五行样本`,
+    description: '只用于选择页面主题和通用提示模板，不表示个性化吉凶。',
+  },
+  {
+    label: '关系记录',
+    title: relationshipCount.value
+      ? `记录到 ${relationshipCount.value} 条传统结构关系`
+      : '当前没有额外传统关系记录',
+    description: '这些记录不等于事件会发生，也不构成健康、法律、财务或安全建议。',
+  },
+  {
+    label: '现实判断',
+    title: '以事实、可控因素和专业意见为准',
+    description: '遇到重要决策时，请回到可验证信息，不依据本页提示单独行动。',
+  },
+])
 
 function readChartId() {
   const raw = route.query.chart_id
@@ -209,29 +126,11 @@ function readChartId() {
   }
 }
 
-function errorMessage(reason: unknown) {
-  return getApiErrorMessage(reason, '运势加持加载失败，请稍后重试。')
-}
-
-function profileForElement(elementName?: string): BlessingProfile | undefined {
-  return isBlessingElement(elementName) ? blessingProfiles[elementName] : undefined
-}
-
-function profileForAction(item: PracticeItem) {
-  return profileForElement(item.element) ?? profile.value
-}
-
-function assetFocusStyle(asset?: BlessingAsset) {
-  if (!asset) return undefined
-  return {
-    objectPosition: `${(asset.focal_x ?? 0.5) * 100}% ${(asset.focal_y ?? 0.5) * 100}%`,
-  }
-}
-
 async function fetchBlessing() {
   loading.value = true
   error.value = ''
   const cid = readChartId()
+
   if (!cid) {
     chartId.value = ''
     fortune.value = null
@@ -244,288 +143,220 @@ async function fetchBlessing() {
   try {
     fortune.value = await fetchDaily(Number(cid), todayString())
   } catch (reason: unknown) {
-    error.value = errorMessage(reason)
+    error.value = getApiErrorMessage(reason, '运势加持加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
 }
 
-function toggleField() {
-  fieldActive.value = !fieldActive.value
+function togglePractice() {
+  practiceActive.value = !practiceActive.value
 }
 
 onMounted(() => {
   void fetchBlessing()
-  presenceTimer = setInterval(() => {
-    if (fieldActive.value) presenceSeconds.value += 1
+  practiceTimer = setInterval(() => {
+    if (practiceActive.value) practiceSeconds.value += 1
   }, 1000)
 })
 
 onUnmounted(() => {
-  if (presenceTimer) clearInterval(presenceTimer)
+  if (practiceTimer) clearInterval(practiceTimer)
 })
 </script>
 
 <template>
-  <div class="blessing-page" :class="{ 'field-paused': !fieldActive }" :style="pageStyle">
-    <div class="ambient-scene" aria-hidden="true">
-      <div class="ambient-image"></div>
-      <div class="ambient-wash"></div>
-      <div class="qi-stream qi-stream-one"></div>
-      <div class="qi-stream qi-stream-two"></div>
-      <div class="grain"></div>
-    </div>
+  <div class="blessing-page" :style="pageStyle">
+    <section v-if="loading" class="state-view" aria-live="polite">
+      <div class="state-seal" aria-hidden="true">五行</div>
+      <p>正在整理今日五行参考</p>
+      <small>内容来自当日结构样本，不代表现实结果</small>
+    </section>
 
-    <div v-if="loading" class="state-view">
-      <div class="loading-seal"><span>气</span></div>
-      <p>正在感应今日五行</p>
-      <small>一呼一吸之间，气场渐明</small>
-    </div>
-
-    <div v-else-if="error" class="state-view">
-      <div class="state-mark warning"><ShieldAlert :size="24" /></div>
+    <section v-else-if="error" class="state-view" aria-live="polite">
+      <div class="state-icon warning" aria-hidden="true"><ShieldAlert :size="24" /></div>
       <p>{{ error }}</p>
-      <div class="state-actions">
-        <router-link v-if="error === '请先创建命盘'" to="/chart/new" class="primary-action">
-          去排盘
-        </router-link>
-        <button v-else type="button" class="primary-action" @click="fetchBlessing">重新加载</button>
-      </div>
-    </div>
+      <router-link v-if="error === '请先创建命盘'" to="/" class="state-action">
+        去创建命盘
+      </router-link>
+      <button v-else type="button" class="state-action" @click="fetchBlessing">重新加载</button>
+    </section>
 
     <div v-else-if="fortune" class="blessing-shell">
-      <nav class="top-nav" aria-label="运势加持导航">
-        <router-link :to="{ path: '/fortune', query: navQuery }" class="nav-back">
-          <ArrowLeft :size="16" />
-          今日运势
-        </router-link>
-        <div class="nav-periods">
-          <span class="active">今日加持</span>
-          <router-link :to="{ path: '/fortune/weekly', query: navQuery }">本周</router-link>
-          <router-link :to="{ path: '/fortune/monthly', query: navQuery }">本月</router-link>
-        </div>
-      </nav>
-
       <section class="blessing-hero" aria-labelledby="blessing-title">
         <img
           class="hero-image"
           :src="profile.backdrop"
+          :srcset="`${profile.backdrop} 1600w, ${profile.backdropHd} 3200w`"
+          sizes="100vw"
           :alt="`${profile.element}行视觉锚点：${profile.tone}实景`"
+          width="3200"
+          height="1800"
+          loading="eager"
           decoding="async"
+          fetchpriority="high"
         />
+
+        <div class="hero-toolbar">
+          <router-link :to="{ path: '/fortune', query: navQuery }" class="hero-back">
+            <ArrowLeft :size="16" />
+            今日运势
+          </router-link>
+          <nav class="period-nav" aria-label="运势周期">
+            <span aria-current="page">今日加持</span>
+            <router-link :to="{ path: '/fortune/weekly', query: navQuery }">本周</router-link>
+            <router-link :to="{ path: '/fortune/monthly', query: navQuery }">本月</router-link>
+          </nav>
+        </div>
 
         <div class="hero-inner">
           <div class="hero-copy">
-            <p class="eyebrow">今日五行锚点 · {{ profile.element }}行{{ profile.tone }}</p>
+            <p class="hero-eyebrow">今日五行样本 · {{ profile.element }}行{{ profile.tone }}</p>
             <h1 id="blessing-title">运势加持</h1>
-            <p class="hero-strategy">{{ profile.summary }}</p>
-            <div class="hero-evidence" aria-label="今日排盘依据摘要">
+            <p class="hero-summary">{{ profile.summary }}</p>
+            <div class="hero-meta" aria-label="今日参考摘要">
               <span v-for="item in heroEvidence" :key="item">{{ item }}</span>
             </div>
           </div>
 
-          <div class="hero-presence" :aria-label="`${profile.element}行静驻计时`">
-            <span class="hero-element" aria-hidden="true">{{ profile.element }}</span>
-            <div class="presence-readout">
-              <div>
-                <span>静驻时间</span>
-                <strong>{{ presenceText }}</strong>
-              </div>
-              <button
-                type="button"
-                class="field-toggle"
-                :title="fieldActive ? '暂停静驻计时' : '继续静驻计时'"
-                :aria-label="fieldActive ? '暂停静驻计时' : '继续静驻计时'"
-                :aria-pressed="!fieldActive"
-                @click="toggleField"
-              >
-                <Pause v-if="fieldActive" :size="17" />
-                <Play v-else :size="17" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="ritual-section" aria-labelledby="ritual-title">
-        <header class="section-heading">
-          <div>
-            <p>THREE STEPS · 三步承气</p>
-            <h2 id="ritual-title">把五行之气，落到今日生活</h2>
-          </div>
-          <span class="section-number">壹</span>
-        </header>
-
-        <div class="ritual-grid">
-          <article
-            v-for="(module, index) in imageModules"
-            :key="module.key"
-            class="ritual-card"
-            :class="{ avoid: module.tone === 'avoid' }"
-            :style="{
-              '--module-accent': module.profile.accent,
-              '--module-rgb': module.profile.accentRgb,
-            }"
-          >
-            <div class="ritual-image-wrap">
-              <img
-                :src="module.asset?.url || module.profile.image"
-                :alt="module.asset?.alt_text || module.profile.alt"
-                loading="lazy"
-                decoding="async"
-                :style="assetFocusStyle(module.asset)"
-              />
-              <span>0{{ index + 1 }}</span>
-            </div>
-            <div class="ritual-body">
-              <p>{{ module.badge }}</p>
-              <h3>{{ module.title }}</h3>
-              <strong>{{ module.text }}</strong>
-              <small>{{ module.note }}</small>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="daily-practice" aria-labelledby="practice-title">
-        <header class="section-heading compact">
-          <div>
-            <p>DAILY PRACTICE · 今日行持</p>
-            <h2 id="practice-title">顺势而为，知止而安</h2>
-          </div>
-          <span class="section-number">贰</span>
-        </header>
-
-        <div class="practice-columns">
-          <article class="practice-panel favorable">
-            <div class="panel-title"><Sparkles :size="17" /><span>今日宜行</span></div>
-            <div v-if="actionItems.length" class="practice-list">
-              <div
-                v-for="card in actionCards"
-                :key="`${card.item.label}-${card.item.value}`"
-                class="practice-item"
-              >
-                <img
-                  :src="card.asset?.url || profileForAction(card.item).image"
-                  :alt="card.asset?.alt_text || profileForAction(card.item).alt"
-                  :style="assetFocusStyle(card.asset)"
-                />
-                <div>
-                  <span>{{ card.item.category || card.item.label }}</span>
-                  <strong>{{ card.item.value }}</strong>
-                  <p>{{ card.item.method || card.item.reason }}</p>
-                  <small v-if="card.item.timing"><Clock3 :size="13" />{{ card.item.timing }}</small>
-                </div>
-              </div>
-            </div>
-            <p v-else class="empty-copy">今日暂无具体宜用动作，守住一件小事即可。</p>
-          </article>
-
-          <article class="practice-panel cautious">
-            <div class="panel-title"><ShieldAlert :size="17" /><span>今日慎行</span></div>
-            <div v-if="cautionItems.length" class="caution-list">
-              <div
-                v-for="(item, index) in cautionItems"
-                :key="`${item.label}-${item.value}`"
-                class="caution-item"
-              >
-                <span>0{{ index + 1 }}</span>
-                <div>
-                  <strong>{{ item.value }}</strong>
-                  <p>{{ item.method || item.reason }}</p>
-                </div>
-              </div>
-            </div>
-            <p v-else class="empty-copy">
-              当前没有明显反向证据，承气以不过量、不勉强为原则。
-            </p>
-
-            <div class="color-ritual">
-              <div>
-                <span>今日随身宜色</span>
-                <strong>{{ colorText }}</strong>
-              </div>
-              <div class="swatches" aria-hidden="true">
-                <i v-for="chip in colorChips.slice(0, 3)" :key="chip"></i>
-              </div>
-            </div>
-
-            <div class="object-ritual">
-              <CalendarDays :size="17" />
-              <div>
-                <span>随身宜物</span>
-                <strong>{{ objectChips.join(' · ') || profile.objects }}</strong>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="time-section" aria-labelledby="time-title">
-        <div class="time-copy">
-          <p>PRACTICE RHYTHM · 承气节律</p>
-          <h2 id="time-title">择一刻静驻，再起身行动</h2>
-          <span>{{
-            guide?.analysis || '在适合的时段完成最重要的一件事，让今日之气有处可落。'
-          }}</span>
-        </div>
-        <div class="hour-track" v-if="hourItems.length">
-          <div v-for="(hour, index) in hourItems" :key="`${hour.label}-${hour.value}`">
-            <span>0{{ index + 1 }}</span>
-            <strong>{{ hour.value }}</strong>
-            <small>{{ hour.label }}</small>
-          </div>
-        </div>
-        <div v-else class="hour-empty">今日不拘时，任选不受打扰的一刻即可。</div>
-      </section>
-
-      <section class="five-elements" aria-labelledby="elements-title">
-        <header class="section-heading compact">
-          <div>
-            <p>FIVE ELEMENTS · 五行流转</p>
-            <h2 id="elements-title">一气流行，生生不息</h2>
-          </div>
-          <span class="section-number">叁</span>
-        </header>
-        <div class="element-track">
-          <article
-            v-for="item in galleryItems"
-            :key="item.key"
-            :class="[
-              { active: item.profile.element === profile.element },
-              `orientation-${item.asset.orientation}`,
-            ]"
-            :style="{
-              '--module-accent': item.profile.accent,
-              '--module-rgb': item.profile.accentRgb,
-            }"
-          >
-            <img
-              :src="item.asset.thumbnail_url || item.asset.url"
-              :alt="item.asset.alt_text"
-              loading="lazy"
-              decoding="async"
-              :style="assetFocusStyle(item.asset)"
-            />
+          <div class="practice-timer" :aria-label="`${profile.element}行主题练习计时`">
             <div>
-              <span>{{ item.profile.element }}行 · {{ item.asset.tone || '五行物象' }}</span>
-              <strong>{{ item.asset.name || item.profile.objectLabel }}</strong>
-              <small v-if="item.asset.description && item.asset.description !== item.asset.name">{{
-                item.asset.description
-              }}</small>
-              <small v-else-if="!item.asset.description"
-                >{{ item.profile.direction }} · {{ item.profile.colors }}</small
-              >
+              <small>可选练习计时</small>
+              <strong>安静三分钟</strong>
+              <span>{{ practiceText }}</span>
             </div>
-          </article>
+            <button
+              type="button"
+              class="timer-toggle"
+              :title="practiceActive ? '暂停练习计时' : '开始练习计时'"
+              :aria-label="practiceActive ? '暂停练习计时' : '开始练习计时'"
+              :aria-pressed="practiceActive"
+              @click="togglePractice"
+            >
+              <Pause v-if="practiceActive" :size="18" />
+              <Play v-else :size="18" />
+            </button>
+          </div>
         </div>
       </section>
+
+      <section class="context-band" aria-label="今日主题与说明">
+        <div class="context-inner">
+          <div class="today-focus">
+            <div class="element-seal" aria-hidden="true">{{ profile.element }}</div>
+            <div>
+              <p class="section-kicker">今日主题</p>
+              <h2>{{ mainAction?.title || '整理主线，再推进一步' }}</h2>
+              <p>{{ mainAction?.description || profile.summary }}</p>
+            </div>
+          </div>
+          <div class="boundary-copy">
+            <p class="section-kicker">如何理解这页</p>
+            <h2>生活提示，不是结果预测</h2>
+            <p>内容按当天五行结构生成，不是新的个性化排盘，也不代表事情会如何发展。</p>
+          </div>
+        </div>
+      </section>
+
+      <main>
+        <section class="content-section steps-section" aria-labelledby="steps-title">
+          <header class="section-heading">
+            <div>
+              <p class="section-index">01 / 三步练习</p>
+              <h2 id="steps-title">从整理环境，到完成一个具体行动</h2>
+            </div>
+            <p>不需要完成全部步骤。任选其中一项即可，感觉不适或现实条件不允许时直接跳过。</p>
+          </header>
+
+          <div class="steps-grid">
+            <article v-for="(step, index) in practiceSteps" :key="step.key" class="step-card">
+              <img :src="step.image" :alt="step.alt" loading="lazy" decoding="async" />
+              <span class="step-number">0{{ index + 1 }}</span>
+              <div class="step-copy">
+                <span>{{ step.label }}</span>
+                <h3>{{ step.title }}</h3>
+                <p>{{ step.description }}</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="action-band" aria-labelledby="actions-title">
+          <div class="content-section action-layout">
+            <div class="action-copy">
+              <p class="section-index">02 / 今日行动</p>
+              <h2 id="actions-title">一个主行动，两个备选</h2>
+              <p>用优先级替代建议堆叠，让页面真正帮助你决定下一步。</p>
+
+              <div class="primary-action">
+                <span>建议优先</span>
+                <strong>{{ mainAction?.title || '完成一件小事' }}</strong>
+                <p>{{ mainAction?.description || profile.summary }}</p>
+              </div>
+
+              <dl class="theme-notes">
+                <div>
+                  <dt>可选主题色</dt>
+                  <dd>{{ profile.colors }}</dd>
+                </div>
+                <div>
+                  <dt>环境物件</dt>
+                  <dd>{{ profile.objects }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="action-list">
+              <article
+                v-for="(action, index) in alternativeActions"
+                :key="action.title"
+                class="action-item"
+              >
+                <span>{{ ['壹', '贰'][index] }}</span>
+                <div>
+                  <strong>{{ action.title }}</strong>
+                  <p>{{ action.description }}</p>
+                </div>
+                <small>{{ index === 0 ? '约 20 分钟' : '约 10 分钟' }}</small>
+              </article>
+              <article class="action-item">
+                <span>贰</span>
+                <div>
+                  <strong>记录已知与未知</strong>
+                  <p>把事实、待核实项和下一步各写一条，不急于补全结论。</p>
+                </div>
+                <small>约 5 分钟</small>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section evidence-layout" aria-labelledby="evidence-title">
+          <div class="evidence-heading">
+            <p class="section-index">03 / 依据与边界</p>
+            <h2 id="evidence-title">这组提示从哪里来</h2>
+            <p>保留必要依据，但不把传统关系记录直接转化为现实行动结论。</p>
+          </div>
+
+          <dl class="evidence-list">
+            <div v-for="row in evidenceRows" :key="row.label">
+              <dt>{{ row.label }}</dt>
+              <dd>
+                <strong>{{ row.title }}</strong>
+                <p>{{ row.description }}</p>
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </main>
 
       <footer class="blessing-footer">
-        <span class="footer-seal">福</span>
-        <div>
-          <p>愿今日所行，皆有回响</p>
-          <small>以传统命理为参考，以清醒行动为根本</small>
+        <div class="footer-inner">
+          <div>
+            <strong>把提示变成一个可验证的小行动</strong>
+            <p>传统结构仅作文化参考，现实判断以事实和专业意见为准。</p>
+          </div>
+          <span aria-hidden="true">行</span>
         </div>
       </footer>
     </div>
@@ -534,1003 +365,874 @@ onUnmounted(() => {
 
 <style scoped>
 .blessing-page {
-  --blessing-accent: #22c59e;
-  --blessing-accent-dark: #0f8f6e;
-  --blessing-accent-rgb: 34, 197, 158;
-  --blessing-backdrop: none;
-  position: relative;
-  min-height: calc(100vh - 72px);
-  overflow: hidden;
-  color: var(--text);
-  background:
-    radial-gradient(circle at 78% 6%, rgba(var(--blessing-accent-rgb), 0.09), transparent 27rem),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--surface-2) 42%, transparent),
-      transparent 22rem
-    ),
-    var(--bg);
-}
-
-.ambient-scene {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.ambient-image {
-  position: absolute;
-  top: -6rem;
-  right: -8rem;
-  width: min(44rem, 58vw);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background-image: var(--blessing-backdrop);
-  background-size: cover;
-  background-position: center;
-  opacity: 0.07;
-  filter: saturate(0.8);
-  mask-image: radial-gradient(circle, #000 20%, transparent 70%);
-}
-
-.ambient-wash {
-  position: absolute;
-  top: 5rem;
-  left: -12rem;
-  width: 30rem;
-  height: 30rem;
-  border-radius: 50%;
-  background: rgba(var(--blessing-accent-rgb), 0.055);
-  filter: blur(80px);
-}
-
-.qi-stream,
-.grain {
-  display: none;
+  --page-paper: #f7f8f3;
+  --page-surface: #ffffff;
+  --page-muted: #eaf0e8;
+  --page-line: rgba(19, 34, 26, 0.12);
+  --page-ink: #13221a;
+  --page-soft: #42534a;
+  min-height: 100vh;
+  margin-top: -80px;
+  color: var(--page-ink);
+  background: var(--page-paper);
+  font-family: var(--font-sans);
 }
 
 .blessing-shell {
-  position: relative;
-  z-index: 1;
-  width: min(1080px, calc(100% - 40px));
-  margin: 0 auto;
-  padding: 2rem 0 5rem;
-}
-
-.top-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.nav-back,
-.nav-periods a,
-.nav-periods span {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: var(--fs-xs, 0.78rem);
-}
-
-.nav-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: 36px;
-  padding: 0 0.25rem;
-  font-weight: 650;
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.nav-back:hover {
-  color: var(--text);
-  transform: translateX(-2px);
-}
-
-.nav-periods {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--surface-0) 86%, transparent);
-  box-shadow: var(--shadow-xs);
-}
-
-.nav-periods a,
-.nav-periods span {
-  padding: 0.5rem 0.8rem;
-  border-radius: 7px;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
-}
-
-.nav-periods .active {
-  color: var(--text);
-  background: color-mix(in oklab, var(--blessing-accent) 15%, var(--surface-1));
-  font-weight: 750;
-  box-shadow: inset 0 0 0 1px rgba(var(--blessing-accent-rgb), 0.16);
-}
-
-.nav-periods a:hover {
-  color: var(--text);
-  background: var(--surface-2);
+  overflow: hidden;
 }
 
 .blessing-hero {
   position: relative;
-  width: 100%;
-  min-height: 420px;
-  overflow: visible;
-  background: transparent;
+  display: grid;
+  min-height: 670px;
+  overflow: hidden;
+  color: #ffffff;
   isolation: isolate;
+}
+
+.hero-image {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 52%;
+  filter: brightness(1.06) saturate(1) contrast(1.04);
+}
+
+.blessing-hero::after {
+  position: absolute;
+  z-index: -1;
+  right: -6vw;
+  bottom: -24vw;
+  width: 54vw;
+  height: 54vw;
+  border: 1px solid rgba(241, 216, 137, 0.25);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 8vw rgba(255, 255, 255, 0.025),
+    0 0 0 16vw rgba(255, 255, 255, 0.018);
+  content: '';
+}
+
+.hero-toolbar,
+.hero-inner,
+.context-inner,
+.content-section {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.hero-toolbar {
+  position: absolute;
+  z-index: 2;
+  top: 96px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transform: translateX(-50%);
+}
+
+.hero-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  text-shadow: 0 1px 10px rgba(4, 18, 12, 0.55);
+}
+
+.period-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(32, 62, 47, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.period-nav a,
+.period-nav span {
+  min-height: 36px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.period-nav span {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 700;
 }
 
 .hero-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.42fr);
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.42fr);
+  align-self: end;
   align-items: end;
-  gap: clamp(2rem, 5vw, 4rem);
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 420px;
-  padding: clamp(1.6rem, 4vw, 3rem) 0;
-}
-
-.hero-image {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  height: 100%;
-  transform: translateX(-50%);
-}
-
-.hero-image {
-  z-index: -2;
-  max-width: none;
-  object-fit: cover;
-  object-position: center;
-  filter: saturate(0.82) contrast(0.94);
-  transform: translateX(-50%) scale(1.01);
+  gap: 4rem;
+  padding: 180px 0 72px;
 }
 
 .hero-copy {
-  position: relative;
+  max-width: 720px;
+}
+
+.hero-eyebrow {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  min-width: 0;
-  max-width: 42rem;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1.35rem;
+  color: #f0d889;
+  font-size: 13px;
+  font-weight: 750;
 }
 
-.section-heading p,
-.time-copy > p {
-  margin: 0;
-  color: var(--blessing-accent-dark);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.eyebrow {
-  margin: 0;
-  color: var(--blessing-accent-dark);
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0;
+.hero-eyebrow::before {
+  width: 34px;
+  height: 1px;
+  background: currentColor;
+  content: '';
 }
 
 .hero-copy h1 {
+  max-width: 7em;
   margin: 0;
-  color: var(--text);
+  color: #ffffff;
   font-family: var(--font-serif);
-  font-size: clamp(3rem, 6vw, 5.25rem);
+  font-size: 72px;
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.05;
   letter-spacing: 0;
+  text-shadow: 0 3px 22px rgba(4, 18, 12, 0.28);
 }
 
-.hero-strategy {
-  max-width: 38rem;
-  margin: 0;
-  color: var(--text);
-  font-size: 1rem;
-  line-height: 1.75;
+.hero-summary {
+  max-width: 620px;
+  margin: 1.4rem 0 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.8;
+  text-shadow: 0 2px 14px rgba(4, 18, 12, 0.34);
 }
 
-.hero-evidence {
+.hero-meta {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.55rem;
+  margin-top: 1.65rem;
 }
 
-.hero-evidence span {
-  padding: 0.42rem 0.65rem;
-  border: 1px solid color-mix(in oklab, var(--blessing-accent) 30%, var(--line-strong));
+.hero-meta span {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 6px;
-  color: var(--text);
-  background: color-mix(in oklab, var(--surface-0) 76%, transparent);
-  font-size: 0.72rem;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(28, 65, 47, 0.22);
+  font-size: 13px;
+  backdrop-filter: blur(8px);
 }
 
-.hero-presence {
-  position: relative;
+.practice-timer {
   display: grid;
-  justify-items: end;
-  align-content: end;
-  gap: 1.2rem;
-  min-width: 0;
-}
-
-.hero-element {
-  color: var(--blessing-accent-dark);
-  font-family: var(--font-serif);
-  font-size: clamp(5.8rem, 10vw, 8rem);
-  font-weight: 900;
-  line-height: 0.88;
-  text-shadow: 0 8px 28px color-mix(in oklab, var(--surface-0) 80%, transparent);
-}
-
-.presence-readout {
-  display: flex;
+  grid-template-columns: minmax(0, 1fr) 54px;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  width: min(100%, 230px);
+  gap: 1.4rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.32);
 }
 
-.presence-readout span {
+.practice-timer small,
+.practice-timer strong,
+.practice-timer span {
   display: block;
-  color: oklch(96% 0.01 155);
-  font-size: 0.9rem;
-  font-weight: 800;
-  line-height: 1.3;
-  text-shadow:
-    0 1px 2px oklch(18% 0.02 155 / 0.9),
-    0 0 8px oklch(18% 0.02 155 / 0.65);
 }
 
-.presence-readout strong {
-  display: block;
-  margin-top: 0.3rem;
-  color: oklch(96% 0.01 155);
+.practice-timer small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.practice-timer strong {
+  margin-top: 0.15rem;
+  font-size: 16px;
+}
+
+.practice-timer span {
+  margin-top: 0.2rem;
+  color: rgba(255, 255, 255, 0.76);
   font-family: var(--font-mono);
-  font-size: 1.45rem;
-  letter-spacing: 0;
-  text-shadow:
-    0 1px 2px oklch(18% 0.02 155 / 0.9),
-    0 0 8px oklch(18% 0.02 155 / 0.65);
+  font-size: 13px;
 }
 
-.field-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+.timer-toggle {
+  display: grid;
+  width: 54px;
+  height: 54px;
   padding: 0;
-  border: 1px solid rgba(var(--blessing-accent-rgb), 0.22);
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.44);
   border-radius: 50%;
-  color: var(--blessing-accent-dark);
-  background: color-mix(in oklab, var(--surface-0) 78%, transparent);
-  font: inherit;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
+  backdrop-filter: blur(10px);
   transition:
-    transform 0.2s ease,
-    background 0.2s ease;
+    transform 180ms ease,
+    background 180ms ease;
 }
 
-.field-toggle:hover {
-  transform: translateY(-1px);
-  background: rgba(var(--blessing-accent-rgb), 0.14);
+.timer-toggle:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.18);
 }
 
-.ritual-section,
-.daily-practice,
-.five-elements {
-  margin-top: 4rem;
+.context-band {
+  border-bottom: 1px solid var(--page-line);
+  background: var(--page-surface);
+}
+
+.context-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+}
+
+.today-focus,
+.boundary-copy {
+  padding: 2.15rem 0;
+}
+
+.today-focus {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 1.5rem;
+  padding-right: 3.25rem;
+}
+
+.element-seal {
+  display: grid;
+  width: 74px;
+  height: 74px;
+  place-items: center;
+  border: 1px solid rgba(var(--blessing-accent-rgb), 0.28);
+  color: var(--blessing-accent-dark);
+  background: rgba(var(--blessing-accent-rgb), 0.12);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.boundary-copy {
+  padding-left: 2.6rem;
+  border-left: 1px solid var(--page-line);
+}
+
+.section-kicker,
+.section-index {
+  margin: 0;
+  color: var(--blessing-accent-dark);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.today-focus h2,
+.boundary-copy h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.today-focus p:last-child,
+.boundary-copy p:last-child {
+  margin: 0.4rem 0 0;
+  color: var(--page-soft);
+  font-size: 14px;
+}
+
+.content-section {
+  padding: 5.4rem 0;
 }
 
 .section-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.35rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr);
+  align-items: end;
+  gap: 2.25rem;
+  margin-bottom: 2.1rem;
 }
 
 .section-heading h2,
-.time-copy h2 {
-  margin: 0.35rem 0 0;
-  color: var(--text);
+.action-copy h2,
+.evidence-heading h2 {
+  margin: 0.45rem 0 0;
+  color: var(--page-ink);
   font-family: var(--font-serif);
-  font-size: clamp(1.55rem, 3vw, 2.15rem);
-  line-height: 1.25;
+  font-size: 38px;
+  line-height: 1.3;
+  letter-spacing: 0;
 }
 
-.section-number {
-  color: rgba(var(--blessing-accent-rgb), 0.26);
-  font-family: var(--font-serif);
-  font-size: 2.4rem;
-  line-height: 1;
+.section-heading > p,
+.action-copy > p:not(.section-index),
+.evidence-heading > p:last-child {
+  margin: 0;
+  color: var(--page-soft);
+  font-size: 14px;
 }
 
-.ritual-grid {
+.steps-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  align-items: stretch;
 }
 
-.ritual-card {
+.step-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  min-height: 420px;
   overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  background: var(--surface-0);
-  box-shadow: var(--shadow-sm);
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  border: 1px solid var(--page-line);
+  border-radius: 8px;
+  color: #ffffff;
+  background: #143f31;
+  box-shadow: 0 18px 54px rgba(20, 52, 39, 0.12);
 }
 
-.ritual-card:hover {
-  border-color: rgba(var(--module-rgb), 0.32);
-  box-shadow: var(--shadow-md);
-}
-
-.ritual-image-wrap {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  height: auto;
-  overflow: hidden;
-  background: color-mix(in oklab, var(--module-accent) 8%, var(--surface-2));
-}
-
-.ritual-image-wrap::after {
-  content: '';
+.step-card::after {
   position: absolute;
-  inset: auto 0 0;
-  height: 28%;
-  background: linear-gradient(180deg, transparent, var(--surface-0));
+  inset: 0;
+  background: linear-gradient(0deg, rgba(9, 30, 20, 0.94), rgba(9, 30, 20, 0.03) 70%);
+  content: '';
 }
 
-.ritual-image-wrap img {
+.step-card img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.88;
-  transition: transform 0.45s ease;
+  transition: transform 420ms ease;
 }
 
-.ritual-card:hover img {
+.step-card:hover img {
   transform: scale(1.035);
 }
-.ritual-image-wrap span {
+
+.step-number {
   position: absolute;
-  z-index: 1;
-  top: 0.75rem;
-  left: 0.75rem;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
+  z-index: 2;
+  top: 1.1rem;
+  left: 1.1rem;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.ritual-body {
-  flex: 1;
-  padding: 0.8rem 1.15rem 1.25rem;
+.step-copy {
+  position: absolute;
+  z-index: 2;
+  right: 1.4rem;
+  bottom: 1.5rem;
+  left: 1.4rem;
 }
-.ritual-body p {
-  margin: 0;
-  color: var(--module-accent);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.12em;
+
+.step-copy > span {
+  color: #f0d889;
+  font-size: 13px;
+  font-weight: 750;
 }
-.ritual-card.avoid .ritual-body p {
-  color: var(--crimson);
-}
-.ritual-body h3 {
-  margin: 0.45rem 0 0.65rem;
-  color: var(--text);
+
+.step-copy h3 {
+  margin: 0.45rem 0 0.5rem;
+  color: #ffffff;
   font-family: var(--font-serif);
-  font-size: 1.2rem;
-}
-.ritual-body strong {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.83rem;
-  line-height: 1.65;
-}
-.ritual-body small {
-  display: block;
-  margin-top: 0.7rem;
-  color: var(--text-soft);
-  font-size: 0.72rem;
-  line-height: 1.65;
+  font-size: 24px;
+  letter-spacing: 0;
 }
 
-.practice-columns {
-  display: grid;
-  grid-template-columns: 1.45fr 0.8fr;
-  gap: 1rem;
-}
-
-.practice-panel {
-  padding: 1.35rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  background: var(--surface-0);
-  box-shadow: var(--shadow-sm);
-}
-
-.practice-panel.favorable {
-  border-top: 2px solid var(--blessing-accent);
-}
-.practice-panel.cautious {
-  border-top: 2px solid color-mix(in oklab, var(--crimson) 72%, transparent);
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  color: var(--text);
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  font-weight: 850;
-}
-
-.favorable .panel-title svg {
-  color: var(--blessing-accent-dark);
-}
-.cautious .panel-title svg {
-  color: var(--crimson);
-}
-
-.practice-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.7rem;
-}
-.practice-item {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 0.8rem;
-  padding: 0.8rem;
-  border: 1px solid var(--line-subtle);
-  border-radius: 12px;
-  background: var(--surface-1);
-}
-.practice-item img {
-  width: 58px;
-  height: 58px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: var(--surface-2);
-}
-.practice-item span {
-  display: block;
-  color: var(--blessing-accent-dark);
-  font-size: 0.62rem;
-  font-weight: 800;
-}
-.practice-item strong {
-  display: block;
-  margin: 0.15rem 0 0.25rem;
-  color: var(--text);
-  font-size: 0.82rem;
-}
-.practice-item p {
+.step-copy p {
   margin: 0;
-  color: var(--text-soft);
-  font-size: 0.68rem;
-  line-height: 1.55;
-}
-.practice-item small {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.35rem;
-  color: var(--text-muted);
-  font-size: 0.62rem;
-}
-
-.caution-list {
-  display: grid;
-  gap: 0.65rem;
-}
-.caution-item {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 0.55rem;
-  padding-bottom: 0.65rem;
-  border-bottom: 1px solid var(--line-subtle);
-}
-.caution-item > span {
-  color: color-mix(in oklab, var(--crimson) 70%, var(--text-soft));
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-}
-.caution-item strong {
-  color: var(--text);
-  font-size: 0.8rem;
-}
-.caution-item p {
-  margin: 0.25rem 0 0;
-  color: var(--text-soft);
-  font-size: 0.68rem;
-  line-height: 1.55;
-}
-.empty-copy {
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
   line-height: 1.7;
 }
 
-.color-ritual,
-.object-ritual {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.action-band {
+  background: var(--page-muted);
+}
+
+.action-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.25fr);
+  gap: 4.4rem;
+  align-items: start;
+}
+
+.action-copy h2,
+.evidence-heading h2 {
+  margin-top: 0.45rem;
+}
+
+.action-copy > p:not(.section-index),
+.evidence-heading > p:last-child {
+  margin-top: 1rem;
+}
+
+.primary-action {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--blessing-accent-dark);
+}
+
+.primary-action > span {
+  color: var(--blessing-accent-dark);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.primary-action strong {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 24px;
+}
+
+.primary-action p {
+  margin: 0.45rem 0 0;
+  color: var(--page-soft);
+  font-size: 14px;
+}
+
+.theme-notes {
+  display: grid;
   gap: 0.75rem;
-  margin-top: 0.8rem;
-  padding: 0.8rem;
-  border-radius: 10px;
-  background: var(--surface-2);
+  margin: 1.5rem 0 0;
 }
 
-.color-ritual span,
-.object-ritual span {
-  display: block;
-  color: var(--text-soft);
-  font-size: 0.62rem;
-}
-.color-ritual strong,
-.object-ritual strong {
-  display: block;
-  margin-top: 0.2rem;
-  color: var(--text);
-  font-size: 0.75rem;
-}
-.object-ritual {
-  justify-content: flex-start;
-}
-.object-ritual svg {
-  flex: 0 0 auto;
-  color: var(--blessing-accent-dark);
-}
-.swatches {
-  display: flex;
-}
-.swatches i {
-  width: 18px;
-  height: 18px;
-  margin-left: -4px;
-  border: 2px solid var(--surface-2);
-  border-radius: 50%;
-  background: var(--blessing-accent);
-}
-.swatches i:nth-child(2) {
-  opacity: 0.72;
-}
-.swatches i:nth-child(3) {
-  opacity: 0.45;
-}
-
-.time-section {
+.theme-notes div {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) 1.5fr;
-  gap: 2rem;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.theme-notes dt,
+.theme-notes dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.theme-notes dt {
+  color: var(--page-soft);
+}
+
+.theme-notes dd {
+  color: var(--page-ink);
+  font-weight: 650;
+}
+
+.action-list {
+  border-top: 1px solid var(--page-line);
+}
+
+.action-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
-  margin-top: 4rem;
-  padding: 1.6rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  background:
-    linear-gradient(120deg, rgba(var(--blessing-accent-rgb), 0.08), transparent 40%),
-    var(--surface-1);
-  box-shadow: var(--shadow-sm);
+  gap: 1.4rem;
+  min-height: 112px;
+  border-bottom: 1px solid var(--page-line);
 }
 
-.time-copy > span {
-  display: block;
-  margin-top: 0.7rem;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  line-height: 1.65;
-}
-.hour-track {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--line-subtle);
-  border-radius: 12px;
-  background: var(--surface-0);
-}
-.hour-track > div {
-  min-width: 0;
-  padding: 1rem 0.8rem;
-  border-right: 1px solid var(--line-subtle);
-}
-.hour-track > div:last-child {
-  border-right: 0;
-}
-.hour-track span {
-  display: block;
+.action-item > span {
   color: var(--blessing-accent-dark);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-}
-.hour-track strong {
-  display: block;
-  margin: 0.35rem 0;
-  overflow: hidden;
-  color: var(--text);
   font-family: var(--font-serif);
-  font-size: 0.92rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.hour-track small {
-  color: var(--text-soft);
-  font-size: 0.62rem;
-}
-.hour-empty {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 19px;
+  font-weight: 700;
 }
 
-.element-track {
-  column-count: 3;
-  column-gap: var(--space-sm);
-}
-.element-track article {
-  display: inline-block;
-  width: 100%;
-  min-width: 0;
-  margin: 0 0 var(--space-sm);
-  padding: 0.7rem;
-  border: 1px solid var(--line-subtle);
-  border-radius: 13px;
-  background: var(--surface-0);
-  break-inside: avoid;
-  vertical-align: top;
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-.element-track article.active {
-  border-color: rgba(var(--module-rgb), 0.42);
-  box-shadow: 0 8px 28px rgba(var(--module-rgb), 0.12);
-}
-.element-track img {
+.action-item strong {
   display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  height: auto;
-  border-radius: 9px;
-  object-fit: cover;
-  background: var(--surface-2);
-  opacity: 0.82;
-  transition: opacity 0.25s ease;
+  font-size: 16px;
 }
-.element-track article.active img {
-  opacity: 1;
+
+.action-item p {
+  margin: 0.25rem 0 0;
+  color: var(--page-soft);
+  font-size: 14px;
 }
-.element-track .orientation-landscape img {
-  aspect-ratio: 16 / 9;
-}
-.element-track .orientation-panorama img {
-  aspect-ratio: 12 / 5;
-}
-.element-track .orientation-square img {
-  aspect-ratio: 1;
-}
-.element-track .orientation-portrait img {
-  aspect-ratio: 4 / 5;
-}
-.element-track span {
-  display: block;
-  margin-top: 0.6rem;
-  color: var(--module-accent);
-  font-size: 0.62rem;
-  font-weight: 800;
-}
-.element-track strong {
-  display: block;
-  margin: 0.16rem 0;
-  color: var(--text);
-  font-family: var(--font-serif);
-  font-size: 0.9rem;
-}
-.element-track small {
-  display: block;
-  overflow: hidden;
-  color: var(--text-soft);
-  font-size: 0.6rem;
-  text-overflow: ellipsis;
+
+.action-item small {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--page-line);
+  border-radius: 5px;
+  color: var(--page-soft);
+  background: color-mix(in oklab, var(--page-surface) 44%, transparent);
+  font-size: 13px;
   white-space: nowrap;
+}
+
+.evidence-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.35fr);
+  gap: 4.5rem;
+}
+
+.evidence-list {
+  margin: 0;
+}
+
+.evidence-list > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 1.4rem;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--page-line);
+}
+
+.evidence-list dt {
+  color: var(--blessing-accent-dark);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.evidence-list dd {
+  margin: 0;
+}
+
+.evidence-list strong {
+  display: block;
+  font-size: 15px;
+}
+
+.evidence-list p {
+  margin: 0.3rem 0 0;
+  color: var(--page-soft);
+  font-size: 14px;
 }
 
 .blessing-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  margin-top: 4rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--line-subtle);
-  text-align: left;
+  width: 100%;
+  color: #dce8df;
+  background: #173c2e;
 }
 
-.footer-seal {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(var(--blessing-accent-rgb), 0.3);
-  border-radius: 9px;
-  color: var(--blessing-accent-dark);
-  background: rgba(var(--blessing-accent-rgb), 0.08);
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(1180px, calc(100% - 48px));
+  min-height: 132px;
+  margin-inline: auto;
+  gap: 2rem;
+}
+
+.blessing-footer strong {
   font-family: var(--font-serif);
-  font-weight: 900;
+  font-size: 19px;
 }
 
 .blessing-footer p {
-  margin: 0;
-  color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 0.86rem;
+  margin: 0.25rem 0 0;
+  color: rgba(220, 232, 223, 0.72);
+  font-size: 13px;
 }
-.blessing-footer small {
-  display: block;
-  margin-top: 0.15rem;
-  color: var(--text-soft);
-  font-size: 0.62rem;
+
+.footer-inner > span {
+  flex: 0 0 auto;
+  padding-inline: 0.15em;
+  font-family: var(--font-serif);
+  font-size: 36px;
 }
 
 .state-view {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 0.55rem;
-  min-height: calc(100vh - 72px);
-  padding: 2rem;
+  display: grid;
+  min-height: 100vh;
+  padding: 9rem 1.5rem 4rem;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
   text-align: center;
 }
 
-.loading-seal,
-.state-mark {
+.state-seal,
+.state-icon {
   display: grid;
+  width: 64px;
+  height: 64px;
   place-items: center;
-  width: 72px;
-  height: 72px;
-  margin-bottom: 0.75rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 50%;
+  border: 1px solid rgba(var(--blessing-accent-rgb), 0.3);
   color: var(--blessing-accent-dark);
-  background: var(--surface-0);
-  box-shadow:
-    0 0 0 12px rgba(var(--blessing-accent-rgb), 0.05),
-    var(--shadow-md);
+  background: rgba(var(--blessing-accent-rgb), 0.1);
+  font-family: var(--font-serif);
+  font-weight: 700;
 }
 
-.loading-seal {
-  animation: core-breathe 2.8s ease-in-out infinite;
-}
-.loading-seal span {
-  font-family: var(--font-serif);
-  font-size: 1.8rem;
-  font-weight: 900;
-}
-.state-mark.warning {
-  color: var(--crimson);
-}
 .state-view p {
-  margin: 0;
-  color: var(--text);
+  margin: 0.25rem 0 0;
   font-family: var(--font-serif);
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 18px;
 }
+
 .state-view small {
-  color: var(--text-soft);
+  color: var(--page-soft);
+  font-size: 14px;
 }
-.state-actions {
-  margin-top: 1rem;
-}
-.primary-action {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 1rem;
-  border: 0;
-  border-radius: 9px;
-  color: #fff;
+
+.state-action {
+  min-height: 42px;
+  margin-top: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--page-line);
+  border-radius: 6px;
+  color: #ffffff;
   background: var(--blessing-accent-dark);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 14px;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 7px 22px rgba(var(--blessing-accent-rgb), 0.2);
 }
 
-.field-paused .loading-seal {
-  animation-play-state: paused;
-}
-
-.nav-back:focus-visible,
-.nav-periods a:focus-visible,
-.field-toggle:focus-visible,
-.primary-action:focus-visible {
-  outline: 3px solid rgba(var(--blessing-accent-rgb), 0.25);
+.hero-back:focus-visible,
+.period-nav a:focus-visible,
+.timer-toggle:focus-visible,
+.state-action:focus-visible {
+  outline: 3px solid rgba(240, 216, 137, 0.7);
   outline-offset: 3px;
+}
+
+:global(.dark .blessing-page) {
+  --page-paper: var(--surface-1);
+  --page-surface: var(--surface-2);
+  --page-muted: var(--surface-3);
+  --page-line: var(--line-strong);
+  --page-ink: var(--text);
+  --page-soft: var(--text-muted);
+}
+
+:global(.dark .blessing-page .element-seal),
+:global(.dark .blessing-page .state-seal),
+:global(.dark .blessing-page .state-icon) {
+  color: color-mix(in oklab, var(--blessing-accent) 76%, #ffffff);
+}
+
+:global(.dark .blessing-page .section-kicker),
+:global(.dark .blessing-page .section-index),
+:global(.dark .blessing-page .primary-action > span),
+:global(.dark .blessing-page .action-item > span),
+:global(.dark .blessing-page .evidence-list dt) {
+  color: color-mix(in oklab, var(--blessing-accent) 78%, #ffffff);
 }
 
 @media (max-width: 900px) {
   .hero-inner {
-    grid-template-columns: minmax(0, 1fr) 180px;
-    min-height: 390px;
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
-  .hero-element {
-    font-size: 6rem;
+
+  .practice-timer {
+    max-width: 300px;
   }
-  .presence-readout {
-    width: 180px;
-  }
-  .ritual-grid {
+
+  .context-inner,
+  .section-heading,
+  .action-layout,
+  .evidence-layout {
     grid-template-columns: 1fr;
   }
-  .ritual-card {
-    display: grid;
-    grid-template-columns: 190px 1fr;
+
+  .boundary-copy {
+    padding-top: 0;
+    padding-left: 110px;
+    border-left: 0;
   }
-  .ritual-image-wrap {
-    aspect-ratio: auto;
-    height: 100%;
-    min-height: 180px;
+
+  .steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .ritual-body {
-    align-self: center;
-    padding: 1.25rem;
+
+  .step-card:last-child {
+    grid-column: 1 / -1;
+    min-height: 340px;
   }
-  .practice-columns {
-    grid-template-columns: 1fr;
-  }
-  .time-section {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .element-track {
-    column-count: 2;
+
+  .action-layout,
+  .evidence-layout {
+    gap: 2.5rem;
   }
 }
 
-@media (max-width: 640px) {
-  .blessing-shell {
-    width: calc(100% - 24px);
-    padding: 1rem 0 5rem;
-  }
-  .top-nav {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .nav-periods {
-    width: 100%;
-  }
-  .nav-periods a,
-  .nav-periods span {
-    flex: 1;
-    text-align: center;
-  }
+@media (max-width: 560px) {
   .blessing-hero {
-    min-height: 520px;
+    min-height: 720px;
   }
+
+  .hero-image {
+    object-position: 62% 50%;
+  }
+
+  .hero-toolbar,
+  .hero-inner,
+  .context-inner,
+  .content-section,
+  .footer-inner {
+    width: calc(100% - 40px);
+  }
+
+  .hero-toolbar {
+    top: 84px;
+  }
+
+  .hero-back {
+    font-size: 13px;
+  }
+
+  .period-nav a,
+  .period-nav span {
+    min-height: 34px;
+    padding: 0.4rem 0.55rem;
+    font-size: 13px;
+  }
+
   .hero-inner {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    width: 100%;
-    min-height: 520px;
-    padding: 1.75rem 0;
+    gap: 1.5rem;
+    padding: 170px 0 44px;
   }
+
+  .hero-eyebrow {
+    margin-bottom: 0.9rem;
+    font-size: 13px;
+  }
+
   .hero-copy h1 {
-    font-size: 3.2rem;
+    font-size: 48px;
   }
-  .hero-strategy {
-    font-size: 0.88rem;
+
+  .hero-summary {
+    margin-top: 1rem;
+    font-size: 18px;
+    line-height: 1.7;
   }
-  .hero-evidence {
+
+  .hero-meta {
     gap: 0.4rem;
+    margin-top: 1.2rem;
   }
-  .hero-presence {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    width: 100%;
+
+  .hero-meta span {
+    padding: 0.4rem 0.55rem;
+    font-size: 13px;
   }
-  .hero-element {
-    font-size: 5.5rem;
+
+  .practice-timer {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 1rem;
+    max-width: 250px;
+    padding-left: 1rem;
   }
-  .presence-readout {
-    width: 170px;
+
+  .timer-toggle {
+    width: 48px;
+    height: 48px;
   }
+
+  .today-focus {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.6rem 0;
+  }
+
+  .element-seal {
+    width: 58px;
+    height: 58px;
+    font-size: 27px;
+  }
+
+  .boundary-copy {
+    padding: 0 0 1.6rem;
+    border-top: 1px solid var(--page-line);
+  }
+
+  .boundary-copy .section-kicker {
+    padding-top: 1.35rem;
+  }
+
+  .today-focus h2,
+  .boundary-copy h2 {
+    font-size: 19px;
+  }
+
+  .content-section {
+    padding: 3.6rem 0;
+  }
+
   .section-heading {
-    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
   }
-  .section-number {
-    font-size: 1.8rem;
+
+  .section-heading h2,
+  .action-copy h2,
+  .evidence-heading h2 {
+    font-size: 30px;
   }
-  .ritual-section,
-  .daily-practice,
-  .five-elements,
-  .time-section {
-    margin-top: 3.2rem;
-  }
-  .ritual-card {
-    display: block;
-  }
-  .ritual-image-wrap {
-    aspect-ratio: 4 / 5;
-    height: auto;
-    min-height: 0;
-  }
-  .practice-list {
+
+  .steps-grid {
     grid-template-columns: 1fr;
   }
-  .hour-track {
-    grid-template-columns: repeat(2, 1fr);
+
+  .step-card,
+  .step-card:last-child {
+    grid-column: auto;
+    min-height: 390px;
   }
-  .hour-track > div:nth-child(2) {
-    border-right: 0;
+
+  .action-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 0.9rem;
+    padding: 1.1rem 0;
   }
-  .hour-track > div:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--line-subtle);
+
+  .action-item small {
+    grid-column: 2;
+    justify-self: start;
   }
-  .element-track {
-    display: flex;
-    column-count: auto;
-    gap: var(--space-sm);
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scroll-snap-type: x mandatory;
+
+  .evidence-list > div {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
-  .element-track article {
-    flex: 0 0 176px;
-    margin-bottom: 0;
-    scroll-snap-align: start;
+
+  .footer-inner {
+    align-items: flex-start;
+    min-height: 160px;
+    padding: 1.9rem 0;
+  }
+
+  .footer-inner > span {
+    align-self: center;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blessing-shell,
-  .loading-seal,
-  .ritual-image-wrap img {
-    animation: none !important;
+  .timer-toggle,
+  .step-card img {
     transition: none !important;
   }
 }

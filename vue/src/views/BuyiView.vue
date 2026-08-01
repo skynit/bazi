@@ -8,12 +8,13 @@ const data = ref<BuyiTodayResponse | null>(null)
 const loading = ref(true)
 const drawing = ref(false)
 const error = ref('')
+const failedAction = ref<'load' | 'draw'>('load')
 
 const record = computed(() => data.value?.record ?? null)
-const scoreWidth = computed(() => `${Math.max(0, Math.min(100, record.value?.score ?? 0))}%`)
-const statusText = computed(() => (record.value ? '今日已卜' : '今日可卜'))
+const statusText = computed(() => (record.value ? '今日已抽取' : '今日可抽取'))
 
 async function loadToday() {
+  failedAction.value = 'load'
   loading.value = true
   error.value = ''
   try {
@@ -26,6 +27,7 @@ async function loadToday() {
 }
 
 async function drawToday() {
+  failedAction.value = 'draw'
   drawing.value = true
   error.value = ''
   try {
@@ -35,6 +37,11 @@ async function drawToday() {
   } finally {
     drawing.value = false
   }
+}
+
+function retryLastAction() {
+  if (failedAction.value === 'draw') return drawToday()
+  return loadToday()
 }
 
 onMounted(loadToday)
@@ -56,13 +63,13 @@ onMounted(loadToday)
 
       <div v-if="loading" class="state-panel">
         <RefreshCwIcon class="state-icon spinning" />
-        <p>正在观象</p>
+        <p>正在加载今日记录</p>
       </div>
 
       <div v-else-if="error" class="state-panel error-panel">
         <TriangleAlertIcon class="state-icon" />
         <p>{{ error }}</p>
-        <button class="ghost-btn" type="button" @click="loadToday">
+        <button class="ghost-btn" type="button" @click="retryLastAction">
           <RefreshCwIcon class="btn-icon" />
           重试
         </button>
@@ -73,12 +80,13 @@ onMounted(loadToday)
           <span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
         <div class="draw-copy">
-          <p class="draw-title">今日尚未卜易</p>
+          <p class="draw-title">今日尚未抽取</p>
           <p class="draw-date">{{ data?.date }}</p>
+          <p class="draw-boundary">结果来自随机抽取，仅作传统文本反思，不代表吉凶或现实结果。</p>
         </div>
         <button class="draw-btn" type="button" :disabled="drawing" @click="drawToday">
           <SparklesIcon class="btn-icon" />
-          {{ drawing ? '起卦中' : '起卦' }}
+          {{ drawing ? '抽取中' : '随机抽取一卦' }}
         </button>
       </div>
 
@@ -87,32 +95,29 @@ onMounted(loadToday)
           <div class="hexagram-meta">
             <span class="hexagram-no">第 {{ record.hexagram_number }} 卦</span>
             <h2>{{ record.hexagram_name }}</h2>
+            <span class="summary-label">卦象说明</span>
             <p>{{ record.summary }}</p>
           </div>
-          <div class="score-box">
-            <span class="score-value">{{ record.score }}</span>
-            <span class="score-level">{{ record.level }}</span>
-          </div>
-        </div>
-
-        <div class="score-track" aria-label="吉凶评分">
-          <div class="score-fill" :style="{ width: scoreWidth }"></div>
         </div>
 
         <div class="reading-grid">
           <section class="reading-card">
-            <span>卦义</span>
+            <h3>对照当前问题</h3>
             <p>{{ record.human_way }}</p>
           </section>
           <section class="reading-card">
-            <span>象解</span>
+            <h3>观察重点</h3>
             <p>{{ record.image_reading }}</p>
           </section>
           <section class="reading-card reading-wide">
-            <span>今日建议</span>
+            <h3>可以怎么做</h3>
             <p>{{ record.advice }}</p>
           </section>
         </div>
+
+        <p class="result-boundary">
+          本次结果来自随机抽取，只提供传统卦象的反思角度，不代表吉凶、概率或现实结果。涉及健康、法律、财务或人身安全时，请依据专业意见。
+        </p>
 
         <footer class="result-foot">
           <span>{{ record.source }}</span>
@@ -128,9 +133,7 @@ onMounted(loadToday)
   min-height: calc(100vh - 80px);
   padding: 40px 20px 72px;
   color: var(--text);
-  background:
-    linear-gradient(180deg, transparent, var(--surface-1)),
-    var(--bg);
+  background: linear-gradient(180deg, transparent, var(--surface-1)), var(--bg);
 }
 
 .buyi-shell {
@@ -258,7 +261,12 @@ onMounted(loadToday)
 
 .gua-seal span:nth-child(2),
 .gua-seal span:nth-child(5) {
-  background: linear-gradient(90deg, var(--accent) 0 38%, transparent 38% 62%, var(--accent) 62% 100%);
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0 38%,
+    transparent 38% 62%,
+    var(--accent) 62% 100%
+  );
 }
 
 .draw-title {
@@ -274,6 +282,14 @@ onMounted(loadToday)
   font-size: var(--fs-sm);
 }
 
+.draw-boundary {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.65;
+}
+
 .draw-btn,
 .ghost-btn {
   display: inline-flex;
@@ -287,7 +303,10 @@ onMounted(loadToday)
   cursor: pointer;
   font-size: var(--fs-sm);
   font-weight: 600;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .draw-btn {
@@ -342,78 +361,51 @@ onMounted(loadToday)
   letter-spacing: 0;
 }
 
+.summary-label {
+  display: block;
+  margin-top: 24px;
+  color: var(--accent);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
 .hexagram-meta p {
   max-width: 680px;
-  margin: 14px 0 0;
+  margin: 8px 0 0;
   color: var(--text-muted);
   font-size: var(--fs-md);
   line-height: 1.75;
   word-break: break-word;
 }
 
-.score-box {
-  width: 112px;
-  min-width: 112px;
-  min-height: 112px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  border: 1px solid var(--line-focus);
-  border-radius: 8px;
-  background: var(--accent-dim);
-}
-
-.score-value {
-  font-family: var(--font-serif);
-  font-size: var(--fs-stat-lg);
-  line-height: 1;
-  color: var(--accent);
-}
-
-.score-level {
-  margin-top: 8px;
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-}
-
-.score-track {
-  height: 8px;
-  margin: 26px 0;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--surface-2);
-}
-
-.score-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--accent);
-  box-shadow: 0 0 18px var(--accent-glow);
-}
-
 .reading-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line-subtle);
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .reading-card {
-  min-height: 148px;
-  padding: 18px;
-  border: 1px solid var(--line-subtle);
-  border-radius: 8px;
-  background: var(--surface-1);
+  min-height: 132px;
+  padding: 20px 22px 20px 0;
+}
+
+.reading-card:nth-child(2) {
+  padding-right: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--line-subtle);
 }
 
 .reading-wide {
   grid-column: 1 / -1;
-  min-height: 112px;
+  min-height: 104px;
+  padding-right: 0;
+  border-top: 1px solid var(--line-subtle);
 }
 
-.reading-card span {
-  display: block;
-  margin-bottom: 10px;
+.reading-card h3 {
+  margin: 0 0 10px;
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 700;
@@ -425,6 +417,14 @@ onMounted(loadToday)
   font-size: var(--fs-sm);
   line-height: 1.8;
   word-break: break-word;
+}
+
+.result-boundary {
+  max-width: 72ch;
+  margin: 18px 0 0;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
 }
 
 .result-foot {
@@ -459,14 +459,19 @@ onMounted(loadToday)
     padding: 20px;
   }
 
-  .score-box {
-    width: 100%;
-    min-width: 0;
-    min-height: 92px;
-  }
-
   .reading-grid {
     grid-template-columns: 1fr;
+  }
+
+  .reading-card,
+  .reading-card:nth-child(2) {
+    min-height: auto;
+    padding: 18px 0;
+    border-left: 0;
+  }
+
+  .reading-card + .reading-card {
+    border-top: 1px solid var(--line-subtle);
   }
 }
 </style>

@@ -45,7 +45,7 @@ describe('ZiWeiOverlay', () => {
     const wrapper = mountOverlay('男')
 
     const ageOnePalace = wrapper.get('[data-branch="戌"] .zw-palace-ages')
-    expect(ageOnePalace.find('small').exists()).toBe(false)
+    expect(ageOnePalace.get('small').text()).toBe('小限')
     expect(ageOnePalace.findAll('.zw-palace-age-list b').map((item) => item.text())).toEqual([
       '1', '13', '25', '37', '49', '61', '73', '85',
     ])

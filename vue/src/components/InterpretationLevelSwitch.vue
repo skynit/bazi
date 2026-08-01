@@ -7,30 +7,45 @@ const emit = defineEmits<{ 'update:modelValue': [value: InterpretationLevel] }>(
 const levels: Array<{ value: InterpretationLevel; label: string; hint: string }> = [
   { value: 'basic', label: '简明', hint: '重点关系' },
   { value: 'advanced', label: '详细', hint: '原因与依据' },
-  { value: 'professional', label: '推算', hint: '计算过程' },
+  { value: 'professional', label: '规则明细', hint: '计算说明' },
 ]
+
+const levelDescriptions: Record<InterpretationLevel, string> = {
+  basic: '当前只显示重点关系与白话说明。',
+  advanced: '当前增加结构分析、五行口径与中文化依据。',
+  professional: '当前增加规则口径和传统日课查表过程。',
+}
 </script>
 
 <template>
-  <div class="level-switch" role="radiogroup" aria-label="解读层级">
-    <button
-      v-for="item in levels"
-      :key="item.value"
-      type="button"
-      role="radio"
-      class="level-option"
-      :class="{ active: props.modelValue === item.value }"
-      :aria-checked="props.modelValue === item.value"
-      :data-level="item.value"
-      @click="emit('update:modelValue', item.value)"
-    >
-      <strong>{{ item.label }}</strong>
-      <span>{{ item.hint }}</span>
-    </button>
+  <div class="level-switch-wrap">
+    <div class="level-switch" role="radiogroup" aria-label="解读层级">
+      <button
+        v-for="item in levels"
+        :key="item.value"
+        type="button"
+        role="radio"
+        class="level-option"
+        :class="{ active: props.modelValue === item.value }"
+        :aria-checked="props.modelValue === item.value"
+        :data-level="item.value"
+        @click="emit('update:modelValue', item.value)"
+      >
+        <strong>{{ item.label }}</strong>
+        <span>{{ item.hint }}</span>
+      </button>
+    </div>
+    <p class="level-boundary" aria-live="polite">
+      {{ levelDescriptions[props.modelValue] }}详细程度变化不代表结论可靠性变化。
+    </p>
   </div>
 </template>
 
 <style scoped>
+.level-switch-wrap {
+  display: grid;
+}
+
 .level-switch {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -90,6 +105,13 @@ const levels: Array<{ value: InterpretationLevel; label: string; hint: string }>
   z-index: 1;
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+.level-boundary {
+  margin: var(--space-xs) 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs, 0.78rem);
+  line-height: 1.6;
 }
 
 @media (max-width: 560px) {

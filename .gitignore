@@ -23,7 +23,9 @@ vue/node_modules*
 vue/node_modules.old/
 *.md
 *.txt
+!docs/frontend-ux-remediation-priorities.md
 !research/rag/snapshots/**/ATTRIBUTION.md
+!vue/public/element-assets/SOURCES.md
 # Re-include important JSON config files
 !.vscode/launch.json
 !.vscode/settings.json

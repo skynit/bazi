@@ -156,7 +156,13 @@ function formatBirth(c: SavedChart): string {
   const h = String(c.birth_hour).padStart(2, '0')
   const min = String(c.birth_min || 0).padStart(2, '0')
   const sec = String(c.birth_sec || 0).padStart(2, '0')
-  return `${c.birth_year}-${m}-${d} ${h}:${min}:${sec}`
+  const calendar = c.calendar_type === 'LUNAR' ? `农历${c.lunar_leap_month ? '闰月' : ''}` : '公历'
+  return `${calendar} ${c.birth_year}-${m}-${d} ${h}:${min}:${sec}`
+}
+
+function formatGender(value: string): string {
+  const gender = String(value || '').toUpperCase()
+  return gender === 'FEMALE' || gender === '女' ? '女' : '男'
 }
 
 async function loadChart() {
@@ -180,7 +186,6 @@ function goFortune() {
 function goZiWei() {
   router.push(`/ziwei/${chartData.value.id}`)
 }
-
 </script>
 <template>
   <div class="chart-page">
@@ -292,9 +297,10 @@ function goZiWei() {
             选择已有命盘
           </div>
           <div class="picker-list">
-            <div
+            <button
               v-for="chart in savedCharts"
               :key="chart.id"
+              type="button"
               class="picker-row glass-panel"
               @click="selectChart(chart)"
             >
@@ -304,7 +310,7 @@ function goZiWei() {
               <div class="picker-info">
                 <span class="picker-name">{{ chart.name || '未命名' }}</span>
                 <span class="picker-meta">
-                  <span class="meta-tag">{{ chart.gender }}</span>
+                  <span class="meta-tag">{{ formatGender(chart.gender) }}</span>
                   <span class="meta-sep">·</span>
                   {{ formatBirth(chart) }}
                 </span>
@@ -318,7 +324,7 @@ function goZiWei() {
                   stroke-linejoin="round"
                 />
               </svg>
-            </div>
+            </button>
           </div>
           <div class="picker-divider">
             <span class="divider-line"></span>
@@ -342,7 +348,7 @@ function goZiWei() {
       </div>
 
       <!-- Chart display -->
-      <div v-if="chartData" class="chart-result">
+      <div v-else-if="chartData" class="chart-result">
         <BaziChart :chart="chartData" />
 
         <!-- Action buttons -->
@@ -376,7 +382,7 @@ function goZiWei() {
       </div>
 
       <!-- Not found -->
-      <div v-else class="empty-state">
+      <div v-else-if="!isNew" class="empty-state">
         <div class="empty-icon">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
             <circle
@@ -795,8 +801,17 @@ function goZiWei() {
   align-items: center;
   gap: 0.875rem;
   padding: 0.875rem 1rem;
+  width: 100%;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: all 0.25s ease;
+}
+
+.picker-row:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
 }
 
 .picker-row:hover {

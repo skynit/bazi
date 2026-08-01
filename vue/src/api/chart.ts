@@ -744,6 +744,23 @@ export interface ChartListResponse {
   page_size: number
 }
 
+export interface FortuneHistoryItem {
+  id: number
+  chart_id: number
+  chart_name: string
+  query_date: string
+  day_gan_zhi: string
+  summary: string
+  created_at: string
+}
+
+export interface FortuneHistoryResponse {
+  items: FortuneHistoryItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export async function previewChart(payload: ChartCreateRequest) {
   const { data } = await client.post<ChartPreviewResponse>('/chart/preview', payload)
   return data
@@ -767,7 +784,7 @@ export async function fetchChart(id: number | string) {
 }
 
 export async function fetchFortuneHistory(chartId: number, page = 1, pageSize = 10) {
-  const { data } = await client.get('/fortune/history', {
+  const { data } = await client.get<FortuneHistoryResponse>('/fortune/history', {
     params: { chart_id: chartId, page, page_size: pageSize },
   })
   return data

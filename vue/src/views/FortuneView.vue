@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
 import type { FortuneDay } from '../api/fortune'
@@ -10,14 +10,24 @@ const route = useRoute()
 const fortune = ref<FortuneDay | null>(null)
 const loading = ref(true)
 const error = ref('')
+const errorKind = ref<'missing-chart' | 'request' | ''>('')
 const mounted = ref(false)
 const chartId = ref<string | number>('')
+const relationCount = computed(
+  () =>
+    (fortune.value?.supporting_evidence?.length ?? 0) +
+    (fortune.value?.counter_evidence?.length ?? 0),
+)
 
 function todayString(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 async function fetchFortune() {
+  loading.value = true
+  error.value = ''
+  errorKind.value = ''
+  fortune.value = null
   let cid: string | number | null = route.query.chart_id as string | null
   if (!cid) {
     try {
@@ -26,6 +36,7 @@ async function fetchFortune() {
     } catch {}
     if (!cid) {
       error.value = '请先创建命盘'
+      errorKind.value = 'missing-chart'
       loading.value = false
       return
     }
@@ -34,7 +45,12 @@ async function fetchFortune() {
   try {
     fortune.value = await fetchDaily(Number(chartId.value), todayString())
   } catch (reason: unknown) {
-    error.value = getApiErrorMessage(reason, '今日运势加载失败，请稍后重试。')
+    const status = (reason as { response?: { status?: number } }).response?.status
+    errorKind.value = status === 404 ? 'missing-chart' : 'request'
+    error.value =
+      status === 404
+        ? '命盘不存在或已被删除，请重新排盘。'
+        : getApiErrorMessage(reason, '今日运势加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -44,16 +60,6 @@ onMounted(() => {
   fetchFortune()
   setTimeout(() => (mounted.value = true), 100)
 })
-
-function scoreColor(s: number) {
-  const t = Math.max(0, Math.min(1, s / 100))
-  return `color-mix(in oklab, var(--jade-accent) ${Math.round(54 + t * 46)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
-}
-
-function scoreGlow(s: number) {
-  const t = Math.max(0, Math.min(1, s / 100))
-  return `rgba(var(--jade-accent-rgb), ${(0.14 + t * 0.22).toFixed(3)})`
-}
 </script>
 
 <template>
@@ -66,43 +72,34 @@ function scoreGlow(s: number) {
         <div class="l-orb l-orb-3"></div>
         <div class="l-core"></div>
       </div>
-      <p class="loading-text">星象推演中</p>
+      <p class="loading-text">正在整理今日干支关系</p>
     </div>
 
     <!-- ── Error ── -->
     <div v-else-if="error" class="error-state">
       <div class="error-sigil">✕</div>
       <p class="error-text">{{ error }}</p>
-      <button class="retry-btn" @click="fetchFortune">重新加载</button>
+      <router-link v-if="errorKind === 'missing-chart'" to="/chart/new" class="retry-btn"
+        >去排盘</router-link
+      >
+      <button v-else class="retry-btn" @click="fetchFortune">重新加载</button>
     </div>
 
     <!-- ── Empty ── -->
     <div v-else-if="!fortune" class="empty-state">
       <div class="empty-sigil">◈</div>
-      <p class="empty-title">请先创建命盘</p>
-      <router-link to="/chart/new" class="go-chart-btn">去排盘 →</router-link>
+      <p class="empty-title">今日暂无可显示的关系记录</p>
+      <button type="button" class="go-chart-btn" @click="fetchFortune">重新加载</button>
     </div>
 
     <!-- ── Main ── -->
     <main v-else class="fortune-main" :class="{ visible: mounted }">
-      <!-- Score + Info Hero -->
+      <!-- Relationship summary + date -->
       <header class="hero-panel">
         <div class="hero-inner">
-          <!-- Score orb - massive and dramatic -->
-          <div
-            class="score-sphere"
-            :style="{
-              '--sc': scoreColor(fortune.score || 0),
-              '--sg': scoreGlow(fortune.score || 0),
-            }"
-          >
-            <div class="sphere-ring sphere-ring-1"></div>
-            <div class="sphere-ring sphere-ring-2"></div>
-            <div class="sphere-ring sphere-ring-3"></div>
-            <div class="sphere-glow-a"></div>
-            <div class="sphere-glow-b"></div>
-            <div class="sphere-value">{{ fortune.score }}</div>
-            <div class="sphere-label">关系活跃度</div>
+          <div class="relation-summary" aria-label="今日命中关系条数">
+            <div class="relation-value">{{ relationCount }}</div>
+            <div class="relation-label">条结构关系</div>
           </div>
 
           <!-- Info block -->
@@ -115,7 +112,7 @@ function scoreGlow(s: number) {
               <span class="pillar-value">{{ fortune.day_gan_zhi }}</span>
             </div>
             <p class="hero-summary">今日干支关系概览</p>
-            <p class="hero-tip">数值用于比较不同日期的关系变化，不代表吉凶或事件概率。</p>
+            <p class="hero-tip">条数只表示命中的规则关系数量，不代表吉凶、强弱或事件概率。</p>
           </div>
         </div>
       </header>
@@ -350,15 +347,7 @@ function scoreGlow(s: number) {
     inset 0 1px 0 var(--line-subtle);
 }
 .hero-panel::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--accent), var(--crimson), var(--accent));
-  border-radius: 2px;
-  opacity: 0.6;
+  content: none;
 }
 .hero-panel::after {
   content: '';
@@ -374,6 +363,34 @@ function scoreGlow(s: number) {
   display: flex;
   align-items: center;
   gap: 3rem;
+}
+
+.relation-summary {
+  flex: 0 0 180px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-1) 74%, transparent);
+}
+
+.relation-value {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: var(--fs-hero-strong);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.relation-label {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
 }
 
 /* ── Score sphere ── */
@@ -551,6 +568,11 @@ function scoreGlow(s: number) {
   .score-sphere {
     width: 140px;
     height: 140px;
+  }
+  .relation-summary {
+    flex-basis: auto;
+    width: min(220px, 100%);
+    min-height: 120px;
   }
   .sphere-value {
     font-size: var(--fs-hero);

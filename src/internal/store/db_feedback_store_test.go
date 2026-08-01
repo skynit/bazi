@@ -18,9 +18,9 @@ func TestFeedbackSummaryPreservesTargetVersionAndResearchConsent(t *testing.T) {
 		t.Fatal(err)
 	}
 	rows := []model.FortuneFeedback{
-		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "pattern:格局", Rating: model.FeedbackRatingAccurate, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
-		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "pattern:格局", Rating: model.FeedbackRatingAccurate, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
-		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "tiaohou:调候", Rating: model.FeedbackRatingInaccurate, EngineVersion: "e2", RuleVersion: "r2"},
+		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "pattern:格局", Rating: model.FeedbackRatingClear, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
+		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "pattern:格局", Rating: model.FeedbackRatingClear, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
+		{UserID: 1, ChartID: 7, TargetType: "interpretation_section", TargetID: "tiaohou:调候", Rating: model.FeedbackRatingInsufficientBasis, EngineVersion: "e2", RuleVersion: "r2"},
 		{UserID: 2, ChartID: 7, TargetType: "interpretation_section", TargetID: "pattern:格局", Rating: model.FeedbackRatingHelpful, EngineVersion: "e1", RuleVersion: "r1", ConsentResearch: true},
 	}
 	if err := db.Create(&rows).Error; err != nil {
@@ -36,7 +36,7 @@ func TestFeedbackSummaryPreservesTargetVersionAndResearchConsent(t *testing.T) {
 	}
 	for _, item := range items {
 		if item.TargetType == "interpretation_section" && item.TargetID == "pattern:格局" &&
-			item.Rating == model.FeedbackRatingAccurate && item.EngineVersion == "e1" &&
+			item.Rating == model.FeedbackRatingClear && item.EngineVersion == "e1" &&
 			item.RuleVersion == "r1" && item.Count == 2 {
 			return
 		}

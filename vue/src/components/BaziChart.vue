@@ -45,6 +45,13 @@ type DayunStageView = {
   tenGod: string
   isCurrent: boolean
 }
+type DaYunInfoView = {
+  start_age?: number
+  start_age_detail?: { years?: number; months?: number; days?: number }
+  start_at?: string
+  direction?: string
+  pillars?: Array<{ gan?: string; zhi?: string }>
+}
 
 const props = defineProps<{
   chart: {
@@ -123,7 +130,60 @@ const pillars = computed(() => [
   { label: '时柱', key: 'hour' as const, idx: 3, ...props.chart.hour_pillar },
 ])
 
-const daYun = computed(() => props.chart.da_yun || props.chart.da_yun_start)
+const daYun = computed<DaYunInfoView>(() => props.chart.da_yun || props.chart.da_yun_start || {})
+
+const genderLabel = computed(() => {
+  const gender = String(props.chart.gender || '').toUpperCase()
+  if (gender === 'MALE' || gender === 'M' || gender === '男') return '男'
+  if (gender === 'FEMALE' || gender === 'F' || gender === '女') return '女'
+  return '未注明'
+})
+const calendarLabel = computed(() =>
+  String(props.chart.calendar_type || '').toUpperCase() === 'LUNAR' ? '农历' : '公历',
+)
+const birthDateTimeLabel = computed(() => {
+  const pad = (value: unknown) => String(Number(value || 0)).padStart(2, '0')
+  const date = `${props.chart.birth_year || '----'}-${pad(props.chart.birth_month)}-${pad(props.chart.birth_day)}`
+  const time = `${pad(props.chart.birth_hour)}:${pad(props.chart.birth_min)}`
+  return `${date} ${time}`
+})
+const chartIdentityItems = computed(() => [
+  { label: '姓名', value: String(props.chart.name || '未命名') },
+  { label: '性别', value: genderLabel.value },
+  { label: calendarLabel.value, value: birthDateTimeLabel.value },
+  { label: '出生地', value: String(props.chart.birth_place || '未填写') },
+  { label: '时区', value: String(props.chart.timezone || '未填写') },
+  {
+    label: '时间校准',
+    value: props.chart.use_true_solar_time ? '已使用真太阳时' : '标准钟表时间',
+  },
+])
+
+function parseLocalDateTime(value?: string): Date | null {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function addYears(value: Date, years: number): Date {
+  const next = new Date(value)
+  next.setFullYear(next.getFullYear() + years)
+  return next
+}
+
+const dayunStartLabel = computed(() => {
+  const detail = daYun.value.start_age_detail
+  const ageParts = [
+    detail?.years ? `${detail.years}年` : '',
+    detail?.months ? `${detail.months}个月` : '',
+    detail?.days ? `${detail.days}天` : '',
+  ].filter(Boolean)
+  const startAt = daYun.value.start_at
+  if (startAt) {
+    return `${startAt.replace('T', ' ')}${ageParts.length ? `（约 ${ageParts.join('')}）` : ''}`
+  }
+  return `${daYun.value.start_age || 0}岁`
+})
 
 // --- 天干地支分析（从 API 数据读取）---
 const ganZhi = computed(() => props.chart.gan_zhi_analysis)
@@ -171,14 +231,10 @@ function ganRelationSummary(relation: GanRelation): string {
   const elementB = ganElement[stemB]?.name || ''
 
   if (relation.type === '相生') {
-    return produces(elementA, elementB)
-      ? `${left}生助${right}。`
-      : `${right}生助${left}。`
+    return produces(elementA, elementB) ? `${left}生助${right}。` : `${right}生助${left}。`
   }
   if (relation.type === '相克') {
-    return controls(elementA, elementB)
-      ? `${left}克制${right}。`
-      : `${right}克制${left}。`
+    return controls(elementA, elementB) ? `${left}克制${right}。` : `${right}克制${left}。`
   }
   if (relation.type === '比和') return `${left}与${right}同属${elementA}行。`
   if (relation.type === '五合') {
@@ -194,7 +250,8 @@ function zhiRelationSummary(relation: ZhiRelation): string {
     (pillar, index) => `${pillar}${relation.branches?.[index] || ''}`,
   )
   const subject = parts.length > 1 ? parts.join('与') : parts[0] || '相关地支'
-  const subtype = relation.subtype && relation.subtype !== relation.type ? `（${relation.subtype}）` : ''
+  const subtype =
+    relation.subtype && relation.subtype !== relation.type ? `（${relation.subtype}）` : ''
   return `${subject}形成${relation.type}${subtype}。`
 }
 
@@ -278,7 +335,7 @@ const currentAge = computed(() => {
 })
 
 const dayunStages = computed<DayunStageView[]>(() => {
-  const info = daYun.value || {}
+  const info = daYun.value
   const pillarsRaw: Array<{ gan?: string; zhi?: string }> = Array.isArray(info.pillars)
     ? info.pillars
     : []
@@ -286,6 +343,8 @@ const dayunStages = computed<DayunStageView[]>(() => {
   const startAgeBase = Number(info.start_age || 0)
   const birthYear = Number(props.chart.birth_year || 0)
   const age = currentAge.value
+  const exactStart = parseLocalDateTime(info.start_at)
+  const now = new Date()
 
   return source.map((p, index) => {
     const gan = String(p.gan || '')
@@ -293,8 +352,10 @@ const dayunStages = computed<DayunStageView[]>(() => {
     const pillar = gan + zhi
     const startAge = startAgeBase + index * 10
     const endAge = startAge + 9
-    const startYear = birthYear ? birthYear + startAge : null
-    const endYear = startYear ? startYear + 9 : null
+    const stageStart = exactStart ? addYears(exactStart, index * 10) : null
+    const stageEnd = stageStart ? addYears(stageStart, 10) : null
+    const startYear = stageStart?.getFullYear() || (birthYear ? birthYear + startAge : null)
+    const endYear = stageEnd ? stageEnd.getFullYear() - 1 : startYear ? startYear + 9 : null
 
     return {
       index,
@@ -308,7 +369,10 @@ const dayunStages = computed<DayunStageView[]>(() => {
       ganElement: ganElement[gan]?.name || '',
       zhiElement: zhiElement[zhi]?.name || '',
       tenGod: tenGodFor(props.chart.day_pillar?.gan, gan),
-      isCurrent: age !== null && age >= startAge && age <= endAge,
+      isCurrent:
+        stageStart && stageEnd
+          ? now >= stageStart && now < stageEnd
+          : age !== null && age >= startAge && age <= endAge,
     }
   })
 })
@@ -367,8 +431,78 @@ const fortuneLayerList = computed(() => {
     .filter((layer): layer is FortuneLayer => Boolean(layer))
 })
 
+function calculationBasisLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    exact_start_time_and_query_time: '依据出生时间与查询日期定位',
+    period_pillar_and_natal_chart: '依据周期干支与本命四柱对照',
+    period_layer_stem_pair: '依据周期天干关系',
+    period_stem_and_target_stem_all_structures: '依据周期天干与本命天干关系',
+    period_branch_and_target_branch_all_structures: '依据周期地支与本命地支关系',
+  }
+  return value ? labels[value] || '依据周期干支与本命结构对照' : '依据周期干支与本命结构对照'
+}
+
+function relationEndpointLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    周期天干: '周期天干',
+    周期地支: '周期地支',
+    查询日干: '今日天干',
+    查询日支: '今日地支',
+    日干: '日主',
+    年支: '本命年支',
+    月支: '本命月支',
+    日支: '本命日支',
+    时支: '本命时支',
+  }
+  return value ? labels[value] || '命盘位置' : '命盘位置'
+}
+
+function relationDisplayLabel(type?: string, fallback?: string): string {
+  const labels: Record<string, string> = {
+    shengWo: '生助',
+    woSheng: '受生于',
+    keWo: '克制',
+    woKe: '受制于',
+    same: '同支',
+    same_stem: '同干',
+    same_element: '同五行',
+    five_combine: '天干五合',
+    clash: '相冲',
+    harm: '相害',
+    combine: '六合',
+    punish: '相刑',
+    break: '相破',
+    banHe: '半合',
+    gongHe: '拱合',
+    banHui: '半会',
+    sanHe: '三合',
+    sanHui: '三会',
+  }
+  return type ? labels[type] || fallback || '形成关系' : fallback || '形成关系'
+}
+
 function componentWidth(score: number): string {
-  return `${Math.max(4, Math.min(100, Math.round(Number(score || 0) * 100)))}%`
+  const value = Number(score || 0)
+  if (value >= 0.67) return '85%'
+  if (value >= 0.34) return '60%'
+  return '35%'
+}
+
+function componentBandLabel(score: number): string {
+  const value = Number(score || 0)
+  if (value >= 0.67) return '相对较多'
+  if (value >= 0.34) return '中等'
+  return '相对较少'
+}
+
+function strengthCandidateLabel(value?: string): string {
+  const labels: Record<string, string> = {
+    身旺: '偏高候选（传统称“身旺”）',
+    身强: '偏高候选（传统称“身强”）',
+    身弱: '偏低候选（传统称“身弱”）',
+    中和: '中间候选（传统称“中和”）',
+  }
+  return value ? labels[value] || `${value}（规则候选）` : '未形成候选'
 }
 
 const pillarShenShaColor = (p: string) =>
@@ -390,10 +524,17 @@ function strengthLevel(total: number): string {
   return 'very-strong'
 }
 
+function elementDistributionBand(value: number, maxValue: number): string {
+  if (value <= 0 || maxValue <= 0) return '未见'
+  const ratio = value / maxValue
+  if (ratio >= 0.75) return '较多'
+  if (ratio >= 0.4) return '中等'
+  return '较少'
+}
+
 const fiveElementsOption = computed(() => {
   themeVersion.value
   const textColor = cssVar('--text', '#0f1712')
-  const softColor = cssVar('--text-soft', 'rgba(15, 23, 18, 0.44)')
   const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
   const tooltipBg = cssVar('--surface-1', '#ffffff')
   const fe = props.chart.five_elements
@@ -404,6 +545,7 @@ const fiveElementsOption = computed(() => {
   // 五行配色 — 科技色盘
   const barColors = ['#34d399', '#fb7185', '#c76f12', '#cbd5e1', '#22d3ee']
   const labels = ['木', '火', '土', '金', '水']
+  const maxValue = Math.max(...labels.map((label) => Number(fe[label] || 0)))
 
   return {
     backgroundColor: 'transparent',
@@ -415,7 +557,7 @@ const fiveElementsOption = computed(() => {
       axisTick: { show: false },
       axisLabel: {
         color: textColor,
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600',
         fontFamily: 'Noto Serif SC, Songti SC, serif',
       },
@@ -424,7 +566,7 @@ const fiveElementsOption = computed(() => {
     yAxis: {
       type: 'value',
       max: 30,
-      axisLabel: { color: softColor, fontSize: 10, formatter: '{value}' },
+      axisLabel: { show: false },
       splitLine: { lineStyle: { color: lineColor, type: 'dashed' } },
       axisLine: { show: false },
       axisTick: { show: false },
@@ -469,11 +611,12 @@ const fiveElementsOption = computed(() => {
         label: {
           show: true,
           position: 'top',
-          formatter: '{c}',
-          fontSize: 11,
+          formatter: (params: { value: number }) =>
+            elementDistributionBand(Number(params.value || 0), maxValue),
+          fontSize: 14,
           fontWeight: '600',
           color: textColor,
-          fontFamily: 'DM Mono, Fira Code, monospace',
+          fontFamily: 'Noto Sans SC, PingFang SC, sans-serif',
         },
       },
     ],
@@ -486,13 +629,14 @@ const fiveElementsOption = computed(() => {
       padding: [8, 14],
       textStyle: {
         color: textColor,
-        fontSize: 13,
+        fontSize: 14,
         fontFamily: 'Noto Serif SC, Songti SC, serif',
         fontWeight: '600',
       },
       formatter: (params: any[]) => {
         const p = params[0]
-        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：<span style="color:${textColor};font-weight:700">${p.value}</span> 分`
+        const band = elementDistributionBand(Number(p.value || 0), maxValue)
+        return `<span style="font-weight:700">${p.name}</span>：<span style="color:${textColor};font-weight:700">${band}</span><br><span style="font-size:14px;font-weight:400">固定权重下的命盘内比较，尚未独立验证</span>`
       },
     },
     animationDuration: 900,
@@ -534,9 +678,9 @@ const chartTabs = computed(() => {
     ...(hasDaYun.value ? [{ key: 'dayun', label: '大运' }] : []),
     { key: 'wuxing', label: '五行格局' },
     { key: 'shishen', label: '十神结构' },
-    { key: 'pattern', label: '格局候选' },
+    { key: 'pattern', label: '传统参考' },
     { key: 'shensha', label: '神煞' },
-    { key: 'fortune', label: '运势详批' },
+    { key: 'fortune', label: '周期结构' },
   ]
   if (props.chart.id) tabs.push({ key: 'rules', label: '经典依据' })
   return tabs
@@ -659,7 +803,6 @@ const tenGodChartOptions = computed(() => {
     animationDelay: (idx: number) => idx * 80,
   }
 })
-
 </script>
 
 <template>
@@ -695,8 +838,15 @@ const tenGodChartOptions = computed(() => {
       <!-- Title -->
       <div class="chart-header">
         <div class="header-eyebrow">BaZi Fortune</div>
-        <h2 class="chart-title">八字命盘</h2>
+        <h1 class="chart-title">八字命盘</h1>
       </div>
+
+      <dl class="chart-identity" aria-label="命盘身份摘要">
+        <div v-for="item in chartIdentityItems" :key="item.label">
+          <dt>{{ item.label }}</dt>
+          <dd>{{ item.value }}</dd>
+        </div>
+      </dl>
 
       <!-- Four-pillar axis with centered five elements -->
       <div class="pillars-bento">
@@ -751,6 +901,9 @@ const tenGodChartOptions = computed(() => {
         <div v-if="fiveElementsOption" class="bento-card bento-radar">
           <div class="bento-label">五行分布</div>
           <v-chart class="bento-radar-chart" :option="fiveElementsOption" autoresize />
+          <p class="bento-radar-note">
+            柱高仅表示固定权重下的命盘内相对分布；尚未独立验证，不代表强弱结论或现实结果。
+          </p>
         </div>
       </div>
 
@@ -761,6 +914,9 @@ const tenGodChartOptions = computed(() => {
           :key="tab.key"
           class="tab-btn"
           :class="{ active: activeTab === tab.key }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === tab.key"
           @click="activeTab = tab.key"
         >
           {{ tab.label }}
@@ -778,13 +934,15 @@ const tenGodChartOptions = computed(() => {
             <div class="overview-section-head">
               <div>
                 <div class="block-title">十神</div>
-                <span class="block-desc">天干对日主的生克关系，反映人际、性格与命运倾向</span>
+                <span class="block-desc"
+                  >天干与日主之间的传统生克关系名称，不直接代表性格、关系或现实结果</span
+                >
               </div>
             </div>
             <div class="overview-section-body">
               <div class="ten-gods-grid">
                 <div v-for="(god, pillar) in chart.ten_gods" :key="pillar" class="god-item">
-                  <span class="god-pillar">{{ pillar }}</span>
+                  <span class="god-pillar">{{ pillarLabel(String(pillar)) }}</span>
                   <span class="god-name">{{ god }}</span>
                 </div>
               </div>
@@ -914,8 +1072,8 @@ const tenGodChartOptions = computed(() => {
             >
             <div class="dayun-summary-grid">
               <div class="dayun-summary-item">
-                <span class="dayun-summary-label">起运年龄</span>
-                <strong>{{ daYun?.start_age || dayunStages[0]?.startAge }}岁</strong>
+                <span class="dayun-summary-label">精确起运时间</span>
+                <strong>{{ dayunStartLabel }}</strong>
               </div>
               <div class="dayun-summary-item">
                 <span class="dayun-summary-label">排运方向</span>
@@ -946,9 +1104,7 @@ const tenGodChartOptions = computed(() => {
             <div class="dayun-current-head">
               <div>
                 <div class="block-title">当前大运结构</div>
-                <span class="block-desc"
-                  >结合当前周期干支、十神映射与命局关系理解阶段重点</span
-                >
+                <span class="block-desc">结合当前周期干支、十神映射与命局关系理解阶段重点</span>
               </div>
               <span v-if="currentDayunLayer" class="dayun-current-score">结构已记录</span>
             </div>
@@ -972,14 +1128,16 @@ const tenGodChartOptions = computed(() => {
                     >天干 {{ currentDayunStage.ganElement }}</span
                   >
                 </div>
-                <p v-if="currentDayunLayer">{{ currentDayunLayer.basis }}</p>
+                <p v-if="currentDayunLayer">{{ calculationBasisLabel(currentDayunLayer.basis) }}</p>
                 <p v-else>这里展示大运干支、年龄区间、五行与十神之间的对应关系。</p>
                 <div v-if="currentDayunLayer?.relations.length" class="dayun-evidence-list">
                   <span
                     v-for="item in currentDayunLayer.relations"
                     :key="item.rule_id + item.target"
                     class="dayun-evidence-chip"
-                    >{{ item.name }} · {{ item.source_value }} / {{ item.target_value }}</span
+                    >{{ relationEndpointLabel(item.source) }}{{ item.source_value }} ·
+                    {{ relationDisplayLabel(item.type, item.name) }} ·
+                    {{ relationEndpointLabel(item.target) }}{{ item.target_value }}</span
                   >
                 </div>
               </div>
@@ -1033,14 +1191,16 @@ const tenGodChartOptions = computed(() => {
         <div v-show="activeTab === 'wuxing'" class="tab-content">
           <!-- Element Detail -->
           <div v-if="chart.element_detail && chart.element_detail.length" class="analysis-block">
-            <div class="block-title">五行力量与藏干分析</div>
-            <span class="block-desc">天干明透与地支藏干的综合力量，揭示五行的真实强弱</span>
+            <div class="block-title">五行权重与藏干记录</div>
+            <span class="block-desc"
+              >按当前固定权重汇总天干与藏干，仅用于比较命盘内部的五行分布</span
+            >
             <div class="element-detail-table">
               <div class="ed-header">
                 <span>五行</span>
                 <span>天干</span>
                 <span>地支藏干</span>
-                <span>总力量</span>
+                <span>权重合计</span>
               </div>
               <div
                 v-for="ed in chart.element_detail"
@@ -1137,7 +1297,9 @@ const tenGodChartOptions = computed(() => {
                 <div class="tg-god-meaning">出现 {{ god.count }} 次</div>
               </div>
             </div>
-            <p class="section-boundary-note">次数只表示命盘中的分布，不直接代表性格、职业或具体事件。</p>
+            <p class="section-boundary-note">
+              次数只表示命盘中的分布，不直接代表性格、职业或具体事件。
+            </p>
           </div>
         </div>
         <!-- /shishen tab -->
@@ -1170,7 +1332,7 @@ const tenGodChartOptions = computed(() => {
                     <strong>{{ candidate.pattern_name }}</strong>
                     <span>{{ candidate.category }}</span>
                   </div>
-                  <small>{{ candidate.source }}</small>
+                  <small>按月令、藏干与透干关系整理</small>
                 </div>
               </div>
               <div
@@ -1195,21 +1357,25 @@ const tenGodChartOptions = computed(() => {
                     {{ evidence.hidden_stem_type }} · {{ evidence.hidden_ten_god }} · 透于
                     {{ monthCommandExposureLabel(evidence.exposures) }}
                   </small>
-                  <small>{{ evidence.source }}</small>
+                  <small>按月令、藏干与透干关系整理</small>
                 </div>
               </div>
-              <p class="section-boundary-note">格局线索用于辅助理解命盘结构，不等同于已经确定格局或喜忌。</p>
+              <p class="section-boundary-note">
+                格局线索用于辅助理解命盘结构，不等同于已经确定格局或喜忌。
+              </p>
             </div>
           </div>
 
           <!-- Body Strength -->
           <div v-if="chart.body_strength" class="analysis-block">
             <div class="block-title">五行强弱参考</div>
-            <span class="block-desc">根据月令、根气、透干与生克关系整理</span>
+            <span class="block-desc">根据当前本地规则对月令、根气、透干与生克关系进行结构比较</span>
             <div class="body-strength">
               <div class="bs-primary">
-                <span>参考区间</span>
-                <strong>{{ chart.body_strength.score_band_candidate }}</strong>
+                <span>规则候选区间</span>
+                <strong>{{
+                  strengthCandidateLabel(chart.body_strength.score_band_candidate)
+                }}</strong>
               </div>
               <div class="bs-contract-grid">
                 <div>
@@ -1238,10 +1404,14 @@ const tenGodChartOptions = computed(() => {
                       :style="{ width: componentWidth(component.normalized_score) }"
                     ></span>
                   </div>
-                  <span class="evidence-bar-value">{{ Math.round(component.normalized_score * 100) }}%</span>
+                  <span class="evidence-bar-value">{{
+                    componentBandLabel(component.normalized_score)
+                  }}</span>
                 </div>
               </div>
-              <p class="section-boundary-note">该区间是结构参考，不直接决定喜忌五行或现实结果。</p>
+              <p class="section-boundary-note">
+                当前规则尚未完成独立验证；区间与百分比只用于复核本地计算，不直接决定身强身弱、喜忌五行或现实结果。
+              </p>
             </div>
           </div>
 
@@ -1250,14 +1420,16 @@ const tenGodChartOptions = computed(() => {
             <div class="block-title">
               调候参考 <span class="tiaohou-source">《穷通宝鉴》资料表</span>
             </div>
-            <span class="block-desc">按日干与月支查表，结合出生时刻所在节令区间</span>
+            <span class="block-desc"
+              >按日干与月支查阅传统资料表，结合出生时刻所在节令区间整理候选</span
+            >
             <div class="tiaohou-card">
               <div class="tiaohou-header">
                 <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
                 <span class="tiaohou-arrow">生</span>
                 <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
                 <span class="tiaohou-divider">|</span>
-                <span class="tiaohou-label">表内首项</span>
+                <span class="tiaohou-label">资料表首项</span>
                 <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{
                   chart.tiaohou.table_primary_candidate
                 }}</span>
@@ -1274,9 +1446,7 @@ const tenGodChartOptions = computed(() => {
               <div v-if="chart.tiaohou.matched_conditions?.length" class="tiaohou-chart-matches">
                 <div class="tiaohou-chart-heading">
                   <strong>完整命局条件已命中</strong>
-                  <span
-                    >可参考 {{ chart.tiaohou.chart_candidates.join('、') }}</span
-                  >
+                  <span>可参考 {{ chart.tiaohou.chart_candidates.join('、') }}</span>
                 </div>
                 <div
                   v-for="condition in chart.tiaohou.matched_conditions"
@@ -1290,7 +1460,7 @@ const tenGodChartOptions = computed(() => {
                   </div>
                   <div>
                     <strong>{{ condition.condition }}</strong>
-                    <p>{{ condition.source_text }} · {{ condition.source }}</p>
+                    <p>{{ condition.source_text }}</p>
                     <small>{{ condition.evidence.join('；') }}</small>
                   </div>
                 </div>
@@ -1317,10 +1487,10 @@ const tenGodChartOptions = computed(() => {
                   <div class="month-command-current">
                     <strong>{{ candidate.commanding_stem }}</strong>
                     <span>{{ candidate.segment }}</span>
-                    <small>{{ candidate.source }}</small>
+                    <small>传统分日资料口径</small>
                   </div>
                   <p>
-                    入节第 {{ candidate.position_day.toFixed(2) }} 天 ·
+                    入节约第 {{ Math.max(1, Math.round(candidate.position_day)) }} 天 ·
                     {{
                       monthCommandSegmentLabel(
                         candidate.segment_start_day,
@@ -1331,7 +1501,9 @@ const tenGodChartOptions = computed(() => {
                   </p>
                 </div>
               </div>
-              <p class="section-boundary-note">调候条目是传统查表参考，不代表唯一用神或现实吉凶。</p>
+              <p class="section-boundary-note">
+                调候条目尚未完成独立验证，是并列的传统查表候选，不代表唯一用神或现实吉凶；节令百分比仅表示时间位置。
+              </p>
             </div>
           </div>
         </div>
@@ -1359,7 +1531,7 @@ const tenGodChartOptions = computed(() => {
                   <span class="shen-sha-detail-name">{{ item.name }}</span>
                   <span class="shen-sha-detail-meta">规则命中</span>
                 </div>
-                <span class="shen-sha-detail-desc">取法 · {{ item.basis }}</span>
+                <span class="shen-sha-detail-desc">按四柱干支对应传统表项</span>
               </article>
             </div>
           </section>
@@ -1437,7 +1609,7 @@ const tenGodChartOptions = computed(() => {
         </div>
         <!-- /shensha tab -->
 
-        <!-- ═══ Tab: 运势详批 (fortune) ═══ -->
+        <!-- ═══ Tab: 周期结构 (fortune) ═══ -->
         <div v-show="activeTab === 'fortune'" class="tab-content fortune-detail-tab">
           <div v-if="fortuneLayerList.length" class="analysis-block">
             <div class="block-title">周期层依据</div>
@@ -1462,7 +1634,7 @@ const tenGodChartOptions = computed(() => {
                   <span class="fortune-layer-chip">结构参考</span>
                 </div>
                 <div class="fortune-layer-evidence">
-                  {{ layer.basis
+                  {{ calculationBasisLabel(layer.basis)
                   }}<span v-if="layer.relations.length">
                     · {{ layer.relations.length }} 条关系</span
                   >
@@ -1583,6 +1755,38 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 3px;
 }
 
+.chart-identity {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.chart-identity > div {
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--line-subtle);
+}
+
+.chart-identity > div:nth-child(3n) {
+  border-right: 0;
+}
+
+.chart-identity dt {
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+}
+
+.chart-identity dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
 /* Pillars bento grid */
 .pillars-bento {
   display: grid;
@@ -1693,6 +1897,13 @@ const tenGodChartOptions = computed(() => {
   min-height: 148px;
   height: 148px;
   width: 100%;
+}
+
+.bento-radar-note {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
 }
 
 .bento-sub {
@@ -3804,6 +4015,11 @@ const tenGodChartOptions = computed(() => {
 
   .bento-radar {
     grid-column: 1 / -1;
+    order: 1;
+  }
+
+  .pillars-bento > .bento-small {
+    order: 0 !important;
   }
 
   .ten-gods-grid {
@@ -3844,6 +4060,39 @@ const tenGodChartOptions = computed(() => {
 }
 
 @media (max-width: 560px) {
+  .chart-identity {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-identity > div:nth-child(3n) {
+    border-right: 1px solid var(--line-subtle);
+  }
+
+  .chart-identity > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .chart-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    padding: 0.35rem;
+    overflow: visible;
+    background: var(--line-subtle);
+  }
+
+  .tab-btn {
+    min-height: 44px;
+    padding: 0.65rem 0.5rem;
+    border-bottom: 0;
+    background: var(--surface-0);
+    white-space: normal;
+  }
+
+  .tab-btn.active {
+    background: color-mix(in oklab, var(--accent) 9%, var(--surface-0));
+  }
+
   .pillars-bento {
     grid-template-columns: 1fr;
   }

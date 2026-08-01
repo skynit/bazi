@@ -49,13 +49,14 @@ const breakdown: FortuneScoreBreakdown = {
 }
 
 describe('FortuneEvidencePanel', () => {
-  it('separates supporting and counter evidence', () => {
+  it('groups evidence by observable relation type instead of score polarity', () => {
     const wrapper = mount(FortuneEvidencePanel, {
       props: { level: 'advanced', supporting, counter, breakdown },
     })
 
-    expect(wrapper.text()).toContain('生扶关系')
-    expect(wrapper.text()).toContain('冲克关系')
+    expect(wrapper.text()).toContain('天干关系')
+    expect(wrapper.text()).toContain('地支关系')
+    expect(wrapper.text()).not.toContain('生扶与冲克')
     expect(wrapper.text()).toContain('流日五行生扶日主')
     expect(wrapper.text()).toContain('流日支与日支命中六冲结构')
     expect(wrapper.text()).not.toContain('证据完整度')
@@ -81,8 +82,9 @@ describe('FortuneEvidencePanel', () => {
     expect(professional.get('[data-testid="professional-meta"]').attributes('data-testid')).toBe(
       'professional-meta',
     )
-    expect(professional.text()).toContain('最终值 38')
-    expect(professional.text()).toContain('依据：《三命通会》十神生克规则')
+    expect(professional.text()).toContain('内部比较值 38')
+    expect(professional.text()).toContain('规则口径：《三命通会》十神生克规则')
+    expect(professional.text()).toContain('尚未验证')
     expect(professional.text()).not.toContain('relation.stem.shengWo')
     expect(professional.text()).not.toContain('fortune-score-pipeline-test')
     expect(professional.text()).not.toContain('not_validated')

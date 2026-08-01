@@ -1,6 +1,7 @@
 package fortune
 
 import (
+	"strings"
 	"testing"
 
 	"bazi/internal/model"
@@ -58,6 +59,21 @@ func TestRelationScoreStageExplainsPartialBranchCombinations(t *testing.T) {
 				t.Fatalf("unexpected evidence: %+v", evidence)
 			}
 		})
+	}
+}
+
+func TestStemScoreEvidenceUsesReadableDirectionLabels(t *testing.T) {
+	for relation, rule := range stemScoreRules {
+		for _, forbidden := range []string{"生我", "我生", "克我", "我克"} {
+			if strings.Contains(rule.detail, forbidden) {
+				t.Fatalf("stem relation %s exposes internal direction label %q: %s", relation, forbidden, rule.detail)
+			}
+		}
+	}
+
+	_, evidence := relationScoreStage("unknown", "neutral", "甲", "己")
+	if len(evidence) != 1 || strings.Contains(evidence[0].Description, "未裁决") {
+		t.Fatalf("five-combine evidence must explain its boundary in user language: %+v", evidence)
 	}
 }
 

@@ -1,23 +1,16 @@
 <script setup lang="ts">
 /** Compact view of reproducible daily structural fields. */
-import { computed } from 'vue'
 
 interface Props {
   date: string
   dayPillar: string
-  score?: number
+  relationCount?: number
   tenGod?: string
   isHighest?: boolean
   isLowest?: boolean
   weekday?: string
 }
-const props = defineProps<Props>()
-
-const tone = computed(() => {
-  const s = Math.max(0, Math.min(100, props.score ?? 0))
-  const t = s / 100
-  return `color-mix(in oklab, var(--jade-accent) ${Math.round(52 + t * 48)}%, var(--text) ${Math.round((1 - t) * 18)}%)`
-})
+defineProps<Props>()
 </script>
 
 <template>
@@ -36,8 +29,8 @@ const tone = computed(() => {
 
     <div class="score-line">
       <div class="index-value">
-        <span class="score-num tabular-nums" :style="{ color: tone }">{{ score ?? '—' }}</span>
-        <span class="score-label">结构指数</span>
+        <span class="score-num tabular-nums">{{ relationCount ?? '—' }}</span>
+        <span class="score-label">条关系</span>
       </div>
       <span v-if="tenGod" class="ten-god">{{ tenGod }}</span>
     </div>
@@ -123,6 +116,7 @@ const tone = computed(() => {
   font-size: var(--fs-stat);
   font-weight: 800;
   line-height: 1;
+  color: var(--accent);
 }
 .score-label {
   font-size: var(--fs-xs);

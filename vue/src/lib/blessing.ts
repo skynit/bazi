@@ -12,6 +12,7 @@ export interface BlessingProfile {
   element: BlessingElement
   image: string
   backdrop: string
+  backdropHd: string
   accent: string
   accentDark: string
   accentRgb: string
@@ -35,6 +36,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
     element: '木',
     image: '/element-assets/wood/wood-desk-plant.webp',
     backdrop: '/element-assets/wood/wood-forest-dawn.webp',
+    backdropHd: '/element-assets/wood/wood-forest-dawn-hd.webp',
     accent: '#22a982',
     accentDark: '#0f7d62',
     accentRgb: '34, 169, 130',
@@ -62,6 +64,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
     element: '火',
     image: '/element-assets/fire/fire-warm-desk.webp',
     backdrop: '/element-assets/fire/fire-sunrise.webp',
+    backdropHd: '/element-assets/fire/fire-sunrise-hd.webp',
     accent: '#df5a68',
     accentDark: '#ad3345',
     accentRgb: '223, 90, 104',
@@ -89,6 +92,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
     element: '土',
     image: '/element-assets/earth/earth-organized-desk.webp',
     backdrop: '/element-assets/earth/earth-courtyard.webp',
+    backdropHd: '/element-assets/earth/earth-courtyard-hd.webp',
     accent: '#b58a35',
     accentDark: '#8a6422',
     accentRgb: '181, 138, 53',
@@ -116,6 +120,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
     element: '金',
     image: '/element-assets/metal/metal-stationery.webp',
     backdrop: '/element-assets/metal/metal-white-mountain.webp',
+    backdropHd: '/element-assets/metal/metal-white-mountain-hd.webp',
     accent: '#7b8796',
     accentDark: '#596574',
     accentRgb: '123, 135, 150',
@@ -143,6 +148,7 @@ export const blessingProfiles: Record<BlessingElement, BlessingProfile> = {
     element: '水',
     image: '/element-assets/water/water-cup-notebook.webp',
     backdrop: '/element-assets/water/water-river-valley.webp',
+    backdropHd: '/element-assets/water/water-river-valley-hd.webp',
     accent: '#347f9f',
     accentDark: '#255f79',
     accentRgb: '52, 127, 159',

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-/** Marks the highest or lowest observed index in a period. */
+/** Marks the highest or lowest observed relation count in a period. */
 interface Props {
   variant: 'highest' | 'lowest'
   date?: string
-  score?: number
+  count?: number
 }
 defineProps<Props>()
 </script>
@@ -13,7 +13,7 @@ defineProps<Props>()
     <span class="dot" aria-hidden="true"></span>
     <span class="label">{{ variant === 'highest' ? '关系较多' : '关系较少' }}</span>
     <span v-if="date" class="date">{{ date.slice(5) }}</span>
-    <span v-if="typeof score === 'number'" class="score tabular-nums">{{ score }}</span>
+    <span v-if="typeof count === 'number'" class="score tabular-nums">{{ count }} 条</span>
   </span>
 </template>
 

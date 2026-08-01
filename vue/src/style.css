@@ -239,10 +239,10 @@
   --sidebar-ring: oklch(0.62 0.17 160 / 0.30);
 
   /* ── surface hierarchy (dark) ── */
-  --surface-0: #080a08;
-  --surface-1: #080a08;
-  --surface-2: #0e1210;
-  --surface-3: #161c18;
+  --surface-0: oklch(0.16 0.01 155);
+  --surface-1: oklch(0.19 0.012 155);
+  --surface-2: oklch(0.23 0.014 155);
+  --surface-3: oklch(0.28 0.016 155);
 
   /* ── line system (dark) ── */
   --line-subtle: rgba(255, 255, 255, 0.06);
@@ -268,7 +268,7 @@
 
   /* ── Legacy Bazi compat (dark) ── */
   --bg: #080a08;
-  --bg-elevated: #0c0c0e;
+  --bg-elevated: var(--surface-1);
   --glass: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-border-hover: rgba(255, 255, 255, 0.12);

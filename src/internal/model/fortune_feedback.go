@@ -3,11 +3,11 @@ package model
 import "gorm.io/gorm"
 
 const (
-	FeedbackRatingAccurate   = "accurate"
-	FeedbackRatingInaccurate = "inaccurate"
-	FeedbackRatingTooGeneric = "too_generic"
-	FeedbackRatingConfusing  = "confusing"
-	FeedbackRatingHelpful    = "helpful"
+	FeedbackRatingClear             = "clear"
+	FeedbackRatingHelpful           = "helpful"
+	FeedbackRatingInsufficientBasis = "insufficient_basis"
+	FeedbackRatingTooGeneric        = "too_generic"
+	FeedbackRatingConfusing         = "confusing"
 
 	FeedbackSummaryScopeInterpretationQuality = "interpretation_quality_not_outcome_accuracy"
 )

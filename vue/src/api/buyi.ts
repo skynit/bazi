@@ -4,8 +4,6 @@ export interface BuyiRecord {
   id: number
   hexagram_number: number
   hexagram_name: string
-  score: number
-  level: string
   summary: string
   human_way: string
   image_reading: string

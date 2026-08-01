@@ -20,10 +20,10 @@ var stemScoreRules = map[string]struct {
 	detail string
 }{
 	"same":    {10, "天干比和", "流日天干与日主天干构成同五行关系。"},
-	"shengWo": {18, "流日生扶", "流日天干五行与日主天干五行构成生我关系。"},
-	"woSheng": {5, "日主生流日", "日主天干五行与流日天干五行构成我生关系。"},
-	"keWo":    {-18, "流日克日主", "流日天干五行与日主天干五行构成克我关系。"},
-	"woKe":    {8, "日主克流日", "日主天干五行与流日天干五行构成我克关系。"},
+	"shengWo": {18, "流日生扶", "今日天干生助日主。"},
+	"woSheng": {5, "日主生流日", "日主生助今日天干。"},
+	"keWo":    {-18, "流日克日主", "今日天干克制日主。"},
+	"woKe":    {8, "日主克流日", "日主克制今日天干。"},
 }
 
 var branchScoreRules = map[string]struct {
@@ -93,7 +93,7 @@ func relationScoreStage(stemRel, branchRel, userGan, dayGan string) (int, []mode
 			"relation.stem.five_combine",
 			"天干关系",
 			"天干五合",
-			fmt.Sprintf("日主%s与流日天干%s命中五合结构，是否成化未裁决。", userGan, dayGan),
+			fmt.Sprintf("日主%s与今日天干%s命中五合结构；这里只记录五合，是否成化不在当前规则判断范围内。", userGan, dayGan),
 			"本地启发式权重；结构取法参考《三命通会》天干五合规则",
 			12,
 		))

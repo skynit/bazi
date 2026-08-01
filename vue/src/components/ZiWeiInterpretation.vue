@@ -84,21 +84,23 @@ const evidenceOrder = [
 
 const orderedEvidence = computed(() => {
   const known = evidenceOrder
-    .filter(type => groupedEvidence.value[type]?.length)
-    .flatMap(type => groupedEvidence.value[type])
+    .filter((type) => groupedEvidence.value[type]?.length)
+    .flatMap((type) => groupedEvidence.value[type])
   const extra = Object.entries(groupedEvidence.value)
     .filter(([type]) => !evidenceOrder.includes(type))
     .flatMap(([, items]) => items)
   return [...known, ...extra]
 })
 
-const legacySections = computed(() => [
-  props.palaceReading.mainStarAnalysis,
-  props.palaceReading.auxStarInfluence,
-  props.palaceReading.sihuaInfluence,
-  props.palaceReading.sanFangSiZheng,
-  props.palaceReading.patternAnnotations,
-].filter(section => section?.content))
+const legacySections = computed(() =>
+  [
+    props.palaceReading.mainStarAnalysis,
+    props.palaceReading.auxStarInfluence,
+    props.palaceReading.sihuaInfluence,
+    props.palaceReading.sanFangSiZheng,
+    props.palaceReading.patternAnnotations,
+  ].filter((section) => section?.content),
+)
 
 function toggle() {
   expanded.value = !expanded.value
@@ -108,14 +110,23 @@ function evidenceClass(type: string) {
   return `evidence-${type.replaceAll('_', '-')}`
 }
 
+function readableBasis(value: string): string {
+  if (!value) return '按本命星曜与宫位关系整理'
+  if (/[_=/]|rule|profile|hash|not_|\.ts|\.go|github/i.test(value)) {
+    return '按本命星曜、宫位与三方四正关系整理'
+  }
+  return value
+}
 </script>
 
 <template>
   <article class="interpretation-panel" :class="{ collapsed: !expanded }">
     <button class="panel-header" type="button" @click="toggle">
-      <span class="header-kicker">命盘详解</span>
+      <span class="header-kicker">宫位说明</span>
       <span class="header-title">{{ palaceReading.palaceName }}</span>
-      <span v-if="palaceReading.palaceFocus" class="focus-pill">{{ palaceReading.palaceFocus }}</span>
+      <span v-if="palaceReading.palaceFocus" class="focus-pill">{{
+        palaceReading.palaceFocus
+      }}</span>
       <span class="toggle-icon">{{ expanded ? '收起' : '展开' }}</span>
     </button>
 
@@ -148,7 +159,7 @@ function evidenceClass(type: string) {
                 <span class="evidence-label">{{ item.label }}</span>
                 <strong class="evidence-value">{{ item.value }}</strong>
               </div>
-              <p class="evidence-basis">{{ item.basis }}</p>
+              <p class="evidence-basis">{{ readableBasis(item.basis) }}</p>
             </div>
           </div>
         </section>
@@ -180,12 +191,16 @@ function evidenceClass(type: string) {
         <section v-if="palaceReading.patternDetails?.length" class="reading-block">
           <h4 class="block-title">格局依据</h4>
           <div class="pattern-list">
-            <div v-for="pattern in palaceReading.patternDetails" :key="pattern.name + pattern.basis" class="pattern-card">
+            <div
+              v-for="pattern in palaceReading.patternDetails"
+              :key="pattern.name + pattern.basis"
+              class="pattern-card"
+            >
               <div class="pattern-head">
                 <strong>{{ pattern.name }}</strong>
                 <span>结构线索</span>
               </div>
-              <p>{{ pattern.basis }}</p>
+              <p>{{ readableBasis(pattern.basis) }}</p>
               <div v-if="pattern.stars?.length" class="mini-tags">
                 <span v-for="star in pattern.stars" :key="star">{{ star }}</span>
               </div>
@@ -195,7 +210,10 @@ function evidenceClass(type: string) {
 
         <p class="reading-boundary-note">宫位解读用于理解星曜与宫位结构，不直接判断具体事件。</p>
 
-        <section v-if="!orderedEvidence.length && legacySections.length" class="reading-block legacy-block">
+        <section
+          v-if="!orderedEvidence.length && legacySections.length"
+          class="reading-block legacy-block"
+        >
           <h4 class="block-title">基础解读</h4>
           <div class="legacy-section" v-for="section in legacySections" :key="section.title">
             <strong>{{ section.title }}</strong>
@@ -504,7 +522,9 @@ function evidenceClass(type: string) {
 
 .expand-enter-active,
 .expand-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .expand-enter-from,

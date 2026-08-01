@@ -6,10 +6,22 @@
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts/core'
 import { RadarChart } from 'echarts/charts'
-import { TooltipComponent, LegendComponent, RadarComponent } from 'echarts/components'
+import {
+  AriaComponent,
+  TooltipComponent,
+  LegendComponent,
+  RadarComponent,
+} from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
-echarts.use([RadarChart, TooltipComponent, LegendComponent, RadarComponent, CanvasRenderer])
+echarts.use([
+  RadarChart,
+  TooltipComponent,
+  LegendComponent,
+  RadarComponent,
+  AriaComponent,
+  CanvasRenderer,
+])
 
 interface Props {
   distribution: Record<string, number>
@@ -24,32 +36,38 @@ let inst: echarts.ECharts | null = null
 let themeObserver: MutationObserver | null = null
 
 const series = computed(() =>
-  ORDER.map(k => Math.round((props.distribution?.[k] ?? 0) * 1000) / 10)
+  ORDER.map((key) => Math.round((props.distribution?.[key] ?? 0) * 1000) / 10),
+)
+const chartDescription = computed(() =>
+  ORDER.map((key, index) => `${key}${series.value[index]}%`).join('，'),
 )
 
 function build() {
   if (!host.value) return
   if (!inst) inst = echarts.init(host.value)
   inst.setOption({
+    aria: { enabled: true, decal: { show: true }, description: chartDescription.value },
     tooltip: { trigger: 'item' },
     radar: {
-      indicator: ORDER.map(k => ({ name: k, max: 60 })),
+      indicator: ORDER.map((key) => ({ name: key, max: 60 })),
       shape: 'polygon',
       splitNumber: 4,
       axisLine: { lineStyle: { color: 'rgba(127,127,127,0.18)' } },
       splitLine: { lineStyle: { color: 'rgba(127,127,127,0.12)' } },
       splitArea: { areaStyle: { color: ['rgba(127,127,127,0.04)', 'rgba(127,127,127,0.02)'] } },
-      axisName: { color: 'var(--text-muted)', fontSize: 12 }
+      axisName: { color: 'var(--text-muted)', fontSize: 12 },
     },
-    series: [{
-      type: 'radar',
-      symbol: 'circle',
-      symbolSize: 6,
-      lineStyle: { width: 2, color: `rgba(${getRgb()}, 0.9)` },
-      areaStyle: { color: `rgba(${getRgb()}, 0.18)` },
-      itemStyle: { color: `rgba(${getRgb()}, 1)` },
-      data: [{ value: series.value, name: '五行能量' }]
-    }]
+    series: [
+      {
+        type: 'radar',
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: { width: 2, color: `rgba(${getRgb()}, 0.9)` },
+        areaStyle: { color: `rgba(${getRgb()}, 0.18)` },
+        itemStyle: { color: `rgba(${getRgb()}, 1)` },
+        data: [{ value: series.value, name: '五行样本频次' }],
+      },
+    ],
   })
 }
 
@@ -59,12 +77,17 @@ function getRgb(): string {
   return v || '52, 211, 153'
 }
 
-function resize() { inst?.resize() }
+function resize() {
+  inst?.resize()
+}
 
 onMounted(() => {
   build()
   themeObserver = new MutationObserver(build)
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style', 'data-wuxing'] })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-wuxing'],
+  })
   window.addEventListener('resize', resize)
 })
 onUnmounted(() => {
@@ -79,5 +102,10 @@ watch(() => [props.distribution], build, { deep: true })
 </script>
 
 <template>
-  <div ref="host" :style="{ height, width: '100%' }"></div>
+  <div
+    ref="host"
+    role="img"
+    :aria-label="`五行样本频次雷达图：${chartDescription}`"
+    :style="{ height, width: '100%' }"
+  ></div>
 </template>

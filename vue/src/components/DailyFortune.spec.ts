@@ -163,11 +163,11 @@ describe('DailyFortune interpretation levels', () => {
     expect(tabLabels()).toContain('结构分析')
     expect(wrapper.text()).toContain('月令季节')
     expect(wrapper.text()).not.toContain('季节建议')
-    expect(wrapper.text()).not.toContain('日课推算')
+    expect(wrapper.text()).not.toContain('日课规则')
     expect(wrapper.text()).not.toContain('九维刻度')
 
     await wrapper.get('[data-level="professional"]').trigger('click')
-    expect(tabLabels()).toContain('日课推算')
+    expect(tabLabels()).toContain('日课规则')
     expect(wrapper.text()).toContain('今日十神')
     expect(wrapper.text()).toContain('月令状态')
     expect(wrapper.text()).toContain('天干五合')

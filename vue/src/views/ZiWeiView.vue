@@ -157,10 +157,17 @@ interface SihuaGroup {
   items: ZiWeiSihuaProjectionItem[]
 }
 
+interface SihuaPalaceGroup {
+  palace: string
+  stem: string
+  items: ZiWeiSihuaProjectionItem[]
+}
+
 // State
 const loading = ref(true)
 const error = ref('')
 const activeTab = ref('mingpan')
+const sihuaPalaceFilter = ref('all')
 
 const birthInfo = ref<BirthInfo>()
 const chartData = ref<ZiWeiChartData>()
@@ -198,12 +205,37 @@ function mapBirthInfo(chart: ChartDetail): BirthInfo {
   const minute = String(chart.birth_min || 0).padStart(2, '0')
   return {
     name: chart.name || '未命名',
-    gender: chart.gender,
+    gender: chart.gender === 'FEMALE' || chart.gender === '女' ? '女' : '男',
     yearBranch: chart.year_pillar?.zhi || '',
-    solarDate: `${chart.birth_year}-${month}-${day} ${hour}:${minute}`,
-    lunarDate: chart.calendar_type === 'LUNAR' ? '农历生日' : '',
+    solarDate:
+      chart.birth_validation?.converted_solar_date_time ??
+      `${chart.birth_year}-${month}-${day} ${hour}:${minute}`,
+    lunarDate: chart.birth_validation?.lunar_date ?? '',
     baziChartId: chart.id,
   }
+}
+
+function ruleSourceLabel(ruleId: string): string {
+  if (ruleId.includes('sihua')) return '四化规则'
+  if (ruleId.includes('star-brightness')) return '星曜亮度规则'
+  if (ruleId.includes('leap-month')) return '闰月换算规则'
+  if (ruleId.includes('monthly-stars')) return '流月星曜规则'
+  if (ruleId.includes('adjective-stars')) return '辅曜规则'
+  if (ruleId.includes('period-chronology')) return '周期排布规则'
+  if (ruleId.includes('transit-stars')) return '流曜规则'
+  if (ruleId.includes('pattern')) return '格局规则'
+  return '排盘规则'
+}
+
+function sihuaClass(type: string): string {
+  return (
+    {
+      化禄: 'sihua-lu',
+      化权: 'sihua-quan',
+      化科: 'sihua-ke',
+      化忌: 'sihua-ji',
+    }[type] ?? ''
+  )
 }
 
 // Load chart data
@@ -442,9 +474,9 @@ function palaceSupportSignal(p: PalaceData): string {
   const soft = stars.filter((s) => ['soft', 'lucun', 'tianma'].includes(s.type)).length
   const tough = stars.filter((s) => s.type === 'tough').length
   const parts = []
-  if (soft) parts.push(`辅${soft}`)
-  if (tough) parts.push(`煞${tough}`)
-  return parts.length ? parts.join(' / ') : '辅煞少'
+  if (soft) parts.push(`辅曜 ${soft} 项`)
+  if (tough) parts.push(`煞曜 ${tough} 项`)
+  return parts.length ? parts.join(' · ') : '未见辅曜或煞曜'
 }
 
 function palaceFourHuaLabel(p: PalaceData): string {
@@ -505,6 +537,42 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
     { type: '化忌', css: 'sihua-ji', items: list<ZiWeiSihuaProjectionItem>(chain.hua_ji) },
   ]
 })
+
+const sihuaChainsByPalace = computed<SihuaPalaceGroup[]>(() => {
+  const grouped = new Map<string, SihuaPalaceGroup>()
+  for (const group of sihuaChainGroups.value) {
+    for (const item of group.items) {
+      const palace = item.source_palace || '来源宫位未标注'
+      const key = `${palace}-${item.source_palace_stem || ''}`
+      const current = grouped.get(key) ?? {
+        palace,
+        stem: item.source_palace_stem || '',
+        items: [],
+      }
+      current.items.push(item)
+      grouped.set(key, current)
+    }
+  }
+  return Array.from(grouped.values())
+})
+
+const sihuaChainCount = computed(() =>
+  sihuaChainsByPalace.value.reduce((sum, group) => sum + group.items.length, 0),
+)
+
+const sihuaPalaceOptions = computed(() =>
+  sihuaChainsByPalace.value.map((group) => ({
+    value: `${group.palace}-${group.stem}`,
+    label: `${group.palace} · 宫干${group.stem}`,
+  })),
+)
+
+const filteredSihuaChainsByPalace = computed(() => {
+  if (sihuaPalaceFilter.value === 'all') return sihuaChainsByPalace.value
+  return sihuaChainsByPalace.value.filter(
+    (group) => `${group.palace}-${group.stem}` === sihuaPalaceFilter.value,
+  )
+})
 </script>
 
 <template>
@@ -535,7 +603,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
 
     <!-- Error -->
     <div v-else-if="error" class="error-state">
-      <el-result icon="error" title="加载失败" sub-title="请检查网络连接后重试">
+      <el-result icon="error" title="加载失败" :sub-title="error">
         <template #extra>
           <el-button type="primary" @click="loadZiWeiChart">重试</el-button>
         </template>
@@ -567,28 +635,22 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
             <span class="birth-label">排盘口径</span>
             <span class="birth-val">传统紫微排盘</span>
           </span>
-          <span
-            class="birth-item"
-            v-for="source in chartData?.rule_sources || []"
-            :key="source.rule_id"
-          >
-            <span class="birth-label">{{
-              source.rule_id.includes('sihua') ? '四化来源' : '亮度来源'
-            }}</span>
-            <a
-              class="birth-val source-link"
-              :href="`${source.repository}/blob/${source.commit}/${source.path}`"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              iztro@{{ source.commit.slice(0, 7) }}
-            </a>
-          </span>
         </div>
         <router-link v-if="birthInfo" :to="'/chart/' + birthInfo.baziChartId" class="bazi-link">
           查看八字命盘 →
         </router-link>
       </div>
+
+      <details v-if="chartData?.rule_sources?.length" class="source-details">
+        <summary>计算依据 · {{ chartData.rule_sources.length }} 类规则</summary>
+        <p>这里只列出参与排盘的规则类别，不展示源码、版本或内部验证信息。</p>
+        <div class="source-list">
+          <span v-for="source in chartData.rule_sources" :key="source.rule_id" class="source-item">
+            <span>{{ ruleSourceLabel(source.rule_id) }}</span>
+            <small>排盘计算类别</small>
+          </span>
+        </div>
+      </details>
 
       <!-- Overlay section (本命盘/流年叠盘 toggle) -->
       <div class="overlay-section" v-if="chartData && liunianOverlay">
@@ -616,11 +678,11 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
         <div class="tab-bar">
           <button
             v-for="tab in [
-              { key: 'mingpan', label: '命盘详解' },
-              { key: 'dayun', label: '大限分析' },
-              { key: 'liunian', label: '流年分析' },
-              { key: 'liuyue', label: '流月分析' },
-              { key: 'liuri', label: '流日分析' },
+              { key: 'mingpan', label: '命盘说明' },
+              { key: 'dayun', label: '大限结构' },
+              { key: 'liunian', label: '流年结构' },
+              { key: 'liuyue', label: '流月结构' },
+              { key: 'liuri', label: '流日结构' },
               { key: 'sihua', label: '四化飞星' },
             ]"
             :key="tab.key"
@@ -720,7 +782,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
             <div v-else>
               <ZiWeiPeriodAnalysisPanel
                 :analysis="dayunAnalysis"
-                title="大限分析"
+                title="大限结构"
                 :subtitle="`当前虚岁 ${dayunNominalAge} 岁`"
               />
             </div>
@@ -746,7 +808,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
             <div v-else>
               <ZiWeiPeriodAnalysisPanel
                 :analysis="liunianAnalysis"
-                title="流年分析"
+                title="流年结构"
                 :subtitle="`${selectedLiunianYear}年年度触发`"
               />
               <details class="period-detail-fold">
@@ -808,13 +870,13 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
                   <div v-if="p.sanfang_sizheng" class="strip-sanfang">
                     <span class="sf-label">三方四正</span>
                     <span v-if="p.sanfang_sizheng.opposite" class="sf-item"
-                      >对{{ p.sanfang_sizheng.opposite }}</span
+                      >对宫 {{ p.sanfang_sizheng.opposite }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine1" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine1 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine1 }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine2" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine2 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine2 }}</span
                     >
                   </div>
                 </div>
@@ -842,7 +904,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
             <div v-else>
               <ZiWeiPeriodAnalysisPanel
                 :analysis="liuyueAnalysis"
-                title="流月分析"
+                title="流月结构"
                 :subtitle="`${liuyueData[0].year}年${liuyueData[0].month}月月度触发`"
               />
               <details class="period-detail-fold">
@@ -904,13 +966,13 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
                   <div v-if="p.sanfang_sizheng" class="strip-sanfang">
                     <span class="sf-label">三方四正</span>
                     <span v-if="p.sanfang_sizheng.opposite" class="sf-item"
-                      >对{{ p.sanfang_sizheng.opposite }}</span
+                      >对宫 {{ p.sanfang_sizheng.opposite }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine1" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine1 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine1 }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine2" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine2 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine2 }}</span
                     >
                   </div>
                 </div>
@@ -940,7 +1002,7 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
             <div v-else>
               <ZiWeiPeriodAnalysisPanel
                 :analysis="liuriAnalysis"
-                title="流日分析"
+                title="流日结构"
                 :subtitle="`${liuriData[0].year}年${liuriData[0].month}月${liuriData[0].day}日当日触发`"
               />
               <details class="period-detail-fold">
@@ -1002,13 +1064,13 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
                   <div v-if="p.sanfang_sizheng" class="strip-sanfang">
                     <span class="sf-label">三方四正</span>
                     <span v-if="p.sanfang_sizheng.opposite" class="sf-item"
-                      >对{{ p.sanfang_sizheng.opposite }}</span
+                      >对宫 {{ p.sanfang_sizheng.opposite }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine1" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine1 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine1 }}</span
                     >
                     <span v-if="p.sanfang_sizheng.trine2" class="sf-item"
-                      >三{{ p.sanfang_sizheng.trine2 }}</span
+                      >三方 {{ p.sanfang_sizheng.trine2 }}</span
                     >
                   </div>
                 </div>
@@ -1029,6 +1091,15 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
               <p>暂无可显示的四化飞星数据</p>
             </div>
             <div v-else class="sihua-groups">
+              <section class="sihua-intro">
+                <h3>生年天干四化</h3>
+                <p>
+                  化禄、化权、化科、化忌是传统规则中的四类标记；这里仅展示星曜按规则落入哪个宫位，不据此判断现实事件。
+                </p>
+                <p class="sihua-boundary">
+                  当前数据是规则投影，尚未完成独立验证，不是吉凶、健康、关系或事件结论。
+                </p>
+              </section>
               <div v-for="grp in sihuaFlyGroups" :key="grp.type" class="sihua-group">
                 <span class="sihua-group-badge" :class="grp.css">{{ grp.type }}</span>
                 <div v-if="grp.items.length" class="sihua-group-items">
@@ -1040,23 +1111,55 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
                 </div>
                 <p v-else class="sihua-empty-group">无</p>
               </div>
-              <div v-if="sihuaChainGroups.length" class="sihua-chain-section">
-                <h4 class="chain-title">宫干四化飞行</h4>
-                <div v-for="grp in sihuaChainGroups" :key="'chain-' + grp.type" class="sihua-group">
-                  <span class="sihua-group-badge" :class="grp.css">{{ grp.type }}</span>
-                  <div v-if="grp.items.length" class="sihua-group-items">
-                    <div v-for="(it, i) in grp.items" :key="'c-' + i" class="sihua-fly-item">
-                      <span class="fly-star">{{ it.transformed_star }}</span
-                      ><span class="fly-arrow">→</span>
+              <details v-if="sihuaChainsByPalace.length" class="sihua-chain-section">
+                <summary>十二宫宫干飞化 · {{ sihuaChainCount }} 条</summary>
+                <p class="chain-help">
+                  “本宫内”表示星曜与来源宫相同；“飞入其他宫”表示目标宫不同。按来源宫位展开查看。
+                </p>
+                <label class="sihua-palace-filter" for="sihua-palace-filter">
+                  <span>来源宫位</span>
+                  <select id="sihua-palace-filter" v-model="sihuaPalaceFilter">
+                    <option value="all">全部宫位</option>
+                    <option
+                      v-for="option in sihuaPalaceOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </label>
+                <details
+                  v-for="palaceGroup in filteredSihuaChainsByPalace"
+                  :key="`${palaceGroup.palace}-${palaceGroup.stem}`"
+                  class="sihua-palace-fold"
+                >
+                  <summary>
+                    {{ palaceGroup.palace }} · 宫干{{ palaceGroup.stem }} ·
+                    {{ palaceGroup.items.length }} 条
+                  </summary>
+                  <div class="sihua-group-items">
+                    <div
+                      v-for="(it, i) in palaceGroup.items"
+                      :key="`${palaceGroup.palace}-${it.hua_type}-${i}`"
+                      class="sihua-fly-item"
+                    >
+                      <span class="sihua-group-badge" :class="sihuaClass(it.hua_type)">{{
+                        it.hua_type
+                      }}</span>
+                      <span class="fly-star">{{ it.transformed_star }}</span>
+                      <span class="fly-arrow">→</span>
                       <span class="fly-palace">{{ it.target_palace }}</span>
-                      <span v-if="it.source_palace" class="fly-from"
-                        >源{{ it.source_palace }}{{ it.source_palace_stem }}</span
-                      >
-                      <span class="fly-chain">{{ it.is_self_mutagen ? '自化' : '跨宫' }}</span>
+                      <span class="fly-chain">{{
+                        it.is_self_mutagen ? '本宫内' : '飞入其他宫'
+                      }}</span>
                     </div>
                   </div>
-                </div>
-              </div>
+                </details>
+                <p v-if="!filteredSihuaChainsByPalace.length" class="sihua-filter-empty">
+                  当前宫位没有可显示的宫干飞化记录。
+                </p>
+              </details>
             </div>
           </div>
         </div>
@@ -1137,6 +1240,52 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
 
 .source-link:hover {
   text-decoration: underline;
+}
+
+.source-details {
+  margin: -0.75rem 0 1.5rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--surface-1) 72%, transparent);
+}
+
+.source-details summary {
+  padding: 0.75rem 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.source-details > p,
+.chain-help {
+  margin: 0 0 0.75rem;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+
+.source-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.source-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.source-list small {
+  color: var(--text-soft);
 }
 
 .bazi-link {
@@ -1627,6 +1776,27 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
   flex-direction: column;
   gap: 0.625rem;
 }
+.sihua-intro {
+  margin-bottom: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--accent) 4%, transparent);
+}
+.sihua-intro h3 {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+.sihua-intro p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.65;
+}
+.sihua-intro .sihua-boundary {
+  color: var(--text-soft);
+}
 .sihua-group-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -1705,8 +1875,60 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
 }
 .sihua-chain-section {
   margin-top: 1rem;
-  padding-top: 0.75rem;
+  padding: 0.75rem 0;
   border-top: 1px solid var(--line-subtle);
+}
+.sihua-chain-section > summary,
+.sihua-palace-fold > summary {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.sihua-chain-section > summary {
+  padding: 0.25rem 0;
+}
+.chain-help {
+  margin-top: 0.65rem;
+}
+.sihua-palace-filter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+.sihua-palace-filter select {
+  min-height: 44px;
+  width: 100%;
+  padding: 0.55rem 2rem 0.55rem 0.7rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface-1);
+}
+.sihua-palace-filter select:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
+.sihua-palace-fold {
+  margin-top: 0.5rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 6px;
+}
+.sihua-palace-fold > summary {
+  padding: 0.65rem 0;
+}
+.sihua-palace-fold .sihua-group-items {
+  padding: 0 0 0.65rem;
+}
+.sihua-filter-empty {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
 }
 .chain-title {
   font-size: var(--fs-xs);
@@ -2008,6 +2230,22 @@ const sihuaChainGroups = computed<SihuaGroup[]>(() => {
 }
 
 @media (max-width: 720px) {
+  .ziwei-page {
+    --fs-2xs: 14px;
+    --fs-xs: 14px;
+    --fs-caption: 14px;
+    --fs-meta: 14px;
+  }
+
+  .birth-label,
+  .source-list small {
+    font-size: var(--fs-sm);
+  }
+
+  .source-list {
+    grid-template-columns: 1fr;
+  }
+
   .chart-overview-panel {
     grid-template-columns: 1fr;
   }
