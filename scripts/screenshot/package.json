@@ -1,0 +1,9 @@
+{
+  "name": "bazi-screenshot-tools",
+  "private": true,
+  "type": "module",
+  "description": "Playwright screenshot helper for bazi frontend pages (dev-only tooling, not shipped)",
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}

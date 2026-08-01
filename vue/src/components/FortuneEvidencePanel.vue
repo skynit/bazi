@@ -117,7 +117,8 @@ function formatImpact(value: number) {
 h2 {
   margin: 0.18rem 0 0;
   font-size: var(--fs-lg, 1.1rem);
-  letter-spacing: 0;
+  letter-spacing: 0.03em;
+  font-family: var(--font-serif), serif;
 }
 .evidence-note {
   max-width: 72ch;

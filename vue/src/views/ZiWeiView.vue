@@ -1231,7 +1231,7 @@ const filteredSihuaChainsByPalace = computed(() => {
 
 .birth-val {
   @apply text-sm font-medium;
-  color: var(--color-bazi-blue);
+  color: var(--text);
 }
 
 .source-link {
@@ -1290,11 +1290,13 @@ const filteredSihuaChainsByPalace = computed(() => {
 
 .bazi-link {
   @apply text-sm font-medium no-underline;
-  color: var(--color-bazi-red);
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 .bazi-link:hover {
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Chart section */
@@ -1327,12 +1329,17 @@ const filteredSihuaChainsByPalace = computed(() => {
 }
 
 .tab-btn:hover {
-  color: var(--color-bazi-blue);
+  color: var(--text);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: -2px;
 }
 
 .tab-btn.active {
-  color: var(--color-bazi-red);
-  border-bottom-color: var(--color-bazi-red);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .tab-content {
@@ -1506,7 +1513,11 @@ const filteredSihuaChainsByPalace = computed(() => {
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
   font-family: var(--font-sans);
   text-align: left;
 }
@@ -1515,24 +1526,31 @@ const filteredSihuaChainsByPalace = computed(() => {
   border-color: var(--line-focus);
   transform: translateY(-1px);
 }
+.palace-pill:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
 .palace-pill.active {
-  border-color: var(--text-soft);
-  background: var(--line-strong);
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 10%, var(--surface-1));
+  box-shadow: 0 0 0 1px var(--accent);
 }
 .palace-pill.body-palace {
-  border-color: rgba(139, 75, 75, 0.4);
-  background: rgba(139, 75, 75, 0.06);
+  border-color: color-mix(in oklab, var(--crimson) 32%, transparent);
+  background: color-mix(in oklab, var(--crimson) 6%, transparent);
 }
 .palace-pill-name {
   font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text);
   letter-spacing: 0;
+  white-space: nowrap;
 }
 .palace-pill-branch {
   font-size: var(--fs-2xs);
   color: var(--text-muted);
   text-align: right;
+  white-space: nowrap;
 }
 .palace-pill-stars {
   grid-column: 1 / -1;
@@ -1543,6 +1561,7 @@ const filteredSihuaChainsByPalace = computed(() => {
   overflow-wrap: anywhere;
 }
 .palace-pill-meta {
+  grid-column: 1 / -1;
   justify-self: start;
   font-size: var(--fs-2xs);
   color: var(--text-muted);
@@ -1550,21 +1569,25 @@ const filteredSihuaChainsByPalace = computed(() => {
   border: 1px solid var(--line-subtle);
   border-radius: 999px;
   padding: 0.05rem 0.35rem;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .palace-pill-meta.support {
-  justify-self: end;
+  justify-self: start;
 }
 .body-badge {
   justify-self: end;
   font-size: var(--fs-2xs);
-  background: rgba(251, 113, 133, 0.12);
-  color: var(--danger);
+  background: color-mix(in oklab, var(--crimson) 12%, transparent);
+  color: var(--crimson);
   padding: 0.05rem 0.25rem;
   border-radius: 3px;
   font-weight: 600;
 }
 .body-palace .palace-pill-name {
-  color: var(--danger);
+  color: var(--crimson);
 }
 
 /* Period lists */
@@ -1647,7 +1670,7 @@ const filteredSihuaChainsByPalace = computed(() => {
   font-size: var(--fs-xs);
   color: var(--text-muted);
   margin: 0 0 1rem;
-  font-style: italic;
+  line-height: 1.6;
 }
 .dayun-timeline {
   display: flex;

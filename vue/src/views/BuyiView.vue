@@ -98,6 +98,9 @@ onMounted(loadToday)
             <span class="summary-label">卦象说明</span>
             <p>{{ record.summary }}</p>
           </div>
+          <div class="gua-seal result-seal" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
         </div>
 
         <div class="reading-grid">
@@ -161,7 +164,7 @@ onMounted(loadToday)
   font-family: var(--font-serif);
   font-size: var(--fs-5xl);
   line-height: 1.15;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
 }
 
 .status-pill {
@@ -194,9 +197,9 @@ onMounted(loadToday)
 .state-panel,
 .draw-panel,
 .result-panel {
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--surface-0) 84%, transparent);
+  border: 1px solid var(--line-subtle);
+  border-radius: 12px;
+  background: var(--surface-0);
   box-shadow: var(--shadow-md);
 }
 
@@ -306,12 +309,18 @@ onMounted(loadToday)
   transition:
     transform 0.18s ease,
     border-color 0.18s ease,
-    background 0.18s ease;
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .draw-btn {
   color: var(--bg);
   background: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.draw-btn:not(:disabled):hover {
+  box-shadow: var(--shadow-sm);
 }
 
 .draw-btn:disabled {
@@ -331,7 +340,18 @@ onMounted(loadToday)
 }
 
 .result-panel {
-  padding: 28px;
+  padding: 32px;
+}
+
+.result-seal {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+}
+
+.result-seal span {
+  width: 48px;
+  height: 4px;
 }
 
 .result-hero {
@@ -347,10 +367,17 @@ onMounted(loadToday)
 
 .hexagram-no {
   display: inline-flex;
-  margin-bottom: 10px;
+  align-items: center;
+  min-height: 26px;
+  margin-bottom: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--line-focus);
+  border-radius: 999px;
   color: var(--accent);
+  background: var(--accent-dim);
   font-size: var(--fs-xs);
   font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .hexagram-meta h2 {
@@ -358,7 +385,7 @@ onMounted(loadToday)
   font-family: var(--font-serif);
   font-size: var(--fs-5xl);
   line-height: 1.18;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
 }
 
 .summary-label {
@@ -367,6 +394,7 @@ onMounted(loadToday)
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .hexagram-meta p {
@@ -409,6 +437,7 @@ onMounted(loadToday)
   color: var(--accent);
   font-size: var(--fs-xs);
   font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .reading-card p {
@@ -457,6 +486,10 @@ onMounted(loadToday)
 
   .result-panel {
     padding: 20px;
+  }
+
+  .result-seal {
+    display: none;
   }
 
   .reading-grid {

@@ -255,15 +255,18 @@ function zhiRelationSummary(relation: ZhiRelation): string {
   return `${subject}形成${relation.type}${subtype}。`
 }
 
-const elemColor = (e: string) => {
+const isDarkTheme = () => {
   themeVersion.value
-  const isDark =
-    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+}
+
+const elemColor = (e: string) => {
+  const isDark = isDarkTheme()
   const lightMap: Record<string, string> = {
-    金: '#cbd5e1',
-    木: '#34d399',
-    水: '#22d3ee',
-    火: '#fb7185',
+    金: '#64748b',
+    木: '#16a34a',
+    水: '#0891b2',
+    火: '#e11d48',
     土: '#c76f12',
   }
   const darkMap: Record<string, string> = {
@@ -275,6 +278,10 @@ const elemColor = (e: string) => {
   }
   return (isDark ? darkMap : lightMap)[e] || '#8a9a8e'
 }
+
+// 干支着色跟随 elemColor，避免浅色主题下金行文字几乎不可读
+const ganzhiColor = (meta?: { name: string; elemColor: string }) =>
+  meta ? elemColor(meta.name) : 'var(--text-muted)'
 
 const pillarLabel = (k: string) =>
   ({ year: '年柱', month: '月柱', day: '日柱', hour: '时柱' })[k] || k
@@ -542,9 +549,9 @@ const fiveElementsOption = computed(() => {
   const total = Object.values(fe as Record<string, number>).reduce((s, v) => s + v, 0)
   if (total === 0) return null
 
-  // 五行配色 — 科技色盘
-  const barColors = ['#34d399', '#fb7185', '#c76f12', '#cbd5e1', '#22d3ee']
+  // 五行配色 — 与干支着色保持同一色板
   const labels = ['木', '火', '土', '金', '水']
+  const barColors = labels.map((label) => elemColor(label))
   const maxValue = Math.max(...labels.map((label) => Number(fe[label] || 0)))
 
   return {
@@ -807,33 +814,6 @@ const tenGodChartOptions = computed(() => {
 
 <template>
   <div class="bazi-chart">
-    <!-- Constellation decoration -->
-    <div class="chart-bg" aria-hidden="true">
-      <svg viewBox="0 0 600 200" preserveAspectRatio="xMidYMid slice" class="bg-svg">
-        <circle cx="50" cy="30" r="1" fill="currentColor" opacity="0.2" />
-        <circle cx="550" cy="40" r="1.2" fill="currentColor" opacity="0.25" />
-        <circle cx="300" cy="100" r="1.5" fill="currentColor" opacity="0.15" />
-        <line
-          x1="50"
-          y1="30"
-          x2="300"
-          y2="100"
-          stroke="currentColor"
-          stroke-width="0.3"
-          opacity="0.05"
-        />
-        <line
-          x1="550"
-          y1="40"
-          x2="300"
-          y2="100"
-          stroke="currentColor"
-          stroke-width="0.3"
-          opacity="0.05"
-        />
-      </svg>
-    </div>
-
     <div class="chart-card glass-card overflow-hidden">
       <!-- Title -->
       <div class="chart-header">
@@ -862,26 +842,26 @@ const tenGodChartOptions = computed(() => {
         >
           <div class="bento-label">{{ pillar.label }}</div>
           <div class="bento-body">
-            <div class="bento-gan" :style="{ color: ganElement[pillar.gan]?.elemColor }">
+            <div class="bento-gan" :style="{ color: ganzhiColor(ganElement[pillar.gan]) }">
               <span class="bento-char">{{ pillar.gan }}</span>
               <span
                 class="elem-tag"
                 :style="{
-                  background: ganElement[pillar.gan]?.elemColor + '22',
-                  color: ganElement[pillar.gan]?.elemColor,
-                  borderColor: ganElement[pillar.gan]?.elemColor + '44',
+                  background: ganzhiColor(ganElement[pillar.gan]) + '1f',
+                  color: ganzhiColor(ganElement[pillar.gan]),
+                  borderColor: ganzhiColor(ganElement[pillar.gan]) + '40',
                 }"
                 >{{ ganElement[pillar.gan]?.name }}</span
               >
             </div>
-            <div class="bento-zhi" :style="{ color: zhiElement[pillar.zhi]?.elemColor }">
+            <div class="bento-zhi" :style="{ color: ganzhiColor(zhiElement[pillar.zhi]) }">
               <span class="bento-char">{{ pillar.zhi }}</span>
               <span
                 class="elem-tag"
                 :style="{
-                  background: zhiElement[pillar.zhi]?.elemColor + '22',
-                  color: zhiElement[pillar.zhi]?.elemColor,
-                  borderColor: zhiElement[pillar.zhi]?.elemColor + '44',
+                  background: ganzhiColor(zhiElement[pillar.zhi]) + '1f',
+                  color: ganzhiColor(zhiElement[pillar.zhi]),
+                  borderColor: ganzhiColor(zhiElement[pillar.zhi]) + '40',
                 }"
                 >{{ zhiElement[pillar.zhi]?.name }}</span
               >
@@ -1703,21 +1683,6 @@ const tenGodChartOptions = computed(() => {
   position: relative;
 }
 
-.chart-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.bg-svg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 .chart-card {
   position: relative;
   z-index: 1;
@@ -1875,7 +1840,6 @@ const tenGodChartOptions = computed(() => {
   font-size: var(--fs-3xl);
   font-weight: 700;
   line-height: 1;
-  text-shadow: 0 0 12px currentColor;
 }
 
 .bento-day-card {
@@ -2545,10 +2509,18 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 1px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    border-color 0.2s;
 }
 .tab-btn:hover {
   color: var(--text);
+  background: color-mix(in oklab, var(--accent) 5%, transparent);
+}
+.tab-btn:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: -2px;
 }
 .tab-btn.active {
   color: var(--accent);
@@ -3101,7 +3073,7 @@ const tenGodChartOptions = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr 1fr;
   padding: 0.4rem 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-2);
   font-size: var(--fs-2xs);
   color: var(--text-muted);
   letter-spacing: 0.5px;
@@ -3719,7 +3691,7 @@ const tenGodChartOptions = computed(() => {
 
 .empties-tag {
   font-size: var(--fs-2xs);
-  color: rgba(251, 113, 133, 0.5);
+  color: color-mix(in oklab, var(--crimson) 78%, var(--text));
 }
 
 /* ShenSha list */

@@ -12,7 +12,7 @@ defineProps<Props>()
   <span class="chip" :class="variant">
     <span class="dot" aria-hidden="true"></span>
     <span class="label">{{ variant === 'highest' ? '关系较多' : '关系较少' }}</span>
-    <span v-if="date" class="date">{{ date.slice(5) }}</span>
+    <span v-if="date" class="date tabular-nums">{{ date.slice(5) }}</span>
     <span v-if="typeof count === 'number'" class="score tabular-nums">{{ count }} 条</span>
   </span>
 </template>
@@ -27,8 +27,7 @@ defineProps<Props>()
   font-size: var(--fs-xs);
   letter-spacing: 0.06em;
   border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
+  background: var(--surface-1);
   color: var(--text);
 }
 
@@ -39,19 +38,21 @@ defineProps<Props>()
 }
 
 .chip.highest {
-  border-color: rgba(var(--jade-accent-rgb), 0.45);
+  border-color: rgba(var(--jade-accent-rgb), 0.4);
   color: rgba(var(--jade-accent-rgb), 1);
-  background: rgba(var(--jade-accent-rgb), 0.1);
+  background: rgba(var(--jade-accent-rgb), 0.08);
 }
 .chip.highest .dot {
   background: var(--jade-accent);
-  box-shadow: 0 0 8px var(--jade-accent);
+}
+.chip.highest .date {
+  color: rgba(var(--jade-accent-rgb), 0.85);
 }
 
 .chip.lowest {
   border-color: var(--line-strong);
   color: var(--text-muted);
-  background: var(--glass-bg);
+  background: var(--surface-1);
 }
 .chip.lowest .dot {
   background: var(--text-soft);

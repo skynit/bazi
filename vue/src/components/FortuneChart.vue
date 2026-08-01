@@ -41,13 +41,14 @@ const chartDescription = computed(() =>
 )
 
 const elementSeries = computed(() => {
+  themeVersion.value
   if (isDark.value) {
     return [
-      { key: 'metal' as const, name: '金', color: '#cbd5e1' },
-      { key: 'wood' as const, name: '木', color: '#34d399' },
-      { key: 'water' as const, name: '水', color: '#22d3ee' },
-      { key: 'fire' as const, name: '火', color: '#fb7185' },
-      { key: 'earth' as const, name: '土', color: '#fde68a' },
+      { key: 'metal' as const, name: '金', color: cssVar('--wuxing-jin', '#cbd5e1') },
+      { key: 'wood' as const, name: '木', color: cssVar('--wuxing-mu', '#34d399') },
+      { key: 'water' as const, name: '水', color: cssVar('--wuxing-shui', '#22d3ee') },
+      { key: 'fire' as const, name: '火', color: cssVar('--wuxing-huo', '#fb7185') },
+      { key: 'earth' as const, name: '土', color: cssVar('--wuxing-tu', '#fde68a') },
     ]
   }
   return [
@@ -100,11 +101,11 @@ const option = computed(() => {
       type: 'line',
       yAxisIndex: 0,
       data: scores,
-      lineStyle: { color: accentColor, width: 2.5 },
+      lineStyle: { color: accentColor, width: 2 },
       itemStyle: { color: accentColor },
       symbol: 'circle',
-      symbolSize: 6,
-      smooth: true,
+      symbolSize: 5,
+      smooth: 0.4,
     },
     ...(props.showElements
       ? elementSeries.value.map((el) => ({
@@ -338,39 +339,15 @@ const option = computed(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border: 1px dashed var(--line-subtle);
   border-radius: 12px;
   gap: 0.75rem;
 }
 
 .empty-constellation {
-  animation: spin-slow 30s linear infinite;
   color: var(--icon-muted);
   opacity: 0.7;
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.star-pulse {
-  animation: star-twinkle 2.5s ease-in-out infinite;
-}
-
-@keyframes star-twinkle {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 
 .empty-title {

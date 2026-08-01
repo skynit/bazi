@@ -150,19 +150,21 @@ onMounted(() => {
       <!-- Chart List -->
       <div v-else class="chart-list">
         <article v-for="chart in charts" :key="chart.id" class="chart-card">
-          <div class="card-glow"></div>
           <button type="button" class="card-main-button" @click="goChart(chart.id)">
             <div class="card-main">
-              <div class="card-avatar">{{ chart.name?.charAt(0) || '?' }}</div>
+              <div class="card-avatar" aria-hidden="true">{{ chart.name?.charAt(0) || '?' }}</div>
               <div class="card-info">
-                <h3 class="card-name">{{ chart.name || '未命名' }}</h3>
+                <div class="card-title-row">
+                  <h3 class="card-name">{{ chart.name || '未命名' }}</h3>
+                  <span class="card-date">{{ formatDate(chart.created_at || '') }} 创建</span>
+                </div>
                 <p class="card-meta">
                   <span class="meta-tag">{{ genderLabel(chart.gender) }}</span>
                   <span class="meta-sep">·</span>
                   <span>{{ formatBirth(chart) }}</span>
                 </p>
-                <p class="card-date">创建于 {{ formatDate(chart.created_at || '') }}</p>
               </div>
+              <span class="card-chevron" aria-hidden="true">›</span>
             </div>
           </button>
           <div class="card-actions">
@@ -172,7 +174,7 @@ onMounted(() => {
               :aria-expanded="expandedHistoryChartId === chart.id"
               @click="toggleFortuneHistory(chart.id)"
             >
-              <span class="btn-icon">✦</span>
+              <span class="btn-icon" aria-hidden="true">✦</span>
               运势记录
             </button>
           </div>
@@ -260,18 +262,20 @@ onMounted(() => {
 .page-inner {
   position: relative;
   z-index: 1;
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem;
 }
 
 .history-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line-subtle);
 }
 
 .header-eyebrow {
   font-size: var(--fs-2xs);
-  letter-spacing: 3px;
+  letter-spacing: var(--tracking-eyebrow);
   color: var(--text-soft);
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -283,7 +287,7 @@ onMounted(() => {
   font-weight: 700;
   color: var(--text);
   margin: 0 0 6px;
-  letter-spacing: 3px;
+  letter-spacing: 0.12em;
 }
 
 .page-subtitle {
@@ -301,17 +305,17 @@ onMounted(() => {
 
 .chart-card {
   position: relative;
-  background: color-mix(in oklab, var(--surface-1) 84%, transparent);
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.125rem;
-  transition: all 0.3s ease;
-  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .card-main-button {
-  position: relative;
-  z-index: 1;
   width: 100%;
   padding: 0;
   border: 0;
@@ -324,27 +328,18 @@ onMounted(() => {
 .card-main-button:focus-visible {
   outline: 2px solid var(--line-focus);
   outline-offset: 4px;
-  border-radius: 8px;
-}
-
-.card-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, var(--accent-dim), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s;
+  border-radius: var(--radius-sm);
 }
 
 .chart-card:hover {
-  border-color: var(--line-focus);
-  transform: translateY(-2px);
-  box-shadow:
-    var(--shadow-md),
-    0 0 20px var(--accent-dim);
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-.chart-card:hover .card-glow {
-  opacity: 1;
+.chart-card:hover .card-chevron {
+  color: var(--text);
+  transform: translateX(2px);
 }
 
 .card-main {
@@ -357,10 +352,12 @@ onMounted(() => {
 .card-avatar {
   width: 42px;
   height: 42px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), #94a3b8);
-  color: #030404;
-  font-size: var(--fs-body);
+  border-radius: var(--radius-md);
+  background: var(--accent-dim);
+  border: 1px solid var(--line-subtle);
+  color: var(--text);
+  font-family: var(--font-serif), serif;
+  font-size: var(--fs-lg);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -370,13 +367,31 @@ onMounted(() => {
 
 .card-info {
   flex: 1;
+  min-width: 0;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
 }
 
 .card-name {
-  font-size: var(--fs-body);
-  font-weight: 700;
+  font-size: var(--fs-md);
+  font-weight: 600;
   color: var(--text);
-  margin: 0 0 0.2rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-date {
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
+  flex-shrink: 0;
 }
 
 .card-meta {
@@ -390,11 +405,10 @@ onMounted(() => {
 
 .meta-tag {
   display: inline-block;
-  padding: 0.1rem 0.5rem;
+  padding: 0.05rem 0.45rem;
   background: var(--accent-dim);
-  border: 1px solid var(--line-subtle);
-  border-radius: 4px;
-  font-size: var(--fs-xs);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
 }
 
@@ -402,24 +416,24 @@ onMounted(() => {
   color: var(--text-soft);
 }
 
-.card-date {
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-  margin: 0.2rem 0 0;
+.card-chevron {
+  color: var(--text-soft);
+  font-size: var(--fs-xl);
+  line-height: 1;
+  flex-shrink: 0;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .card-actions {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: flex-end;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(203, 213, 225, 0.05);
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--line-subtle);
 }
 
 .fortune-history-panel {
-  position: relative;
-  z-index: 1;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--line-subtle);
@@ -439,6 +453,13 @@ onMounted(() => {
   color: var(--danger);
 }
 
+.history-error button {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .fortune-history-list {
   display: grid;
   gap: 0.55rem;
@@ -448,9 +469,9 @@ onMounted(() => {
 }
 
 .fortune-history-list li {
-  padding: 0.6rem 0.7rem;
+  padding: 0.6rem 0.75rem;
   border: 1px solid var(--line-subtle);
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   background: var(--surface-1);
 }
 
@@ -460,6 +481,12 @@ onMounted(() => {
   gap: 0.75rem;
   color: var(--text);
   font-size: var(--fs-xs);
+}
+
+.fortune-history-list time {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
 }
 
 .fortune-history-list p {
@@ -472,36 +499,30 @@ onMounted(() => {
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   font-size: var(--fs-xs);
-  padding: 0.35rem 0.875rem;
-  border-radius: 20px;
-  border: 1px solid rgba(203, 213, 225, 0.15);
-  background: rgba(203, 213, 225, 0.04);
-  color: var(--accent);
+  padding: 0.3rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-muted);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .action-btn:hover {
-  background: rgba(203, 213, 225, 0.1);
-  border-color: var(--text-soft);
-  box-shadow: 0 0 12px rgba(203, 213, 225, 0.1);
+  color: var(--text);
+  border-color: var(--line-focus);
+  background: var(--surface-1);
 }
 
 .btn-icon {
   font-size: var(--fs-2xs);
-  animation: spin-slow 8s linear infinite;
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  color: var(--accent);
 }
 
 /* States */
@@ -526,20 +547,21 @@ onMounted(() => {
 
 .btn-retry {
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, #fb7185, #be123c);
-  color: var(--destructive-foreground);
-  border: none;
-  border-radius: 8px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.2);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .btn-retry:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.3);
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+  border-color: color-mix(in oklab, var(--danger) 55%, transparent);
 }
 
 /* Pagination */
@@ -553,29 +575,33 @@ onMounted(() => {
 
 .page-btn {
   padding: 0.4rem 1rem;
-  border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .page-btn:not(:disabled):hover {
   border-color: var(--line-focus);
-  color: var(--accent);
-  background: var(--glass-bg-hover);
+  color: var(--text);
+  background: var(--surface-1);
 }
 
 .page-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .page-info {
   font-size: var(--fs-sm);
   color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Empty state */
@@ -611,22 +637,24 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-  color: #030404;
-  font-weight: 700;
+  padding: 0.7rem 1.75rem;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
   font-size: var(--fs-sm);
   border: none;
-  border-radius: 50px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 20px rgba(203, 213, 225, 0.25);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
-  letter-spacing: 1px;
+  letter-spacing: 0.1em;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(203, 213, 225, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 </style>

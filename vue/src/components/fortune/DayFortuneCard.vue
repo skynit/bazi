@@ -14,11 +14,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <article
-    class="card"
-    :class="{ highest: isHighest, lowest: isLowest }"
-    :title="`${date} ${dayPillar}`"
-  >
+  <article class="card" :class="{ highest: isHighest, lowest: isLowest }" :title="`${date} ${dayPillar}`">
     <header class="head">
       <div class="left">
         <span v-if="weekday" class="weekday">{{ weekday }}</span>
@@ -42,30 +38,47 @@ defineProps<Props>()
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--glass-bg);
+  border-radius: 12px;
+  background: var(--surface-1);
   border: 1px solid var(--line-subtle);
-  backdrop-filter: blur(14px) saturate(140%);
   transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   min-width: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: rgba(var(--jade-accent-rgb), 0.42);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-md);
+}
+.card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 .card.highest {
-  border-color: rgba(var(--jade-accent-rgb), 0.6);
-  box-shadow: 0 0 0 1px rgba(var(--jade-accent-rgb), 0.25) inset;
+  border-color: rgba(var(--jade-accent-rgb), 0.55);
+}
+.card.highest::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: rgba(var(--jade-accent-rgb), 0.6);
+  border-radius: 0 0 2px 2px;
 }
 .card.lowest {
+  border-style: dashed;
   border-color: var(--line-strong);
-  box-shadow: 0 0 0 1px var(--line-subtle) inset;
 }
 
 .head {
@@ -83,7 +96,6 @@ defineProps<Props>()
   font-size: var(--fs-xs);
   letter-spacing: 0.18em;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 .date {
   font-size: var(--fs-sm);
@@ -116,7 +128,7 @@ defineProps<Props>()
   font-size: var(--fs-stat);
   font-weight: 800;
   line-height: 1;
-  color: var(--accent);
+  color: var(--text);
 }
 .score-label {
   font-size: var(--fs-xs);
@@ -130,6 +142,7 @@ defineProps<Props>()
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--line-subtle);
+  background: var(--surface-2);
 }
 
 .tabular-nums {

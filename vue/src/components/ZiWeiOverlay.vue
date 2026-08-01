@@ -84,23 +84,23 @@ onUnmounted(() => {
 })
 
 const goldMetaLight: Record<string, { bg: string; text: string }> = {
-  庙: { bg: 'linear-gradient(135deg,#b91c1c,#7f1d1d)', text: '#fffaf8' },
-  旺: { bg: 'linear-gradient(135deg,#c2410c,#9a3412)', text: '#fffaf8' },
-  得: { bg: 'linear-gradient(135deg,#ca8a04,#854d0e)', text: '#fffaf8' },
-  利: { bg: 'linear-gradient(135deg,#15803d,#166534)', text: '#fffaf8' },
-  平: { bg: 'linear-gradient(135deg,#64748b,#475569)', text: '#fffaf8' },
-  不: { bg: 'linear-gradient(135deg,#0e7490,#155e75)', text: '#fffaf8' },
-  陷: { bg: 'linear-gradient(135deg,#44403c,#292524)', text: '#e7e5e4' },
+  庙: { bg: '#b91c1c', text: '#fffaf8' },
+  旺: { bg: '#c2410c', text: '#fffaf8' },
+  得: { bg: '#ca8a04', text: '#fffaf8' },
+  利: { bg: '#15803d', text: '#fffaf8' },
+  平: { bg: '#64748b', text: '#fffaf8' },
+  不: { bg: '#0e7490', text: '#fffaf8' },
+  陷: { bg: '#44403c', text: '#e7e5e4' },
 }
 
 const goldMetaDark: Record<string, { bg: string; text: string }> = {
-  庙: { bg: 'linear-gradient(135deg,#fb7185,#be123c)', text: '#fffaf8' },
-  旺: { bg: 'linear-gradient(135deg,#fb923c,#c2410c)', text: '#fffaf8' },
-  得: { bg: 'linear-gradient(135deg,#facc15,#a16207)', text: '#17120a' },
-  利: { bg: 'linear-gradient(135deg,#34d399,#047857)', text: '#02140e' },
-  平: { bg: 'linear-gradient(135deg,#94a3b8,#64748b)', text: '#07111f' },
-  不: { bg: 'linear-gradient(135deg,#38bdf8,#0369a1)', text: '#06111a' },
-  陷: { bg: 'linear-gradient(135deg,#334155,#1e293b)', text: '#dbe4e8' },
+  庙: { bg: '#be123c', text: '#fffaf8' },
+  旺: { bg: '#c2410c', text: '#fffaf8' },
+  得: { bg: '#a16207', text: '#17120a' },
+  利: { bg: '#047857', text: '#02140e' },
+  平: { bg: '#64748b', text: '#07111f' },
+  不: { bg: '#0369a1', text: '#06111a' },
+  陷: { bg: '#1e293b', text: '#dbe4e8' },
 }
 
 const brightnessLevels = ['庙', '旺', '得', '利', '平', '不', '陷']
@@ -1125,15 +1125,11 @@ function overlaySummary(): string {
 
 .zw-star {
   color: var(--destructive-foreground);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
 }
 
-.zw-star:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+:global(.dark) .zw-star {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 .zw-more-star {
@@ -1317,18 +1313,18 @@ function overlaySummary(): string {
 }
 
 .zw-focused {
-  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 12%, transparent);
+  background: color-mix(in oklab, var(--accent) 18%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent);
 }
 
 .zw-opposite {
-  background: color-mix(in oklab, var(--accent) 20%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 10%, transparent);
+  background: rgba(34, 197, 94, 0.1) !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.26);
 }
 
 .zw-surrounded {
-  background: color-mix(in oklab, var(--accent) 12%, transparent) !important;
-  box-shadow: inset 0 0 20px color-mix(in oklab, var(--accent) 6%, transparent);
+  background: rgba(245, 158, 11, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.22);
 }
 
 .zw-center {
@@ -1509,13 +1505,11 @@ function overlaySummary(): string {
 }
 
 .zw-brightness-legend {
-  position: absolute;
-  right: 0;
-  bottom: 0.42rem;
   display: grid;
   justify-items: end;
   gap: 0.18rem;
   padding: 0 0.12rem;
+  margin-left: auto;
   pointer-events: none;
 }
 

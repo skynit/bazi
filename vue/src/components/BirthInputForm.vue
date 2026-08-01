@@ -244,11 +244,6 @@ async function confirmCreate() {
 <template>
   <div class="birth-form">
     <div class="form-card glass-panel" :class="{ 'validation-card': preview }">
-      <div class="card-ornament">
-        <div class="ornament-ring"></div>
-        <div class="ornament-symbol">☯</div>
-      </div>
-
       <div v-if="!preview" class="card-inner">
         <div class="step-label">第一步 · 录入出生信息</div>
         <h2 class="form-title">输入出生信息</h2>
@@ -684,29 +679,8 @@ async function confirmCreate() {
 .validation-card {
   max-width: 760px;
 }
-.card-ornament {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 70px;
-  position: relative;
-  background: linear-gradient(180deg, var(--accent-dim), transparent);
-  border-bottom: 1px solid var(--line-subtle);
-}
-.ornament-ring {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--line-focus);
-  border-radius: 50%;
-}
-.ornament-symbol {
-  font-size: var(--fs-4xl);
-  color: var(--accent);
-  text-shadow: 0 0 20px var(--accent-glow);
-}
 .card-inner {
-  padding: 28px 36px 32px;
+  padding: 32px 36px 32px;
 }
 .step-label {
   text-align: center;
@@ -757,14 +731,54 @@ async function confirmCreate() {
   grid-template-columns: 1fr 1fr;
 }
 .calendar-toggle,
-.policy-toggle,
+.policy-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
 .gender-toggle {
   display: flex;
   gap: 10px;
   margin-bottom: 16px;
 }
 .calendar-toggle button,
-.policy-toggle button,
+.policy-toggle button {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  transition:
+    color 0.18s,
+    background 0.18s,
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.calendar-toggle button:hover,
+.policy-toggle button:hover {
+  color: var(--text);
+}
+.calendar-toggle button:focus-visible,
+.policy-toggle button:focus-visible,
+.toggle-btn:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 1px;
+}
+.calendar-toggle button.active,
+.policy-toggle button.active {
+  background: var(--surface-0);
+  border-color: var(--line-strong);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: var(--shadow-xs);
+}
 .toggle-btn {
   flex: 1;
   padding: 10px;
@@ -772,9 +786,12 @@ async function confirmCreate() {
   border-radius: 8px;
   color: var(--text-muted);
   background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.18s,
+    background 0.18s,
+    border-color 0.18s;
 }
-.calendar-toggle button.active,
-.policy-toggle button.active,
 .toggle-btn.btn-tech {
   background: var(--accent);
   border-color: var(--accent);
@@ -892,6 +909,7 @@ async function confirmCreate() {
   padding: 14px 8px;
   border: 1px solid var(--line-focus);
   border-radius: 10px;
+  background: color-mix(in oklab, var(--accent-dim) 55%, var(--surface-1));
 }
 .pillar-item strong {
   display: block;
@@ -941,10 +959,24 @@ async function confirmCreate() {
   background: var(--surface-1);
   color: var(--text-muted);
   text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    box-shadow 0.18s;
+}
+.candidate-card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-xs);
+}
+.candidate-card:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
 }
 .candidate-card.selected {
   border-color: var(--accent);
   background: var(--accent-dim);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 .candidate-card strong {
   color: var(--accent);

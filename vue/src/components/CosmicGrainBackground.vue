@@ -4,13 +4,13 @@
     <div
       class="absolute -bottom-[35%] -left-[20%] w-[140vw] h-[140vw] rounded-full
              bg-gradient-to-tr from-[#011612] via-[#045841] to-[#2fd397]
-             opacity-80 blur-[1px] transition-all duration-1000 ease-in-out"
+             opacity-65 blur-[1px] transition-all duration-1000 ease-in-out"
       :class="nebulaClass"
       style="mask-image: radial-gradient(circle at 38% 38%, black 25%, transparent 68%);
              -webkit-mask-image: radial-gradient(circle at 38% 38%, black 25%, transparent 68%);"
     ></div>
 
-    <div class="absolute inset-0 opacity-[0.15] mix-blend-overlay">
+    <div class="absolute inset-0 opacity-[0.10] mix-blend-overlay">
       <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
         <filter id="jadense-grain">
           <feTurbulence

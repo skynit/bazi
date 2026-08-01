@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /**
  * FortuneHeatStrip — horizontal relation-count map of N consecutive days.
+ * 颜色由 --jade-accent 与 --surface-3 按命中数混合，随主题与五行选择自适应。
  */
 import { computed } from 'vue'
 
@@ -22,7 +23,7 @@ const maxCount = computed(() => Math.max(...props.days.map((day) => day.relation
 
 function tone(count: number): string {
   const t = Math.max(0, Math.min(1, count / maxCount.value))
-  return `color-mix(in oklab, var(--jade-accent) ${Math.round(48 + t * 52)}%, var(--surface-2) ${Math.round((1 - t) * 28)}%)`
+  return `color-mix(in oklab, var(--jade-accent) ${Math.round(24 + t * 64)}%, var(--surface-3))`
 }
 
 const cells = computed(() =>
@@ -57,7 +58,7 @@ const cells = computed(() =>
 .strip {
   display: grid;
   grid-template-columns: repeat(v-bind('days.length'), minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -65,33 +66,42 @@ const cells = computed(() =>
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
-  padding: 8px 6px;
-  border-radius: 12px;
-  background: var(--glass-bg);
+  gap: 8px;
+  padding: 10px 10px 8px;
+  border-radius: 10px;
+  background: var(--surface-1);
   border: 1px solid var(--line-subtle);
   transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.25s ease;
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    transition: none;
+  }
 }
 .cell:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: rgba(var(--jade-accent-rgb), 0.4);
 }
+.cell:active {
+  transform: translateY(0);
+}
 .cell.highest {
-  border-color: rgba(var(--jade-accent-rgb), 0.65);
-  box-shadow:
-    0 0 0 1px rgba(var(--jade-accent-rgb), 0.3) inset,
-    0 6px 18px rgba(var(--jade-accent-rgb), 0.18);
+  border-color: rgba(var(--jade-accent-rgb), 0.55);
+}
+.cell.highest .day {
+  color: rgba(var(--jade-accent-rgb), 1);
+  font-weight: 700;
 }
 .cell.lowest {
+  border-style: dashed;
   border-color: var(--line-strong);
 }
 
 .bar {
-  height: 56px;
-  border-radius: 10px;
-  filter: drop-shadow(0 4px 14px color-mix(in oklab, currentColor 30%, transparent));
+  height: 52px;
+  border-radius: 6px;
 }
 
 .meta {

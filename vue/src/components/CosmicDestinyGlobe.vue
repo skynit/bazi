@@ -111,7 +111,7 @@ onUnmounted(() => { if (globe) globe.destroy() })
     <canvas ref="canvasRef" class="w-full h-full bg-transparent opacity-75 mix-blend-screen cursor-grab active:cursor-grabbing transition-all duration-1000" :class="wuxingThemes[props.elementTheme]?.dropShadow" />
 
     <div class="absolute bottom-4 bg-[var(--surface-1)]/90 border border-[var(--line-strong)] backdrop-blur-md px-4 py-1.5 rounded-full text-[var(--fs-2xs)] font-mono tracking-widest text-[var(--text-muted)] shadow-[var(--shadow-sm)] z-20 flex items-center gap-2">
-      <span class="w-1.5 h-1.5 rounded-full animate-ping" :class="wuxingThemes[props.elementTheme]?.accentText || 'bg-zinc-500'"></span>
+      <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="wuxingThemes[props.elementTheme]?.accentText || 'bg-zinc-500'"></span>
       THEME: <span class="font-bold uppercase" :class="wuxingThemes[props.elementTheme]?.accentText">{{ props.elementTheme }}</span>
     </div>
 

@@ -163,20 +163,20 @@ onUnmounted(() => {
           >
             <router-link
               to="/"
-              class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] aria-[current=page]:text-[var(--accent)]"
+              class="nav-link inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] aria-[current=page]:text-[var(--accent)]"
               exact-active-class="text-[var(--accent)]"
               >首页</router-link
             >
             <template v-if="authStore.isLoggedIn()">
               <router-link
                 to="/history"
-                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
+                class="nav-link inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
                 >历史</router-link
               >
               <button
                 type="button"
                 @click="goBaziChart"
-                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
+                class="nav-link inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'Chart' }"
               >
                 八字命盘
@@ -190,7 +190,7 @@ onUnmounted(() => {
               >
                 <button
                   type="button"
-                  class="inline-flex min-h-11 items-center gap-1 border-0 bg-transparent p-0 font-medium text-[var(--fs-xs)] text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
+                  class="nav-link inline-flex min-h-11 items-center gap-1 border-0 bg-transparent p-0 font-medium text-[var(--fs-xs)] text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
                   :class="{ 'text-[var(--accent)]': route.path.startsWith('/fortune') }"
                   :aria-expanded="fortuneMenuOpen"
                   aria-controls="fortune-desktop-menu"
@@ -201,39 +201,39 @@ onUnmounted(() => {
                 <div
                   v-show="fortuneMenuOpen"
                   id="fortune-desktop-menu"
-                  class="absolute top-full left-1/2 -translate-x-1/2 min-w-[152px] py-1.5 mt-1 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[8px] shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-[20px] z-[100]"
+                  class="fortune-dropdown absolute top-full left-1/2 -translate-x-1/2 min-w-[160px] p-1.5 mt-2 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[10px] shadow-[var(--shadow-lg)] backdrop-blur-[20px] z-[100]"
                 >
                   <router-link
                     to="/fortune"
-                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    class="fortune-dropdown-item"
                     >今日运势</router-link
                   >
                   <router-link
                     to="/fortune/blessing"
-                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    class="fortune-dropdown-item"
                     >运势加持</router-link
                   >
                   <router-link
                     to="/fortune/weekly"
-                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    class="fortune-dropdown-item"
                     >本周运势</router-link
                   >
                   <router-link
                     to="/fortune/monthly"
-                    class="block px-4 py-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--menu-hover)] transition-colors"
+                    class="fortune-dropdown-item"
                     >本月运势</router-link
                   >
                 </div>
               </div>
               <router-link
                 to="/buyi"
-                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
+                class="nav-link inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'Buyi' }"
                 >卜易</router-link
               >
               <button
                 @click="goZiwei"
-                class="inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] gap-1 bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
+                class="nav-link inline-flex min-h-11 items-center transition-colors hover:text-[var(--accent)] gap-1 bg-transparent border-0 p-0 cursor-pointer font-medium text-[var(--fs-xs)] text-[var(--text-muted)]"
                 :class="{ 'text-[var(--accent)]': $route.name === 'ZiWei' }"
               >
                 <span class="text-[var(--fs-2xs)] opacity-60">✦</span>
@@ -454,6 +454,12 @@ onUnmounted(() => {
       </div>
     </header>
     <main class="app-main"><router-view /></main>
+    <footer class="app-footer">
+      <div class="app-footer-inner">
+        <span class="app-footer-brand">八字命理</span>
+        <span class="app-footer-note">推命以典籍为据 · 供传统文化研习参考</span>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -472,6 +478,90 @@ onUnmounted(() => {
 
 .router-link-active {
   color: var(--accent) !important;
+}
+
+/* ── Desktop nav link underline ── */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: 9px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-link:hover::after,
+.nav-link[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/* ── Fortune dropdown ── */
+.fortune-dropdown-item {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--text-muted);
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.fortune-dropdown-item:hover,
+.fortune-dropdown-item.router-link-active {
+  color: var(--accent);
+  background: var(--menu-hover);
+}
+
+/* ── Footer ── */
+.app-footer {
+  position: relative;
+  z-index: 10;
+  margin-top: auto;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.app-footer-inner {
+  max-width: 82rem;
+  margin: 0 auto;
+  padding: 20px 32px 24px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-footer-brand {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+}
+
+.app-footer-note {
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .app-footer-inner {
+    padding: 16px 20px 20px;
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 
 .mobile-nav-item {

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useCountUp } from '../../composables/useCountUp'
+
 interface Props {
   value: number
   label?: string
@@ -6,18 +9,24 @@ interface Props {
   unit?: string
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   label: '平均命中关系',
   caption: '',
   unit: '条/日',
 })
+
+const host = ref<HTMLElement | null>(null)
+const target = computed(() => props.value)
+const { display } = useCountUp(target, host, { duration: 620, decimals: 1 })
 </script>
 
 <template>
-  <div class="metric">
+  <div ref="host" class="metric">
     <div class="content">
-      <span class="number tabular-nums">{{ value.toFixed(1) }}</span>
-      <span class="unit">{{ unit }}</span>
+      <div class="figure">
+        <span class="number tabular-nums">{{ display }}</span>
+        <span class="unit">{{ unit }}</span>
+      </div>
       <span class="label">{{ label }}</span>
       <span v-if="caption" class="caption">{{ caption }}</span>
     </div>
@@ -31,18 +40,36 @@ withDefaults(defineProps<Props>(), {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 24px 20px;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--surface-1) 78%, transparent);
+  border-radius: 12px;
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: rgba(var(--jade-accent-rgb), 0.55);
 }
 
 .content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   text-align: center;
+}
+
+.figure {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .number {
@@ -50,11 +77,12 @@ withDefaults(defineProps<Props>(), {
   font-size: var(--fs-hero-strong);
   font-weight: 800;
   line-height: 1;
-  color: var(--accent);
+  color: var(--text);
+  min-width: 2.2em;
+  text-align: right;
 }
 
-.unit,
-.caption {
+.unit {
   color: var(--text-soft);
   font-size: var(--fs-xs);
 }
@@ -64,10 +92,12 @@ withDefaults(defineProps<Props>(), {
   color: var(--text-muted);
   font-size: var(--fs-xs);
   font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .caption {
-  margin-top: 2px;
+  color: var(--text-soft);
+  font-size: var(--fs-xs);
 }
 
 .tabular-nums {

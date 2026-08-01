@@ -30,6 +30,8 @@ interface ShengKeAnalysis {
 interface Props {
   solarDate: string
   dayGanZhi: string
+  /** 页面级结论区已展示日期/日柱时，可隐藏组件内重复头部 */
+  hideHeader?: boolean
   weekDay?: string
   lunarDate?: string
   shengXiao?: string
@@ -61,6 +63,7 @@ interface Props {
   fortuneLayers?: FortuneLayerSet
 }
 const props = withDefaults(defineProps<Props>(), {
+  hideHeader: false,
   weekDay: '',
   lunarDate: '',
   shengXiao: '',
@@ -261,8 +264,8 @@ const fortuneLayerList = computed(() => {
 
 <template>
   <div class="daily-fortune">
-    <!-- Date + Pillar -->
-    <div class="df-header glass-card">
+    <!-- Date + Pillar（页面级结论区已展示时可隐藏，避免重复） -->
+    <div v-if="!hideHeader" class="df-header glass-card">
       <div class="df-date-col">
         <p class="df-solar">
           {{ solarDate }}<span v-if="weekDay" class="df-weekday">{{ weekDay }}</span>
@@ -270,7 +273,6 @@ const fortuneLayerList = computed(() => {
         <p v-if="lunarDate" class="df-lunar">{{ lunarDate }}</p>
       </div>
       <div class="df-pillar-col">
-        <div class="df-pillar-glow"></div>
         <span class="df-pillar-val">{{ dayGanZhi }}</span>
         <span v-if="shengXiao" class="df-sx">属{{ shengXiao }}</span>
       </div>
@@ -667,7 +669,6 @@ const fortuneLayerList = computed(() => {
                   :style="{
                     width: elPct(el) + '%',
                     background: clr,
-                    boxShadow: `0 0 8px ${clr}66`,
                   }"
                 ></div>
               </div>
@@ -709,7 +710,7 @@ const fortuneLayerList = computed(() => {
 .df-tab-btn {
   padding: 0.6rem 1rem;
   flex-shrink: 0;
-  background: var(--glass-bg);
+  background: var(--surface-1);
   border: 1px solid var(--line-subtle);
   border-radius: 8px;
   color: var(--text-muted);
@@ -718,7 +719,10 @@ const fortuneLayerList = computed(() => {
   letter-spacing: 1px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .df-tab-btn:hover {
@@ -737,6 +741,26 @@ const fortuneLayerList = computed(() => {
   flex-direction: column;
   gap: 0.75rem;
   transition: opacity 0.3s ease;
+  /* v-show 从 display:none 切回时重新播放一次淡入 */
+  animation: df-tab-in 240ms ease;
+}
+
+@keyframes df-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .df-tab-content {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Header */
@@ -747,21 +771,6 @@ const fortuneLayerList = computed(() => {
   padding: 1.25rem 1.5rem;
   position: relative;
   overflow: hidden;
-}
-
-.df-header::after {
-  content: '';
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--crimson) 7%, transparent),
-    transparent 70%
-  );
-  pointer-events: none;
 }
 
 .df-date-col {
@@ -799,27 +808,13 @@ const fortuneLayerList = computed(() => {
   gap: 0.2rem;
 }
 
-.df-pillar-glow {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  width: 80px;
-  height: 80px;
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--accent) 8%, transparent),
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
 .df-pillar-val {
+  font-family: var(--font-serif);
   font-size: var(--fs-hero);
   font-weight: 950;
   color: var(--accent);
   letter-spacing: 0.05em;
   line-height: 1;
-  text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
 .df-sx {
@@ -836,7 +831,6 @@ const fortuneLayerList = computed(() => {
   gap: 0.5rem;
 }
 
-.df-hours,
 .df-elems {
   padding: 0.9rem;
 }
@@ -854,40 +848,6 @@ const fortuneLayerList = computed(() => {
   color: var(--accent);
   margin: 0;
   letter-spacing: 2px;
-}
-
-.df-hours-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.df-hour-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.25rem 0.65rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  border-radius: 20px;
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  transition: all 0.25s;
-}
-
-.df-hour-chip:hover {
-  background: var(--accent-dim);
-  border-color: var(--line-focus);
-  color: var(--accent);
-}
-
-.df-hour-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--accent-glow);
-  flex-shrink: 0;
 }
 
 .df-el-bars {
@@ -932,35 +892,6 @@ const fortuneLayerList = computed(() => {
   flex-shrink: 0;
 }
 
-/* AI btn */
-.df-ai-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  background: var(--glass-bg);
-  color: var(--text-dim);
-  border: 1px solid var(--line-subtle);
-  border-radius: 10px;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  letter-spacing: 1.5px;
-}
-
-.df-ai-btn:hover {
-  border-color: var(--text-soft);
-  color: var(--accent);
-  background: var(--accent-dim);
-}
-
-.df-ai-btn-icon {
-  font-size: var(--fs-body);
-}
-
 /* Almanac 黄历 */
 .df-almanac {
   padding: 0.9rem;
@@ -977,7 +908,7 @@ const fortuneLayerList = computed(() => {
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.4rem 0.5rem;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border-radius: 6px;
   border: 1px solid var(--line-subtle);
 }
@@ -1003,7 +934,7 @@ const fortuneLayerList = computed(() => {
 }
 
 .almanac-xiong {
-  color: #dc2626;
+  color: var(--crimson);
 }
 
 /* Structural analysis */
@@ -1023,7 +954,7 @@ const fortuneLayerList = computed(() => {
   font-size: var(--fs-xs);
   line-height: 1.5;
   padding: 0.3rem 0.5rem;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border-radius: 5px;
 }
 
@@ -1036,427 +967,6 @@ const fortuneLayerList = computed(() => {
 
 .analysis-value {
   color: var(--text-muted);
-}
-
-/* Dimension matrix */
-.dimension-panel {
-  margin: 0.5rem 0 0;
-  padding: 1rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--surface-1) 90%, transparent),
-      color-mix(in oklab, var(--surface-0) 82%, transparent)
-    ),
-    linear-gradient(90deg, rgba(var(--jade-accent-rgb), 0.08), transparent 38%);
-  box-shadow:
-    var(--shadow-lg),
-    inset 0 1px 0 var(--line-subtle);
-  position: relative;
-  overflow: hidden;
-}
-
-.dimension-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), transparent 76%);
-  opacity: 0.7;
-}
-
-.dimension-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.7rem;
-  position: relative;
-  z-index: 1;
-}
-
-.dimension-eyebrow {
-  display: block;
-  color: var(--accent);
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.dimension-title {
-  margin: 0.18rem 0 0;
-  color: var(--text);
-  font-family: var(--font-serif);
-  font-size: var(--fs-sm);
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.score-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  max-width: 320px;
-}
-
-.score-breakdown span,
-.score-breakdown strong {
-  padding: 0.28rem 0.5rem;
-  border-radius: 7px;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-}
-
-.score-breakdown strong {
-  color: var(--accent);
-  background: var(--accent-dim);
-  border-color: var(--line-focus);
-}
-
-.dimension-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.42rem;
-  position: relative;
-  z-index: 1;
-}
-
-.dimension-card {
-  min-height: 0;
-  border: 1px solid var(--line-subtle);
-  border-radius: 9px;
-  background: color-mix(in oklab, var(--surface-1) 82%, transparent);
-  box-shadow: inset 0 1px 0 var(--line-subtle);
-  animation: dimension-in 0.55s ease both;
-  overflow: hidden;
-  transition:
-    background 0.25s,
-    border-color 0.25s,
-    box-shadow 0.25s;
-}
-
-@keyframes dimension-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dimension-card:hover,
-.dimension-card[open] {
-  background: color-mix(in oklab, var(--surface-1) 72%, var(--accent-dim));
-  border-color: var(--line-focus);
-  box-shadow:
-    0 10px 26px rgba(var(--jade-accent-rgb), 0.1),
-    inset 0 1px 0 var(--line-subtle);
-}
-
-.dimension-summary {
-  display: grid;
-  grid-template-columns: 1.35rem minmax(4.3rem, 1fr) minmax(3.8rem, 0.85fr) 2.4rem 2.8rem;
-  align-items: center;
-  gap: 0.42rem;
-  min-height: 54px;
-  padding: 0.48rem 0.55rem;
-  cursor: pointer;
-  list-style: none;
-}
-
-.dimension-summary::-webkit-details-marker {
-  display: none;
-}
-
-.dimension-rank {
-  color: var(--text-soft);
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.dimension-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.dimension-name {
-  display: block;
-  color: var(--text);
-  font-size: var(--fs-xs);
-  font-weight: 850;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dimension-keyword {
-  display: block;
-  margin-top: 0.12rem;
-  color: var(--text-soft);
-  font-size: var(--fs-2xs);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dimension-score {
-  color: var(--accent);
-  font-family: var(--font-serif);
-  font-size: var(--fs-lg);
-  font-weight: 900;
-  line-height: 1;
-  text-shadow: 0 0 24px var(--accent-glow);
-  text-align: right;
-}
-
-.dimension-state {
-  padding: 0.18rem 0.32rem;
-  border-radius: 6px;
-  background: rgba(var(--jade-accent-rgb), 0.08);
-  border: 1px solid rgba(var(--jade-accent-rgb), 0.15);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 800;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.dimension-meter {
-  height: 4px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--surface-0) 70%, transparent);
-  border: 1px solid var(--line-subtle);
-  overflow: hidden;
-}
-
-.dimension-meter span {
-  display: block;
-  height: 100%;
-  min-width: 6%;
-  border-radius: inherit;
-  background: var(--accent);
-  box-shadow: 0 0 18px var(--accent-glow);
-}
-
-.dimension-detail {
-  padding: 0 0.6rem 0.62rem 2.25rem;
-  display: grid;
-  gap: 0.46rem;
-}
-
-.dimension-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.dimension-meta-row span,
-.dimension-tags span {
-  padding: 0.18rem 0.38rem;
-  border-radius: 7px;
-  background: var(--glass-bg);
-  border: 1px solid var(--line-subtle);
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-}
-
-.dimension-analysis {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--fs-2xs);
-  line-height: 1.55;
-}
-
-.dimension-advice {
-  margin: 0;
-  padding-left: 0.55rem;
-  border-left: 2px solid var(--line-focus);
-  color: var(--accent);
-  font-size: var(--fs-2xs);
-  line-height: 1.5;
-}
-
-.dimension-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.dimension-card.trend-up .dimension-meta-row span:nth-child(2) {
-  color: var(--accent);
-  border-color: var(--line-focus);
-}
-
-.dimension-card.trend-down .dimension-state,
-.dimension-card.trend-down .dimension-meta-row span:first-child {
-  color: var(--crimson);
-  border-color: color-mix(in oklab, var(--crimson) 22%, transparent);
-}
-
-/* Modal */
-.df-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  backdrop-filter: blur(8px);
-}
-
-.df-modal-box {
-  width: 100%;
-  max-width: 380px;
-  overflow: hidden;
-}
-
-.df-modal-hdr {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--line-subtle);
-}
-
-.df-modal-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.df-modal-orb {
-  font-size: var(--fs-3xl);
-  color: var(--accent);
-  text-shadow: 0 0 25px var(--accent-glow);
-  animation: orb-glow 3s ease-in-out infinite;
-}
-
-@keyframes orb-glow {
-  0%,
-  100% {
-    text-shadow: 0 0 20px var(--accent-glow);
-  }
-
-  50% {
-    text-shadow: 0 0 40px var(--accent-glow);
-  }
-}
-
-.df-modal-hdr h2 {
-  margin: 0;
-  font-family: var(--font-serif), serif;
-  font-size: var(--fs-lg);
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 2px;
-}
-
-.df-modal-close {
-  background: none;
-  border: none;
-  font-size: var(--fs-2xl);
-  color: var(--text-soft);
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: color 0.2s;
-}
-
-.df-modal-close:hover {
-  color: var(--accent);
-}
-
-.df-modal-body {
-  padding: 2.5rem 1.5rem;
-}
-
-.df-ai-coming {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  text-align: center;
-}
-
-.df-ai-svg {
-  color: var(--icon-muted);
-  opacity: 0.75;
-  animation: svg-rot 20s linear infinite;
-}
-
-@keyframes svg-rot {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.df-star-pulse {
-  animation: st-pulse 2.5s ease-in-out infinite;
-}
-
-@keyframes st-pulse {
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.df-ai-title {
-  font-size: var(--fs-body);
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-}
-
-.df-ai-sub {
-  font-size: var(--fs-xs);
-  color: var(--text-soft);
-  margin: 0;
-}
-
-/* Modal transition */
-.df-modal-enter-active,
-.df-modal-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.df-modal-enter-from,
-.df-modal-leave-to {
-  opacity: 0;
-}
-
-.df-modal-enter-active .df-modal-box,
-.df-modal-leave-active .df-modal-box {
-  transition: transform 0.25s ease;
-}
-
-.df-modal-enter-from .df-modal-box {
-  transform: scale(0.9) translateY(12px);
-}
-
-.df-modal-leave-to .df-modal-box {
-  transform: scale(0.9) translateY(12px);
 }
 
 /* ═══ 日课推算样式 ═══ */
@@ -1478,7 +988,7 @@ const fortuneLayerList = computed(() => {
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.75rem;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border-radius: 8px;
   border: 1px solid var(--line-subtle);
 }
@@ -1518,7 +1028,7 @@ const fortuneLayerList = computed(() => {
   font-size: var(--fs-xs);
   color: var(--text-soft);
   padding: 0.3rem 0.5rem;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border-radius: 4px;
   border: 1px solid var(--line-subtle);
   margin-top: 0.25rem;
@@ -1572,7 +1082,7 @@ const fortuneLayerList = computed(() => {
   border-radius: 8px;
   min-width: 60px;
   border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
+  background: var(--surface-2);
   transition: all 0.25s;
 }
 
@@ -1616,7 +1126,7 @@ const fortuneLayerList = computed(() => {
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border: 1px solid var(--line-subtle);
 }
 
@@ -1658,7 +1168,7 @@ const fortuneLayerList = computed(() => {
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--line-subtle);
-  background: var(--glass-bg);
+  background: var(--surface-2);
 }
 
 .ss-name {
@@ -1706,7 +1216,7 @@ const fortuneLayerList = computed(() => {
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.7rem;
-  background: var(--glass-bg);
+  background: var(--surface-2);
   border-radius: 8px;
   border: 1px solid var(--line-subtle);
 }
@@ -1776,19 +1286,6 @@ const fortuneLayerList = computed(() => {
   margin: 0.2rem 0 0;
 }
 
-/* ═══ Dark mode overrides ═══ */
-:global(.dark) .almanac-ji {
-  color: rgba(var(--jade-accent-rgb), 1);
-}
-
-:global(.dark) .almanac-xiong {
-  color: #f08080;
-}
-
-:global(.dark) .df-pillar-val {
-  text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 40%, transparent);
-}
-
 @media (max-width: 720px) {
   .df-header {
     align-items: flex-start;
@@ -1799,38 +1296,10 @@ const fortuneLayerList = computed(() => {
     font-size: var(--fs-stat-lg);
   }
 
-  .dimension-panel {
-    padding: 0.85rem;
-    border-radius: 12px;
-  }
-
-  .dimension-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .score-breakdown {
-    justify-content: flex-start;
-    max-width: none;
-  }
   .df-bottom-row,
-  .dimension-grid,
   .rikuyo-core-grid,
   .yun-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dimension-summary {
-    grid-template-columns: 1.2rem minmax(4.8rem, 1fr) minmax(4rem, 0.8fr) 2.4rem;
-    min-height: 50px;
-  }
-
-  .dimension-state {
-    display: none;
-  }
-
-  .dimension-detail {
-    padding-left: 2.05rem;
   }
 }
 

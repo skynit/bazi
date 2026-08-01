@@ -4,12 +4,14 @@ import { useRoute } from 'vue-router'
 import { fetchWeekly, parseTrend, type WeeklyFortuneResponse } from '../api/fortune'
 import { getApiErrorMessage } from '../api/client'
 import FortuneChart from '../components/FortuneChart.vue'
-import AuroraMeshBackground from '../components/fortune/AuroraMeshBackground.vue'
 import ScoreOrb from '../components/fortune/ScoreOrb.vue'
 import FortuneHeatStrip from '../components/fortune/FortuneHeatStrip.vue'
 import FortuneRadar from '../components/fortune/FortuneRadar.vue'
 import DayFortuneCard from '../components/fortune/DayFortuneCard.vue'
 import BestWorstChip from '../components/fortune/BestWorstChip.vue'
+import PeriodNav from '../components/fortune/PeriodNav.vue'
+import FortuneStateView from '../components/fortune/FortuneStateView.vue'
+import { vReveal } from '../composables/useReveal'
 
 const route = useRoute()
 const data = ref<WeeklyFortuneResponse | null>(null)
@@ -133,27 +135,36 @@ onMounted(load)
 
 <template>
   <div class="weekly-page">
-    <AuroraMeshBackground />
+    <FortuneStateView
+      v-if="loading"
+      kind="loading"
+      title="本周运势加载中"
+      description="按当前规则汇总本周每日干支关系"
+    />
 
-    <div v-if="loading" class="state">
-      <div class="orb-skeleton" aria-hidden="true"></div>
-      <p>本周运势加载中…</p>
-    </div>
-
-    <div v-else-if="error" class="state error">
-      <p>{{ error }}</p>
-      <router-link v-if="errorKind === 'missing-chart'" to="/chart/new" class="btn-link"
-        >去排盘</router-link
-      >
-      <button v-else type="button" class="btn-link state-retry" @click="load">重新加载</button>
-    </div>
+    <FortuneStateView
+      v-else-if="error"
+      kind="error"
+      :title="error"
+      :description="errorKind === 'missing-chart' ? '本周运势需要基于一张已保存的命盘计算。' : ''"
+      v-bind="
+        errorKind === 'missing-chart'
+          ? { actionLabel: '去排盘', actionTo: '/chart/new' }
+          : { retryLabel: '重新加载' }
+      "
+      @retry="load"
+    />
 
     <template v-else-if="data">
       <main class="page">
-        <!-- Hero -->
-        <section class="hero">
+        <div class="top-nav" v-reveal>
+          <PeriodNav current="week" :chart-id="chartId" />
+        </div>
+
+        <!-- ① 周期结论区 -->
+        <section class="hero" v-reveal="40">
           <div class="hero-left">
-            <span class="eyebrow">BaZi · Weekly</span>
+            <span class="eyebrow">本周运势 · Weekly</span>
             <h1 class="title">本周关系节奏</h1>
             <p class="range tabular-nums">{{ weekRange }}</p>
             <p class="week-brief">
@@ -192,8 +203,8 @@ onMounted(load)
           </div>
         </section>
 
-        <!-- Heat strip -->
-        <section class="glass-card heat-card">
+        <!-- ② 结构化概览 -->
+        <section class="surface-card heat-card" v-reveal="80">
           <header class="card-head">
             <span class="card-eyebrow">每日命中关系数</span>
             <span class="card-meta">
@@ -204,16 +215,15 @@ onMounted(load)
           <FortuneHeatStrip :days="heatDays" :weekday-labels="weekdayLabels" />
         </section>
 
-        <!-- Radar + trend grid -->
         <section class="grid-2">
-          <div class="glass-card">
+          <div class="surface-card" v-reveal="120">
             <header class="card-head">
               <span class="card-eyebrow">五行雷达</span>
               <span class="card-meta">{{ data.summary.dominant_element }}出现较多</span>
             </header>
             <FortuneRadar :distribution="distribution" height="260px" />
           </div>
-          <div class="glass-card">
+          <div class="surface-card" v-reveal="160">
             <header class="card-head">
               <span class="card-eyebrow">命中关系数变化</span>
               <span class="card-meta tabular-nums"
@@ -224,8 +234,8 @@ onMounted(load)
           </div>
         </section>
 
-        <!-- Day cards -->
-        <section class="day-grid-section">
+        <!-- ③ 明细区 -->
+        <section class="day-grid-section" v-reveal="200">
           <header class="card-head plain">
             <span class="card-eyebrow">每日详记</span>
             <span class="card-meta">{{ data.daily_fortunes.length }} 天</span>
@@ -244,19 +254,17 @@ onMounted(load)
             />
           </div>
         </section>
-
-        <nav class="footer-nav">
-          <router-link :to="`/fortune?chart_id=${chartId}`">今日运势</router-link>
-          <span aria-hidden="true">·</span>
-          <router-link :to="`/fortune/monthly?chart_id=${chartId}`">本月运势</router-link>
-        </nav>
       </main>
     </template>
 
-    <div v-else class="state">
-      <p>本周暂无可显示的关系记录。</p>
-      <button type="button" class="btn-link state-retry" @click="load">重新加载</button>
-    </div>
+    <FortuneStateView
+      v-else
+      kind="empty"
+      title="本周暂无可显示的关系记录"
+      description="可以稍后重新加载，或先查看今日、本月的记录。"
+      retry-label="重新加载"
+      @retry="load"
+    />
   </div>
 </template>
 
@@ -271,74 +279,38 @@ onMounted(load)
 .page {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* states */
-.state {
+.top-nav {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: 70vh;
-  gap: 16px;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
-.state.error p {
-  color: var(--crimson);
-}
-.btn-link {
-  color: rgba(var(--jade-accent-rgb), 1);
-  text-decoration: none;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-.state-retry {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.orb-skeleton {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(var(--jade-accent-rgb), 0.45), transparent 70%);
-  filter: blur(4px);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.95;
-  }
 }
 
 /* hero */
 .hero {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  padding: 24px;
-  border-radius: 28px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--surface-1) 86%, transparent),
-    color-mix(in oklab, var(--surface-2) 78%, transparent)
-  );
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--surface-1);
   border: 1px solid var(--line-strong);
-  backdrop-filter: blur(22px) saturate(140%);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
-:global(.dark) .hero {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 28px;
+  right: 28px;
+  height: 2px;
+  background: rgba(var(--jade-accent-rgb), 0.55);
 }
 @media (min-width: 900px) {
   .hero {
@@ -359,17 +331,18 @@ onMounted(load)
 }
 
 .eyebrow {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.42em;
-  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-meta, 0.18em);
+  color: rgba(var(--jade-accent-rgb), 1);
+  font-weight: 600;
   text-transform: uppercase;
 }
 .title {
   font-family: var(--font-serif), 'Songti SC', serif;
-  font-size: var(--fs-stat);
+  font-size: clamp(22px, 2.6vw, 28px);
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
+  line-height: var(--lh-snug, 1.3);
   margin: 0;
   color: var(--text);
 }
@@ -400,30 +373,21 @@ onMounted(load)
   border: 1px solid var(--line-subtle);
   font-size: var(--fs-xs);
   color: var(--text-muted);
-  background: var(--glass-bg);
+  background: var(--surface-2);
 }
 .meta-chip .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  box-shadow: 0 0 6px currentColor;
 }
 
-/* glass card primitive */
-.glass-card {
+/* card primitive：实心 surface + 1px 线 + 单层轻阴影 */
+.surface-card {
   padding: 20px;
-  border-radius: 22px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--surface-1) 88%, transparent),
-    color-mix(in oklab, var(--surface-2) 78%, transparent)
-  );
+  border-radius: 14px;
+  background: var(--surface-1);
   border: 1px solid var(--line-strong);
-  backdrop-filter: blur(22px) saturate(140%);
-  box-shadow: var(--shadow-md);
-}
-:global(.dark) .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  box-shadow: var(--shadow-sm);
 }
 .heat-card {
   display: flex;
@@ -441,10 +405,10 @@ onMounted(load)
   padding: 0 4px;
 }
 .card-eyebrow {
-  font-size: var(--fs-xs);
-  letter-spacing: 0.32em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-meta, 0.18em);
   color: var(--text-muted);
-  font-family: var(--font-mono), monospace;
+  font-weight: 600;
   text-transform: uppercase;
 }
 .card-meta {
@@ -473,24 +437,6 @@ onMounted(load)
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.footer-nav {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  padding: 8px 0;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-.footer-nav a {
-  color: rgba(var(--jade-accent-rgb), 1);
-  text-decoration: none;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
-.footer-nav a:hover {
-  text-shadow: 0 0 12px rgba(var(--jade-accent-rgb), 0.55);
 }
 
 .tabular-nums {

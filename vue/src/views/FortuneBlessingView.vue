@@ -6,6 +6,8 @@ import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
 import { getApiErrorMessage } from '../api/client'
 import { blessingProfiles, resolveBlessingElement } from '../lib/blessing'
+import PeriodNav from '../components/fortune/PeriodNav.vue'
+import { vReveal } from '../composables/useReveal'
 
 interface PracticeStep {
   key: string
@@ -176,13 +178,21 @@ onUnmounted(() => {
     <section v-else-if="error" class="state-view" aria-live="polite">
       <div class="state-icon warning" aria-hidden="true"><ShieldAlert :size="24" /></div>
       <p>{{ error }}</p>
+      <small v-if="error === '请先创建命盘'">运势加持需要基于一张已保存的命盘生成。</small>
       <router-link v-if="error === '请先创建命盘'" to="/" class="state-action">
         去创建命盘
       </router-link>
       <button v-else type="button" class="state-action" @click="fetchBlessing">重新加载</button>
     </section>
 
-    <div v-else-if="fortune" class="blessing-shell">
+    <section v-else-if="!fortune" class="state-view" aria-live="polite">
+      <div class="state-seal" aria-hidden="true">五行</div>
+      <p>今日暂无可显示的加持内容</p>
+      <small>可以稍后重新加载，或直接查看今日运势的结构记录。</small>
+      <button type="button" class="state-action" @click="fetchBlessing">重新加载</button>
+    </section>
+
+    <div v-else class="blessing-shell">
       <section class="blessing-hero" aria-labelledby="blessing-title">
         <img
           class="hero-image"
@@ -202,11 +212,7 @@ onUnmounted(() => {
             <ArrowLeft :size="16" />
             今日运势
           </router-link>
-          <nav class="period-nav" aria-label="运势周期">
-            <span aria-current="page">今日加持</span>
-            <router-link :to="{ path: '/fortune/weekly', query: navQuery }">本周</router-link>
-            <router-link :to="{ path: '/fortune/monthly', query: navQuery }">本月</router-link>
-          </nav>
+          <PeriodNav current="blessing" :chart-id="chartId" variant="overlay" />
         </div>
 
         <div class="hero-inner">
@@ -240,7 +246,7 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <section class="context-band" aria-label="今日主题与说明">
+      <section class="context-band" aria-label="今日主题与说明" v-reveal>
         <div class="context-inner">
           <div class="today-focus">
             <div class="element-seal" aria-hidden="true">{{ profile.element }}</div>
@@ -253,13 +259,18 @@ onUnmounted(() => {
           <div class="boundary-copy">
             <p class="section-kicker">如何理解这页</p>
             <h2>生活提示，不是结果预测</h2>
-            <p>内容按当天五行结构生成，不是新的个性化排盘，也不代表事情会如何发展。</p>
+            <p>
+              本页由「今日运势」的同一份结构数据生成，只换成可执行的生活提示，不是新的排盘，也不代表事情会如何发展。
+            </p>
+            <router-link :to="{ path: '/fortune', query: navQuery }" class="boundary-link">
+              查看今日运势的完整结构记录 →
+            </router-link>
           </div>
         </div>
       </section>
 
       <main>
-        <section class="content-section steps-section" aria-labelledby="steps-title">
+        <section class="content-section steps-section" aria-labelledby="steps-title" v-reveal>
           <header class="section-heading">
             <div>
               <p class="section-index">01 / 三步练习</p>
@@ -281,7 +292,7 @@ onUnmounted(() => {
           </div>
         </section>
 
-        <section class="action-band" aria-labelledby="actions-title">
+        <section class="action-band" aria-labelledby="actions-title" v-reveal>
           <div class="content-section action-layout">
             <div class="action-copy">
               <p class="section-index">02 / 今日行动</p>
@@ -331,7 +342,7 @@ onUnmounted(() => {
           </div>
         </section>
 
-        <section class="content-section evidence-layout" aria-labelledby="evidence-title">
+        <section class="content-section evidence-layout" aria-labelledby="evidence-title" v-reveal>
           <div class="evidence-heading">
             <p class="section-index">03 / 依据与边界</p>
             <h2 id="evidence-title">这组提示从哪里来</h2>
@@ -403,21 +414,6 @@ onUnmounted(() => {
   filter: brightness(1.06) saturate(1) contrast(1.04);
 }
 
-.blessing-hero::after {
-  position: absolute;
-  z-index: -1;
-  right: -6vw;
-  bottom: -24vw;
-  width: 54vw;
-  height: 54vw;
-  border: 1px solid rgba(241, 216, 137, 0.25);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 8vw rgba(255, 255, 255, 0.025),
-    0 0 0 16vw rgba(255, 255, 255, 0.018);
-  content: '';
-}
-
 .hero-toolbar,
 .hero-inner,
 .context-inner,
@@ -448,34 +444,6 @@ onUnmounted(() => {
   font-weight: 650;
   text-decoration: none;
   text-shadow: 0 1px 10px rgba(4, 18, 12, 0.55);
-}
-
-.period-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 8px;
-  background: rgba(32, 62, 47, 0.28);
-  backdrop-filter: blur(16px);
-}
-
-.period-nav a,
-.period-nav span {
-  min-height: 36px;
-  padding: 0.45rem 0.75rem;
-  border-radius: 5px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 13px;
-  line-height: 1.5;
-  text-decoration: none;
-}
-
-.period-nav span {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.14);
-  font-weight: 700;
 }
 
 .hero-inner {
@@ -542,9 +510,8 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(28, 65, 47, 0.22);
+  background: rgba(24, 46, 35, 0.52);
   font-size: 13px;
-  backdrop-filter: blur(8px);
 }
 
 .practice-timer {
@@ -588,9 +555,8 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.44);
   border-radius: 50%;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(24, 46, 35, 0.42);
   cursor: pointer;
-  backdrop-filter: blur(10px);
   transition:
     transform 180ms ease,
     background 180ms ease;
@@ -659,10 +625,25 @@ onUnmounted(() => {
 }
 
 .today-focus p:last-child,
-.boundary-copy p:last-child {
+.boundary-copy p:not(.section-kicker) {
   margin: 0.4rem 0 0;
   color: var(--page-soft);
   font-size: 14px;
+}
+
+.boundary-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.75rem;
+  color: var(--blessing-accent-dark);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: opacity 160ms ease;
+}
+.boundary-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .content-section {
@@ -1010,7 +991,6 @@ onUnmounted(() => {
 }
 
 .hero-back:focus-visible,
-.period-nav a:focus-visible,
 .timer-toggle:focus-visible,
 .state-action:focus-visible {
   outline: 3px solid rgba(240, 216, 137, 0.7);
@@ -1036,6 +1016,7 @@ onUnmounted(() => {
 :global(.dark .blessing-page .section-index),
 :global(.dark .blessing-page .primary-action > span),
 :global(.dark .blessing-page .action-item > span),
+:global(.dark .blessing-page .boundary-link),
 :global(.dark .blessing-page .evidence-list dt) {
   color: color-mix(in oklab, var(--blessing-accent) 78%, #ffffff);
 }
@@ -1100,13 +1081,6 @@ onUnmounted(() => {
   }
 
   .hero-back {
-    font-size: 13px;
-  }
-
-  .period-nav a,
-  .period-nav span {
-    min-height: 34px;
-    padding: 0.4rem 0.55rem;
     font-size: 13px;
   }
 

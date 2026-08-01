@@ -308,7 +308,7 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
   font-size: var(--fs-3xl);
   line-height: 1;
   font-weight: 800;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-serif), serif;
 }
 
 .zw-structure-seal span {
@@ -349,6 +349,8 @@ function dayunTags(item: ZiWeiDayunStageAnalysis) {
   margin-top: 0.42rem;
   font-size: var(--fs-body);
   font-weight: 800;
+  font-family: var(--font-serif), serif;
+  letter-spacing: 0.03em;
 }
 
 .zw-period-copy p {

@@ -16,10 +16,11 @@ defineProps<{
 
 <style scoped>
 .narrative-panel {
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--line-strong);
   border-radius: 0.75rem;
   padding: 1rem;
-  background: var(--glass);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
   color: var(--text);
 }
 

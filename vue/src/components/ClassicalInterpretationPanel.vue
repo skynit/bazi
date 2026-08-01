@@ -334,6 +334,8 @@ const panelEyebrow = computed(() => (isRuleSummary.value ? '规则说明' : '典
   line-height: 1.35;
   font-weight: 700;
   color: var(--text);
+  font-family: var(--font-serif), serif;
+  letter-spacing: 0.04em;
 }
 
 .ai-status {

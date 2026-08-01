@@ -353,7 +353,6 @@ function goZiWei() {
 
         <!-- Action buttons -->
         <div class="action-row">
-          <div class="action-glow"></div>
           <Button
             @click="goFortune"
             class="rounded-full h-10 px-6 text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
@@ -567,20 +566,19 @@ function goZiWei() {
 
 .btn-retry {
   padding: 0.5rem 1.75rem;
-  background: linear-gradient(135deg, var(--crimson), #be123c);
-  color: var(--destructive-foreground);
-  border: none;
+  background: transparent;
+  color: var(--crimson);
+  border: 1px solid color-mix(in oklab, var(--crimson) 32%, transparent);
   border-radius: 8px;
   font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 16px rgba(251, 113, 133, 0.25);
 }
 
 .btn-retry:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(251, 113, 133, 0.35);
+  background: color-mix(in oklab, var(--crimson) 8%, transparent);
+  border-color: color-mix(in oklab, var(--crimson) 48%, transparent);
 }
 
 /* New chart state */
@@ -641,14 +639,6 @@ function goZiWei() {
   position: relative;
 }
 
-.action-glow {
-  position: absolute;
-  width: 300px;
-  height: 60px;
-  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
-  pointer-events: none;
-}
-
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -691,7 +681,6 @@ function goZiWei() {
 .btn-secondary:hover {
   border-color: var(--text-muted);
   background: var(--accent-dim);
-  box-shadow: 0 0 20px var(--accent-dim);
 }
 
 .btn-icon {
@@ -911,7 +900,6 @@ function goZiWei() {
 .btn-new-chart:hover {
   border-color: var(--text-muted);
   background: var(--accent-dim);
-  box-shadow: 0 0 20px var(--accent-dim);
   transform: translateY(-1px);
 }
 

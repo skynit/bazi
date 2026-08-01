@@ -52,74 +52,67 @@ async function handleLogin() {
 <template>
   <div class="login-page">
     <Card
-      class="login-card animate-in w-full max-w-[var(--container-sm)] relative z-10 rounded-[1.5rem] border-0 [box-shadow:0_0_0_1px_var(--line-strong),var(--shadow-lg)] bg-[var(--glass-bg)] backdrop-blur-xl"
+      class="login-card animate-in w-full max-w-[var(--container-sm)] relative z-10 rounded-[1.25rem] border-0 [box-shadow:0_0_0_1px_var(--line-strong),var(--shadow-lg)] bg-[var(--bg-elevated)]"
     >
       <!-- Card ornament -->
       <div class="card-ornament" aria-hidden="true">
-        <div class="ornament-ring"></div>
-        <div class="ornament-symbol">☯</div>
+        <span class="ornament-rule"></span>
+        <span class="ornament-seal">☯</span>
+        <span class="ornament-rule"></span>
       </div>
 
-      <CardHeader class="text-center pt-2 pb-0">
-        <div class="text-[var(--fs-2xs)] tracking-[3px] text-[var(--text-soft)] uppercase mb-2">
+      <CardHeader class="text-center pt-1 pb-0">
+        <div
+          class="text-[var(--fs-2xs)] tracking-[var(--tracking-eyebrow)] text-[var(--text-soft)] uppercase mb-2"
+        >
           BaZi Fortune
         </div>
         <CardTitle
           as="h1"
-          class="font-[family-name:var(--font-serif)] text-[var(--fs-stat)] font-bold tracking-[4px]"
+          class="font-[family-name:var(--font-serif)] text-[var(--fs-stat)] font-bold tracking-[0.2em]"
         >
           登录
         </CardTitle>
-        <CardDescription class="text-[var(--fs-xs)]">{{ loginContext }}</CardDescription>
+        <CardDescription class="text-[var(--fs-xs)] mt-1">{{ loginContext }}</CardDescription>
       </CardHeader>
 
-      <CardContent class="px-10 pb-10">
+      <CardContent class="px-10 pb-8 pt-6">
         <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-1.5">
             <Label
               for="login-username"
-              class="text-xs font-semibold tracking-[1px] uppercase text-[var(--text-muted)]"
+              class="text-[var(--fs-xs)] font-medium tracking-[0.08em] text-[var(--text-muted)]"
             >
               用户名
             </Label>
-            <div class="relative">
-              <span
-                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--icon-muted)] z-10 pointer-events-none"
-                >✦</span
-              >
-              <Input
-                id="login-username"
-                v-model="form.username"
-                class="pl-10 h-11 rounded-[10px] bg-[var(--glass-bg)] border-[var(--line-strong)] text-sm"
-                placeholder="请输入用户名"
-                autocomplete="username"
-              />
-            </div>
+            <Input
+              id="login-username"
+              v-model="form.username"
+              class="h-11 rounded-[var(--radius-md)] bg-transparent border-[var(--line-strong)] text-sm transition-colors hover:border-[var(--line-focus)]"
+              placeholder="请输入用户名"
+              autocomplete="username"
+            />
           </div>
 
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-1.5">
             <Label
               for="login-password"
-              class="text-xs font-semibold tracking-[1px] uppercase text-[var(--text-muted)]"
+              class="text-[var(--fs-xs)] font-medium tracking-[0.08em] text-[var(--text-muted)]"
             >
               密码
             </Label>
             <div class="relative">
-              <span
-                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--icon-muted)] z-10 pointer-events-none"
-                >◇</span
-              >
               <Input
                 id="login-password"
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
-                class="pl-10 pr-10 h-11 rounded-[10px] bg-[var(--glass-bg)] border-[var(--line-strong)] text-sm"
+                class="pr-10 h-11 rounded-[var(--radius-md)] bg-transparent border-[var(--line-strong)] text-sm transition-colors hover:border-[var(--line-focus)]"
                 placeholder="请输入密码"
                 autocomplete="current-password"
               />
               <button
                 type="button"
-                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--icon-muted)] hover:text-[var(--accent)] transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--icon-subtle)] hover:text-[var(--text)] transition-colors"
                 @click="showPassword = !showPassword"
                 :aria-label="showPassword ? '隐藏密码' : '显示密码'"
               >
@@ -131,30 +124,30 @@ async function handleLogin() {
           <div
             v-if="error"
             role="alert"
-            class="flex items-center gap-2 text-xs text-[var(--danger)] bg-[rgba(251,113,133,0.08)] rounded-lg px-3 py-2.5"
+            class="flex items-center gap-2 text-[var(--fs-xs)] text-[var(--danger)] bg-[color-mix(in_oklab,var(--danger)_8%,transparent)] border border-[color-mix(in_oklab,var(--danger)_24%,transparent)] rounded-[var(--radius-md)] px-3 py-2.5"
           >
-            <span>⚠</span> {{ error }}
+            <span aria-hidden="true">⚠</span> {{ error }}
           </div>
 
           <Button
             type="submit"
             :disabled="loading"
-            class="w-full h-11 rounded-full text-sm font-semibold tracking-[1px] bg-foreground text-background hover:bg-foreground/90 shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+            class="w-full h-11 rounded-full text-sm font-semibold tracking-[0.3em] indent-[0.3em] bg-foreground text-background hover:bg-foreground/90 active:scale-[0.99] transition-all shadow-[var(--shadow-sm)] disabled:opacity-60"
           >
             <span v-if="loading" class="loading-spinner"></span>
-            <span v-else>登 录</span>
+            <span v-else>登录</span>
           </Button>
         </form>
       </CardContent>
 
-      <CardFooter class="justify-center pb-10 pt-0">
+      <CardFooter class="justify-center py-5 border-t border-[var(--line-subtle)]">
         <span class="text-[var(--fs-xs)] text-[var(--text-muted)]">没有账户？</span>
         <router-link
           :to="{
             path: '/register',
             query: redirectTarget !== '/' ? { redirect: redirectTarget } : {},
           }"
-          class="text-[var(--fs-xs)] font-medium text-[var(--primary)] hover:underline ml-1"
+          class="text-[var(--fs-xs)] font-medium text-[var(--primary)] hover:underline underline-offset-4 ml-1.5"
         >
           立即注册 →
         </router-link>
@@ -178,48 +171,28 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80px;
-  position: relative;
-  background: linear-gradient(180deg, var(--accent-dim), transparent);
-  border-bottom: 1px solid var(--line-subtle);
+  gap: 14px;
+  padding: 26px 40px 20px;
 }
 
-.ornament-ring {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  border: 1px solid var(--line-focus);
+.ornament-rule {
+  flex: 1;
+  max-width: 72px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.ornament-seal {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
-  animation: ring-pulse 3s ease-in-out infinite;
-}
-
-@keyframes ring-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.15;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
-}
-
-.ornament-symbol {
-  font-size: var(--fs-stat);
+  font-size: var(--fs-lg);
   color: var(--accent);
-  text-shadow: 0 0 20px var(--brand-glow);
-  animation: symbol-glow 3s ease-in-out infinite;
-}
-
-@keyframes symbol-glow {
-  0%,
-  100% {
-    text-shadow: 0 0 20px var(--brand-glow);
-  }
-  50% {
-    text-shadow: 0 0 35px var(--accent-glow);
-  }
+  background: var(--accent-dim);
 }
 
 .loading-spinner {

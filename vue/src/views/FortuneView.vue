@@ -2,6 +2,9 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
+import PeriodNav from '../components/fortune/PeriodNav.vue'
+import FortuneStateView from '../components/fortune/FortuneStateView.vue'
+import { vReveal } from '../composables/useReveal'
 import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
 import { getApiErrorMessage } from '../api/client'
@@ -11,13 +14,19 @@ const fortune = ref<FortuneDay | null>(null)
 const loading = ref(true)
 const error = ref('')
 const errorKind = ref<'missing-chart' | 'request' | ''>('')
-const mounted = ref(false)
 const chartId = ref<string | number>('')
 const relationCount = computed(
   () =>
     (fortune.value?.supporting_evidence?.length ?? 0) +
     (fortune.value?.counter_evidence?.length ?? 0),
 )
+
+const headline = computed(() => {
+  const n = relationCount.value
+  return n > 0
+    ? `今日干支与本命四柱记录到 ${n} 条结构关系`
+    : '今日干支与本命四柱没有记录到额外结构关系'
+})
 
 function todayString(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -56,70 +65,75 @@ async function fetchFortune() {
   }
 }
 
-onMounted(() => {
-  fetchFortune()
-  setTimeout(() => (mounted.value = true), 100)
-})
+onMounted(fetchFortune)
 </script>
 
 <template>
   <div class="fortune-page">
-    <!-- ── Loading ── -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-orbs">
-        <div class="l-orb l-orb-1"></div>
-        <div class="l-orb l-orb-2"></div>
-        <div class="l-orb l-orb-3"></div>
-        <div class="l-core"></div>
-      </div>
-      <p class="loading-text">正在整理今日干支关系</p>
-    </div>
+    <FortuneStateView
+      v-if="loading"
+      kind="loading"
+      title="正在整理今日干支关系"
+      description="按当前规则计算今日干支与本命四柱的结构对应"
+    />
 
-    <!-- ── Error ── -->
-    <div v-else-if="error" class="error-state">
-      <div class="error-sigil">✕</div>
-      <p class="error-text">{{ error }}</p>
-      <router-link v-if="errorKind === 'missing-chart'" to="/chart/new" class="retry-btn"
-        >去排盘</router-link
-      >
-      <button v-else class="retry-btn" @click="fetchFortune">重新加载</button>
-    </div>
+    <FortuneStateView
+      v-else-if="error"
+      kind="error"
+      :title="error"
+      :description="errorKind === 'missing-chart' ? '今日运势需要基于一张已保存的命盘计算。' : ''"
+      v-bind="
+        errorKind === 'missing-chart'
+          ? { actionLabel: '去排盘', actionTo: '/chart/new' }
+          : { retryLabel: '重新加载' }
+      "
+      @retry="fetchFortune"
+    />
 
-    <!-- ── Empty ── -->
-    <div v-else-if="!fortune" class="empty-state">
-      <div class="empty-sigil">◈</div>
-      <p class="empty-title">今日暂无可显示的关系记录</p>
-      <button type="button" class="go-chart-btn" @click="fetchFortune">重新加载</button>
-    </div>
+    <FortuneStateView
+      v-else-if="!fortune"
+      kind="empty"
+      title="今日暂无可显示的关系记录"
+      description="可以稍后重新加载，或先查看本周、本月的整体节奏。"
+      retry-label="重新加载"
+      @retry="fetchFortune"
+    />
 
     <!-- ── Main ── -->
-    <main v-else class="fortune-main" :class="{ visible: mounted }">
-      <!-- Relationship summary + date -->
-      <header class="hero-panel">
-        <div class="hero-inner">
-          <div class="relation-summary" aria-label="今日命中关系条数">
-            <div class="relation-value">{{ relationCount }}</div>
-            <div class="relation-label">条结构关系</div>
-          </div>
+    <main v-else class="fortune-main">
+      <div class="top-nav" v-reveal>
+        <PeriodNav current="day" :chart-id="chartId" />
+      </div>
 
-          <!-- Info block -->
+      <!-- ① 周期结论区 -->
+      <header class="hero-panel" v-reveal="40">
+        <p class="hero-eyebrow">今日运势 · Daily</p>
+        <div class="hero-main">
+          <div class="hero-pillar">
+            <span class="pillar-prefix">日柱</span>
+            <span class="pillar-value">{{ fortune.day_gan_zhi }}</span>
+          </div>
           <div class="hero-text">
-            <div class="hero-date-row">
-              <span class="date-label">{{ fortune.solar_date }}</span>
-            </div>
-            <div class="hero-pillar-display">
-              <span class="pillar-prefix">日柱</span>
-              <span class="pillar-value">{{ fortune.day_gan_zhi }}</span>
-            </div>
-            <p class="hero-summary">今日干支关系概览</p>
-            <p class="hero-tip">条数只表示命中的规则关系数量，不代表吉凶、强弱或事件概率。</p>
+            <p class="hero-date tabular-nums">
+              {{ fortune.solar_date
+              }}<span v-if="fortune.week_day" class="hero-weekday">{{ fortune.week_day }}</span>
+            </p>
+            <p class="hero-meta">
+              <span v-if="fortune.lunar_date">农历 {{ fortune.lunar_date }}</span>
+              <span v-if="fortune.sheng_xiao">属{{ fortune.sheng_xiao }}</span>
+            </p>
           </div>
         </div>
+        <p class="hero-headline">{{ headline }}</p>
+        <p class="hero-tip">
+          条数只表示命中的规则关系数量，不代表吉凶、强弱或事件概率。想查看更多，可在下方切换解读层级。
+        </p>
       </header>
 
-      <!-- Content -->
-      <div class="main-grid">
+      <!-- ② 明细区（解读层级 + 分页明细） -->
+      <div class="main-grid" v-reveal="80">
         <DailyFortune
+          hide-header
           :solar-date="fortune.solar_date"
           :day-gan-zhi="fortune.day_gan_zhi"
           :week-day="fortune.week_day"
@@ -151,18 +165,6 @@ onMounted(() => {
           :fortune-layers="fortune.fortune_layers"
         />
       </div>
-
-      <div class="fortune-nav">
-        <router-link :to="`/fortune/blessing?chart_id=${chartId}`" class="fortune-nav-link">
-          运势加持 →
-        </router-link>
-        <router-link :to="`/fortune/weekly?chart_id=${chartId}`" class="fortune-nav-link">
-          本周运势 →
-        </router-link>
-        <router-link :to="`/fortune/monthly?chart_id=${chartId}`" class="fortune-nav-link">
-          本月运势 →
-        </router-link>
-      </div>
     </main>
   </div>
 </template>
@@ -176,350 +178,62 @@ onMounted(() => {
   overflow-x: hidden;
 }
 
-/* ── Loading ── */
-.loading-state {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 2.5rem;
-}
-.loading-orbs {
-  position: relative;
-  width: 100px;
-  height: 100px;
-}
-.l-orb {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  animation: l-spin linear infinite;
-}
-.l-orb-2 {
-  inset: 15px;
-  border-color: var(--line-subtle);
-  animation-duration: 5s;
-  animation-direction: reverse;
-}
-.l-orb-3 {
-  inset: 30px;
-  border-color: var(--line-subtle);
-  animation-duration: 8s;
-}
-.l-core {
-  position: absolute;
-  inset: 40px;
-  border-radius: 50%;
-  background: var(--accent-dim);
-  animation: l-pulse 2s ease-in-out infinite;
-}
-@keyframes l-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes l-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.6);
-    opacity: 0.8;
-  }
-}
-.loading-text {
-  color: var(--text-soft);
-  font-size: var(--fs-2xs);
-  letter-spacing: 5px;
-  text-transform: uppercase;
-}
-
-/* ── Error ── */
-.error-state {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 1.5rem;
-}
-.error-sigil {
-  font-size: var(--fs-hero-strong);
-  color: var(--crimson);
-  opacity: 0.5;
-}
-.error-text {
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
-.retry-btn {
-  padding: 0.7rem 2rem;
-  background: var(--crimson);
-  color: var(--destructive-foreground);
-  border: none;
-  border-radius: 8px;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 20px color-mix(in oklab, var(--crimson) 30%, transparent);
-  transition: all 0.3s;
-}
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px color-mix(in oklab, var(--crimson) 50%, transparent);
-}
-
-/* ── Empty ── */
-.empty-state {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 1.5rem;
-}
-.empty-sigil {
-  font-size: var(--fs-hero-strong);
-  color: var(--text-soft);
-}
-.empty-title {
-  color: var(--text-muted);
-  font-size: var(--fs-lg);
-}
-.go-chart-btn {
-  padding: 0.8rem 2.5rem;
-  background: var(--accent);
-  color: var(--bg);
-  font-weight: 800;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  text-decoration: none;
-  font-size: var(--fs-sm);
-  letter-spacing: 1px;
-  box-shadow: 0 4px 30px color-mix(in oklab, var(--accent) 40%, transparent);
-  transition: all 0.3s;
-}
-.go-chart-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 50px color-mix(in oklab, var(--accent) 60%, transparent);
-}
-
 /* ── Main ── */
 .fortune-main {
   position: relative;
   z-index: 2;
-  max-width: 960px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 5rem;
-  opacity: 0;
-  transform: translateY(30px);
-  transition:
-    opacity 1s ease,
-    transform 1s ease;
-}
-.fortune-main.visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
-/* ── Hero panel ── */
-.hero-panel {
-  background: color-mix(in oklab, var(--surface-1) 88%, transparent);
-  border: 1px solid var(--line-strong);
-  border-radius: 20px;
-  padding: 2.5rem;
+.top-nav {
+  display: flex;
+  justify-content: center;
   margin-bottom: 1.5rem;
+}
+
+/* ── ① 周期结论区 ── */
+.hero-panel {
   position: relative;
-  overflow: hidden;
-  box-shadow:
-    var(--shadow-lg),
-    inset 0 1px 0 var(--line-subtle);
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  padding: 2rem 2.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
 }
 .hero-panel::before {
-  content: none;
-}
-.hero-panel::after {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, var(--accent-dim), transparent 60%);
-  pointer-events: none;
-}
-.hero-inner {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
+  top: -1px;
+  left: 2.5rem;
+  right: 2.5rem;
+  height: 2px;
+  background: rgba(var(--jade-accent-rgb), 0.55);
 }
 
-.relation-summary {
-  flex: 0 0 180px;
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 1.25rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--surface-1) 74%, transparent);
-}
-
-.relation-value {
-  color: var(--accent);
-  font-family: var(--font-serif);
-  font-size: var(--fs-hero-strong);
-  font-weight: 900;
-  line-height: 1;
-}
-
-.relation-label {
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
-
-/* ── Score sphere ── */
-.score-sphere {
-  flex-shrink: 0;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: var(--surface-0);
-  border: 2px solid var(--line-strong);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-shadow:
-    0 0 0 1px var(--line-subtle),
-    0 0 60px var(--sg, var(--line-subtle)),
-    0 0 120px var(--sg, var(--line-subtle)),
-    inset 0 0 60px rgba(0, 0, 0, 0.15);
-}
-.sphere-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid var(--line-subtle);
-  animation: ring-spin linear infinite;
-}
-.sphere-ring-1 {
-  inset: -12px;
-  animation-duration: 20s;
-}
-.sphere-ring-2 {
-  inset: -24px;
-  animation-duration: 35s;
-  animation-direction: reverse;
-  border-color: color-mix(in oklab, var(--crimson) 5%, transparent);
-}
-.sphere-ring-3 {
-  inset: -40px;
-  animation-duration: 50s;
-  border-color: var(--line-subtle);
-}
-@keyframes ring-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.sphere-glow-a {
-  position: absolute;
-  inset: -30px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--sg, var(--line-subtle)) 0%, transparent 70%);
-  animation: glow-pulse 3s ease-in-out infinite;
-}
-.sphere-glow-b {
-  position: absolute;
-  inset: 10%;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--sc, #cbd5e1) 0%, transparent 70%);
-  opacity: 0.06;
-  animation: glow-inner 4s ease-in-out infinite;
-}
-@keyframes glow-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-}
-@keyframes glow-inner {
-  0%,
-  100% {
-    opacity: 0.04;
-  }
-  50% {
-    opacity: 0.1;
-  }
-}
-.sphere-value {
-  font-family: var(--font-serif);
-  font-size: var(--fs-hero-strong);
-  font-weight: 900;
-  color: var(--sc, #cbd5e1);
-  line-height: 1;
-  position: relative;
-  z-index: 2;
-  text-shadow:
-    0 0 60px var(--sg, var(--accent-glow)),
-    0 0 20px var(--sc, var(--accent));
-  transition:
-    color 0.6s,
-    text-shadow 0.6s;
-  letter-spacing: -2px;
-}
-.sphere-label {
+.hero-eyebrow {
+  margin: 0 0 1.25rem;
   font-size: var(--fs-2xs);
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 4px;
+  letter-spacing: var(--tracking-meta, 0.18em);
+  color: rgba(var(--jade-accent-rgb), 1);
+  font-weight: 600;
   text-transform: uppercase;
-  position: relative;
-  z-index: 2;
-  margin-top: 2px;
 }
 
-/* ── Hero text ── */
-.hero-text {
-  flex: 1;
+.hero-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line-subtle);
 }
-.hero-date-row {
-  margin-bottom: 0.75rem;
-}
-.date-label {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-.hero-pillar-display {
+
+.hero-pillar {
   display: flex;
   align-items: baseline;
   gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--line-subtle);
 }
 .pillar-prefix {
   font-size: var(--fs-xs);
@@ -528,91 +242,81 @@ onMounted(() => {
 }
 .pillar-value {
   font-family: var(--font-serif);
-  font-size: var(--fs-stat-lg);
+  font-size: var(--fs-hero);
   font-weight: 900;
-  color: var(--accent);
+  color: rgba(var(--jade-accent-rgb), 1);
   letter-spacing: 4px;
-  text-shadow: 0 0 40px var(--accent-glow);
+  line-height: 1;
 }
-.hero-summary {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-  line-height: 1.8;
-  margin: 0 0 0.75rem;
-  border-left: 2px solid var(--line-strong);
+
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+.hero-date {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+}
+.hero-weekday {
+  font-size: var(--fs-xs);
+  font-weight: 400;
+  color: var(--text-dim);
+  margin-left: 0.5rem;
+}
+.hero-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+}
+
+.hero-headline {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  border-left: 2px solid rgba(var(--jade-accent-rgb), 0.55);
   padding-left: 0.75rem;
 }
 .hero-tip {
-  font-size: var(--fs-sm);
-  color: var(--accent);
-  font-weight: 600;
-  margin: 0;
-  opacity: 0.85;
+  margin: 0.6rem 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  line-height: 1.7;
+  padding-left: calc(0.75rem + 2px);
 }
 
-/* ── Main grid ── */
+/* ── ② 明细区 ── */
 .main-grid {
   display: block;
 }
 
 @media (max-width: 768px) {
-  .hero-inner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 1.5rem;
-  }
-  .hero-panel {
-    padding: 1.75rem 1.5rem;
-  }
-  .score-sphere {
-    width: 140px;
-    height: 140px;
-  }
-  .relation-summary {
-    flex-basis: auto;
-    width: min(220px, 100%);
-    min-height: 120px;
-  }
-  .sphere-value {
-    font-size: var(--fs-hero);
-  }
-  .pillar-value {
-    font-size: var(--fs-stat);
-  }
   .fortune-main {
     padding: 1.5rem 1rem 4rem;
   }
-}
-
-/* ── Fortune nav ── */
-.fortune-nav {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  padding: 1.5rem 0 0;
-}
-.fortune-nav-link {
-  color: var(--accent);
-  text-decoration: none;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  transition: all 0.2s;
-}
-.fortune-nav-link:hover {
-  text-shadow: 0 0 12px var(--accent-glow);
-}
-
-/* ── Dark mode overrides ── */
-:global(.dark) .score-sphere {
-  background: radial-gradient(circle at 35% 35%, #1a1530 0%, #050308 100%);
-  box-shadow:
-    0 0 0 1px rgba(203, 213, 225, 0.05),
-    0 0 60px var(--sg, rgba(203, 213, 225, 0.2)),
-    0 0 120px var(--sg, rgba(203, 213, 225, 0.1)),
-    inset 0 0 60px rgba(0, 0, 0, 0.6);
-}
-:global(.dark) .sphere-ring-2 {
-  border-color: rgba(251, 113, 133, 0.05);
+  .hero-panel {
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+  .hero-panel::before {
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+  .hero-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .pillar-value {
+    font-size: var(--fs-stat-lg);
+  }
 }
 </style>

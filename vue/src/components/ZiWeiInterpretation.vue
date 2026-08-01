@@ -250,6 +250,16 @@ function readableBasis(value: string): string {
   padding: 0.875rem 1rem;
   background: color-mix(in oklab, var(--surface-2) 72%, transparent);
   border-bottom: 1px solid var(--line-subtle);
+  transition: background 0.18s ease;
+}
+
+.panel-header:hover {
+  background: color-mix(in oklab, var(--surface-3) 78%, transparent);
+}
+
+.panel-header:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: -2px;
 }
 
 .header-kicker {
@@ -259,6 +269,8 @@ function readableBasis(value: string): string {
 
 .header-title {
   @apply text-base font-bold;
+  font-family: var(--font-serif), serif;
+  letter-spacing: 0.04em;
   color: var(--accent);
 }
 

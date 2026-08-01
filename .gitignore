@@ -58,3 +58,7 @@ src/cmd/*
 __debug_*
 
 *.db
+
+# Screenshot tooling artifacts (frontend upgrade workflow)
+vue/.pw-browsers/
+vue/screenshots/

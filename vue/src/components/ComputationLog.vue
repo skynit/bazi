@@ -70,7 +70,7 @@ onMounted(() => {
 <template>
   <div class="computation-log">
     <div class="log-header">
-      <span class="log-dot animate-ping bg-cyan-400"></span>
+      <span class="log-dot animate-ping" style="background: var(--wuxing-shui)"></span>
       <span class="log-title">命盘计算 · 结构证据</span>
     </div>
 
@@ -90,7 +90,7 @@ onMounted(() => {
     </div>
 
     <div v-if="completed" class="log-complete-badge">
-      <span class="complete-dot bg-emerald-400"></span>
+      <span class="complete-dot" style="background: var(--wuxing-mu)"></span>
       解构完成
     </div>
   </div>

@@ -67,7 +67,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .header-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(203, 213, 225, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
 }
 
 .header-text {
@@ -79,7 +79,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 
 .elements-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 0.5rem;
 }
 
@@ -90,15 +90,15 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
   align-items: center;
   gap: 0.4rem;
   padding: 0.875rem 0.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(var(--elem-color), 0.12);
+  background: var(--glass-bg);
+  border: 1px solid color-mix(in oklab, var(--elem-color) 20%, transparent);
   border-radius: 12px;
   transition: all 0.3s;
   overflow: hidden;
 }
 
 .element-card:hover {
-  border-color: var(--text-soft);
+  border-color: color-mix(in oklab, var(--elem-color) 45%, transparent);
   transform: translateY(-2px);
 }
 
@@ -109,7 +109,11 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .card-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, rgba(203, 213, 225, 0.04), transparent 70%);
+  background: radial-gradient(
+    circle at 50% 30%,
+    color-mix(in oklab, var(--elem-color) 7%, transparent),
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -126,7 +130,7 @@ const elementMap: Record<string, { color: string; chinese: string; symbol: strin
 .orb-inner {
   font-size: var(--fs-2xl);
   font-weight: 700;
-  text-shadow: 0 0 12px currentColor;
+  text-shadow: 0 0 10px color-mix(in oklab, currentColor 55%, transparent);
 }
 
 .element-name {
