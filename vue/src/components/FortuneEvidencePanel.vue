@@ -52,14 +52,14 @@ function formatImpact(value: number) {
   <section class="evidence-panel glass-card" aria-label="运势证据">
     <header class="evidence-head">
       <div>
-        <span class="evidence-eyebrow">今日干支关系</span>
-        <h2>命中的结构关系</h2>
+        <span class="evidence-eyebrow">今日干支结构</span>
+        <h2>今天记录到的结构关系</h2>
       </div>
       <span class="evidence-count">{{ countText }}</span>
     </header>
 
     <p class="evidence-note">
-      按关系类型记录今日干支与命盘的对应项，不按权重正负判断“生扶”或“冲克”，也不据此推断具体事件。
+      以下内容只记录今日干支与命盘之间命中的规则关系。名称和说明来自原始证据，按原文展示；它们不表示吉凶、现实结果或发生概率，也不是行动建议。
     </p>
 
     <ul v-if="visibleEvidence.length" class="evidence-list">
@@ -84,11 +84,11 @@ function formatImpact(value: number) {
     <div v-if="level === 'professional'" class="professional-meta" data-testid="professional-meta">
       <div class="score-flow" v-if="breakdown">
         <span>比较基准 {{ breakdown.base_score }}</span>
-        <span>关系权重合计 {{ breakdown.relation_score }}</span>
+        <span>关系阶段比较值 {{ breakdown.relation_score }}</span>
         <strong>内部比较值 {{ breakdown.final_score }}</strong>
       </div>
       <p class="calculation-note">
-        这些权重由本地启发式规则设定，尚未验证，只用于复核计算过程；不表示吉凶、可靠性或事件发生概率。
+        ‘本地权重’是当前关系计算阶段用于内部比较值的加减点数。证据基于经验规则，尚未验证，尚未对现实结果含义作裁决；每条证据不是现实结果结论，内部比较值也不是结果概率。来源仅用于复核规则口径，不表示吉凶、可靠性或行动建议。
       </p>
     </div>
   </section>
