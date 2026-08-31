@@ -23,6 +23,7 @@ vue/node_modules*
 vue/node_modules.old/
 *.md
 *.txt
+!/README.md
 !docs/testing.md
 !docs/frontend-ux-remediation-priorities.md
 !docs/adr/**/*.md
