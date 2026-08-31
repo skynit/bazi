@@ -8,6 +8,7 @@ import { getApiErrorMessage } from '../api/client'
 import { blessingProfiles, resolveBlessingElement } from '../lib/blessing'
 import PeriodNav from '../components/fortune/PeriodNav.vue'
 import { vReveal } from '../composables/useReveal'
+import { useRecentChartStore } from '../stores/recentChart'
 
 interface PracticeStep {
   key: string
@@ -29,6 +30,7 @@ function todayString(date = new Date()) {
 }
 
 const route = useRoute()
+const recentChartStore = useRecentChartStore()
 const fortune = ref<FortuneDay | null>(null)
 const chartId = ref('')
 const loading = ref(true)
@@ -119,13 +121,7 @@ function readChartId() {
   const fromQuery = Array.isArray(raw) ? raw[0] : raw
   if (fromQuery) return String(fromQuery)
 
-  try {
-    const saved = localStorage.getItem('bazi_last_birth')
-    const savedId = saved ? JSON.parse(saved).chartId : null
-    return savedId ? String(savedId) : ''
-  } catch {
-    return ''
-  }
+  return recentChartStore.chartId ? String(recentChartStore.chartId) : ''
 }
 
 async function fetchBlessing() {

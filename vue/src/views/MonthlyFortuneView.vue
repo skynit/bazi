@@ -15,8 +15,10 @@ import BestWorstChip from '../components/fortune/BestWorstChip.vue'
 import PeriodNav from '../components/fortune/PeriodNav.vue'
 import FortuneStateView from '../components/fortune/FortuneStateView.vue'
 import { vReveal } from '../composables/useReveal'
+import { useRecentChartStore } from '../stores/recentChart'
 
 const route = useRoute()
+const recentChartStore = useRecentChartStore()
 const data = ref<MonthlyFortuneResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
@@ -235,14 +237,7 @@ async function load() {
   let cid: number | null = null
   const q = route.query.chart_id
   if (typeof q === 'string' && q) cid = Number(q)
-  if (!cid) {
-    try {
-      const s = localStorage.getItem('bazi_last_birth')
-      if (s) cid = Number(JSON.parse(s).chartId) || null
-    } catch {
-      /* ignore */
-    }
-  }
+  if (!cid) cid = recentChartStore.chartId
   if (!cid) {
     error.value = '请先创建命盘'
     errorKind.value = 'missing-chart'

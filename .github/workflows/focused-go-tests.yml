@@ -1,0 +1,58 @@
+name: Run focused Go package tests
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/focused-go-tests.yml"
+      - "src/go.mod"
+      - "src/go.sum"
+      - "src/cmd/database.go"
+      - "src/cmd/main.go"
+      - "src/internal/handler/**"
+      - "src/internal/model/**"
+      - "src/internal/service/bazi/**"
+      - "src/internal/service/fortune/**"
+      - "src/internal/service/ziwei/**"
+      - "src/internal/store/**"
+      - "src/migrations/**"
+  push:
+    paths:
+      - ".github/workflows/focused-go-tests.yml"
+      - "src/go.mod"
+      - "src/go.sum"
+      - "src/cmd/database.go"
+      - "src/cmd/main.go"
+      - "src/internal/handler/**"
+      - "src/internal/model/**"
+      - "src/internal/service/bazi/**"
+      - "src/internal/service/fortune/**"
+      - "src/internal/service/ziwei/**"
+      - "src/internal/store/**"
+      - "src/migrations/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused-go-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+      - name: Test handlers and HTTP contracts
+        run: go test ./internal/handler ./internal/handler/test
+      - name: Test BaZi integration contracts
+        run: go test ./internal/service/bazi/test
+      - name: Test fortune owner and integration contracts
+        run: go test ./internal/service/fortune ./internal/service/fortune/test
+      - name: Test ZiWei owner and integration contracts
+        run: go test ./internal/service/ziwei ./internal/service/ziwei/test
+      - name: Test database migrations
+        run: go test ./migrations

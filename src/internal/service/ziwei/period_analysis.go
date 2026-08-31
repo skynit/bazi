@@ -210,11 +210,7 @@ func BuildDayunAnalysis(chart *ZiWeiChart, stages Dayun, currentAge int) *Period
 }
 
 func BuildLiunianAnalysis(base, period *ZiWeiChart, year int) *PeriodAnalysis {
-	interpreter := NewPeriodInterpreterFromChart(base)
-	if interpreter == nil || period == nil || !DerivedChartMatchesBase(period, base) {
-		return nil
-	}
-	stem, branch, ok := chartDerivationForQuery(period, "liunian", year, 0, 0)
+	interpreter, stem, branch, ok := prepareTransitAnalysis(base, period, "liunian", year, 0, 0)
 	if !ok {
 		return nil
 	}
@@ -244,11 +240,7 @@ func BuildLiunianAnalysis(base, period *ZiWeiChart, year int) *PeriodAnalysis {
 }
 
 func BuildLiuyueAnalysis(base, period *ZiWeiChart, year, month, day int) *PeriodAnalysis {
-	interpreter := NewPeriodInterpreterFromChart(base)
-	if interpreter == nil || period == nil || !DerivedChartMatchesBase(period, base) {
-		return nil
-	}
-	stem, branch, ok := chartDerivationForQuery(period, "liuyue", year, month, day)
+	interpreter, stem, branch, ok := prepareTransitAnalysis(base, period, "liuyue", year, month, day)
 	if !ok {
 		return nil
 	}
@@ -279,11 +271,7 @@ func BuildLiuyueAnalysis(base, period *ZiWeiChart, year, month, day int) *Period
 }
 
 func BuildLiuriAnalysis(base, period *ZiWeiChart, year, month, day int) *PeriodAnalysis {
-	interpreter := NewPeriodInterpreterFromChart(base)
-	if interpreter == nil || period == nil || !DerivedChartMatchesBase(period, base) {
-		return nil
-	}
-	stem, branch, ok := chartDerivationForQuery(period, "liuri", year, month, day)
+	interpreter, stem, branch, ok := prepareTransitAnalysis(base, period, "liuri", year, month, day)
 	if !ok {
 		return nil
 	}
@@ -311,6 +299,18 @@ func BuildLiuriAnalysis(base, period *ZiWeiChart, year, month, day int) *PeriodA
 	out.CrossLayerRelations = periodCrossLayerRelations("liuri", *period.DerivationInput)
 	attachDayunContext(out, base, period.DerivationInput.ResolvedLunarDate.Year, "liuri", stemName(stem)+branchName(branch), branch)
 	return out
+}
+
+func prepareTransitAnalysis(base, period *ZiWeiChart, layer string, year, month, day int) (*PeriodInterpreter, int, int, bool) {
+	interpreter := NewPeriodInterpreterFromChart(base)
+	if interpreter == nil || period == nil || !DerivedChartMatchesBase(period, base) {
+		return nil, 0, 0, false
+	}
+	stem, branch, ok := chartDerivationForQuery(period, layer, year, month, day)
+	if !ok {
+		return nil, 0, 0, false
+	}
+	return interpreter, stem, branch, true
 }
 
 func dayunContextForLunarYear(chart *ZiWeiChart, lunarYear int) *DayunStageAnalysis {

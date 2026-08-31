@@ -370,22 +370,24 @@ function palaceHighlightClass(branch: string): string {
   return ''
 }
 
+type TriggerImpact = 'watch' | 'good' | 'move' | 'neutral'
+
+function triggerImpact(triggers: ZiWeiOverlayTrigger[]): TriggerImpact {
+  if (triggers.some((trigger) => trigger.polarity === 'constraint' || trigger.type === '化忌'))
+    return 'watch'
+  if (triggers.some((trigger) => trigger.polarity === 'resource')) return 'good'
+  if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'move'
+  return 'neutral'
+}
+
 function overlayImpactClass(branch: string): string {
   if (mode.value !== 'overlay') return ''
   const triggers = triggerChipsAt(branch)
-  if (triggers.some((trigger) => trigger.polarity === 'constraint' || trigger.type === '化忌'))
-    return 'zw-impact-watch'
-  if (triggers.some((trigger) => trigger.polarity === 'resource')) return 'zw-impact-good'
-  if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'zw-impact-move'
-  if (triggers.length) return 'zw-impact-neutral'
-  return ''
+  return triggers.length ? `zw-impact-${triggerImpact(triggers)}` : ''
 }
 
 function triggerClass(trigger: ZiWeiOverlayTrigger): string {
-  if (trigger.polarity === 'constraint' || trigger.type === '化忌') return 'is-watch'
-  if (trigger.polarity === 'resource') return 'is-good'
-  if (trigger.polarity === 'movement') return 'is-move'
-  return 'is-neutral'
+  return `is-${triggerImpact([trigger])}`
 }
 
 function triggerLabel(trigger: ZiWeiOverlayTrigger): string {
@@ -400,12 +402,7 @@ function fallbackChipClass(label: string): string {
 }
 
 function focusPalaceClass(item: ZiWeiOverlayFocusPalace): string {
-  const triggers = list(item.triggers)
-  if (triggers.some((trigger) => trigger.polarity === 'constraint' || trigger.type === '化忌'))
-    return 'is-watch'
-  if (triggers.some((trigger) => trigger.polarity === 'resource')) return 'is-good'
-  if (triggers.some((trigger) => trigger.polarity === 'movement')) return 'is-move'
-  return 'is-neutral'
+  return `is-${triggerImpact(list(item.triggers))}`
 }
 
 function overlaySummary(): string {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"bazi/internal/middleware"
@@ -86,10 +87,12 @@ func TestZiWeiChart_Success(t *testing.T) {
 	if len(resp.Palaces) != 12 {
 		t.Errorf("expected 12 palaces, got %d", len(resp.Palaces))
 	}
-	if len(resp.RuleSources) != 4 || resp.RuleSources[0].RuleID != ziwei.SiHuaRuleID || resp.RuleSources[0].Commit != ziwei.SiHuaSourceCommit ||
-		resp.RuleSources[1].RuleID != ziwei.StarBrightnessRuleID || resp.RuleSources[2].RuleID != ziwei.PeriodChronologyRuleID ||
-		resp.RuleSources[3].RuleID != ziwei.TransitStarsRuleID {
-		t.Fatalf("missing pinned four-hua source: %+v", resp.RuleSources)
+	profile, err := ziwei.ResolveProfile(ziwei.DefaultProfileID)
+	if err != nil {
+		t.Fatalf("resolve default profile: %v", err)
+	}
+	if !reflect.DeepEqual(resp.RuleSources, profile.RuleSources) {
+		t.Fatalf("rule sources = %+v, want profile sources %+v", resp.RuleSources, profile.RuleSources)
 	}
 
 	for i, p := range resp.Palaces {

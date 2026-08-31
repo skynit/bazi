@@ -5,6 +5,7 @@ import {
   login as loginApi,
   register as registerApi,
 } from '../api/auth'
+import { useRecentChartStore } from './recentChart'
 
 export interface User {
   id: number
@@ -14,6 +15,7 @@ export interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
+  const recentChartStore = useRecentChartStore()
   const token = ref<string>(localStorage.getItem('token') || '')
   const user = ref<User | null>(null)
 
@@ -45,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     clearToken()
     user.value = null
-    localStorage.removeItem('bazi_last_birth')
+    recentChartStore.clear()
     sessionStorage.removeItem('lastChart')
   }
 

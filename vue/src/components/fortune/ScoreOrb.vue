@@ -7,17 +7,20 @@ interface Props {
   label?: string
   caption?: string
   unit?: string
+  /** 小数位数，默认 1（周/月均值为浮点）；整数指数传 0 */
+  decimals?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   label: '平均命中关系',
   caption: '',
   unit: '条/日',
+  decimals: 1,
 })
 
 const host = ref<HTMLElement | null>(null)
 const target = computed(() => props.value)
-const { display } = useCountUp(target, host, { duration: 620, decimals: 1 })
+const { display } = useCountUp(target, host, { duration: 620, decimals: props.decimals })
 </script>
 
 <template>

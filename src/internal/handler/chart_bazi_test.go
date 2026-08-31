@@ -156,7 +156,10 @@ func TestCompleteBaziSnapshotRequiresMonthSeasonEvidence(t *testing.T) {
 
 	tamperedPattern := *result
 	tamperedPattern.PatternAnalysis.Candidates = append([]bazi.PatternCandidate(nil), result.PatternAnalysis.Candidates...)
-	tamperedPattern.PatternAnalysis.Candidates[0].PatternName = "篡改格"
+	tamperedPattern.PatternAnalysis.Candidates = append(
+		tamperedPattern.PatternAnalysis.Candidates,
+		bazi.PatternCandidate{PatternName: "篡改格"},
+	)
 	if complete(&tamperedPattern) {
 		t.Fatal("snapshot with tampered pattern candidate must be rejected")
 	}
@@ -267,17 +270,14 @@ func TestChartDetailResponseMapsMonthSeasonEvidence(t *testing.T) {
 
 func TestResolveChartBaziRejectsSnapshotWithDifferentPillars(t *testing.T) {
 	service := &bazi.BaziService{}
-	normalized := bazi.NormalizedBirth{
-		Year: 1990, Month: 6, Day: 15, Hour: 8, Minute: 30, Gender: model.GenderMale,
+	normalized, err := bazi.NormalizeBirthInput(bazi.BirthInput{
+		Year: 1990, Month: 6, Day: 15, Hour: 8, Minute: 30,
+		CalendarType: model.CalendarSolar, Gender: model.GenderMale, Timezone: bazi.DefaultBirthTimezone,
+	})
+	if err != nil {
+		t.Fatalf("NormalizeBirthInput: %v", err)
 	}
-	calculated, err := service.Calculate(
-		normalized.Year,
-		normalized.Month,
-		normalized.Day,
-		normalized.Hour,
-		normalized.Minute,
-		normalized.Gender,
-	)
+	calculated, err := service.CalculateNormalizedBirth(normalized)
 	if err != nil {
 		t.Fatalf("Calculate: %v", err)
 	}
@@ -295,6 +295,14 @@ func TestResolveChartBaziRejectsSnapshotWithDifferentPillars(t *testing.T) {
 	chart := &model.BirthChart{
 		EngineVersion:   "stored-engine-v1",
 		RuleVersion:     snapshot.RuleVersion,
+		BirthYear:       normalized.Year,
+		BirthMonth:      normalized.Month,
+		BirthDay:        normalized.Day,
+		BirthHour:       normalized.Hour,
+		BirthMin:        normalized.Minute,
+		CalendarType:    model.CalendarSolar,
+		Gender:          model.GenderMale,
+		Timezone:        bazi.DefaultBirthTimezone,
 		NormalizedBirth: mustJSON(t, normalized),
 		BaziSnapshot:    mustJSON(t, snapshot),
 	}
@@ -359,11 +367,26 @@ func TestResolveChartBaziPreservesNormalizedBirthSecond(t *testing.T) {
 		t.Fatalf("create solar term: %v", err)
 	}
 	at := jie.GetJulianDay().GetSolarTime()
-	normalized := bazi.NormalizedBirth{
+	normalized, err := bazi.NormalizeBirthInput(bazi.BirthInput{
 		Year: at.GetYear(), Month: at.GetMonth(), Day: at.GetDay(),
-		Hour: at.GetHour(), Minute: at.GetMinute(), Second: at.GetSecond(), Gender: model.GenderFemale,
+		Hour: at.GetHour(), Minute: at.GetMinute(), Second: at.GetSecond(),
+		CalendarType: model.CalendarSolar, Gender: model.GenderFemale, Timezone: bazi.DefaultBirthTimezone,
+	})
+	if err != nil {
+		t.Fatalf("NormalizeBirthInput: %v", err)
 	}
-	chart := &model.BirthChart{NormalizedBirth: mustJSON(t, normalized)}
+	chart := &model.BirthChart{
+		BirthYear:       normalized.Year,
+		BirthMonth:      normalized.Month,
+		BirthDay:        normalized.Day,
+		BirthHour:       normalized.Hour,
+		BirthMin:        normalized.Minute,
+		BirthSec:        normalized.Second,
+		CalendarType:    model.CalendarSolar,
+		Gender:          model.GenderFemale,
+		Timezone:        bazi.DefaultBirthTimezone,
+		NormalizedBirth: mustJSON(t, normalized),
+	}
 
 	resolved, err := resolveChartBazi(service, chart)
 	if err != nil {

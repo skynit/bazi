@@ -1,42 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchChart, fetchCharts } from '../api/chart'
+import {
+  fetchChart,
+  fetchCharts,
+  type ChartDetail,
+  type ChartPreviewResponse,
+  type ChartSummary,
+} from '../api/chart'
 import { getApiErrorMessage } from '../api/client'
 import BaziChart from '../components/BaziChart.vue'
 import BirthInputForm from '../components/BirthInputForm.vue'
 import { Button } from '@/components/ui/button'
-
-interface SavedChart {
-  id: number
-  name: string
-  gender: string
-  zi_hour_policy: 'late_zi_next_day' | 'late_zi_same_day'
-  birth_year: number
-  birth_month: number
-  birth_day: number
-  birth_hour: number
-  birth_min: number
-  birth_sec: number
-  calendar_type?: string
-  lunar_leap_month?: boolean
-  birth_place?: string
-  timezone?: string
-  birth_utc_offset_seconds?: number
-  longitude?: number
-  use_true_solar_time?: boolean
-  time_uncertain?: boolean
-  uncertainty_seconds?: number
-}
+import { useRecentChartStore } from '../stores/recentChart'
 
 const route = useRoute()
 const router = useRouter()
+const recentChartStore = useRecentChartStore()
 const isNew = computed(() => route.params.id === 'new')
-const chartData = ref<any>(null)
+const chartData = ref<ChartDetail | ChartPreviewResponse | null>(null)
 const loading = ref(false)
 const error = ref('')
 
-const savedCharts = ref<SavedChart[]>([])
+const savedCharts = ref<ChartSummary[]>([])
 const showPicker = ref(false)
 const chartsLoading = ref(false)
 const chartsError = ref('')
@@ -56,7 +42,7 @@ function tryLoadChart() {
   if (route.params.id === 'new') {
     const raw = sessionStorage.getItem('lastChart')
     if (raw) {
-      chartData.value = JSON.parse(raw)
+      chartData.value = JSON.parse(raw) as ChartPreviewResponse
       sessionStorage.removeItem('lastChart')
     } else {
       fetchSavedCharts()
@@ -64,36 +50,6 @@ function tryLoadChart() {
   } else {
     loadChart()
   }
-}
-
-function cacheLastBirthFromChart(chart: any) {
-  if (!chart?.id || !chart?.birth_year || !chart?.birth_month || !chart?.birth_day) return
-  const birthHour = Number(chart.birth_hour)
-  const genderRaw = String(chart.gender || '').toLowerCase()
-  localStorage.setItem(
-    'bazi_last_birth',
-    JSON.stringify({
-      year: Number(chart.birth_year),
-      month: Number(chart.birth_month),
-      day: Number(chart.birth_day),
-      hour: Number.isFinite(birthHour) ? birthHour : 8,
-      minute: Number(chart.birth_min) || 0,
-      second: Number(chart.birth_sec) || 0,
-      calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
-      lunarLeapMonth: Boolean(chart.lunar_leap_month),
-      gender: genderRaw === 'female' || genderRaw === '女' ? 'FEMALE' : 'MALE',
-      ziHourPolicy:
-        chart.zi_hour_policy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day',
-      birthPlace: chart.birth_place || '',
-      timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-      birthUTCOffsetSeconds: chart.birth_utc_offset_seconds,
-      longitude: chart.longitude,
-      useTrueSolarTime: Boolean(chart.use_true_solar_time),
-      timeUncertain: Boolean(chart.time_uncertain),
-      uncertaintySeconds: Number(chart.uncertainty_seconds) || 0,
-      chartId: chart.id,
-    }),
-  )
 }
 
 async function fetchSavedCharts() {
@@ -112,34 +68,10 @@ async function fetchSavedCharts() {
   }
 }
 
-async function selectChart(chart: SavedChart) {
+async function selectChart(chart: ChartSummary) {
   error.value = ''
   try {
-    localStorage.setItem(
-      'bazi_last_birth',
-      JSON.stringify({
-        year: chart.birth_year,
-        month: chart.birth_month,
-        day: chart.birth_day,
-        hour: chart.birth_hour,
-        minute: chart.birth_min || 0,
-        second: chart.birth_sec || 0,
-        calendarType: chart.calendar_type === 'LUNAR' ? 'LUNAR' : 'SOLAR',
-        lunarLeapMonth: Boolean(chart.lunar_leap_month),
-        gender:
-          chart.gender.toLowerCase() === 'female' || chart.gender === '女' ? 'FEMALE' : 'MALE',
-        ziHourPolicy:
-          chart.zi_hour_policy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day',
-        birthPlace: chart.birth_place || '',
-        timezone: chart.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-        birthUTCOffsetSeconds: chart.birth_utc_offset_seconds,
-        longitude: chart.longitude,
-        useTrueSolarTime: Boolean(chart.use_true_solar_time),
-        timeUncertain: Boolean(chart.time_uncertain),
-        uncertaintySeconds: Number(chart.uncertainty_seconds) || 0,
-        chartId: chart.id,
-      }),
-    )
+    recentChartStore.saveFromApi(chart)
     router.push(`/chart/${chart.id}`)
   } catch {
     error.value = '打开命盘失败，请稍后重试。'
@@ -150,7 +82,7 @@ function startNewChart() {
   showPicker.value = false
 }
 
-function formatBirth(c: SavedChart): string {
+function formatBirth(c: ChartSummary): string {
   const m = String(c.birth_month).padStart(2, '0')
   const d = String(c.birth_day).padStart(2, '0')
   const h = String(c.birth_hour).padStart(2, '0')
@@ -171,7 +103,7 @@ async function loadChart() {
   try {
     const chart = await fetchChart(String(route.params.id))
     chartData.value = chart
-    cacheLastBirthFromChart(chart)
+    recentChartStore.saveFromApi(chart)
   } catch (reason: unknown) {
     error.value = getApiErrorMessage(reason, '命盘加载失败，请稍后重试。')
   } finally {
@@ -180,16 +112,16 @@ async function loadChart() {
 }
 
 function goFortune() {
-  router.push(`/fortune?chart_id=${chartData.value.id}`)
+  if (chartData.value) router.push(`/fortune?chart_id=${chartData.value.id}`)
 }
 
 function goZiWei() {
-  router.push(`/ziwei/${chartData.value.id}`)
+  if (chartData.value) router.push(`/ziwei/${chartData.value.id}`)
 }
 </script>
 <template>
   <div class="chart-page">
-    <main class="page-content">
+    <main class="page-content" :class="{ 'page-content--wide': chartData }">
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
         <div class="loading-inner">
@@ -413,7 +345,9 @@ function goZiWei() {
   min-height: 100vh;
   background: transparent;
   position: relative;
+  /* clip 不创建滚动容器，保留下级 sticky 锚点目录的定位能力 */
   overflow: hidden;
+  overflow: clip;
 }
 
 /* Background */
@@ -489,6 +423,17 @@ function goZiWei() {
   max-width: 860px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
+}
+
+/* 命盘展示态：为左侧锚点目录让出栏宽 */
+.page-content--wide {
+  max-width: 1160px;
+}
+
+@media (max-width: 1023px) {
+  .page-content--wide {
+    max-width: 860px;
+  }
 }
 
 /* Loading */

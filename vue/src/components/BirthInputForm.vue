@@ -9,8 +9,10 @@ import {
 } from '../api/chart'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '../api/client'
+import { useRecentChartStore } from '../stores/recentChart'
 
 const router = useRouter()
+const recentChartStore = useRecentChartStore()
 const errMsg = ref('')
 const loading = ref(false)
 const confirming = ref(false)
@@ -88,35 +90,26 @@ const pillars = computed(() => {
 })
 
 onMounted(() => {
-  const saved = localStorage.getItem('bazi_last_birth')
+  const saved = recentChartStore.recentChart
   if (!saved) return
-  try {
-    const b = JSON.parse(saved)
-    form.value.name = b.name ?? ''
-    form.value.calendarType = b.calendarType === 'LUNAR' ? 'LUNAR' : 'SOLAR'
-    form.value.lunarLeapMonth = Boolean(b.lunarLeapMonth)
-    form.value.year = Number(b.year) || form.value.year
-    form.value.month = Number(b.month) || form.value.month
-    form.value.day = Number(b.day) || form.value.day
-    form.value.hour = Number.isFinite(Number(b.hour)) ? Number(b.hour) : 8
-    form.value.minute = Number.isFinite(Number(b.minute)) ? Number(b.minute) : 0
-    form.value.second = Number.isFinite(Number(b.second)) ? Number(b.second) : 0
-    form.value.gender = b.gender === 'FEMALE' || b.gender === 'female' ? 'FEMALE' : 'MALE'
-    form.value.ziHourPolicy =
-      b.ziHourPolicy === 'late_zi_same_day' ? 'late_zi_same_day' : 'late_zi_next_day'
-    form.value.birthPlace = b.birthPlace ?? ''
-    form.value.timezone = b.timezone || browserTimezone
-    form.value.birthUTCOffsetSeconds =
-      typeof b.birthUTCOffsetSeconds === 'number' ? b.birthUTCOffsetSeconds : ''
-    form.value.longitude = typeof b.longitude === 'number' ? b.longitude : ''
-    form.value.useTrueSolarTime = Boolean(b.useTrueSolarTime)
-    form.value.timeUncertain = Boolean(b.timeUncertain)
-    form.value.uncertaintySeconds = Number.isFinite(Number(b.uncertaintySeconds))
-      ? Number(b.uncertaintySeconds)
-      : 900
-  } catch {
-    localStorage.removeItem('bazi_last_birth')
-  }
+  form.value.name = saved.name
+  form.value.calendarType = saved.calendarType
+  form.value.lunarLeapMonth = saved.lunarLeapMonth
+  form.value.year = saved.year
+  form.value.month = saved.month
+  form.value.day = saved.day
+  form.value.hour = saved.hour
+  form.value.minute = saved.minute
+  form.value.second = saved.second
+  form.value.gender = saved.gender
+  form.value.ziHourPolicy = saved.ziHourPolicy
+  form.value.birthPlace = saved.birthPlace
+  form.value.timezone = saved.timezone
+  form.value.birthUTCOffsetSeconds = saved.birthUTCOffsetSeconds ?? ''
+  form.value.longitude = saved.longitude ?? ''
+  form.value.useTrueSolarTime = saved.useTrueSolarTime
+  form.value.timeUncertain = saved.timeUncertain
+  form.value.uncertaintySeconds = saved.uncertaintySeconds || 900
 })
 
 function requestPayload(includeSelection = false): ChartCreateRequest {
@@ -205,33 +198,30 @@ async function confirmCreate() {
     const payload = requestPayload(true)
     const data = await createChart(payload)
     sessionStorage.setItem('lastChart', JSON.stringify(data))
-    localStorage.setItem(
-      'bazi_last_birth',
-      JSON.stringify({
-        name: form.value.name,
-        calendarType: form.value.calendarType,
-        lunarLeapMonth: form.value.lunarLeapMonth,
-        year: form.value.year,
-        month: form.value.month,
-        day: form.value.day,
-        hour: form.value.hour,
-        minute: form.value.minute,
-        second: form.value.second,
-        gender: form.value.gender,
-        ziHourPolicy: form.value.ziHourPolicy,
-        birthPlace: form.value.birthPlace,
-        timezone: form.value.timezone,
-        birthUTCOffsetSeconds:
-          form.value.birthUTCOffsetSeconds === ''
-            ? undefined
-            : Number(form.value.birthUTCOffsetSeconds),
-        longitude: form.value.longitude === '' ? undefined : Number(form.value.longitude),
-        useTrueSolarTime: form.value.useTrueSolarTime,
-        timeUncertain: form.value.timeUncertain,
-        uncertaintySeconds: form.value.timeUncertain ? form.value.uncertaintySeconds : 0,
-        chartId: data.id,
-      }),
-    )
+    recentChartStore.save({
+      name: form.value.name,
+      calendarType: form.value.calendarType,
+      lunarLeapMonth: form.value.lunarLeapMonth,
+      year: form.value.year,
+      month: form.value.month,
+      day: form.value.day,
+      hour: form.value.hour,
+      minute: form.value.minute,
+      second: form.value.second,
+      gender: form.value.gender,
+      ziHourPolicy: form.value.ziHourPolicy,
+      birthPlace: form.value.birthPlace,
+      timezone: form.value.timezone,
+      birthUTCOffsetSeconds:
+        form.value.birthUTCOffsetSeconds === ''
+          ? undefined
+          : Number(form.value.birthUTCOffsetSeconds),
+      longitude: form.value.longitude === '' ? undefined : Number(form.value.longitude),
+      useTrueSolarTime: form.value.useTrueSolarTime,
+      timeUncertain: form.value.timeUncertain,
+      uncertaintySeconds: form.value.timeUncertain ? form.value.uncertaintySeconds : 0,
+      chartId: data.id,
+    })
     router.push('/chart/new?_t=' + Date.now())
   } catch (reason: unknown) {
     errMsg.value = getApiErrorMessage(reason, '保存命盘失败，请稍后重试。')

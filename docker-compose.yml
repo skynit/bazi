@@ -23,7 +23,7 @@ services:
       context: ./src
       dockerfile: Dockerfile
     ports:
-      - "${BACKEND_PORT:-8080}:${SERVER_PORT:-8080}"
+      - "${BACKEND_PORT:-8080}:${SERVER_PORT:-8088}"
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-3306}
@@ -31,7 +31,7 @@ services:
       DB_PASS: ${DB_PASS:-root123}
       DB_NAME: ${DB_NAME:-bazi}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      SERVER_PORT: ${SERVER_PORT:-8080}
+      SERVER_PORT: ${SERVER_PORT:-8088}
       ELEMENT_ASSET_DIR: /app/data/element-assets
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
     volumes:
@@ -40,7 +40,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:${SERVER_PORT:-8080}/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${SERVER_PORT:-8088}/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

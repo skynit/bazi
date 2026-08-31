@@ -138,9 +138,33 @@ for (const target of targets) {
   }
   const page = await context.newPage()
   try {
-    await page.goto(`${BASE}${route}`, { waitUntil: 'load', timeout: 30000 })
+    // 本环境访问不了 Google Fonts，挂起的字体请求会让 load 事件一直不触发，
+    // 直接拦截外部字体/统计域，避免卡死。
+    await page.route(/fonts\.googleapis\.com|fonts\.gstatic\.com|google-analytics\.com|googletagmanager\.com/, (r) =>
+      r.abort(),
+    )
+    await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await page.waitForLoadState('load', { timeout: 10000 }).catch(() => {})
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {})
-    await page.waitForTimeout(1500)
+    // 分段滚动到底再回顶：触发 v-reveal 等 IntersectionObserver 进入动效，
+    // 否则整页截图中首屏以下的分区会停留在未显示的初始态。
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        let y = 0
+        const step = Math.max(400, Math.floor(window.innerHeight * 0.8))
+        const timer = setInterval(() => {
+          y += step
+          window.scrollTo(0, y)
+          if (y >= document.documentElement.scrollHeight) {
+            clearInterval(timer)
+            resolve()
+          }
+        }, 120)
+      })
+    })
+    await page.waitForTimeout(800)
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(500)
     const file = path.join(OUT_DIR, `${name}.png`)
     await page.screenshot({ path: file, fullPage: true })
     console.log(`[shot] ${name} -> ${path.relative(process.cwd(), file)}`)

@@ -107,7 +107,7 @@ describe('FortuneEvidencePanel', () => {
       },
     })
 
-    expect(professional.get('[data-testid="professional-meta"]').exists()).toBe(true)
+    expect(professional.find('[data-testid="professional-meta"]').exists()).toBe(true)
     expect(professional.text()).toContain(commonBoundary)
     expect(professional.text()).toContain(professionalBoundary)
     expect(professional.text()).toContain('本地权重 +18')

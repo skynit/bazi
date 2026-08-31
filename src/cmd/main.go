@@ -71,9 +71,6 @@ func main() {
 	middleware.InitJWT(cfg.JWTSecret)
 
 	db := initDatabase(cfg)
-	if err := db.AutoMigrate(&model.BuyiRecord{}); err != nil {
-		log.Fatalf("Failed to migrate buyi database: %v", err)
-	}
 	cs := store.NewDBChartStore(db)
 	fs := store.NewDBFortuneStore(db)
 	feedbackStore := store.NewDBFeedbackStore(db)

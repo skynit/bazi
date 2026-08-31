@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"bazi/internal/config"
-	"bazi/internal/model"
+	"bazi/migrations"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -32,7 +32,7 @@ func initDatabase(cfg *config.Config) *gorm.DB {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	if err := db.AutoMigrate(&model.User{}, &model.BirthChart{}, &model.FortuneRecord{}, &model.FortuneFeedback{}, &model.BuyiRecord{}, &model.ElementAsset{}); err != nil {
+	if err := migrations.Apply(db); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 

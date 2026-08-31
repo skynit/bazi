@@ -23,6 +23,15 @@ type PeriodInterpreter struct {
 	baseContentHash string
 }
 
+type periodProjection struct {
+	stem             int
+	ganZhi           string
+	ganZhiDesc       string
+	shiShen          string
+	relation         string
+	relationEvidence []PeriodBranchRelation
+}
+
 // NewPeriodInterpreterFromChart restores period interpretation context from
 // the authenticated public natal-chart contract. It returns nil for derived,
 // incomplete, or tampered chart payloads.
@@ -442,33 +451,46 @@ func (s *PeriodInterpreter) relationEvidence(periodBranch int) []PeriodBranchRel
 
 // ──────────────────── Analysis methods ────────────────────
 
+func (s *PeriodInterpreter) periodProjectionFor(chart *ZiWeiChart, derivationType string, year, month, day int) (periodProjection, bool) {
+	if !s.acceptsDerivedChart(chart) {
+		return periodProjection{}, false
+	}
+	stem, branch, ok := chartDerivationForQuery(chart, derivationType, year, month, day)
+	if !ok {
+		return periodProjection{}, false
+	}
+	shiShen, ok := getShiShen(stem, s.birthData.DayStem)
+	if !ok {
+		return periodProjection{}, false
+	}
+
+	return periodProjection{
+		stem:             stem,
+		ganZhi:           stemName(stem) + branchName(branch),
+		ganZhiDesc:       fmt.Sprintf("%s（%s）+ %s（%s）", stemName(stem), shiShen, branchName(branch), wuXingBranch(branch)),
+		shiShen:          shiShen,
+		relation:         s.describeRelation(branch),
+		relationEvidence: s.relationEvidence(branch),
+	}, true
+}
+
 // AnalyzeLiunian produces a full interpretation for the given 流年.
 func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *LiunianResult {
-	if !s.acceptsDerivedChart(chart) {
-		return nil
-	}
-	liunianStem, liunianBranch, ok := chartDerivationForQuery(chart, "liunian", year, 0, 0)
+	period, ok := s.periodProjectionFor(chart, "liunian", year, 0, 0)
 	if !ok {
 		return nil
 	}
 
-	ganZhi := stemName(liunianStem) + branchName(liunianBranch)
-	shiShen, ok := getShiShen(liunianStem, s.birthData.DayStem)
-	if !ok {
-		return nil
-	}
-	rel := s.describeRelation(liunianBranch)
-	relations := s.relationEvidence(liunianBranch)
-	structuralSummary := fmt.Sprintf("流年%s透出%s，地支与命局关系记录为%s；仅陈述规则结构。", ganZhi, shiShen, rel)
+	structuralSummary := fmt.Sprintf("流年%s透出%s，地支与命局关系记录为%s；仅陈述规则结构。", period.ganZhi, period.shiShen, period.relation)
 	tips := "本结果仅用于核对干支、十神与刑冲合结构；职业、学业和财务决定应依据现实证据。"
 
 	return &LiunianResult{
 		Year:                year,
-		GanZhi:              ganZhi,
-		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liunianStem), shiShen, branchName(liunianBranch), wuXingBranch(liunianBranch)),
-		ShiShen:             shiShen,
-		RelationToMing:      rel,
-		RelationEvidence:    relations,
+		GanZhi:              period.ganZhi,
+		GanZhiDesc:          period.ganZhiDesc,
+		ShiShen:             period.shiShen,
+		RelationToMing:      period.relation,
+		RelationEvidence:    period.relationEvidence,
 		StructuralSummary:   structuralSummary,
 		ReviewNote:          tips,
 		EvidenceBasis:       "deterministic_rule_projection",
@@ -479,32 +501,20 @@ func (s *PeriodInterpreter) AnalyzeLiunian(chart *ZiWeiChart, year int) *Liunian
 
 // AnalyzeLiuyue produces a full interpretation for the given 流月.
 func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month, day int) *LiuyueResult {
-	if !s.acceptsDerivedChart(chart) {
-		return nil
-	}
-	liuyueStem, liuyueBranch, ok := chartDerivationForQuery(chart, "liuyue", year, month, day)
+	period, ok := s.periodProjectionFor(chart, "liuyue", year, month, day)
 	if !ok {
 		return nil
 	}
-	dayStem := s.birthData.DayStem
-
-	ganZhi := stemName(liuyueStem) + branchName(liuyueBranch)
-	shiShen, ok := getShiShen(liuyueStem, dayStem)
-	if !ok {
-		return nil
-	}
-	rel := s.describeRelation(liuyueBranch)
-	relations := s.relationEvidence(liuyueBranch)
-	structuralSummary := fmt.Sprintf("流月%s透出%s，地支与命局关系记录为%s；不推导现实事件结果。", ganZhi, shiShen, rel)
+	structuralSummary := fmt.Sprintf("流月%s透出%s，地支与命局关系记录为%s；不推导现实事件结果。", period.ganZhi, period.shiShen, period.relation)
 
 	return &LiuyueResult{
 		Year:                year,
 		Month:               month,
-		GanZhi:              ganZhi,
-		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuyueStem), shiShen, branchName(liuyueBranch), wuXingBranch(liuyueBranch)),
-		ShiShen:             shiShen,
-		RelationToMing:      rel,
-		RelationEvidence:    relations,
+		GanZhi:              period.ganZhi,
+		GanZhiDesc:          period.ganZhiDesc,
+		ShiShen:             period.shiShen,
+		RelationToMing:      period.relation,
+		RelationEvidence:    period.relationEvidence,
 		StructuralSummary:   structuralSummary,
 		EvidenceBasis:       "deterministic_rule_projection",
 		ValidationStatus:    "not_adjudicated",
@@ -514,28 +524,17 @@ func (s *PeriodInterpreter) AnalyzeLiuyue(chart *ZiWeiChart, year, month, day in
 
 // AnalyzeLiuri produces a full interpretation for the given 流日.
 func (s *PeriodInterpreter) AnalyzeLiuri(chart *ZiWeiChart, year, month, day int) *LiuriResult {
-	if !s.acceptsDerivedChart(chart) {
-		return nil
-	}
-	liuriStem, liuriBranch, ok := chartDerivationForQuery(chart, "liuri", year, month, day)
+	period, ok := s.periodProjectionFor(chart, "liuri", year, month, day)
 	if !ok {
 		return nil
 	}
 	dayStem := s.birthData.DayStem
 
-	ganZhi := stemName(liuriStem) + branchName(liuriBranch)
-	shiShen, ok := getShiShen(liuriStem, dayStem)
-	if !ok {
-		return nil
-	}
-	rel := s.describeRelation(liuriBranch)
-	relations := s.relationEvidence(liuriBranch)
-
 	hourly := make([]HourBlock, 12)
 
 	for i := 0; i < 12; i++ {
 		hourBranch := i
-		hourStemIdx, ok := fiveRatHourStem(liuriStem, hourBranch)
+		hourStemIdx, ok := fiveRatHourStem(period.stem, hourBranch)
 		if !ok {
 			return nil
 		}
@@ -572,17 +571,17 @@ func (s *PeriodInterpreter) AnalyzeLiuri(chart *ZiWeiChart, year, month, day int
 		}
 	}
 
-	summary := fmt.Sprintf("流日%s透出%s，地支与命局关系记录为%s；十二时辰按传统两小时地支区间展示，子时跨午夜但不在此合同内裁决民用日期归属。", ganZhi, shiShen, rel)
+	summary := fmt.Sprintf("流日%s透出%s，地支与命局关系记录为%s；十二时辰按传统两小时地支区间展示，子时跨午夜但不在此合同内裁决民用日期归属。", period.ganZhi, period.shiShen, period.relation)
 
 	return &LiuriResult{
 		Year:                year,
 		Month:               month,
 		Day:                 day,
-		GanZhi:              ganZhi,
-		GanZhiDesc:          fmt.Sprintf("%s（%s）+ %s（%s）", stemName(liuriStem), shiShen, branchName(liuriBranch), wuXingBranch(liuriBranch)),
-		ShiShen:             shiShen,
-		RelationToMing:      rel,
-		RelationEvidence:    relations,
+		GanZhi:              period.ganZhi,
+		GanZhiDesc:          period.ganZhiDesc,
+		ShiShen:             period.shiShen,
+		RelationToMing:      period.relation,
+		RelationEvidence:    period.relationEvidence,
 		HourlyAnalysis:      hourly,
 		StructuralSummary:   summary,
 		EvidenceBasis:       "deterministic_rule_projection",

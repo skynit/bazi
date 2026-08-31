@@ -382,6 +382,15 @@ export interface ShenShaMeta {
   interpretation_status: 'not_adjudicated'
 }
 
+export interface PillarShenShaGroup {
+  pillar: 'year' | 'month' | 'day' | 'hour'
+  label: string
+  gan: string
+  zhi: string
+  items: string[]
+  details: ShenShaMeta[]
+}
+
 export interface FortuneLayerSet {
   rule_version: string
   school: string
@@ -633,10 +642,10 @@ export interface ChartDetail extends ChartSummary {
   rule_version?: string
   school?: string
   rule_meta?: RuleMeta
-  year_pillar?: ChartPillar
-  month_pillar?: unknown
-  day_pillar?: unknown
-  hour_pillar?: unknown
+  year_pillar: ChartPillar
+  month_pillar: ChartPillar
+  day_pillar: ChartPillar
+  hour_pillar: ChartPillar
   five_elements?: Record<string, number>
   element_detail?: unknown
   body_strength?: BodyStrengthResult
@@ -655,7 +664,7 @@ export interface ChartDetail extends ChartSummary {
   day_shen_sha?: string[]
   day_shen_sha_details?: ShenShaMeta[]
   month_season?: MonthSeasonEvidence
-  shen_sha_by_pillar?: unknown
+  shen_sha_by_pillar?: PillarShenShaGroup[]
   ten_god_proportion?: TenGodRatio[]
   ten_god_analysis?: TenGodAnalysis
   missing_elements?: MissingElementAnalysis

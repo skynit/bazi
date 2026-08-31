@@ -2,18 +2,52 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useRecentChartStore } from './stores/recentChart'
 import { useThemeStore } from './stores/theme'
 import type { WuxingKey } from './composables/useWuxingThemes'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const recentChartStore = useRecentChartStore()
 const themeStore = useThemeStore()
 const scrolled = ref(false)
 const isDark = ref(document.documentElement.classList.contains('dark'))
 const mobileOpen = ref(false)
 const fortuneMenuOpen = ref(false)
 const fortuneMenuRef = ref<HTMLElement | null>(null)
+
+/**
+ * 运势下拉：hover intent。
+ * 鼠标短暂滑出（如移向下拉面板途中）不立即关闭，180ms 内重新进入则保持打开。
+ */
+const FORTUNE_MENU_CLOSE_DELAY = 180
+let fortuneMenuCloseTimer: number | undefined
+
+function clearFortuneMenuCloseTimer() {
+  if (fortuneMenuCloseTimer !== undefined) {
+    window.clearTimeout(fortuneMenuCloseTimer)
+    fortuneMenuCloseTimer = undefined
+  }
+}
+
+function openFortuneMenu() {
+  clearFortuneMenuCloseTimer()
+  fortuneMenuOpen.value = true
+}
+
+function scheduleCloseFortuneMenu() {
+  clearFortuneMenuCloseTimer()
+  fortuneMenuCloseTimer = window.setTimeout(() => {
+    fortuneMenuOpen.value = false
+    fortuneMenuCloseTimer = undefined
+  }, FORTUNE_MENU_CLOSE_DELAY)
+}
+
+function toggleFortuneMenu() {
+  clearFortuneMenuCloseTimer()
+  fortuneMenuOpen.value = !fortuneMenuOpen.value
+}
 
 const wuxingCycle: Array<{ key: WuxingKey; label: string }> = [
   { key: 'mu', label: '木' },
@@ -40,6 +74,7 @@ function toggleTheme() {
 
 function closeMobileMenu() {
   mobileOpen.value = false
+  clearFortuneMenuCloseTimer()
   fortuneMenuOpen.value = false
 }
 
@@ -53,36 +88,20 @@ function logout() {
   router.push('/')
 }
 
-/**
- * 紫微斗数路由需要 chartId。
- * 优先使用最近一次排盘 (bazi_last_birth)，否则引导用户先排盘。
- */
 function goZiwei() {
   closeMobileMenu()
-  try {
-    const raw = localStorage.getItem('bazi_last_birth')
-    const chartId = raw ? JSON.parse(raw).chartId : null
-    if (chartId) {
-      router.push(`/ziwei/${chartId}`)
-      return
-    }
-  } catch {
-    /* ignore */
+  if (recentChartStore.chartId) {
+    router.push(`/ziwei/${recentChartStore.chartId}`)
+    return
   }
   router.push('/chart/new')
 }
 
 function goBaziChart() {
   closeMobileMenu()
-  try {
-    const raw = localStorage.getItem('bazi_last_birth')
-    const chartId = raw ? JSON.parse(raw).chartId : null
-    if (chartId) {
-      router.push(`/chart/${chartId}`)
-      return
-    }
-  } catch {
-    /* ignore */
+  if (recentChartStore.chartId) {
+    router.push(`/chart/${recentChartStore.chartId}`)
+    return
   }
   router.push('/chart/new')
 }
@@ -95,6 +114,7 @@ function onKeydown(event: KeyboardEvent) {
 
 function onPointerDown(event: PointerEvent) {
   if (fortuneMenuRef.value && !fortuneMenuRef.value.contains(event.target as Node)) {
+    clearFortuneMenuCloseTimer()
     fortuneMenuOpen.value = false
   }
 }
@@ -117,6 +137,7 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('pointerdown', onPointerDown)
   window.removeEventListener('auth:expired', onAuthExpired)
+  clearFortuneMenuCloseTimer()
 })
 </script>
 <template>
@@ -184,9 +205,9 @@ onUnmounted(() => {
               <div
                 ref="fortuneMenuRef"
                 class="relative"
-                @mouseenter="fortuneMenuOpen = true"
-                @mouseleave="fortuneMenuOpen = false"
-                @focusin="fortuneMenuOpen = true"
+                @mouseenter="openFortuneMenu"
+                @mouseleave="scheduleCloseFortuneMenu"
+                @focusin="openFortuneMenu"
               >
                 <button
                   type="button"
@@ -194,35 +215,30 @@ onUnmounted(() => {
                   :class="{ 'text-[var(--accent)]': route.path.startsWith('/fortune') }"
                   :aria-expanded="fortuneMenuOpen"
                   aria-controls="fortune-desktop-menu"
-                  @click="fortuneMenuOpen = !fortuneMenuOpen"
+                  @click="toggleFortuneMenu"
                 >
                   运势 <span class="text-[var(--fs-2xs)] opacity-50">▾</span>
                 </button>
+                <!-- 外层 pt-2 是不可见 hover 桥接区，消除 trigger 与面板之间的死区；视觉间距不变 -->
                 <div
                   v-show="fortuneMenuOpen"
                   id="fortune-desktop-menu"
-                  class="fortune-dropdown absolute top-full left-1/2 -translate-x-1/2 min-w-[160px] p-1.5 mt-2 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[10px] shadow-[var(--shadow-lg)] backdrop-blur-[20px] z-[100]"
+                  class="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-[100]"
                 >
-                  <router-link
-                    to="/fortune"
-                    class="fortune-dropdown-item"
-                    >今日运势</router-link
+                  <div
+                    class="min-w-[160px] p-1.5 bg-[var(--surface-1)]/95 border border-[var(--line-strong)] rounded-[10px] shadow-[var(--shadow-lg)] backdrop-blur-[20px]"
                   >
-                  <router-link
-                    to="/fortune/blessing"
-                    class="fortune-dropdown-item"
-                    >运势加持</router-link
-                  >
-                  <router-link
-                    to="/fortune/weekly"
-                    class="fortune-dropdown-item"
-                    >本周运势</router-link
-                  >
-                  <router-link
-                    to="/fortune/monthly"
-                    class="fortune-dropdown-item"
-                    >本月运势</router-link
-                  >
+                    <router-link to="/fortune" class="fortune-dropdown-item">今日运势</router-link>
+                    <router-link to="/fortune/blessing" class="fortune-dropdown-item"
+                      >运势加持</router-link
+                    >
+                    <router-link to="/fortune/weekly" class="fortune-dropdown-item"
+                      >本周运势</router-link
+                    >
+                    <router-link to="/fortune/monthly" class="fortune-dropdown-item"
+                      >本月运势</router-link
+                    >
+                  </div>
                 </div>
               </div>
               <router-link

@@ -442,29 +442,54 @@ func pillarFromSixtyCycle(sc tyme.SixtyCycle) model.Pillar {
 	}
 }
 
+type namedEightCharPillar struct {
+	name  string
+	cycle tyme.SixtyCycle
+}
+
+func eightCharPillars(ec *tyme.EightChar) [4]namedEightCharPillar {
+	return [4]namedEightCharPillar{
+		{name: "year", cycle: ec.GetYear()},
+		{name: "month", cycle: ec.GetMonth()},
+		{name: "day", cycle: ec.GetDay()},
+		{name: "hour", cycle: ec.GetHour()},
+	}
+}
+
+func hiddenStemWeight(stemType tyme.HideHeavenStemType) int {
+	switch stemType {
+	case tyme.MAIN:
+		return 3
+	case tyme.MIDDLE:
+		return 2
+	default:
+		return 1
+	}
+}
+
+func hiddenStemLabel(branch, stem string, stemType tyme.HideHeavenStemType) string {
+	label := branch + stem
+	switch stemType {
+	case tyme.MIDDLE:
+		return label + "(中)"
+	case tyme.RESIDUAL:
+		return label + "(余)"
+	default:
+		return label
+	}
+}
+
 func calcFiveElements(ec *tyme.EightChar) map[string]int {
 	scores := map[string]int{"木": 0, "火": 0, "土": 0, "金": 0, "水": 0}
 
-	pillars := [](func() tyme.SixtyCycle){
-		ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour,
-	}
-	for _, fn := range pillars {
-		sc := fn()
-		// heavenly stem: 5 points
+	for _, pillar := range eightCharPillars(ec) {
+		sc := pillar.cycle
 		elem := sc.GetHeavenStem().GetElement().GetName()
 		scores[elem] += 5
 
-		// earthly branch hidden stems: main=3, middle=2, residual=1
 		for _, hhs := range sc.GetEarthBranch().GetHideHeavenStems() {
-			weight := 1
-			switch hhs.GetType() {
-			case tyme.MAIN:
-				weight = 3
-			case tyme.MIDDLE:
-				weight = 2
-			}
 			elem := hhs.GetHeavenStem().GetElement().GetName()
-			scores[elem] += weight
+			scores[elem] += hiddenStemWeight(hhs.GetType())
 		}
 	}
 	return scores
@@ -476,28 +501,19 @@ func calcElementDetail(ec *tyme.EightChar) []ElementStrength {
 	zhiCangGan := map[string]int{"木": 0, "火": 0, "土": 0, "金": 0, "水": 0}
 	cangGanMap := map[string][]string{"木": {}, "火": {}, "土": {}, "金": {}, "水": {}}
 
-	pillars := [](func() tyme.SixtyCycle){
-		ec.GetYear, ec.GetMonth, ec.GetDay, ec.GetHour,
-	}
-	for _, fn := range pillars {
-		sc := fn()
+	for _, pillar := range eightCharPillars(ec) {
+		sc := pillar.cycle
 		elem := sc.GetHeavenStem().GetElement().GetName()
 		tianGan[elem] += 5
 
 		for _, hhs := range sc.GetEarthBranch().GetHideHeavenStems() {
-			weight := 1
-			label := sc.GetEarthBranch().GetName() + hhs.GetHeavenStem().GetName()
-			if hhs.GetType() == tyme.MAIN {
-				weight = 3
-			} else if hhs.GetType() == tyme.MIDDLE {
-				weight = 2
-				label += "(中)"
-			} else if hhs.GetType() == tyme.RESIDUAL {
-				label += "(余)"
-			}
 			elem := hhs.GetHeavenStem().GetElement().GetName()
-			zhiCangGan[elem] += weight
-			cangGanMap[elem] = append(cangGanMap[elem], label)
+			zhiCangGan[elem] += hiddenStemWeight(hhs.GetType())
+			cangGanMap[elem] = append(cangGanMap[elem], hiddenStemLabel(
+				sc.GetEarthBranch().GetName(),
+				hhs.GetHeavenStem().GetName(),
+				hhs.GetType(),
+			))
 		}
 	}
 
@@ -549,26 +565,17 @@ func calcNaYin(ec *tyme.EightChar) map[string]NaYinInfo {
 
 func calcHiddenStems(ec *tyme.EightChar) map[string][]string {
 	result := make(map[string][]string, 4)
-	pillars := map[string]func() tyme.SixtyCycle{
-		"year": ec.GetYear, "month": ec.GetMonth,
-		"day": ec.GetDay, "hour": ec.GetHour,
-	}
-	for name, fn := range pillars {
-		sc := fn()
+	for _, pillar := range eightCharPillars(ec) {
+		sc := pillar.cycle
 		var stems []string
 		for _, hhs := range sc.GetEarthBranch().GetHideHeavenStems() {
-			label := sc.GetEarthBranch().GetName() + hhs.GetHeavenStem().GetName()
-			switch hhs.GetType() {
-			case tyme.MAIN:
-				// keep as-is
-			case tyme.MIDDLE:
-				label += "(中)"
-			case tyme.RESIDUAL:
-				label += "(余)"
-			}
-			stems = append(stems, label)
+			stems = append(stems, hiddenStemLabel(
+				sc.GetEarthBranch().GetName(),
+				hhs.GetHeavenStem().GetName(),
+				hhs.GetType(),
+			))
 		}
-		result[name] = stems
+		result[pillar.name] = stems
 	}
 	return result
 }

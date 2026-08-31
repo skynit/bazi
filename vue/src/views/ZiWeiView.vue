@@ -7,10 +7,20 @@ import {
   fetchZiWeiChart,
   fetchZiWeiOverlay,
   fetchZiWeiPeriod,
+  type ZiWeiChartPeriodResponse,
+  type ZiWeiChartResponse,
+  type ZiWeiDayunPeriodResponse,
   type ZiWeiDayunStageAnalysis,
-  type ZiWeiOverlayAnalysis,
+  type ZiWeiOverlayResponse,
+  type ZiWeiPalace,
+  type ZiWeiPalaceReadingResponse,
   type ZiWeiPeriodAnalysis,
+  type ZiWeiPeriodChart,
+  type ZiWeiSihuaChainResponse,
+  type ZiWeiSihuaPeriodResponse,
   type ZiWeiSihuaProjectionItem,
+  type ZiWeiSihuaProjectionResult,
+  type ZiWeiStar,
 } from '../api/ziwei'
 import ZiWeiInterpretation from '../components/ZiWeiInterpretation.vue'
 import ZiWeiOverlay from '../components/ZiWeiOverlay.vue'
@@ -25,67 +35,6 @@ interface BirthInfo {
   solarDate: string
   lunarDate: string
   baziChartId: number
-}
-
-interface StarInfo {
-  name: string
-  type: string
-  scope: string
-  brightness: string
-}
-
-interface PalaceData {
-  name: string
-  branch: string
-  heavenly_stem: string
-  is_body_palace: boolean
-  stars: StarInfo[]
-  four_hua: string[]
-  adjective_stars?: string[]
-  changsheng_12?: string
-  boshi_12?: string
-  jiang_qian_12?: string
-  sui_qian_12?: string
-  sanfang_sizheng?: { opposite?: string; trine1?: string; trine2?: string }
-}
-
-interface ZiWeiChartData {
-  profile_id: string
-  engine_version: string
-  rule_version: string
-  rule_school: string
-  rule_sources: Array<{
-    rule_id: string
-    repository: string
-    commit: string
-    path: string
-    sha256: string
-    license: string
-    source_tier: string
-    validation_status: string
-  }>
-  plugin_manifest: Array<{ id: string; version: string }>
-  plugin_manifest_hash: string
-  calculation_input: {
-    calendar_type: 'SOLAR'
-    year: number
-    month: number
-    day: number
-    hour: number
-    minute: number
-    gender: '男' | '女'
-    basis: 'normalized_solar_minute'
-  }
-  input_fingerprint: string
-  content_hash: string
-  palaces: PalaceData[]
-  life_master: string
-  body_master: string
-  five_bureau: string
-  earthly_branch_of_soul_palace: string
-  earthly_branch_of_body_palace: string
-  body_palace: string
-  patterns: string[]
 }
 
 interface SectionData {
@@ -143,14 +92,6 @@ interface PalaceReading {
   patternAnnotations: SectionData
 }
 
-interface LiunianChartData {
-  palaces: PalaceData[]
-  year: number
-  liu_nian_stars?: string[][]
-  liu_nian_four_hua?: string[][]
-  overlay_analysis?: ZiWeiOverlayAnalysis
-}
-
 interface SihuaGroup {
   type: string
   css: string
@@ -170,14 +111,14 @@ const activeTab = ref('mingpan')
 const sihuaPalaceFilter = ref('all')
 
 const birthInfo = ref<BirthInfo>()
-const chartData = ref<ZiWeiChartData>()
+const chartData = ref<ZiWeiChartResponse>()
 const selectedPalace = ref<PalaceReading | null>(null)
 
-const liunianData = ref<any[]>([])
-const liuyueData = ref<any[]>([])
-const liuriData = ref<any[]>([])
-const sihuaData = ref<any>({})
-const sihuaChainData = ref<any>({})
+const liunianData = ref<ZiWeiPeriodChart[]>([])
+const liuyueData = ref<ZiWeiPeriodChart[]>([])
+const liuriData = ref<ZiWeiPeriodChart[]>([])
+const sihuaData = ref<ZiWeiSihuaProjectionResult | null>(null)
+const sihuaChainData = ref<ZiWeiSihuaProjectionResult | null>(null)
 
 const dayunAnalysis = ref<ZiWeiPeriodAnalysis | null>(null)
 const dayunNominalAge = ref<number | null>(null)
@@ -188,7 +129,7 @@ const dayunStageList = computed<ZiWeiDayunStageAnalysis[]>(
   () => dayunAnalysis.value?.dayun_stages || [],
 )
 
-const liunianOverlay = ref<LiunianChartData>()
+const liunianOverlay = ref<ZiWeiOverlayResponse>()
 const availableYears = ref<number[]>([])
 const selectedLiunianYear = ref<number>(new Date().getFullYear())
 const loadingTab = ref(false)
@@ -301,7 +242,7 @@ async function loadOverlay(year?: number): Promise<number | undefined> {
 async function ensureDayunAnalysis(chartId: number, silent = false) {
   if (dayunAnalysis.value) return
   try {
-    const data = await fetchZiWeiPeriod({
+    const data = await fetchZiWeiPeriod<ZiWeiDayunPeriodResponse>({
       chart_id: chartId,
       period_type: 'dayun',
     })
@@ -328,7 +269,7 @@ async function switchTab(tab: string) {
       case 'liunian':
         {
           const year = selectedLiunianYear.value
-          const data = await fetchZiWeiPeriod({
+          const data = await fetchZiWeiPeriod<ZiWeiChartPeriodResponse>({
             chart_id: Number(chartId),
             period_type: 'liunian',
             year,
@@ -342,7 +283,7 @@ async function switchTab(tab: string) {
           const year = selectedLiunianYear.value
           const month = new Date().getMonth() + 1
           const day = new Date().getDate()
-          const data = await fetchZiWeiPeriod({
+          const data = await fetchZiWeiPeriod<ZiWeiChartPeriodResponse>({
             chart_id: Number(chartId),
             period_type: 'liuyue',
             year,
@@ -358,7 +299,7 @@ async function switchTab(tab: string) {
           const year = selectedLiunianYear.value
           const month = new Date().getMonth() + 1
           const day = new Date().getDate()
-          const data = await fetchZiWeiPeriod({
+          const data = await fetchZiWeiPeriod<ZiWeiChartPeriodResponse>({
             chart_id: Number(chartId),
             period_type: 'liuri',
             year,
@@ -370,19 +311,19 @@ async function switchTab(tab: string) {
         }
         break
       case 'sihua':
-        if (!Object.keys(sihuaData.value).length) {
-          const data = await fetchZiWeiPeriod({
+        if (!sihuaData.value) {
+          const data = await fetchZiWeiPeriod<ZiWeiSihuaPeriodResponse>({
             chart_id: Number(chartId),
             period_type: 'sihua_feixing',
           })
-          sihuaData.value = data.periods || {}
+          sihuaData.value = data.periods
         }
-        if (!Object.keys(sihuaChainData.value).length) {
-          const chainData = await fetchZiWeiPeriod({
+        if (!sihuaChainData.value) {
+          const chainData = await fetchZiWeiPeriod<ZiWeiSihuaChainResponse>({
             chart_id: Number(chartId),
             period_type: 'sihua_chain',
           })
-          sihuaChainData.value = chainData.chain || {}
+          sihuaChainData.value = chainData.chain
         }
         break
     }
@@ -393,10 +334,10 @@ async function switchTab(tab: string) {
   }
 }
 
-async function onPalaceClick(palace: PalaceData, palaceIdx: number) {
+async function onPalaceClick(palace: ZiWeiPalace, palaceIdx: number) {
   if (!route.params.chartId) return
   try {
-    const data = await fetchZiWeiPeriod({
+    const data = await fetchZiWeiPeriod<ZiWeiPalaceReadingResponse>({
       chart_id: Number(route.params.chartId),
       period_type: 'palace_reading',
       palace_idx: palaceIdx,
@@ -461,7 +402,7 @@ async function onYearChange(year: number) {
   }
 }
 
-function palaceMajorSignal(p: PalaceData): string {
+function palaceMajorSignal(p: ZiWeiPalace): string {
   const stars = list(p?.stars)
     .filter((s) => s.type === 'major')
     .map((s) => (s.brightness ? `${s.name}${s.brightness}` : s.name))
@@ -469,7 +410,7 @@ function palaceMajorSignal(p: PalaceData): string {
   return stars.slice(0, 3).join('、')
 }
 
-function palaceSupportSignal(p: PalaceData): string {
+function palaceSupportSignal(p: ZiWeiPalace): string {
   const stars = list(p?.stars)
   const soft = stars.filter((s) => ['soft', 'lucun', 'tianma'].includes(s.type)).length
   const tough = stars.filter((s) => s.type === 'tough').length
@@ -479,12 +420,12 @@ function palaceSupportSignal(p: PalaceData): string {
   return parts.length ? parts.join(' · ') : '未见辅曜或煞曜'
 }
 
-function palaceFourHuaLabel(p: PalaceData): string {
+function palaceFourHuaLabel(p: ZiWeiPalace): string {
   const count = list(p?.four_hua).length
   return count ? `四化 ${count}` : '无四化'
 }
 
-function palaceFourHuaTitle(p: PalaceData): string {
+function palaceFourHuaTitle(p: ZiWeiPalace): string {
   const fourHua = list(p?.four_hua)
   return fourHua.length ? fourHua.join('、') : '本宫无四化'
 }
@@ -504,20 +445,20 @@ const chartOverviewItems = computed(() => {
   ]
 })
 
-function getPalacesFromPeriod(p: any): PalaceData[] {
-  return list<PalaceData>(p?.palaces)
+function getPalacesFromPeriod(period: ZiWeiPeriodChart | undefined): ZiWeiPalace[] {
+  return list(period?.palaces)
 }
 
-function majorStars(p: any): StarInfo[] {
-  return list<StarInfo>(p?.stars).filter((s) => s.type === 'major')
+function majorStars(palace: ZiWeiPalace): ZiWeiStar[] {
+  return list(palace.stars).filter((star) => star.type === 'major')
 }
 
-function auxStars(p: any): StarInfo[] {
-  return list<StarInfo>(p?.stars).filter((s) => s.type !== 'major')
+function auxStars(palace: ZiWeiPalace): ZiWeiStar[] {
+  return list(palace.stars).filter((star) => star.type !== 'major')
 }
 
 const sihuaFlyGroups = computed<SihuaGroup[]>(() => {
-  const data = sihuaData.value as any
+  const data = sihuaData.value
   if (!data || !data.hua_lu) return []
   return [
     { type: '化禄', css: 'sihua-lu', items: list<ZiWeiSihuaProjectionItem>(data.hua_lu) },
@@ -528,7 +469,7 @@ const sihuaFlyGroups = computed<SihuaGroup[]>(() => {
 })
 
 const sihuaChainGroups = computed<SihuaGroup[]>(() => {
-  const chain = sihuaChainData.value as any
+  const chain = sihuaChainData.value
   if (!chain || !chain.hua_lu) return []
   return [
     { type: '化禄', css: 'sihua-lu', items: list<ZiWeiSihuaProjectionItem>(chain.hua_lu) },

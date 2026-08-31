@@ -23,7 +23,9 @@ vue/node_modules*
 vue/node_modules.old/
 *.md
 *.txt
+!docs/testing.md
 !docs/frontend-ux-remediation-priorities.md
+!docs/adr/**/*.md
 !research/rag/snapshots/**/ATTRIBUTION.md
 !vue/public/element-assets/SOURCES.md
 # Re-include important JSON config files
@@ -57,8 +59,14 @@ src/cmd/*
 !src/cmd/precision-report/main_test.go
 __debug_*
 
+# Local Go build output; the server entrypoint lives in src/cmd/main.go.
+src/main
+
 *.db
 
 # Screenshot tooling artifacts (frontend upgrade workflow)
 vue/.pw-browsers/
 vue/screenshots/
+
+# Keep scoped agent instructions reviewable and portable across checkouts.
+!**/AGENTS.md

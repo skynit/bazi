@@ -6,6 +6,17 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import VChart from 'vue-echarts'
 import ClassicalInterpretationPanel from './ClassicalInterpretationPanel.vue'
+import ChartSection from './chart/ChartSection.vue'
+import { useScrollSpy } from '@/composables/useScrollSpy'
+import { vReveal } from '@/composables/useReveal'
+import { TEN_GOD_TRAIT, absentTenGodSentence, tenGodKeyword } from '@/lib/tenGodInterpret'
+import {
+  PILLAR_ROLE,
+  elementBalanceSentence,
+  ganRelationPlain,
+  shenShaMeaning,
+  zhiRelationPlain,
+} from '@/lib/baziGlossary'
 import type {
   BodyStrengthResult,
   FortuneLayer,
@@ -15,6 +26,7 @@ import type {
   MonthSeasonEvidence,
   NaYinEvidence,
   PatternAnalysis,
+  PillarShenShaGroup,
   RuleMeta,
   ShenShaMeta,
   TenGodAnalysis,
@@ -22,15 +34,6 @@ import type {
   ZhiRelation,
 } from '@/api/chart'
 
-type PillarKey = 'year' | 'month' | 'day' | 'hour'
-type PillarShenShaGroup = {
-  pillar: PillarKey
-  label: string
-  gan: string
-  zhi: string
-  items: string[]
-  details?: ShenShaMeta[]
-}
 type DayunStageView = {
   index: number
   gan: string
@@ -504,10 +507,10 @@ function componentBandLabel(score: number): string {
 
 function strengthCandidateLabel(value?: string): string {
   const labels: Record<string, string> = {
-    身旺: '偏高候选（传统称“身旺”）',
-    身强: '偏高候选（传统称“身强”）',
-    身弱: '偏低候选（传统称“身弱”）',
-    中和: '中间候选（传统称“中和”）',
+    身旺: '日主力量偏强候选（传统称“身旺”）',
+    身强: '日主力量偏强候选（传统称“身强”）',
+    身弱: '日主力量偏弱候选（传统称“身弱”）',
+    中和: '日主力量居中候选（传统称“中和”）',
   }
   return value ? labels[value] || `${value}（规则候选）` : '未形成候选'
 }
@@ -677,1003 +680,1255 @@ function monthCommandSegmentLabel(startDay: number, endDay?: number): string {
 
 use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
 
-// Tab navigation
-const activeTab = ref('overview')
-const chartTabs = computed(() => {
-  const tabs = [
-    { key: 'overview', label: '命盘总览' },
-    ...(hasDaYun.value ? [{ key: 'dayun', label: '大运' }] : []),
-    { key: 'wuxing', label: '五行格局' },
-    { key: 'shishen', label: '十神结构' },
-    { key: 'pattern', label: '传统参考' },
-    { key: 'shensha', label: '神煞' },
-    { key: 'fortune', label: '周期结构' },
-  ]
-  if (props.chart.id) tabs.push({ key: 'rules', label: '经典依据' })
-  return tabs
+// 长滚动分区导航（替代原 tab 切换）：目录数据 + scroll-spy
+const hasWuxingSection = computed(() => {
+  const detail = props.chart.element_detail
+  const missing = props.chart.missing_elements
+  return Boolean(
+    (Array.isArray(detail) && detail.length) ||
+    missing?.missing_elements?.length ||
+    missing?.weak_elements?.length,
+  )
+})
+const hasShishenSection = computed(
+  () =>
+    Boolean(props.chart.ten_god_proportion?.length) ||
+    props.chart.ten_god_analysis?.status === 'observed',
+)
+const hasPatternSection = computed(() =>
+  Boolean(props.chart.pattern_analysis || props.chart.body_strength || props.chart.tiaohou),
+)
+const hasShenshaSection = computed(
+  () =>
+    shenShaDetails.value.length > 0 ||
+    Boolean(groupedShenSha.value?.length) ||
+    parsedDayShenSha.value.length > 0 ||
+    globalShenSha.value.length > 0,
+)
+const hasFortuneSection = computed(
+  () =>
+    fortuneLayerList.value.length > 0 ||
+    Boolean(props.chart.ming_gong?.gan_zhi) ||
+    props.chart.month_season?.status === 'observed',
+)
+
+// 分区按普通用户阅读价值排序：总览/大运/十神在前，参考与深钻类在后
+const chartSections = computed(() => {
+  const sections = [{ key: 'overview', label: '命盘总览', sub: '十神 · 纳音 · 干支关系' }]
+  if (hasDaYun.value) sections.push({ key: 'dayun', label: '大运', sub: '十年周期阶段' })
+  if (hasShishenSection.value)
+    sections.push({ key: 'shishen', label: '十神结构', sub: '生克制化统计' })
+  if (hasWuxingSection.value)
+    sections.push({ key: 'wuxing', label: '五行格局', sub: '占比与白话总结' })
+  if (hasShenshaSection.value)
+    sections.push({ key: 'shensha', label: '神煞', sub: '传统标记与寓意' })
+  if (hasFortuneSection.value)
+    sections.push({ key: 'fortune', label: '周期结构', sub: '流年 · 流月 · 命宫' })
+  if (hasPatternSection.value)
+    sections.push({ key: 'pattern', label: '传统参考', sub: '格局 · 强弱 · 调候' })
+  if (props.chart.id) sections.push({ key: 'rules', label: '经典依据', sub: '古籍与计算日志' })
+  return sections
 })
 
-const tenGodChartOptions = computed(() => {
-  themeVersion.value
-  const textColor = cssVar('--text', '#0f1712')
-  const mutedColor = cssVar('--text-muted', '#5a6a5e')
-  const softColor = cssVar('--text-soft', 'rgba(15, 23, 18, 0.44)')
-  const lineColor = cssVar('--line-subtle', 'rgba(15, 23, 18, 0.06)')
-  const tooltipBg = cssVar('--surface-1', '#ffffff')
-  const data = props.chart.ten_god_proportion || []
-  // 10 ten gods — cold-tone tech palette
-  const barColors = [
-    '#cbd5e1', // 比肩 - chrome silver
-    '#94a3b8', // 劫财 - slate
-    '#9B72CF', // 食神 - purple
-    '#C85FCF', // 伤官 - magenta
-    '#60a5fa', // 正财 - blue
-    '#3b82f6', // 偏财 - deep blue
-    '#34d399', // 正官 - emerald
-    '#059669', // 七杀 - dark emerald
-    '#fb7185', // 正印 - rose
-    '#e11d48', // 偏印 - deep rose
-  ]
-  return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'none' },
-      formatter: (params: any[]) => {
-        const p = params[0]
-        return `<span style="color:${p.color};font-weight:700">${p.name}</span>：${p.value}%`
-      },
-      backgroundColor: tooltipBg,
-      borderColor: lineColor,
-      borderWidth: 1,
-      padding: [6, 10],
-      textStyle: { color: textColor, fontSize: 12 },
-    },
-    grid: {
-      left: 8,
-      right: 8,
-      bottom: data.length > 0 ? 32 : 8,
-      top: data.length > 0 ? 20 : 8,
-      containLabel: true,
-    },
-    xAxis: {
-      type: 'category',
-      data: data.map((d: any) => d.name),
-      axisLine: { lineStyle: { color: lineColor } },
-      axisTick: { show: false },
-      axisLabel: {
-        color: mutedColor,
-        fontSize: 10,
-        fontWeight: '500',
-        interval: 0,
-        rotate: data.length > 6 ? 30 : 0,
-      },
-      splitLine: { show: false },
-    },
-    yAxis: {
-      type: 'value',
-      max: 100,
-      axisLabel: {
-        formatter: '{value}%',
-        color: softColor,
-        fontSize: 9,
-      },
-      splitLine: {
-        lineStyle: { color: lineColor, type: 'dashed' },
-      },
-      axisLine: { show: false },
-      axisTick: { show: false },
-    },
-    series: [
-      {
-        type: 'bar',
-        data: data.map((d: any, i: number) => ({
-          value: d.percent,
-          itemStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                { offset: 0, color: barColors[i % barColors.length] },
-                { offset: 1, color: barColors[i % barColors.length] + '88' },
-              ],
-            },
-            borderRadius: [6, 6, 0, 0],
-            shadowBlur: 12,
-            shadowColor: barColors[i % barColors.length] + '55',
-          },
-        })),
-        barMaxWidth: data.length > 6 ? 18 : 28,
-        barGap: '6px',
-        label: {
-          show: true,
-          position: 'top',
-          formatter: '{c}%',
-          fontSize: 10,
-          fontWeight: '600',
-          color: mutedColor,
-          distance: 6,
-        },
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 20,
-            shadowColor: '#cbd5e166',
-          },
-        },
-      },
-    ],
-    animationDuration: 1000,
-    animationEasing: 'cubicOut',
-    animationDelay: (idx: number) => idx * 80,
+const sectionIds = computed(() =>
+  chartSections.value.map((section) => `chart-section-${section.key}`),
+)
+const { activeId: activeSectionId, scrollTo: scrollToSection } = useScrollSpy(sectionIds, {
+  offsetTop: 92,
+})
+
+function sectionNo(key: string): string {
+  const idx = chartSections.value.findIndex((section) => section.key === key)
+  return idx >= 0 ? `SECTION ${String(idx + 1).padStart(2, '0')}` : ''
+}
+
+// 折叠分区的摘要句：不展开也能获得核心信息
+const fortuneSectionSummary = computed(() => {
+  const parts: string[] = []
+  const pillar = currentDayunStage.value?.pillar || currentDayunLayer.value?.pillar
+  if (pillar) parts.push(`当前大运 ${pillar}`)
+  for (const layer of fortuneLayerList.value) {
+    parts.push(`${layer.name} ${layer.pillar}`)
   }
+  if (props.chart.ming_gong?.gan_zhi) parts.push(`命宫 ${props.chart.ming_gong.gan_zhi}`)
+  return parts.length ? parts.join(' · ') : '周期干支与本命结构的对照记录'
+})
+
+// 传统参考分区折叠时的一句话摘要：格局线索 + 强弱候选 + 调候首项
+const patternSectionSummary = computed(() => {
+  const parts: string[] = []
+  const candidates = props.chart.pattern_analysis?.candidates
+  if (candidates?.length) {
+    const names = candidates.slice(0, 3).map((candidate) => candidate.pattern_name)
+    parts.push(
+      `格局线索 ${names.join('、')}${candidates.length > 3 ? ` 等 ${candidates.length} 项` : ''}`,
+    )
+  }
+  const band = props.chart.body_strength?.score_band_candidate
+  if (band) parts.push(`强弱候选 ${band}`)
+  const tiaohouPrimary = props.chart.tiaohou?.table_primary_candidate
+  if (tiaohouPrimary) parts.push(`调候首项 ${tiaohouPrimary}`)
+  return parts.length ? parts.join(' · ') : '格局、强弱与调候的传统参考口径'
+})
+
+// 十神配色：堆叠占比条与 chips 共用同一色板（中明度色，明暗主题均可辨）
+const TEN_GOD_COLORS: Record<string, string> = {
+  比肩: '#cbd5e1',
+  劫财: '#94a3b8',
+  食神: '#9B72CF',
+  伤官: '#C85FCF',
+  正财: '#60a5fa',
+  偏财: '#3b82f6',
+  正官: '#34d399',
+  七杀: '#059669',
+  正印: '#fb7185',
+  偏印: '#e11d48',
+}
+
+type TenGodShareItem = { name: string; count: number; percent: number }
+
+// 十神分布统一数据源：优先十神结构分析（含排名与次数），缺失时回退到占比接口
+const tenGodShares = computed<TenGodShareItem[]>(() => {
+  const analysis = props.chart.ten_god_analysis
+  if (analysis?.status === 'observed' && analysis.ranked_gods?.length) {
+    return analysis.ranked_gods.map((god) => ({
+      name: god.god,
+      count: god.count,
+      percent: god.percent,
+    }))
+  }
+  return (props.chart.ten_god_proportion || []).map((item) => ({
+    name: item.name,
+    count: item.count,
+    percent: item.percent,
+  }))
+})
+
+// 堆叠条只画占比 > 0 的分段；为 0 的十神在下方 chips 中弱化呈现
+const tenGodStackSegs = computed(() => tenGodShares.value.filter((item) => item.percent > 0))
+
+// 白话解读：占比最高的 1-2 个十神给出特质与留意；占比 0% 的十神一句带过
+const tenGodInsightItems = computed(() =>
+  [...tenGodShares.value]
+    .filter((item) => item.percent > 0)
+    .sort((a, b) => b.percent - a.percent)
+    .slice(0, 2)
+    .map((item) => ({
+      name: item.name,
+      keyword: tenGodKeyword(item.name),
+      trait: TEN_GOD_TRAIT[item.name]?.trait ?? '',
+      caution: TEN_GOD_TRAIT[item.name]?.caution ?? '',
+    }))
+    .filter((item) => item.trait),
+)
+
+const tenGodAbsentSentence = computed(() =>
+  absentTenGodSentence(
+    tenGodShares.value.filter((item) => item.percent <= 0).map((item) => item.name),
+  ),
+)
+
+const tenGodColor = (name: string) => TEN_GOD_COLORS[name] || 'var(--text-soft)'
+
+// ── 白话层：术语翻译 + 数据驱动小结 ─────────────────────────
+
+/** 十神标签的白话短注：日主特殊处理，其余复用全站统一关键词 */
+function tenGodTagPlain(name?: string): string {
+  if (!name) return ''
+  if (name === '日主') return '代表你自己'
+  return tenGodKeyword(name)
+}
+
+// 命盘总览开头一句"这是什么"：日主定位 + 干支关系数量（全部由实际数据生成）
+const overviewSummary = computed(() => {
+  const dayGan = String(props.chart.day_pillar?.gan || '')
+  const dayElem = ganElement[dayGan]?.name || ''
+  const relCount =
+    (ganZhi.value?.gan_relations?.length || 0) + (ganZhi.value?.zhi_relations?.length || 0)
+  const parts: string[] = []
+  if (dayGan && dayElem) {
+    parts.push(`你的日主是「${dayGan}」，五行属${dayElem}——日主就是日柱的天干，代表你自己`)
+  }
+  if (relCount > 0) parts.push(`四柱之间共记录到 ${relCount} 组干支关系，下面逐条配有白话解释`)
+  return parts.length ? `${parts.join('；')}。` : ''
+})
+
+// 大运当前步的白话小结：你现在走哪一步 + 该运十神关键词（hedged）
+const dayunCurrentSummary = computed(() => {
+  const stage = currentDayunStage.value
+  const layer = currentDayunLayer.value
+  const pillar = stage?.pillar || layer?.pillar || ''
+  if (!pillar) return ''
+  const god = stage?.tenGod || layer?.ten_god?.name || ''
+  const keyword = tenGodKeyword(god)
+  const range =
+    stage && stage.startYear && stage.endYear
+      ? `${stage.startYear}–${stage.endYear} · ${stage.startAge}–${stage.endAge} 岁`
+      : stage
+        ? `${stage.startAge}–${stage.endAge} 岁`
+        : ''
+  let text = `你现在正走「${pillar}」大运${range ? `（${range}）` : ''}。`
+  if (god && keyword) {
+    text += `这步运的十神是「${god}」，传统上这十年的整体节奏偏向「${keyword}」——说的是倾向，不代表必然发生什么。`
+  }
+  return text
+})
+
+// 五行格局开头一句数据驱动人话：按占比生成"谁偏多谁偏少"
+const wuxingSummary = computed(() => {
+  const detail = props.chart.element_detail
+  let scores: Record<string, number> | null = null
+  if (Array.isArray(detail) && detail.length) {
+    scores = {}
+    for (const row of detail as Array<{ element: string; total: number }>) {
+      scores[row.element] = Number(row.total || 0)
+    }
+  } else if (props.chart.five_elements) {
+    scores = props.chart.five_elements as Record<string, number>
+  }
+  return scores ? elementBalanceSentence(scores) : ''
+})
+
+// 神煞开头一句：命中数量 + 前几项名称，强调只是传统标记
+const shenShaSummary = computed(() => {
+  const names = shenShaDetails.value.map((item) => item.name)
+  if (!names.length) return ''
+  const shown = names.slice(0, 3).join('、')
+  return `这张命盘共命中 ${names.length} 项神煞（${shown}${names.length > 3 ? ' 等' : ''}）。它们只是传统说法里的标记，供参考，不代表吉凶。`
 })
 </script>
 
 <template>
   <div class="bazi-chart">
-    <div class="chart-card glass-card overflow-hidden">
-      <!-- Title -->
-      <div class="chart-header">
-        <div class="header-eyebrow">BaZi Fortune</div>
-        <h1 class="chart-title">八字命盘</h1>
-      </div>
+    <div class="chart-layout">
+      <!-- 锚点目录：桌面左侧 sticky，移动端顶部横向 chip 条 -->
+      <aside class="chart-toc" aria-label="命盘分区目录">
+        <nav class="toc-inner">
+          <button
+            v-for="section in chartSections"
+            :key="section.key"
+            type="button"
+            class="toc-item"
+            :class="{ active: activeSectionId === `chart-section-${section.key}` }"
+            @click="scrollToSection(`chart-section-${section.key}`)"
+          >
+            <span class="toc-label">{{ section.label }}</span>
+            <span class="toc-sub">{{ section.sub }}</span>
+          </button>
+        </nav>
+      </aside>
 
-      <dl class="chart-identity" aria-label="命盘身份摘要">
-        <div v-for="item in chartIdentityItems" :key="item.label">
-          <dt>{{ item.label }}</dt>
-          <dd>{{ item.value }}</dd>
+      <div class="chart-card glass-card overflow-hidden">
+        <!-- Title -->
+        <div class="chart-header">
+          <div class="header-eyebrow">BaZi Fortune</div>
+          <h1 class="chart-title">八字命盘</h1>
         </div>
-      </dl>
 
-      <!-- Four-pillar axis with centered five elements -->
-      <div class="pillars-bento">
-        <div
-          v-for="(pillar, pi) in pillars"
-          :key="pillar.key"
-          class="bento-card bento-small"
-          :class="[
-            'bento-hover-' + ganElement[pillar.gan]?.name,
-            { 'bento-day-card': pillar.key === 'day' },
-          ]"
-          :style="{ order: pillar.idx >= 2 ? pillar.idx + 2 : pillar.idx + 1 }"
-        >
-          <div class="bento-label">{{ pillar.label }}</div>
-          <div class="bento-body">
-            <div class="bento-gan" :style="{ color: ganzhiColor(ganElement[pillar.gan]) }">
-              <span class="bento-char">{{ pillar.gan }}</span>
+        <dl class="chart-identity" aria-label="命盘身份摘要">
+          <div v-for="item in chartIdentityItems" :key="item.label">
+            <dt>{{ item.label }}</dt>
+            <dd>{{ item.value }}</dd>
+          </div>
+        </dl>
+
+        <!-- Four-pillar axis with centered five elements -->
+        <div class="pillars-bento">
+          <div
+            v-for="(pillar, pi) in pillars"
+            :key="pillar.key"
+            class="bento-card bento-small"
+            :class="[
+              'bento-hover-' + ganElement[pillar.gan]?.name,
+              { 'bento-day-card': pillar.key === 'day' },
+            ]"
+            :style="{ order: pillar.idx >= 2 ? pillar.idx + 2 : pillar.idx + 1 }"
+          >
+            <div class="bento-label">{{ pillar.label }}</div>
+            <div class="bento-role">
+              {{ PILLAR_ROLE[pillar.key] }}{{ pillar.key === 'day' ? ' · 日主 = 你自己' : '' }}
+            </div>
+            <div class="bento-body">
+              <div class="bento-gan" :style="{ color: ganzhiColor(ganElement[pillar.gan]) }">
+                <span class="bento-char">{{ pillar.gan }}</span>
+                <span
+                  class="elem-tag"
+                  :style="{
+                    background: ganzhiColor(ganElement[pillar.gan]) + '1f',
+                    color: ganzhiColor(ganElement[pillar.gan]),
+                    borderColor: ganzhiColor(ganElement[pillar.gan]) + '40',
+                  }"
+                  >{{ ganElement[pillar.gan]?.name }}</span
+                >
+              </div>
+              <div class="bento-zhi" :style="{ color: ganzhiColor(zhiElement[pillar.zhi]) }">
+                <span class="bento-char">{{ pillar.zhi }}</span>
+                <span
+                  class="elem-tag"
+                  :style="{
+                    background: ganzhiColor(zhiElement[pillar.zhi]) + '1f',
+                    color: ganzhiColor(zhiElement[pillar.zhi]),
+                    borderColor: ganzhiColor(zhiElement[pillar.zhi]) + '40',
+                  }"
+                  >{{ zhiElement[pillar.zhi]?.name }}</span
+                >
+              </div>
+              <span v-if="chart.ten_gods?.[pillar.key]" class="bento-god-tag"
+                >{{ chart.ten_gods[pillar.key]
+                }}<template v-if="tenGodTagPlain(chart.ten_gods[pillar.key])">
+                  · {{ tenGodTagPlain(chart.ten_gods[pillar.key]) }}</template
+                ></span
+              >
+            </div>
+            <div v-if="pillarDetails[pi]" class="bento-sub">
+              <span class="sheng-xiao-tag">{{ pillarDetails[pi].sheng_xiao }}</span>
               <span
-                class="elem-tag"
-                :style="{
-                  background: ganzhiColor(ganElement[pillar.gan]) + '1f',
-                  color: ganzhiColor(ganElement[pillar.gan]),
-                  borderColor: ganzhiColor(ganElement[pillar.gan]) + '40',
-                }"
-                >{{ ganElement[pillar.gan]?.name }}</span
+                v-if="pillarDetails[pi].empties[0]"
+                class="empties-tag"
+                title="空亡：传统上视为“落空、打折扣”的位置标记"
               >
-            </div>
-            <div class="bento-zhi" :style="{ color: ganzhiColor(zhiElement[pillar.zhi]) }">
-              <span class="bento-char">{{ pillar.zhi }}</span>
-              <span
-                class="elem-tag"
-                :style="{
-                  background: ganzhiColor(zhiElement[pillar.zhi]) + '1f',
-                  color: ganzhiColor(zhiElement[pillar.zhi]),
-                  borderColor: ganzhiColor(zhiElement[pillar.zhi]) + '40',
-                }"
-                >{{ zhiElement[pillar.zhi]?.name }}</span
-              >
-            </div>
-            <span v-if="chart.ten_gods?.[pillar.key]" class="bento-god-tag">{{
-              chart.ten_gods[pillar.key]
-            }}</span>
-          </div>
-          <div v-if="pillarDetails[pi]" class="bento-sub">
-            <span class="sheng-xiao-tag">{{ pillarDetails[pi].sheng_xiao }}</span>
-            <span v-if="pillarDetails[pi].empties[0]" class="empties-tag">
-              空{{ pillarDetails[pi].empties[0] }}{{ pillarDetails[pi].empties[1] }}
-            </span>
-          </div>
-        </div>
-
-        <div v-if="fiveElementsOption" class="bento-card bento-radar">
-          <div class="bento-label">五行分布</div>
-          <v-chart class="bento-radar-chart" :option="fiveElementsOption" autoresize />
-          <p class="bento-radar-note">
-            柱高仅表示固定权重下的命盘内相对分布；尚未独立验证，不代表强弱结论或现实结果。
-          </p>
-        </div>
-      </div>
-
-      <!-- Tab navigation -->
-      <div class="chart-tabs">
-        <button
-          v-for="tab in chartTabs"
-          :key="tab.key"
-          class="tab-btn"
-          :class="{ active: activeTab === tab.key }"
-          type="button"
-          role="tab"
-          :aria-selected="activeTab === tab.key"
-          @click="activeTab = tab.key"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-
-      <!-- Analysis sections -->
-      <div class="analysis-section">
-        <!-- ═══ Tab: 命盘总览 (overview) ═══ -->
-        <div v-show="activeTab === 'overview'" class="tab-content overview-layout">
-          <!-- Five Elements chart moved to Bento Grid -->
-
-          <!-- Ten Gods -->
-          <section v-if="chart.ten_gods" class="analysis-block overview-section overview-ten-gods">
-            <div class="overview-section-head">
-              <div>
-                <div class="block-title">十神</div>
-                <span class="block-desc"
-                  >天干与日主之间的传统生克关系名称，不直接代表性格、关系或现实结果</span
-                >
-              </div>
-            </div>
-            <div class="overview-section-body">
-              <div class="ten-gods-grid">
-                <div v-for="(god, pillar) in chart.ten_gods" :key="pillar" class="god-item">
-                  <span class="god-pillar">{{ pillarLabel(String(pillar)) }}</span>
-                  <span class="god-name">{{ god }}</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- NaYin -->
-          <section v-if="chart.na_yin" class="analysis-block overview-section overview-nayin">
-            <div class="overview-section-head">
-              <div>
-                <div class="block-title">纳音</div>
-                <span class="block-desc">由四柱干支按六十甲子固定表映射纳音名称与五行</span>
-              </div>
-            </div>
-            <div class="overview-section-body">
-              <div class="nayin-list">
-                <span
-                  v-for="(info, key) in chart.na_yin"
-                  :key="key"
-                  class="nayin-tag"
-                  :style="{ borderColor: elemColor(info.element) }"
-                >
-                  <span class="nayin-pillar">{{ pillarLabel(String(key)) }}</span>
-                  <span class="nayin-ganzhi">{{ info.gan_zhi }}</span>
-                  <span class="nayin-name" :style="{ color: elemColor(info.element) }">{{
-                    info.name
-                  }}</span>
-                  <span class="nayin-element">{{ info.element }}</span>
-                </span>
-              </div>
-            </div>
-          </section>
-
-          <section v-if="ganZhi" class="analysis-block overview-section overview-relations">
-            <div class="overview-section-head">
-              <div>
-                <div class="block-title">天干地支关系</div>
-                <span class="block-desc"
-                  >先看命盘总览，再看天干五合、生克与地支冲合刑害，便于把关系放回四柱结构中理解</span
-                >
-              </div>
-            </div>
-            <div class="overview-relations-grid">
-              <div class="relation-card">
-                <div v-if="ganZhi.gan_relations?.length > 0" class="relations-section">
-                  <div class="relations-title">
-                    <span class="relations-title-dot"></span>
-                    天干关系
-                    <span class="relations-count">{{ ganZhi.gan_relations.length }}组</span>
-                  </div>
-                  <div class="ganzhi-compact">
-                    <div
-                      v-for="(rel, ri) in ganZhi.gan_relations"
-                      :key="'g' + ri"
-                      class="gz-item"
-                      :class="ganRelClass(rel.type)"
-                    >
-                      <span class="gz-chars">
-                        <span class="gz-c">{{ rel.pillar1 }}</span>
-                        <span class="gz-sym" :class="'sym-' + ganRelClass(rel.type)">{{
-                          ganRelSymbol(rel.type)
-                        }}</span>
-                        <span class="gz-c">{{ rel.pillar2 }}</span>
-                      </span>
-                      <span class="gz-tag" :class="'tag-' + ganRelClass(rel.type)">{{
-                        rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
-                      }}</span>
-                      <span class="gz-text">{{ ganRelationSummary(rel) }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="no-relations">
-                  <span class="no-rel-icon">◇</span> 天干无特殊关系
-                </div>
-              </div>
-
-              <div class="relation-card">
-                <div v-if="ganZhi.zhi_relations?.length > 0" class="relations-section">
-                  <div class="relations-title">
-                    <span class="relations-title-dot zhi-dot"></span>
-                    地支关系
-                    <span class="relations-count">{{ ganZhi.zhi_relations.length }}组</span>
-                  </div>
-                  <div class="ganzhi-compact">
-                    <div
-                      v-for="(rel, ri) in ganZhi.zhi_relations"
-                      :key="'z' + ri"
-                      class="gz-item"
-                      :class="zhiRelClass(rel.type)"
-                    >
-                      <span class="gz-chars">
-                        <template v-for="(pillar, pi) in rel.pillars" :key="pillar + pi">
-                          <span class="gz-c">{{ pillar }}</span>
-                          <span
-                            v-if="pi < rel.pillars.length - 1"
-                            class="gz-sym"
-                            :class="'sym-' + zhiRelClass(rel.type)"
-                            >{{ zhiRelSymbol(rel.type) }}</span
-                          >
-                        </template>
-                      </span>
-                      <span class="gz-tag" :class="'tag-' + zhiRelClass(rel.type)">{{
-                        rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
-                      }}</span>
-                      <span class="gz-text">{{ zhiRelationSummary(rel) }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="no-relations">
-                  <span class="no-rel-icon">◇</span> 地支无特殊关系
-                </div>
-              </div>
-            </div>
-            <p class="relation-boundary-note">
-              这里只展示命盘中的干支与五行关系，不据此判断具体事件。
-            </p>
-          </section>
-        </div>
-        <!-- /overview tab -->
-
-        <!-- ═══ Tab: 大运 (dayun) ═══ -->
-        <div v-show="activeTab === 'dayun'" class="tab-content dayun-detail-tab">
-          <div v-if="hasDaYun" class="analysis-block dayun-overview-card">
-            <div class="block-title">大运总览</div>
-            <span class="block-desc"
-              >大运以十年为一阶段，记录起运年龄、顺逆方向、干支、五行与十神映射</span
-            >
-            <div class="dayun-summary-grid">
-              <div class="dayun-summary-item">
-                <span class="dayun-summary-label">精确起运时间</span>
-                <strong>{{ dayunStartLabel }}</strong>
-              </div>
-              <div class="dayun-summary-item">
-                <span class="dayun-summary-label">排运方向</span>
-                <strong>{{ daYun?.direction || '未判' }}</strong>
-              </div>
-              <div class="dayun-summary-item">
-                <span class="dayun-summary-label">当前年龄</span>
-                <strong>{{ currentAge !== null ? `${currentAge}岁` : '未提供' }}</strong>
-              </div>
-              <div class="dayun-summary-item">
-                <span class="dayun-summary-label">当前大运</span>
-                <strong>{{
-                  currentDayunStage?.pillar || currentDayunLayer?.pillar || '未定位'
-                }}</strong>
-              </div>
-            </div>
-            <div class="dayun-method-notes">
-              <span>依据出生时刻与节气距离定起运</span>
-              <span>按性别与年干阴阳定顺逆</span>
-              <span>每十年推进一组干支</span>
+                空{{ pillarDetails[pi].empties[0] }}{{ pillarDetails[pi].empties[1] }}
+              </span>
             </div>
           </div>
 
-          <div
-            v-if="currentDayunStage || currentDayunLayer"
-            class="analysis-block dayun-current-card"
-          >
-            <div class="dayun-current-head">
-              <div>
-                <div class="block-title">当前大运结构</div>
-                <span class="block-desc">结合当前周期干支、十神映射与命局关系理解阶段重点</span>
-              </div>
-              <span v-if="currentDayunLayer" class="dayun-current-score">结构已记录</span>
-            </div>
-            <div class="dayun-current-body">
-              <div class="dayun-current-pillar">
-                <span>{{ currentDayunStage?.gan || currentDayunLayer?.gan }}</span>
-                <span>{{ currentDayunStage?.zhi || currentDayunLayer?.zhi }}</span>
-              </div>
-              <div class="dayun-current-copy">
-                <div class="dayun-current-tags">
-                  <span v-if="currentDayunStage" class="dayun-mini-chip"
-                    >{{ currentDayunStage.startAge }}-{{ currentDayunStage.endAge }}岁</span
-                  >
-                  <span v-if="currentDayunStage?.tenGod" class="dayun-mini-chip"
-                    >十神 {{ currentDayunStage.tenGod }}</span
-                  >
-                  <span v-else-if="currentDayunLayer?.ten_god.name" class="dayun-mini-chip"
-                    >十神 {{ currentDayunLayer.ten_god.name }}</span
-                  >
-                  <span v-if="currentDayunStage?.ganElement" class="dayun-mini-chip"
-                    >天干 {{ currentDayunStage.ganElement }}</span
-                  >
-                </div>
-                <p v-if="currentDayunLayer">{{ calculationBasisLabel(currentDayunLayer.basis) }}</p>
-                <p v-else>这里展示大运干支、年龄区间、五行与十神之间的对应关系。</p>
-                <div v-if="currentDayunLayer?.relations.length" class="dayun-evidence-list">
-                  <span
-                    v-for="item in currentDayunLayer.relations"
-                    :key="item.rule_id + item.target"
-                    class="dayun-evidence-chip"
-                    >{{ relationEndpointLabel(item.source) }}{{ item.source_value }} ·
-                    {{ relationDisplayLabel(item.type, item.name) }} ·
-                    {{ relationEndpointLabel(item.target) }}{{ item.target_value }}</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="dayunStages.length" class="analysis-block dayun-stage-block">
-            <div class="block-title">十年阶段明细</div>
-            <span class="block-desc"
-              >每一步展示年龄段、约略年份、干支五行与对日主十神；不生成增强、减弱或结果判断</span
-            >
-            <div class="dayun-stage-grid">
-              <article
-                v-for="stage in dayunStages"
-                :key="stage.index + stage.pillar"
-                class="dayun-stage-card"
-                :class="{ 'is-current': stage.isCurrent }"
-              >
-                <div class="dayun-stage-top">
-                  <span>{{ stage.startAge }}-{{ stage.endAge }}岁</span>
-                  <span v-if="stage.startYear && stage.endYear"
-                    >约 {{ stage.startYear }}-{{ stage.endYear }}</span
-                  >
-                  <span v-if="stage.isCurrent" class="dayun-now-badge">当前</span>
-                </div>
-                <div class="dayun-stage-main">
-                  <div class="dayun-stage-pillar">
-                    <span class="dayun-stage-gan" :style="{ color: elemColor(stage.ganElement) }">{{
-                      stage.gan
-                    }}</span>
-                    <span class="dayun-stage-zhi" :style="{ color: elemColor(stage.zhiElement) }">{{
-                      stage.zhi
-                    }}</span>
-                  </div>
-                  <div class="dayun-stage-info">
-                    <div class="dayun-stage-title">{{ stage.pillar }}大运</div>
-                    <div class="dayun-stage-tags">
-                      <span>十神 {{ stage.tenGod }}</span>
-                      <span>干 {{ stage.ganElement || '未知' }}</span>
-                      <span>支 {{ stage.zhiElement || '未知' }}</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            </div>
-          </div>
-        </div>
-        <!-- /dayun tab -->
-
-        <!-- ═══ Tab: 五行格局 (wuxing) ═══ -->
-        <div v-show="activeTab === 'wuxing'" class="tab-content">
-          <!-- Element Detail -->
-          <div v-if="chart.element_detail && chart.element_detail.length" class="analysis-block">
-            <div class="block-title">五行权重与藏干记录</div>
-            <span class="block-desc"
-              >按当前固定权重汇总天干与藏干，仅用于比较命盘内部的五行分布</span
-            >
-            <div class="element-detail-table">
-              <div class="ed-header">
-                <span>五行</span>
-                <span>天干</span>
-                <span>地支藏干</span>
-                <span>权重合计</span>
-              </div>
-              <div
-                v-for="ed in chart.element_detail"
-                :key="ed.element"
-                class="ed-row"
-                :class="'level-' + strengthLevel(ed.total)"
-              >
-                <span class="ed-elem" :style="{ color: elemColor(ed.element) }">{{
-                  ed.element
-                }}</span>
-                <span class="ed-tg">{{ ed.tian_gan }}</span>
-                <span class="ed-zc">{{
-                  ed.cang_gan_list ? ed.cang_gan_list.join('、') : '—'
-                }}</span>
-                <span class="ed-total">{{ ed.total }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- MissingElements 原始五行分布 -->
-          <div
-            v-if="
-              chart.missing_elements &&
-              (chart.missing_elements.missing_elements?.length ||
-                chart.missing_elements.weak_elements?.length)
-            "
-            class="analysis-block"
-          >
-            <div class="block-title">五行分布</div>
-            <span class="block-desc">原始计分观察，不作为喜用神或补入五行结论</span>
-            <div class="missing-elem-card">
-              <div v-if="chart.missing_elements.missing_elements?.length" class="me-row">
-                <span class="me-label">原局未见</span>
-                <span
-                  v-for="e in chart.missing_elements.missing_elements"
-                  :key="'m' + e"
-                  class="me-tag me-missing"
-                  :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }"
-                  >{{ e }}</span
-                >
-              </div>
-              <div v-if="chart.missing_elements.weak_elements?.length" class="me-row">
-                <span class="me-label">得分偏低</span>
-                <span
-                  v-for="e in chart.missing_elements.weak_elements"
-                  :key="'w' + e"
-                  class="me-tag me-weak"
-                  :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }"
-                  >{{ e }}</span
-                >
-              </div>
-              <p class="me-note">{{ chart.missing_elements.note }}</p>
-            </div>
-          </div>
-        </div>
-        <!-- /wuxing tab -->
-
-        <!-- ═══ Tab: 十神结构 (shishen) ═══ -->
-        <div v-show="activeTab === 'shishen'" class="tab-content">
-          <!-- TenGodProportion -->
-          <div
-            v-if="chart.ten_god_proportion && chart.ten_god_proportion.length"
-            class="analysis-block"
-          >
-            <div class="block-title">十神等权计次</div>
-            <span class="block-desc"
-              >统计三处非日主透干与四支全部藏干的出现次数；藏干深浅和月令强度尚未加权</span
-            >
-            <div class="ten-god-chart-wrap">
-              <v-chart class="ten-god-chart" :option="tenGodChartOptions as any" autoresize />
-            </div>
-          </div>
-
-          <!-- TenGodAnalysis -->
-          <div v-if="chart.ten_god_analysis?.status === 'observed'" class="analysis-block">
-            <div class="block-title">十神分布</div>
-            <span class="block-desc">按当前命盘中的天干与藏干统计出现次数</span>
-            <div class="tg-summary">
-              共记录 {{ chart.ten_god_analysis.total_occurrences }} 次；最高频项为
-              {{ chart.ten_god_analysis.dominant_gods.join('、') }}（{{
-                chart.ten_god_analysis.dominant_percent
-              }}%）
-            </div>
-            <div class="tg-god-list">
-              <div
-                v-for="god in chart.ten_god_analysis.ranked_gods"
-                :key="god.god"
-                class="tg-god-card"
-              >
-                <div class="tg-god-header">
-                  <span class="tg-god-name">#{{ god.rank }} {{ god.god }}</span>
-                  <span class="tg-god-pct">{{ god.percent }}%</span>
-                </div>
-                <div class="tg-god-meaning">出现 {{ god.count }} 次</div>
-              </div>
-            </div>
-            <p class="section-boundary-note">
-              次数只表示命盘中的分布，不直接代表性格、职业或具体事件。
+          <div v-if="fiveElementsOption" class="bento-card bento-radar">
+            <div class="bento-label">五行分布</div>
+            <v-chart class="bento-radar-chart" :option="fiveElementsOption" autoresize />
+            <p class="bento-radar-note">
+              柱高仅表示固定权重下的命盘内相对分布；尚未独立验证，不代表强弱结论或现实结果。
             </p>
           </div>
         </div>
-        <!-- /shishen tab -->
 
-        <!-- ═══ Tab: 格局候选 (pattern) ═══ -->
-        <div v-show="activeTab === 'pattern'" class="tab-content">
-          <!-- Pattern Analysis -->
-          <div v-if="chart.pattern_analysis" class="analysis-block">
-            <div class="block-title">格局线索</div>
-            <span class="block-desc">根据四柱与月令结构整理出的传统格局参考</span>
-            <div class="pattern-detail">
-              <div class="pattern-inputs">
-                <div class="pattern-input-row">
-                  <span>四柱输入</span>
-                  <strong>{{ chart.pattern_analysis.inputs.pillars.join('、') }}</strong>
-                </div>
-                <div class="pattern-input-row">
-                  <span>月支</span>
-                  <strong>{{ chart.pattern_analysis.inputs.month_branch }}</strong>
-                </div>
-              </div>
-              <div v-if="chart.pattern_analysis.candidates?.length" class="pattern-candidates">
-                <div class="pattern-candidates-title">结构线索</div>
-                <div
-                  v-for="candidate in chart.pattern_analysis.candidates"
-                  :key="candidate.rule_id"
-                  class="pattern-candidate-row"
-                >
-                  <div class="pattern-candidate-heading">
-                    <strong>{{ candidate.pattern_name }}</strong>
-                    <span>{{ candidate.category }}</span>
-                  </div>
-                  <small>按月令、藏干与透干关系整理</small>
-                </div>
-              </div>
-              <div
-                v-if="chart.pattern_analysis.month_command_evidence?.length"
-                class="pattern-candidates"
+        <!-- Analysis sections：长滚动分区，替代原 tab 切换 -->
+        <div class="analysis-section">
+          <!-- ═══ Section: 命盘总览 (overview) ═══ -->
+          <ChartSection
+            id="chart-section-overview"
+            :eyebrow="sectionNo('overview')"
+            title="命盘总览"
+            desc="四柱 = 出生年月日时换算成的四组干支，每柱两个字。这里看每柱的角色标签、纳音叫法和干支之间的关系。"
+            :collapsible="false"
+          >
+            <div class="overview-layout">
+              <p v-if="overviewSummary" class="plain-summary">{{ overviewSummary }}</p>
+              <!-- Five Elements chart moved to Bento Grid -->
+
+              <!-- Ten Gods -->
+              <section
+                v-if="chart.ten_gods"
+                class="analysis-block overview-section overview-ten-gods"
               >
-                <div class="pattern-candidates-title">月令藏干透出证据</div>
-                <div
-                  v-for="evidence in chart.pattern_analysis.month_command_evidence"
-                  :key="evidence.hidden_stem + monthCommandExposureLabel(evidence.exposures)"
-                  class="pattern-candidate-row"
-                >
-                  <div class="pattern-candidate-heading">
-                    <strong>{{ evidence.candidate_names.join('、') }}</strong>
-                    <span>月令线索</span>
-                    <span v-if="evidence.month_special_structure">{{
-                      evidence.month_special_structure
-                    }}</span>
-                  </div>
-                  <small>
-                    {{ evidence.month_branch }}中{{ evidence.hidden_stem }} ·
-                    {{ evidence.hidden_stem_type }} · {{ evidence.hidden_ten_god }} · 透于
-                    {{ monthCommandExposureLabel(evidence.exposures) }}
-                  </small>
-                  <small>按月令、藏干与透干关系整理</small>
-                </div>
-              </div>
-              <p class="section-boundary-note">
-                格局线索用于辅助理解命盘结构，不等同于已经确定格局或喜忌。
-              </p>
-            </div>
-          </div>
-
-          <!-- Body Strength -->
-          <div v-if="chart.body_strength" class="analysis-block">
-            <div class="block-title">五行强弱参考</div>
-            <span class="block-desc">根据当前本地规则对月令、根气、透干与生克关系进行结构比较</span>
-            <div class="body-strength">
-              <div class="bs-primary">
-                <span>规则候选区间</span>
-                <strong>{{
-                  strengthCandidateLabel(chart.body_strength.score_band_candidate)
-                }}</strong>
-              </div>
-              <div class="bs-contract-grid">
-                <div>
-                  <span>四柱输入</span>
-                  <strong>{{ chart.body_strength.inputs.pillars.join('、') }}</strong>
-                </div>
-                <div>
-                  <span>日主 / 月支</span>
-                  <strong
-                    >{{ chart.body_strength.inputs.day_stem
-                    }}{{ chart.body_strength.inputs.day_element }} /
-                    {{ chart.body_strength.inputs.month_branch }}</strong
-                  >
-                </div>
-              </div>
-              <div v-if="bodyStrengthComponents.length" class="evidence-bars body-strength-bars">
-                <div
-                  v-for="component in bodyStrengthComponents"
-                  :key="component.key"
-                  class="evidence-bar-row"
-                >
-                  <span class="evidence-bar-label">{{ component.name }}</span>
-                  <div class="evidence-bar-track">
-                    <span
-                      class="evidence-bar-fill"
-                      :style="{ width: componentWidth(component.normalized_score) }"
-                    ></span>
-                  </div>
-                  <span class="evidence-bar-value">{{
-                    componentBandLabel(component.normalized_score)
-                  }}</span>
-                </div>
-              </div>
-              <p class="section-boundary-note">
-                当前规则尚未完成独立验证；区间与百分比只用于复核本地计算，不直接决定身强身弱、喜忌五行或现实结果。
-              </p>
-            </div>
-          </div>
-
-          <!-- Tiaohou table evidence -->
-          <div v-if="chart.tiaohou" class="analysis-block">
-            <div class="block-title">
-              调候参考 <span class="tiaohou-source">《穷通宝鉴》资料表</span>
-            </div>
-            <span class="block-desc"
-              >按日干与月支查阅传统资料表，结合出生时刻所在节令区间整理候选</span
-            >
-            <div class="tiaohou-card">
-              <div class="tiaohou-header">
-                <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
-                <span class="tiaohou-arrow">生</span>
-                <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
-                <span class="tiaohou-divider">|</span>
-                <span class="tiaohou-label">资料表首项</span>
-                <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{
-                  chart.tiaohou.table_primary_candidate
-                }}</span>
-              </div>
-              <div class="tiaohou-summary">
-                <template v-if="chart.tiaohou.depth_evidence.status === 'observed'">
-                  {{ chart.tiaohou.depth_evidence.start_term }} 至
-                  {{ chart.tiaohou.depth_evidence.end_term }} ·
-                  {{ chart.tiaohou.depth_evidence.phase }} ·
-                  {{ ((chart.tiaohou.depth_evidence.position || 0) * 100).toFixed(1) }}%
-                </template>
-                <template v-else>出生时刻不可定位，节令区间深浅不可用</template>
-              </div>
-              <div v-if="chart.tiaohou.matched_conditions?.length" class="tiaohou-chart-matches">
-                <div class="tiaohou-chart-heading">
-                  <strong>完整命局条件已命中</strong>
-                  <span>可参考 {{ chart.tiaohou.chart_candidates.join('、') }}</span>
-                </div>
-                <div
-                  v-for="condition in chart.tiaohou.matched_conditions"
-                  :key="condition.rule_id"
-                  class="tiaohou-chart-match"
-                >
-                  <div class="tiaohou-chart-candidates">
-                    <span v-for="candidate in condition.candidates" :key="candidate">{{
-                      candidate
-                    }}</span>
-                  </div>
+                <div class="overview-section-head">
                   <div>
-                    <strong>{{ condition.condition }}</strong>
-                    <p>{{ condition.source_text }}</p>
-                    <small>{{ condition.evidence.join('；') }}</small>
+                    <div class="block-title">十神</div>
+                    <span class="block-desc"
+                      >十神 =
+                      以日主（你自己）为参照，给其他柱天干贴的角色标签；是关系名称，不直接代表性格或现实结果</span
+                    >
                   </div>
                 </div>
-              </div>
-              <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
-                <div v-for="rule in chart.tiaohou.rules" :key="rule.rule_id" class="tiaohou-rule">
-                  <span class="tiaohou-xi">原表用字 {{ rule.xi_shen }}</span>
-                  <span class="tiaohou-reason">{{ rule.source_text }}</span>
+                <div class="overview-section-body">
+                  <div class="ten-gods-grid">
+                    <div v-for="(god, pillar) in chart.ten_gods" :key="pillar" class="god-item">
+                      <span class="god-pillar">{{ pillarLabel(String(pillar)) }}</span>
+                      <span class="god-name">{{ god }}</span>
+                      <span v-if="tenGodTagPlain(String(god))" class="god-plain">{{
+                        tenGodTagPlain(String(god))
+                      }}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div
-                v-if="chart.tiaohou.depth_evidence.month_command_candidates?.length"
-                class="month-command-candidates"
-              >
-                <div class="month-command-heading">
-                  <strong>四库月分日司令参考</strong>
-                  <span>不同古籍口径并列</span>
+              </section>
+
+              <!-- NaYin -->
+              <section v-if="chart.na_yin" class="analysis-block overview-section overview-nayin">
+                <div class="overview-section-head">
+                  <div>
+                    <div class="block-title">纳音</div>
+                    <span class="block-desc"
+                      >纳音 = 传统对干支组合的另一种分类叫法（如"路旁土"），供参考</span
+                    >
+                  </div>
                 </div>
-                <div
-                  v-for="candidate in chart.tiaohou.depth_evidence.month_command_candidates"
-                  :key="candidate.rule_id"
-                  class="month-command-row"
+                <div class="overview-section-body">
+                  <div class="nayin-list">
+                    <span
+                      v-for="(info, key) in chart.na_yin"
+                      :key="key"
+                      class="nayin-tag"
+                      :style="{ borderColor: elemColor(info.element) }"
+                    >
+                      <span class="nayin-pillar">{{ pillarLabel(String(key)) }}</span>
+                      <span class="nayin-ganzhi">{{ info.gan_zhi }}</span>
+                      <span class="nayin-name" :style="{ color: elemColor(info.element) }">{{
+                        info.name
+                      }}</span>
+                      <span class="nayin-element">{{ info.element }}</span>
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+              <section v-if="ganZhi" class="analysis-block overview-section overview-relations">
+                <div class="overview-section-head">
+                  <div>
+                    <div class="block-title">天干地支关系</div>
+                    <span class="block-desc"
+                      >看四柱的天干地支之间如何互动：合、冲、生、克都是传统里的关系叫法，每条下面配一句白话</span
+                    >
+                  </div>
+                </div>
+                <div class="overview-relations-grid">
+                  <div class="relation-card">
+                    <div v-if="ganZhi.gan_relations?.length > 0" class="relations-section">
+                      <div class="relations-title">
+                        <span class="relations-title-dot"></span>
+                        天干关系
+                        <span class="relations-count">{{ ganZhi.gan_relations.length }}组</span>
+                      </div>
+                      <div class="ganzhi-compact">
+                        <div
+                          v-for="(rel, ri) in ganZhi.gan_relations"
+                          :key="'g' + ri"
+                          class="gz-item"
+                          :class="ganRelClass(rel.type)"
+                        >
+                          <span class="gz-chars">
+                            <span class="gz-c">{{ rel.pillar1 }}</span>
+                            <span class="gz-sym" :class="'sym-' + ganRelClass(rel.type)">{{
+                              ganRelSymbol(rel.type)
+                            }}</span>
+                            <span class="gz-c">{{ rel.pillar2 }}</span>
+                          </span>
+                          <span class="gz-tag" :class="'tag-' + ganRelClass(rel.type)">{{
+                            rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
+                          }}</span>
+                          <span class="gz-text">{{ ganRelationSummary(rel) }}</span>
+                          <span v-if="ganRelationPlain(rel.type)" class="gz-plain">{{
+                            ganRelationPlain(rel.type)
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else class="no-relations">
+                      <span class="no-rel-icon">◇</span> 天干无特殊关系
+                    </div>
+                  </div>
+
+                  <div class="relation-card">
+                    <div v-if="ganZhi.zhi_relations?.length > 0" class="relations-section">
+                      <div class="relations-title">
+                        <span class="relations-title-dot zhi-dot"></span>
+                        地支关系
+                        <span class="relations-count">{{ ganZhi.zhi_relations.length }}组</span>
+                      </div>
+                      <div class="ganzhi-compact">
+                        <div
+                          v-for="(rel, ri) in ganZhi.zhi_relations"
+                          :key="'z' + ri"
+                          class="gz-item"
+                          :class="zhiRelClass(rel.type)"
+                        >
+                          <span class="gz-chars">
+                            <template v-for="(pillar, pi) in rel.pillars" :key="pillar + pi">
+                              <span class="gz-c">{{ pillar }}</span>
+                              <span
+                                v-if="pi < rel.pillars.length - 1"
+                                class="gz-sym"
+                                :class="'sym-' + zhiRelClass(rel.type)"
+                                >{{ zhiRelSymbol(rel.type) }}</span
+                              >
+                            </template>
+                          </span>
+                          <span class="gz-tag" :class="'tag-' + zhiRelClass(rel.type)">{{
+                            rel.type + (rel.status === 'disputed' ? ' · 争议' : '')
+                          }}</span>
+                          <span class="gz-text">{{ zhiRelationSummary(rel) }}</span>
+                          <span v-if="zhiRelationPlain(rel.type)" class="gz-plain">{{
+                            zhiRelationPlain(rel.type)
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-else class="no-relations">
+                      <span class="no-rel-icon">◇</span> 地支无特殊关系
+                    </div>
+                  </div>
+                </div>
+                <p class="relation-boundary-note">
+                  这里只展示命盘中的干支与五行关系，不据此判断具体事件。
+                </p>
+              </section>
+            </div>
+          </ChartSection>
+          <!-- /overview section -->
+
+          <!-- ═══ Section: 大运 (dayun) ═══ -->
+          <ChartSection
+            v-if="hasDaYun"
+            id="chart-section-dayun"
+            :eyebrow="sectionNo('dayun')"
+            title="大运"
+            desc="大运 = 十年一步的人生大周期，看的是每个阶段的整体节奏，而不是某一天的好坏。"
+            v-reveal
+          >
+            <div class="dayun-detail-tab">
+              <div v-if="hasDaYun" class="analysis-block dayun-overview-card">
+                <div class="block-title">大运总览</div>
+                <span class="block-desc"
+                  >每步大运管十年：这里记录你的起运时间、排运方向，以及每一步的干支和十神</span
                 >
-                  <div class="month-command-current">
-                    <strong>{{ candidate.commanding_stem }}</strong>
-                    <span>{{ candidate.segment }}</span>
-                    <small>传统分日资料口径</small>
+                <div class="dayun-summary-grid">
+                  <div class="dayun-summary-item">
+                    <span class="dayun-summary-label">精确起运时间</span>
+                    <strong>{{ dayunStartLabel }}</strong>
                   </div>
-                  <p>
-                    入节约第 {{ Math.max(1, Math.round(candidate.position_day)) }} 天 ·
-                    {{
-                      monthCommandSegmentLabel(
-                        candidate.segment_start_day,
-                        candidate.segment_end_day,
-                      )
-                    }}
-                    · {{ candidate.sequence }}
+                  <div class="dayun-summary-item">
+                    <span class="dayun-summary-label">排运方向</span>
+                    <strong>{{ daYun?.direction || '未判' }}</strong>
+                  </div>
+                  <div class="dayun-summary-item">
+                    <span class="dayun-summary-label">当前年龄</span>
+                    <strong>{{ currentAge !== null ? `${currentAge}岁` : '未提供' }}</strong>
+                  </div>
+                  <div class="dayun-summary-item">
+                    <span class="dayun-summary-label">当前大运</span>
+                    <strong>{{
+                      currentDayunStage?.pillar || currentDayunLayer?.pillar || '未定位'
+                    }}</strong>
+                  </div>
+                </div>
+                <div class="dayun-method-notes">
+                  <span>依据出生时刻与节气距离定起运</span>
+                  <span>按性别与年干阴阳定顺逆</span>
+                  <span>每十年推进一组干支</span>
+                </div>
+              </div>
+
+              <div
+                v-if="currentDayunStage || currentDayunLayer"
+                class="analysis-block dayun-current-card"
+              >
+                <div class="dayun-current-head">
+                  <div>
+                    <div class="block-title">你现在走哪一步</div>
+                    <span class="block-desc"
+                      >当前这步大运的干支、年龄段和十神，以及它与传统说法的对应</span
+                    >
+                  </div>
+                  <span v-if="currentDayunLayer" class="dayun-current-score">结构已记录</span>
+                </div>
+                <div class="dayun-current-body">
+                  <div class="dayun-current-pillar">
+                    <span>{{ currentDayunStage?.gan || currentDayunLayer?.gan }}</span>
+                    <span>{{ currentDayunStage?.zhi || currentDayunLayer?.zhi }}</span>
+                  </div>
+                  <div class="dayun-current-copy">
+                    <p v-if="dayunCurrentSummary" class="dayun-current-plain">
+                      {{ dayunCurrentSummary }}
+                    </p>
+                    <div class="dayun-current-tags">
+                      <span v-if="currentDayunStage" class="dayun-mini-chip"
+                        >{{ currentDayunStage.startAge }}-{{ currentDayunStage.endAge }}岁</span
+                      >
+                      <span v-if="currentDayunStage?.tenGod" class="dayun-mini-chip"
+                        >十神 {{ currentDayunStage.tenGod
+                        }}{{
+                          tenGodKeyword(currentDayunStage.tenGod)
+                            ? ` · ${tenGodKeyword(currentDayunStage.tenGod)}`
+                            : ''
+                        }}</span
+                      >
+                      <span v-else-if="currentDayunLayer?.ten_god.name" class="dayun-mini-chip"
+                        >十神 {{ currentDayunLayer.ten_god.name
+                        }}{{
+                          tenGodKeyword(currentDayunLayer.ten_god.name)
+                            ? ` · ${tenGodKeyword(currentDayunLayer.ten_god.name)}`
+                            : ''
+                        }}</span
+                      >
+                      <span v-if="currentDayunStage?.ganElement" class="dayun-mini-chip"
+                        >天干 {{ currentDayunStage.ganElement }}</span
+                      >
+                    </div>
+                    <p v-if="currentDayunLayer">
+                      {{ calculationBasisLabel(currentDayunLayer.basis) }}
+                    </p>
+                    <p v-else>这里展示大运干支、年龄区间、五行与十神之间的对应关系。</p>
+                    <div v-if="currentDayunLayer?.relations.length" class="dayun-evidence-list">
+                      <span
+                        v-for="item in currentDayunLayer.relations"
+                        :key="item.rule_id + item.target"
+                        class="dayun-evidence-chip"
+                        >{{ relationEndpointLabel(item.source) }}{{ item.source_value }} ·
+                        {{ relationDisplayLabel(item.type, item.name) }} ·
+                        {{ relationEndpointLabel(item.target) }}{{ item.target_value }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="dayunStages.length" class="analysis-block dayun-stage-block">
+                <div class="block-title">十年阶段明细</div>
+                <span class="block-desc"
+                  >每一步展示年龄段、大致年份、干支五行与十神；十神后面的短词是它的白话关键词，不代表结果判断</span
+                >
+                <div class="dayun-stage-grid">
+                  <article
+                    v-for="stage in dayunStages"
+                    :key="stage.index + stage.pillar"
+                    class="dayun-stage-card"
+                    :class="{ 'is-current': stage.isCurrent }"
+                  >
+                    <div class="dayun-stage-top">
+                      <span v-if="stage.startYear && stage.endYear"
+                        >{{ stage.startYear }}–{{ stage.endYear }} · {{ stage.startAge }}–{{
+                          stage.endAge
+                        }}
+                        岁</span
+                      >
+                      <span v-else>{{ stage.startAge }}–{{ stage.endAge }} 岁</span>
+                      <span v-if="stage.isCurrent" class="dayun-now-badge">当前</span>
+                    </div>
+                    <div class="dayun-stage-main">
+                      <div class="dayun-stage-pillar">
+                        <span
+                          class="dayun-stage-gan"
+                          :style="{ color: elemColor(stage.ganElement) }"
+                          >{{ stage.gan }}</span
+                        >
+                        <span
+                          class="dayun-stage-zhi"
+                          :style="{ color: elemColor(stage.zhiElement) }"
+                          >{{ stage.zhi }}</span
+                        >
+                      </div>
+                      <div class="dayun-stage-info">
+                        <div class="dayun-stage-title">{{ stage.pillar }}大运</div>
+                        <div class="dayun-stage-tags">
+                          <span
+                            >十神 {{ stage.tenGod
+                            }}{{
+                              tenGodKeyword(stage.tenGod) ? ` · ${tenGodKeyword(stage.tenGod)}` : ''
+                            }}</span
+                          >
+                          <span>干 {{ stage.ganElement || '未知' }}</span>
+                          <span>支 {{ stage.zhiElement || '未知' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </ChartSection>
+          <!-- /dayun section -->
+
+          <!-- ═══ Section: 十神结构 (shishen) ═══ -->
+          <ChartSection
+            v-if="hasShishenSection"
+            id="chart-section-shishen"
+            :eyebrow="sectionNo('shishen')"
+            title="十神结构"
+            desc="十神 = 以日主（你自己）为参照的角色标签；这里数每个标签出现几次，次数不代表性格、职业或具体事件。"
+            v-reveal
+          >
+            <!-- 十神分布：堆叠占比条 + 紧凑 chips，合并原占比图与纵向列表两处重复表达 -->
+            <div v-if="tenGodShares.length" class="analysis-block">
+              <div class="block-title">十神分布</div>
+              <span class="block-desc"
+                >统计范围：浮在天干上的（透干）和藏在地支里的（藏干）都算一次；藏干深浅和月令强度尚未加权</span
+              >
+              <p v-if="chart.ten_god_analysis?.status === 'observed'" class="tg-summary-line">
+                共记录 {{ chart.ten_god_analysis.total_occurrences }} 次 · 最高频
+                {{ chart.ten_god_analysis.dominant_gods.join('、') }}（{{
+                  chart.ten_god_analysis.dominant_percent
+                }}%）
+              </p>
+              <div class="tg-stack" role="img" aria-label="十神占比堆叠条">
+                <span
+                  v-for="item in tenGodStackSegs"
+                  :key="item.name"
+                  class="tg-stack-seg"
+                  :style="{ width: item.percent + '%', background: tenGodColor(item.name) }"
+                  :title="`${item.name} ${item.percent}%`"
+                ></span>
+              </div>
+              <div class="tg-chip-grid">
+                <div
+                  v-for="item in tenGodShares"
+                  :key="item.name"
+                  class="tg-chip"
+                  :class="{ 'is-zero': item.percent <= 0 }"
+                >
+                  <span class="tg-chip-dot" :style="{ background: tenGodColor(item.name) }"></span>
+                  <span class="tg-chip-name">{{ item.name }}</span>
+                  <span class="tg-chip-count">{{ item.count }} 次</span>
+                  <span class="tg-chip-pct">{{ item.percent }}%</span>
+                </div>
+              </div>
+              <!-- 白话解读：主导特质 + 未出现十神 + 口径免责，与上方统计共用色板 -->
+              <div v-if="tenGodInsightItems.length || tenGodAbsentSentence" class="tg-insight">
+                <div class="tg-insight-title">白话解读</div>
+                <div v-for="item in tenGodInsightItems" :key="item.name" class="tg-insight-item">
+                  <span class="tg-insight-head">
+                    <span
+                      class="tg-chip-dot"
+                      :style="{ background: tenGodColor(item.name) }"
+                    ></span>
+                    <span class="tg-insight-name">{{ item.name }}</span>
+                    <span v-if="item.keyword" class="tg-insight-keyword">{{ item.keyword }}</span>
+                  </span>
+                  <p class="tg-insight-text">
+                    {{ item.trait }}；<span class="tg-insight-caution"
+                      >留意：{{ item.caution }}。</span
+                    >
                   </p>
                 </div>
+                <p v-if="tenGodAbsentSentence" class="tg-insight-absent">
+                  {{ tenGodAbsentSentence }}
+                </p>
+                <p class="tg-insight-note">
+                  以上是按出现次数的传统取象解读，描述倾向而非定论；次数统计未加权藏干深浅与月令强度。
+                </p>
               </div>
               <p class="section-boundary-note">
-                调候条目尚未完成独立验证，是并列的传统查表候选，不代表唯一用神或现实吉凶；节令百分比仅表示时间位置。
+                次数只表示命盘中的分布，不直接代表性格、职业或具体事件。
               </p>
             </div>
-          </div>
-        </div>
-        <!-- /pattern tab -->
+          </ChartSection>
+          <!-- /shishen section -->
 
-        <!-- ═══ Tab: 神煞 (shensha) ═══ -->
-        <div v-show="activeTab === 'shensha'" class="tab-content">
-          <section v-if="shenShaDetails.length" class="analysis-block shensha-overview-card">
-            <div class="shensha-overview-head">
-              <div>
-                <div class="block-title">神煞规则命中</div>
-                <span class="block-desc"
-                  >仅记录传统名称及其查表依据，不自动推断吉凶、性格或具体事件</span
-                >
-              </div>
-              <span class="shensha-overview-count">{{ shenShaDetails.length }} 项</span>
-            </div>
-            <div class="shensha-grid">
-              <article
-                v-for="item in shenShaDetails"
-                :key="item.rule_id"
-                class="shen-sha-detail-row shensha-detail-card"
+          <!-- ═══ Section: 五行格局 (wuxing) ═══ -->
+          <ChartSection
+            v-if="hasWuxingSection"
+            id="chart-section-wuxing"
+            :eyebrow="sectionNo('wuxing')"
+            title="五行格局"
+            desc="木、火、土、金、水在你的命盘里各占多少——先看一句白话总结，再看技术明细。"
+            v-reveal
+          >
+            <p v-if="wuxingSummary" class="plain-summary">
+              {{ wuxingSummary }}传统认为五行均衡为佳，偏多偏少各有特点，不代表好坏。
+            </p>
+
+            <!-- Element Detail -->
+            <div v-if="chart.element_detail && chart.element_detail.length" class="analysis-block">
+              <div class="block-title">五行权重与藏干记录</div>
+              <span class="block-desc"
+                >技术细节：按固定权重计分（藏干 = 地支内部"藏着"的天干），仅用于命盘内部比较</span
               >
-                <div class="shen-sha-detail-top">
-                  <span class="shen-sha-detail-name">{{ item.name }}</span>
-                  <span class="shen-sha-detail-meta">规则命中</span>
+              <div class="element-detail-table">
+                <div class="ed-header">
+                  <span>五行</span>
+                  <span>天干</span>
+                  <span>地支藏干</span>
+                  <span>权重合计</span>
                 </div>
-                <span class="shen-sha-detail-desc">按四柱干支对应传统表项</span>
-              </article>
+                <div
+                  v-for="ed in chart.element_detail"
+                  :key="ed.element"
+                  class="ed-row"
+                  :class="'level-' + strengthLevel(ed.total)"
+                >
+                  <span class="ed-elem" :style="{ color: elemColor(ed.element) }">{{
+                    ed.element
+                  }}</span>
+                  <span class="ed-tg">{{ ed.tian_gan }}</span>
+                  <span class="ed-zc">{{
+                    ed.cang_gan_list ? ed.cang_gan_list.join('、') : '—'
+                  }}</span>
+                  <span class="ed-total">{{ ed.total }}</span>
+                </div>
+              </div>
             </div>
-          </section>
 
-          <!-- ShenSha (grouped by pillar when available) -->
-          <template v-if="groupedShenSha">
-            <template v-for="group in groupedShenSha" :key="group.pillar">
-              <section
-                v-if="group.items && group.items.length"
-                class="analysis-block shensha-group-card"
+            <!-- MissingElements 原始五行分布 -->
+            <div
+              v-if="
+                chart.missing_elements &&
+                (chart.missing_elements.missing_elements?.length ||
+                  chart.missing_elements.weak_elements?.length)
+              "
+              class="analysis-block"
+            >
+              <div class="block-title">五行分布</div>
+              <span class="block-desc"
+                >按原始计分看哪些五行没出现或偏弱；只是观察记录，不代表需要"补"什么</span
               >
-                <div class="shen-sha-group-title shensha-group-head">
+              <div class="missing-elem-card">
+                <div v-if="chart.missing_elements.missing_elements?.length" class="me-row">
+                  <span class="me-label">原局未见</span>
                   <span
-                    class="shen-sha-group-dot"
-                    :style="{ background: pillarShenShaColor(group.pillar) }"
-                  ></span>
-                  <span class="shen-sha-group-label">{{ group.label }}神煞</span>
-                  <span class="shen-sha-group-role">· {{ group.gan }}{{ group.zhi }}</span>
+                    v-for="e in chart.missing_elements.missing_elements"
+                    :key="'m' + e"
+                    class="me-tag me-missing"
+                    :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }"
+                    >{{ e }}</span
+                  >
+                </div>
+                <div v-if="chart.missing_elements.weak_elements?.length" class="me-row">
+                  <span class="me-label">得分偏低</span>
+                  <span
+                    v-for="e in chart.missing_elements.weak_elements"
+                    :key="'w' + e"
+                    class="me-tag me-weak"
+                    :style="{ color: elemColor(e), borderColor: elemColor(e) + '44' }"
+                    >{{ e }}</span
+                  >
+                </div>
+                <p class="me-note">{{ chart.missing_elements.note }}</p>
+              </div>
+            </div>
+          </ChartSection>
+          <!-- /wuxing section -->
+
+          <!-- ═══ Section: 神煞 (shensha) ═══ -->
+          <ChartSection
+            v-if="hasShenshaSection"
+            id="chart-section-shensha"
+            :eyebrow="sectionNo('shensha')"
+            title="神煞"
+            desc="神煞 = 传统命理的查表符号，可理解为“传统说法里的标记”，不自动推断吉凶。"
+            :summary="`规则命中 ${shenShaDetails.length} 项 · 按四柱干支对应传统表项`"
+            v-reveal
+          >
+            <p v-if="shenShaSummary" class="plain-summary">{{ shenShaSummary }}</p>
+
+            <section v-if="shenShaDetails.length" class="analysis-block shensha-overview-card">
+              <div class="shensha-overview-head">
+                <div>
+                  <div class="block-title">神煞规则命中</div>
+                  <span class="block-desc"
+                    >每一项都是按传统查表命中的标记，后面附它的传统寓意；只是参考，不代表吉凶、性格或具体事件</span
+                  >
+                </div>
+                <span class="shensha-overview-count">{{ shenShaDetails.length }} 项</span>
+              </div>
+              <div class="shensha-grid">
+                <article
+                  v-for="item in shenShaDetails"
+                  :key="item.rule_id"
+                  class="shen-sha-detail-row shensha-detail-card"
+                >
+                  <div class="shen-sha-detail-top">
+                    <span class="shen-sha-detail-name">{{ item.name }}</span>
+                    <span class="shen-sha-detail-meta">规则命中</span>
+                  </div>
+                  <span class="shen-sha-detail-desc">{{ shenShaMeaning(item.name) }}</span>
+                </article>
+              </div>
+            </section>
+
+            <!-- ShenSha (grouped by pillar when available) -->
+            <template v-if="groupedShenSha">
+              <template v-for="group in groupedShenSha" :key="group.pillar">
+                <section
+                  v-if="group.items && group.items.length"
+                  class="analysis-block shensha-group-card"
+                >
+                  <div class="shen-sha-group-title shensha-group-head">
+                    <span
+                      class="shen-sha-group-dot"
+                      :style="{ background: pillarShenShaColor(group.pillar) }"
+                    ></span>
+                    <span class="shen-sha-group-label">{{ group.label }}神煞</span>
+                    <span class="shen-sha-group-role">· {{ group.gan }}{{ group.zhi }}</span>
+                  </div>
+                  <div class="shen-sha-list">
+                    <article
+                      v-for="sha in group.items"
+                      :key="sha.name + sha.target + sha.desc"
+                      class="shen-sha-row shensha-row-card"
+                      :style="{ background: pillarShenShaBg(group.pillar) }"
+                    >
+                      <span
+                        class="shen-sha-name"
+                        :style="{ color: pillarShenShaColor(group.pillar) }"
+                        >{{ sha.name }}</span
+                      >
+                      <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
+                      <span class="shen-sha-desc">{{ sha.desc || shenShaMeaning(sha.name) }}</span>
+                    </article>
+                  </div>
+                </section>
+              </template>
+              <section v-if="globalShenSha.length" class="analysis-block shensha-group-card">
+                <div class="shen-sha-group-title shensha-group-head">
+                  <span class="shen-sha-group-dot" style="background: var(--accent)"></span>
+                  <span class="shen-sha-group-label">全局组合神煞</span>
+                  <span class="shen-sha-group-role">· 多柱配合</span>
                 </div>
                 <div class="shen-sha-list">
                   <article
-                    v-for="sha in group.items"
+                    v-for="sha in globalShenSha"
                     :key="sha.name + sha.target + sha.desc"
                     class="shen-sha-row shensha-row-card"
-                    :style="{ background: pillarShenShaBg(group.pillar) }"
+                    :style="{ background: 'var(--accent-dim)' }"
                   >
-                    <span
-                      class="shen-sha-name"
-                      :style="{ color: pillarShenShaColor(group.pillar) }"
-                      >{{ sha.name }}</span
-                    >
+                    <span class="shen-sha-name" :style="{ color: 'var(--accent)' }">{{
+                      sha.name
+                    }}</span>
                     <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
-                    <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
+                    <span class="shen-sha-desc">{{ sha.desc || shenShaMeaning(sha.name) }}</span>
                   </article>
                 </div>
               </section>
             </template>
-            <section v-if="globalShenSha.length" class="analysis-block shensha-group-card">
-              <div class="shen-sha-group-title shensha-group-head">
-                <span class="shen-sha-group-dot" style="background: var(--accent)"></span>
-                <span class="shen-sha-group-label">全局组合神煞</span>
-                <span class="shen-sha-group-role">· 多柱配合</span>
-              </div>
+            <section v-else-if="parsedDayShenSha.length" class="analysis-block shensha-group-card">
+              <div class="block-title">日柱神煞</div>
+              <span class="block-desc">按日柱相关查表规则记录命中的传统名称与目标支</span>
               <div class="shen-sha-list">
                 <article
-                  v-for="sha in globalShenSha"
+                  v-for="sha in parsedDayShenSha"
                   :key="sha.name + sha.target + sha.desc"
                   class="shen-sha-row shensha-row-card"
-                  :style="{ background: 'var(--accent-dim)' }"
                 >
-                  <span class="shen-sha-name" :style="{ color: 'var(--accent)' }">{{
-                    sha.name
-                  }}</span>
+                  <span class="shen-sha-name">{{ sha.name }}</span>
                   <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
-                  <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
+                  <span class="shen-sha-desc">{{ sha.desc || shenShaMeaning(sha.name) }}</span>
                 </article>
               </div>
             </section>
-          </template>
-          <section v-else-if="parsedDayShenSha.length" class="analysis-block shensha-group-card">
-            <div class="block-title">日柱神煞</div>
-            <span class="block-desc">按日柱相关查表规则记录命中的传统名称与目标支</span>
-            <div class="shen-sha-list">
-              <article
-                v-for="sha in parsedDayShenSha"
-                :key="sha.name + sha.target + sha.desc"
-                class="shen-sha-row shensha-row-card"
-              >
-                <span class="shen-sha-name">{{ sha.name }}</span>
-                <span v-if="sha.target" class="shen-sha-target">{{ sha.target }}</span>
-                <span v-if="sha.desc" class="shen-sha-desc">{{ sha.desc }}</span>
-              </article>
-            </div>
-          </section>
-        </div>
-        <!-- /shensha tab -->
+          </ChartSection>
+          <!-- /shensha section -->
 
-        <!-- ═══ Tab: 周期结构 (fortune) ═══ -->
-        <div v-show="activeTab === 'fortune'" class="tab-content fortune-detail-tab">
-          <div v-if="fortuneLayerList.length" class="analysis-block">
-            <div class="block-title">周期层依据</div>
-            <span class="block-desc"
-              >流年、流月、小运分别记录周期干支、十神与命局关系，不直接生成吉凶结论</span
-            >
-            <div class="fortune-layer-list">
-              <div v-for="layer in fortuneLayerList" :key="layer.key" class="fortune-layer-row">
-                <div class="fortune-layer-top">
-                  <span class="fortune-layer-name">{{ layer.name }}</span>
-                  <span class="fortune-layer-pillar">{{ layer.pillar }}</span>
-                  <span v-if="layer.ten_god.name" class="fortune-layer-god"
-                    >十神 {{ layer.ten_god.name }}</span
-                  >
-                </div>
-                <div class="fortune-layer-sub">
-                  <span v-if="layer.start_age !== undefined" class="fortune-layer-chip"
-                    >{{ layer.start_age }}岁起</span
-                  >
-                  <span v-if="layer.year" class="fortune-layer-chip">{{ layer.year }}年</span>
-                  <span v-if="layer.month" class="fortune-layer-chip">{{ layer.month }}月</span>
-                  <span class="fortune-layer-chip">结构参考</span>
-                </div>
-                <div class="fortune-layer-evidence">
-                  {{ calculationBasisLabel(layer.basis)
-                  }}<span v-if="layer.relations.length">
-                    · {{ layer.relations.length }} 条关系</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- MingGong -->
-          <div v-if="chart.ming_gong && chart.ming_gong.gan_zhi" class="analysis-block">
-            <div class="block-title">命宫 · 第五柱</div>
-            <span class="block-desc">以出生时辰推算命宫，被视为八字之外的第五柱</span>
-            <div class="ming-gong-detail">
-              <div class="ming-gong-main">
-                <span class="ming-gong-ganzhi">{{ chart.ming_gong.gan_zhi }}</span>
-                <span v-if="chart.ming_gong.nayin" class="ming-gong-nayin"
-                  >({{ chart.ming_gong.nayin }})</span
+          <!-- ═══ Section: 周期结构 (fortune) ═══ -->
+          <ChartSection
+            v-if="hasFortuneSection"
+            id="chart-section-fortune"
+            :eyebrow="sectionNo('fortune')"
+            title="周期结构"
+            desc="流年（这一年）、流月（这一月）、小运与命宫的干支记录，用来对照周期节奏，不直接生成吉凶结论。"
+            :summary="fortuneSectionSummary"
+            :default-open="false"
+            v-reveal
+          >
+            <div class="fortune-detail-tab">
+              <div v-if="fortuneLayerList.length" class="analysis-block">
+                <div class="block-title">周期层依据</div>
+                <span class="block-desc"
+                  >流年 = 这一年的干支，流月 = 这一月的干支，小运 =
+                  一年一换的辅助周期；这里记录它们与命局的结构关系，不直接生成吉凶结论</span
                 >
+                <div class="fortune-layer-list">
+                  <div v-for="layer in fortuneLayerList" :key="layer.key" class="fortune-layer-row">
+                    <div class="fortune-layer-top">
+                      <span class="fortune-layer-name">{{ layer.name }}</span>
+                      <span class="fortune-layer-pillar">{{ layer.pillar }}</span>
+                      <span v-if="layer.ten_god.name" class="fortune-layer-god"
+                        >十神 {{ layer.ten_god.name }}</span
+                      >
+                    </div>
+                    <div class="fortune-layer-sub">
+                      <span v-if="layer.start_age !== undefined" class="fortune-layer-chip"
+                        >{{ layer.start_age }}岁起</span
+                      >
+                      <span v-if="layer.year" class="fortune-layer-chip">{{ layer.year }}年</span>
+                      <span v-if="layer.month" class="fortune-layer-chip">{{ layer.month }}月</span>
+                      <span class="fortune-layer-chip">结构参考</span>
+                    </div>
+                    <div class="fortune-layer-evidence">
+                      {{ calculationBasisLabel(layer.basis)
+                      }}<span v-if="layer.relations.length">
+                        · {{ layer.relations.length }} 条关系</span
+                      >
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div v-if="chart.ming_gong.shen_sha" class="ming-gong-shensha">
-                <span class="shensha-badge"> {{ chart.ming_gong.shen_sha }}星 </span>
+
+              <!-- MingGong -->
+              <div v-if="chart.ming_gong && chart.ming_gong.gan_zhi" class="analysis-block">
+                <div class="block-title">命宫 · 第五柱</div>
+                <span class="block-desc"
+                  >命宫 = 按出生时辰推算的"第五柱"，在四柱之外，传统上用来辅助看整体倾向</span
+                >
+                <div class="ming-gong-detail">
+                  <div class="ming-gong-main">
+                    <span class="ming-gong-ganzhi">{{ chart.ming_gong.gan_zhi }}</span>
+                    <span v-if="chart.ming_gong.nayin" class="ming-gong-nayin"
+                      >({{ chart.ming_gong.nayin }})</span
+                    >
+                  </div>
+                  <div v-if="chart.ming_gong.shen_sha" class="ming-gong-shensha">
+                    <span class="shensha-badge"> {{ chart.ming_gong.shen_sha }}星 </span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="chart.month_season?.status === 'observed'" class="analysis-block">
+                <div class="block-title">月令季节</div>
+                <span class="block-desc"
+                  >月令 =
+                  出生月份的地支，传统上视为命盘的"季节背景"；这里按月柱地支记录传统月序与四季归属</span
+                >
+                <dl class="month-season-facts">
+                  <div>
+                    <dt>月支</dt>
+                    <dd>{{ chart.month_season.month_branch }}</dd>
+                  </div>
+                  <div>
+                    <dt>传统月序</dt>
+                    <dd>第 {{ chart.month_season.traditional_month }} 月</dd>
+                  </div>
+                  <div>
+                    <dt>季节</dt>
+                    <dd>{{ chart.month_season.season }}</dd>
+                  </div>
+                  <div>
+                    <dt>取值依据</dt>
+                    <dd>月柱地支</dd>
+                  </div>
+                </dl>
               </div>
             </div>
-          </div>
+          </ChartSection>
+          <!-- /fortune section -->
 
-          <div v-if="chart.month_season?.status === 'observed'" class="analysis-block">
-            <div class="block-title">月令季节</div>
-            <span class="block-desc">按月柱地支记录传统月序与四季归属</span>
-            <dl class="month-season-facts">
-              <div>
-                <dt>月支</dt>
-                <dd>{{ chart.month_season.month_branch }}</dd>
+          <!-- ═══ Section: 传统参考 (pattern) ═══ -->
+          <ChartSection
+            v-if="hasPatternSection"
+            id="chart-section-pattern"
+            :eyebrow="sectionNo('pattern')"
+            title="传统参考"
+            desc="格局（命盘结构的传统归类）、身强身弱（日主力量强弱）与调候（传统认为需要调和的五行）的候选参考口径。"
+            :summary="patternSectionSummary"
+            :default-open="false"
+            v-reveal
+          >
+            <!-- Pattern Analysis -->
+            <div v-if="chart.pattern_analysis" class="analysis-block">
+              <div class="block-title">格局线索</div>
+              <span class="block-desc"
+                >格局 =
+                传统对命盘整体结构的归类叫法；下面是根据四柱与月令整理出的候选线索，不是定论</span
+              >
+              <div class="pattern-detail">
+                <div class="pattern-inputs">
+                  <div class="pattern-input-row">
+                    <span>四柱输入</span>
+                    <strong>{{ chart.pattern_analysis.inputs.pillars.join('、') }}</strong>
+                  </div>
+                  <div class="pattern-input-row">
+                    <span>月支</span>
+                    <strong>{{ chart.pattern_analysis.inputs.month_branch }}</strong>
+                  </div>
+                </div>
+                <div v-if="chart.pattern_analysis.candidates?.length" class="pattern-candidates">
+                  <div class="pattern-candidates-title">结构线索</div>
+                  <div
+                    v-for="candidate in chart.pattern_analysis.candidates"
+                    :key="candidate.rule_id"
+                    class="pattern-candidate-row"
+                  >
+                    <div class="pattern-candidate-heading">
+                      <strong>{{ candidate.pattern_name }}</strong>
+                      <span>{{ candidate.category }}</span>
+                    </div>
+                    <small>按月令、藏干与透干关系整理</small>
+                  </div>
+                </div>
+                <div
+                  v-if="chart.pattern_analysis.month_command_evidence?.length"
+                  class="pattern-candidates"
+                >
+                  <div class="pattern-candidates-title">月令藏干透出证据</div>
+                  <div
+                    v-for="evidence in chart.pattern_analysis.month_command_evidence"
+                    :key="evidence.hidden_stem + monthCommandExposureLabel(evidence.exposures)"
+                    class="pattern-candidate-row"
+                  >
+                    <div class="pattern-candidate-heading">
+                      <strong>{{ evidence.candidate_names.join('、') }}</strong>
+                      <span>月令线索</span>
+                      <span v-if="evidence.month_special_structure">{{
+                        evidence.month_special_structure
+                      }}</span>
+                    </div>
+                    <small>
+                      {{ evidence.month_branch }}中{{ evidence.hidden_stem }} ·
+                      {{ evidence.hidden_stem_type }} · {{ evidence.hidden_ten_god }} · 透于
+                      {{ monthCommandExposureLabel(evidence.exposures) }}
+                    </small>
+                    <small>按月令、藏干与透干关系整理</small>
+                  </div>
+                </div>
+                <p class="section-boundary-note">
+                  格局线索用于辅助理解命盘结构，不等同于已经确定格局或喜忌。
+                </p>
               </div>
-              <div>
-                <dt>传统月序</dt>
-                <dd>第 {{ chart.month_season.traditional_month }} 月</dd>
-              </div>
-              <div>
-                <dt>季节</dt>
-                <dd>{{ chart.month_season.season }}</dd>
-              </div>
-              <div>
-                <dt>取值依据</dt>
-                <dd>月柱地支</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-        <!-- /fortune tab -->
+            </div>
 
-        <!-- ═══ Tab: 经典依据 (rules) ═══ -->
-        <div v-show="activeTab === 'rules'" class="tab-content">
-          <div v-if="chart.id" class="classical-rules-block">
-            <ClassicalInterpretationPanel :chart-id="chart.id" />
-          </div>
+            <!-- Body Strength -->
+            <div v-if="chart.body_strength" class="analysis-block">
+              <div class="block-title">五行强弱参考</div>
+              <span class="block-desc"
+                >身强 / 身弱 =
+                日主（代表你自己）的力量偏强还是偏弱；下面是本地规则给出的候选判断，尚未独立验证</span
+              >
+              <div class="body-strength">
+                <div class="bs-primary">
+                  <span>规则候选区间</span>
+                  <strong>{{
+                    strengthCandidateLabel(chart.body_strength.score_band_candidate)
+                  }}</strong>
+                </div>
+                <div class="bs-contract-grid">
+                  <div>
+                    <span>四柱输入</span>
+                    <strong>{{ chart.body_strength.inputs.pillars.join('、') }}</strong>
+                  </div>
+                  <div>
+                    <span>日主 / 月支</span>
+                    <strong
+                      >{{ chart.body_strength.inputs.day_stem
+                      }}{{ chart.body_strength.inputs.day_element }} /
+                      {{ chart.body_strength.inputs.month_branch }}</strong
+                    >
+                  </div>
+                </div>
+                <div v-if="bodyStrengthComponents.length" class="evidence-bars body-strength-bars">
+                  <div
+                    v-for="component in bodyStrengthComponents"
+                    :key="component.key"
+                    class="evidence-bar-row"
+                  >
+                    <span class="evidence-bar-label">{{ component.name }}</span>
+                    <div class="evidence-bar-track">
+                      <span
+                        class="evidence-bar-fill"
+                        :style="{ width: componentWidth(component.normalized_score) }"
+                      ></span>
+                    </div>
+                    <span class="evidence-bar-value">{{
+                      componentBandLabel(component.normalized_score)
+                    }}</span>
+                  </div>
+                </div>
+                <p class="section-boundary-note">
+                  当前规则尚未完成独立验证；区间与百分比只用于复核本地计算，不直接决定身强身弱、喜忌五行或现实结果。
+                </p>
+              </div>
+            </div>
+
+            <!-- Tiaohou table evidence -->
+            <div v-if="chart.tiaohou" class="analysis-block">
+              <div class="block-title">
+                调候参考 <span class="tiaohou-source">《穷通宝鉴》资料表</span>
+              </div>
+              <span class="block-desc"
+                >调候 =
+                传统上认为命局需要调和的五行；按日干与月支查阅《穷通宝鉴》资料表，结合出生时刻所在节令区间整理候选</span
+              >
+              <div class="tiaohou-card">
+                <div class="tiaohou-header">
+                  <span class="tiaohou-stem">{{ chart.tiaohou.stem }}</span>
+                  <span class="tiaohou-arrow">生</span>
+                  <span class="tiaohou-month">{{ chart.tiaohou.month }}</span>
+                  <span class="tiaohou-divider">|</span>
+                  <span class="tiaohou-label">资料表首项</span>
+                  <span class="tiaohou-primary" :style="{ color: elemColor(tiaohouElem) }">{{
+                    chart.tiaohou.table_primary_candidate
+                  }}</span>
+                </div>
+                <div class="tiaohou-summary">
+                  <template v-if="chart.tiaohou.depth_evidence.status === 'observed'">
+                    {{ chart.tiaohou.depth_evidence.start_term }} 至
+                    {{ chart.tiaohou.depth_evidence.end_term }} ·
+                    {{ chart.tiaohou.depth_evidence.phase }} ·
+                    {{ ((chart.tiaohou.depth_evidence.position || 0) * 100).toFixed(1) }}%
+                  </template>
+                  <template v-else>出生时刻不可定位，节令区间深浅不可用</template>
+                </div>
+                <div v-if="chart.tiaohou.matched_conditions?.length" class="tiaohou-chart-matches">
+                  <div class="tiaohou-chart-heading">
+                    <strong>完整命局条件已命中</strong>
+                    <span>可参考 {{ chart.tiaohou.chart_candidates.join('、') }}</span>
+                  </div>
+                  <div
+                    v-for="condition in chart.tiaohou.matched_conditions"
+                    :key="condition.rule_id"
+                    class="tiaohou-chart-match"
+                  >
+                    <div class="tiaohou-chart-candidates">
+                      <span v-for="candidate in condition.candidates" :key="candidate">{{
+                        candidate
+                      }}</span>
+                    </div>
+                    <div>
+                      <strong>{{ condition.condition }}</strong>
+                      <p>{{ condition.source_text }}</p>
+                      <small>{{ condition.evidence.join('；') }}</small>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="chart.tiaohou.rules && chart.tiaohou.rules.length" class="tiaohou-rules">
+                  <div v-for="rule in chart.tiaohou.rules" :key="rule.rule_id" class="tiaohou-rule">
+                    <span class="tiaohou-xi">原表用字 {{ rule.xi_shen }}</span>
+                    <span class="tiaohou-reason">{{ rule.source_text }}</span>
+                  </div>
+                </div>
+                <div
+                  v-if="chart.tiaohou.depth_evidence.month_command_candidates?.length"
+                  class="month-command-candidates"
+                >
+                  <div class="month-command-heading">
+                    <strong>四库月分日司令参考</strong>
+                    <span>不同古籍口径并列</span>
+                  </div>
+                  <div
+                    v-for="candidate in chart.tiaohou.depth_evidence.month_command_candidates"
+                    :key="candidate.rule_id"
+                    class="month-command-row"
+                  >
+                    <div class="month-command-current">
+                      <strong>{{ candidate.commanding_stem }}</strong>
+                      <span>{{ candidate.segment }}</span>
+                      <small>传统分日资料口径</small>
+                    </div>
+                    <p>
+                      入节约第 {{ Math.max(1, Math.round(candidate.position_day)) }} 天 ·
+                      {{
+                        monthCommandSegmentLabel(
+                          candidate.segment_start_day,
+                          candidate.segment_end_day,
+                        )
+                      }}
+                      · {{ candidate.sequence }}
+                    </p>
+                  </div>
+                </div>
+                <p class="section-boundary-note">
+                  调候条目尚未完成独立验证，是并列的传统查表候选，不代表唯一用神或现实吉凶；节令百分比仅表示时间位置。
+                </p>
+              </div>
+            </div>
+          </ChartSection>
+          <!-- /pattern section -->
+
+          <!-- ═══ Section: 经典依据 (rules) ═══ -->
+          <ChartSection
+            v-if="chart.id"
+            id="chart-section-rules"
+            :eyebrow="sectionNo('rules')"
+            title="经典依据"
+            desc="每条结论对应的古籍出处与本地计算过程，供想深究的人核对。"
+            summary="按规则逐条对照古籍出处与本地计算日志"
+            :default-open="false"
+            v-reveal
+          >
+            <div class="classical-rules-block">
+              <ClassicalInterpretationPanel :chart-id="chart.id" />
+            </div>
+          </ChartSection>
+          <!-- /rules section -->
         </div>
-        <!-- /rules tab -->
+        <!-- /analysis-section -->
       </div>
-      <!-- /analysis-section -->
     </div>
   </div>
 </template>
@@ -1683,9 +1938,80 @@ const tenGodChartOptions = computed(() => {
   position: relative;
 }
 
+/* 长滚动布局：左侧锚点目录 + 内容卡片 */
+.chart-layout {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: 2.25rem;
+  align-items: start;
+}
+
+.chart-toc {
+  position: sticky;
+  top: 96px;
+  min-width: 0;
+}
+
+.toc-inner {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--line-subtle);
+}
+
+.toc-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.42rem 0 0.42rem 0.85rem;
+  margin-left: -1px;
+  background: none;
+  border: 0;
+  border-left: 1px solid transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-soft);
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.toc-item:hover {
+  color: var(--text);
+}
+
+.toc-item:focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.toc-item.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.toc-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.toc-sub {
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.toc-item.active .toc-sub {
+  color: var(--text-muted);
+}
+
 .chart-card {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .chart-card.glass-card:hover {
@@ -1816,6 +2142,15 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 1px;
   margin-bottom: 0.4rem;
   font-weight: 600;
+}
+
+/* 四柱白话定位小字：年柱「祖上与少年」等 */
+.bento-role {
+  margin: -0.3rem 0 0.35rem;
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+  letter-spacing: 0.3px;
+  line-height: 1.4;
 }
 
 .bento-body {
@@ -2135,6 +2470,15 @@ const tenGodChartOptions = computed(() => {
   white-space: normal;
 }
 
+/* 干支关系的白话解释：独占一行的小字 */
+.gz-plain {
+  grid-column: 1 / -1;
+  margin-top: -0.1rem;
+  color: var(--text-soft);
+  font-size: var(--fs-2xs);
+  line-height: 1.5;
+}
+
 .no-relations {
   min-height: 132px;
   padding: 1rem;
@@ -2153,12 +2497,12 @@ const tenGodChartOptions = computed(() => {
   color: var(--text-soft);
 }
 
-/* Analysis sections */
+/* Analysis sections：长滚动分区，间距由 ChartSection 的 hairline 与留白控制 */
 .analysis-section {
-  padding: 1rem 1.25rem;
+  padding: 0.5rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0;
 }
 
 .evidence-table-list,
@@ -2486,52 +2830,7 @@ const tenGodChartOptions = computed(() => {
   background: var(--surface-0);
 }
 
-/* Tab navigation */
-.chart-tabs {
-  display: flex;
-  gap: 0.25rem;
-  border-bottom: 1px solid var(--line-strong);
-  padding: 0 1.25rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.chart-tabs::-webkit-scrollbar {
-  display: none;
-}
-.tab-btn {
-  padding: 0.75rem 1.25rem;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-dim);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: 1px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color 0.2s,
-    background 0.2s,
-    border-color 0.2s;
-}
-.tab-btn:hover {
-  color: var(--text);
-  background: color-mix(in oklab, var(--accent) 5%, transparent);
-}
-.tab-btn:focus-visible {
-  outline: 2px solid var(--line-focus);
-  outline-offset: -2px;
-}
-.tab-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-.tab-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
+/* 分区内容容器 */
 .overview-layout {
   padding-top: 0.15rem;
 }
@@ -2618,6 +2917,19 @@ const tenGodChartOptions = computed(() => {
   letter-spacing: 0.3px;
 }
 
+/* 分区开头的数据驱动白话小结（"这是什么 / 这对你意味着什么"） */
+.plain-summary {
+  margin: 0 0 0.95rem;
+  padding: 0.55rem 0.75rem;
+  border-left: 2px solid var(--line-strong);
+  background: color-mix(in oklab, var(--surface-2) 42%, transparent);
+  border-radius: 0 6px 6px 0;
+  font-size: var(--fs-xs);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
 /* Ten gods */
 .ten-gods-grid {
   display: grid;
@@ -2649,6 +2961,14 @@ const tenGodChartOptions = computed(() => {
   font-weight: 700;
   line-height: 1.2;
   color: var(--crimson);
+}
+
+/* 十神格的白话关键词小字 */
+.god-plain {
+  margin-top: 0.2rem;
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+  line-height: 1.4;
 }
 
 /* NaYin */
@@ -2907,6 +3227,12 @@ const tenGodChartOptions = computed(() => {
   color: var(--text-muted);
   font-size: var(--fs-xs);
   line-height: 1.65;
+}
+
+/* 当前大运的白话小结句：比依据句更醒目 */
+.dayun-current-copy .dayun-current-plain {
+  margin-bottom: 0.55rem;
+  color: var(--text);
 }
 
 .dayun-evidence-list {
@@ -3809,61 +4135,74 @@ const tenGodChartOptions = computed(() => {
   color: var(--text-soft);
 }
 
-.ten-god-chart-wrap {
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, var(--line-subtle) 0%, transparent 100%), rgba(255, 255, 255, 0.015);
-  padding: 0.75rem 0.5rem 0.5rem;
-  box-shadow: inset 0 1px 0 var(--line-subtle);
-}
-
-.ten-god-chart {
-  width: 100%;
-  height: 220px;
-}
-.tg-summary {
-  background: var(--accent-dim);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  font-size: var(--fs-sm);
-  line-height: 1.8;
-  color: var(--text);
-  margin-top: 0.75rem;
-}
-.tg-god-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 0.75rem;
-}
-.tg-god-card {
-  background: var(--accent-dim);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  padding: 0.875rem 1rem;
-}
-.tg-god-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.tg-god-name {
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  color: var(--accent);
-}
-.tg-god-pct {
+.tg-summary-line {
+  margin: 0.55rem 0 0;
   font-size: var(--fs-xs);
   color: var(--text-muted);
-}
-.tg-god-meaning {
-  font-size: var(--fs-xs);
   line-height: 1.6;
+}
+.tg-stack {
+  display: flex;
+  height: 12px;
+  margin-top: 0.6rem;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+}
+.tg-stack-seg {
+  display: block;
+  height: 100%;
+}
+.tg-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 0.9rem;
+  margin-top: 0.65rem;
+}
+.tg-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 32px;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid var(--line-subtle);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--surface-0) 58%, transparent);
+}
+.tg-chip.is-zero {
+  opacity: 0.45;
+}
+.tg-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tg-chip-name {
+  font-size: var(--fs-xs);
+  font-weight: 600;
   color: var(--text);
+  letter-spacing: 0.5px;
+}
+.tg-chip-count {
+  margin-left: auto;
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tg-chip-pct {
+  min-width: 3.1em;
+  text-align: right;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .tg-chip-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .tg-limitations {
   display: flex;
@@ -3873,6 +4212,66 @@ const tenGodChartOptions = computed(() => {
   font-size: var(--fs-2xs);
   line-height: 1.6;
   color: var(--text-muted);
+}
+
+/* 十神白话解读：与统计块共用色点色板，紧凑列表不套卡片 */
+.tg-insight {
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line-subtle);
+}
+.tg-insight-title {
+  margin-bottom: 0.45rem;
+  font-family: var(--font-serif);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.08em;
+}
+.tg-insight-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.6rem;
+  padding: 0.22rem 0;
+}
+.tg-insight-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.tg-insight-name {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.tg-insight-keyword {
+  font-size: var(--fs-2xs);
+  color: var(--text-soft);
+}
+.tg-insight-text {
+  flex: 1 1 24rem;
+  margin: 0;
+  font-size: var(--fs-2xs);
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.tg-insight-caution {
+  color: var(--text-soft);
+}
+.tg-insight-absent {
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-2xs);
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+.tg-insight-note {
+  margin: 0.45rem 0 0;
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
+  color: var(--text-soft);
 }
 
 /* MissingElements 原始五行分布 */
@@ -3964,6 +4363,54 @@ const tenGodChartOptions = computed(() => {
   color: #f87171;
 }
 
+@media (max-width: 1023px) {
+  /* 移动端：目录降级为顶部 sticky 横向 chip 条 */
+  .chart-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .chart-toc {
+    top: 80px;
+    z-index: 5;
+    margin: 0 -0.25rem;
+    padding: 0.35rem 0.25rem 0;
+    background: var(--bg);
+  }
+
+  .toc-inner {
+    flex-direction: row;
+    gap: 0.25rem;
+    border-left: 0;
+    border-bottom: 1px solid var(--line-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toc-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toc-item {
+    flex-direction: row;
+    padding: 0.5rem 0.65rem 0.55rem;
+    margin-left: 0;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+  }
+
+  .toc-item.active {
+    border-bottom-color: var(--accent);
+  }
+
+  .toc-sub {
+    display: none;
+  }
+}
+
 @media (max-width: 980px) {
   .pillars-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4042,27 +4489,6 @@ const tenGodChartOptions = computed(() => {
 
   .chart-identity > div:nth-child(2n) {
     border-right: 0;
-  }
-
-  .chart-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1px;
-    padding: 0.35rem;
-    overflow: visible;
-    background: var(--line-subtle);
-  }
-
-  .tab-btn {
-    min-height: 44px;
-    padding: 0.65rem 0.5rem;
-    border-bottom: 0;
-    background: var(--surface-0);
-    white-space: normal;
-  }
-
-  .tab-btn.active {
-    background: color-mix(in oklab, var(--accent) 9%, var(--surface-0));
   }
 
   .pillars-bento {

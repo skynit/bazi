@@ -1,14 +1,16 @@
 import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
+import pluginVue from 'eslint-plugin-vue'
+import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import prettier from 'eslint-config-prettier'
 
-export default [
+export default defineConfigWithVueTs(
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  pluginVue.configs['flat/essential'],
+  vueTsConfigs.recommended,
   prettier,
   {
-    name: 'app-ts-rules',
-    files: ['src/**/*.ts'],
+    name: 'app-source-rules',
+    files: ['src/**/*.{ts,vue}'],
     rules: {
       'no-console': 'off',
       'no-debugger': 'warn',
@@ -16,4 +18,4 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
-]
+)

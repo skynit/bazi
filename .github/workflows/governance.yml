@@ -1,0 +1,50 @@
+name: Verify repository governance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/governance.yml"
+      - ".gitignore"
+      - "**/AGENTS.md"
+      - "docs/*.md"
+      - "docs/adr/**/*.md"
+      - "scripts/*.sh"
+      - "scripts/check-governance.mjs"
+      - "docker-compose.yml"
+      - "src/Dockerfile"
+      - "src/go.mod"
+      - "vue/nginx.conf"
+      - "vue/eslint.config.mjs"
+      - "vue/package.json"
+  push:
+    paths:
+      - ".github/workflows/governance.yml"
+      - ".gitignore"
+      - "**/AGENTS.md"
+      - "docs/*.md"
+      - "docs/adr/**/*.md"
+      - "scripts/*.sh"
+      - "scripts/check-governance.mjs"
+      - "docker-compose.yml"
+      - "src/Dockerfile"
+      - "src/go.mod"
+      - "vue/nginx.conf"
+      - "vue/eslint.config.mjs"
+      - "vue/package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check repository policy and command drift
+        run: bash scripts/check-governance.sh
+      - name: Check Docker port contract
+        run: bash scripts/docker-verify.sh

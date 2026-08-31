@@ -120,6 +120,151 @@ export interface ZiWeiOverlayRequest {
   year?: number
 }
 
+export interface ZiWeiRuleSource {
+  rule_id: string
+  repository: string
+  commit: string
+  path: string
+  sha256: string
+  license: string
+  source_tier: string
+  validation_status: string
+}
+
+export interface ZiWeiPluginRequirement {
+  id: string
+  version: string
+}
+
+export interface ZiWeiStar {
+  name: string
+  type: string
+  scope: string
+  brightness: string
+}
+
+export interface ZiWeiPalace {
+  name: string
+  branch: string
+  heavenly_stem: string
+  is_body_palace: boolean
+  stars: ZiWeiStar[]
+  four_hua: string[]
+  adjective_stars?: string[]
+  changsheng_12?: string
+  boshi_12?: string
+  jiang_qian_12?: string
+  sui_qian_12?: string
+  sanfang_sizheng?: {
+    opposite: string
+    trine1: string
+    trine2: string
+  }
+}
+
+export interface ZiWeiChartResponse extends ZiWeiTransitLayers {
+  profile_id: string
+  engine_version: string
+  rule_version: string
+  rule_school: string
+  rule_sources: ZiWeiRuleSource[]
+  runtime_rule_tables_schema: string
+  runtime_rule_tables_hash: string
+  plugin_manifest: ZiWeiPluginRequirement[]
+  plugin_manifest_hash: string
+  calculation_input: {
+    calendar_type: 'SOLAR'
+    year: number
+    month: number
+    day: number
+    hour: number
+    minute: number
+    gender: '男' | '女'
+    basis: 'normalized_solar_minute'
+  }
+  input_fingerprint: string
+  content_hash?: string
+  derivation_type?: 'liunian' | 'liuyue' | 'liuri'
+  derivation_input?: ZiWeiDerivationInput
+  derivation_fingerprint?: string
+  base_content_hash?: string
+  derived_content_hash?: string
+  palaces: ZiWeiPalace[]
+  life_master: string
+  body_master: string
+  five_bureau: string
+  body_palace: string
+  earthly_branch_of_soul_palace: string
+  earthly_branch_of_body_palace: string
+  patterns: string[]
+  query_view: ZiWeiQueryView
+}
+
+export interface ZiWeiPeriodChart extends ZiWeiChartResponse {
+  year: number
+  month?: number
+  day?: number
+  description: string
+}
+
+export interface ZiWeiDayunPeriod {
+  start_age: number
+  end_age: number
+  palace: string
+  stars: string[]
+  description: string
+}
+
+export interface ZiWeiReadingEvidence {
+  type: string
+  label: string
+  value: string
+  basis: string
+}
+
+export interface ZiWeiReadingSanfangContext {
+  opposite: string
+  trine1: string
+  trine2: string
+  opposite_stars: string[]
+  trine1_stars: string[]
+  trine2_stars: string[]
+  notes: string[]
+}
+
+export interface ZiWeiReadingPatternDetail {
+  name: string
+  palace: string
+  stars: string[]
+  basis: string
+  structure_status: string
+  validation_status: string
+}
+
+export interface ZiWeiPalaceReading {
+  palace_name: string
+  palace_focus: string
+  main_star_analysis: string
+  aux_star_influence: string
+  sihua_influence: string
+  sanfang_analysis: string
+  pattern_notes: string
+  brightness: string
+  summary: string
+  key_points: string[]
+  evidence: ZiWeiReadingEvidence[]
+  sanfang_context: ZiWeiReadingSanfangContext | null
+  pattern_details: ZiWeiReadingPatternDetail[]
+  review_notes: string[]
+  limitations: string[]
+  evidence_basis: string
+  placement_basis: string
+  interpretation_basis: string
+  interpretation_status: string
+  validation_status: string
+  is_outcome_conclusion: boolean
+}
+
 export interface ZiWeiSihuaProjectionSemantics {
   rule_id: 'ziwei.sihua.ten-stem.iztro-v1'
   source_tier: 'silver_external'
@@ -247,6 +392,31 @@ export interface ZiWeiPeriodResponse<T = unknown> {
   [key: string]: unknown
 }
 
+export interface ZiWeiDayunPeriodResponse extends ZiWeiPeriodResponse<ZiWeiDayunPeriod> {
+  target_date: string
+  nominal_age: number
+  age_basis: string
+  boundary_policy: string
+}
+
+export interface ZiWeiChartPeriodResponse extends ZiWeiPeriodResponse<ZiWeiPeriodChart> {
+  periods: ZiWeiPeriodChart[]
+}
+
+export interface ZiWeiSihuaPeriodResponse {
+  periods: ZiWeiSihuaProjectionResult
+  description: string
+}
+
+export interface ZiWeiSihuaChainResponse {
+  chain: ZiWeiSihuaProjectionResult
+  description: string
+}
+
+export interface ZiWeiPalaceReadingResponse {
+  reading: ZiWeiPalaceReading
+}
+
 export interface ZiWeiOverlayMethodStep extends ZiWeiPeriodEvidenceSemantics {
   label: string
   value: string
@@ -368,17 +538,26 @@ export interface ZiWeiOverlayAnalysis {
   is_outcome_conclusion: boolean
 }
 
-export async function fetchZiWeiChart(payload: ZiWeiChartRequest) {
-  const { data } = await client.post('/ziwei/chart', payload)
+export interface ZiWeiOverlayResponse extends ZiWeiChartResponse {
+  year: number
+  overlay_analysis?: ZiWeiOverlayAnalysis
+}
+
+export async function fetchZiWeiChart(payload: ZiWeiChartRequest): Promise<ZiWeiChartResponse> {
+  const { data } = await client.post<ZiWeiChartResponse>('/ziwei/chart', payload)
   return data
 }
 
-export async function fetchZiWeiPeriod(payload: ZiWeiPeriodRequest) {
-  const { data } = await client.post('/ziwei/period', payload)
+export async function fetchZiWeiPeriod<TResponse = ZiWeiPeriodResponse>(
+  payload: ZiWeiPeriodRequest,
+): Promise<TResponse> {
+  const { data } = await client.post<TResponse>('/ziwei/period', payload)
   return data
 }
 
-export async function fetchZiWeiOverlay(payload: ZiWeiOverlayRequest) {
-  const { data } = await client.post('/ziwei/overlay', payload)
+export async function fetchZiWeiOverlay(
+  payload: ZiWeiOverlayRequest,
+): Promise<ZiWeiOverlayResponse> {
+  const { data } = await client.post<ZiWeiOverlayResponse>('/ziwei/overlay', payload)
   return data
 }

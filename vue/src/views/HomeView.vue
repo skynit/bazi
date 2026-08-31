@@ -2,31 +2,32 @@
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useRecentChartStore } from '../stores/recentChart'
 import { useThemeStore } from '../stores/theme'
-import {
-  ShaderMount,
-  grainGradientFragmentShader
-} from '@paper-design/shaders'
-import {
-  type ShaderThemeMode,
-  createShaderUniforms
-} from '../composables/useWuxingThemes'
+import { ShaderMount, grainGradientFragmentShader } from '@paper-design/shaders'
+import { type ShaderThemeMode, createShaderUniforms } from '../composables/useWuxingThemes'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const recentChartStore = useRecentChartStore()
 const themeStore = useThemeStore()
 
-const savedChartId = ref<number | null>(null)
+const savedChartId = computed(() => recentChartStore.chartId)
 const mounted = ref(false)
 const shaderHost = ref<HTMLDivElement | null>(null)
-const themeMode = ref<ShaderThemeMode>(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
-const currentElementLabel = computed(() => ({
-  mu: '木',
-  huo: '火',
-  tu: '土',
-  jin: '金',
-  shui: '水',
-})[themeStore.elementTheme] || themeStore.elementTheme)
+const themeMode = ref<ShaderThemeMode>(
+  document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+)
+const currentElementLabel = computed(
+  () =>
+    ({
+      mu: '木',
+      huo: '火',
+      tu: '土',
+      jin: '金',
+      shui: '水',
+    })[themeStore.elementTheme] || themeStore.elementTheme,
+)
 
 let shaderMount: ShaderMount | null = null
 let themeObserver: MutationObserver | null = null
@@ -35,16 +36,7 @@ onMounted(async () => {
   window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 
   if (authStore.isLoggedIn() && !authStore.user) {
-    await authStore.fetchMe().catch(() => { })
-  }
-
-  const saved = localStorage.getItem('bazi_last_birth')
-  if (saved) {
-    try {
-      savedChartId.value = JSON.parse(saved).chartId || null
-    } catch {
-      // ignore malformed local state
-    }
+    await authStore.fetchMe().catch(() => {})
   }
 
   setTimeout(() => {
@@ -60,20 +52,25 @@ onMounted(async () => {
       2,
       0,
       Math.min(window.devicePixelRatio || 1, 2),
-      undefined
+      undefined,
     )
   }
 
   themeObserver = new MutationObserver(() => {
     themeMode.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    shaderMount?.setUniforms(createShaderUniforms('grainGradient', themeStore.elementTheme, undefined, themeMode.value))
+    shaderMount?.setUniforms(
+      createShaderUniforms('grainGradient', themeStore.elementTheme, undefined, themeMode.value),
+    )
   })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 })
 
-watch(() => themeStore.elementTheme, (key) => {
-  shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
-})
+watch(
+  () => themeStore.elementTheme,
+  (key) => {
+    shaderMount?.setUniforms(createShaderUniforms('grainGradient', key, undefined, themeMode.value))
+  },
+)
 
 onUnmounted(() => {
   themeObserver?.disconnect()
@@ -102,14 +99,10 @@ function continueChart() {
             <span class="title-accent">推演</span>
           </h1>
 
-          <p class="hero-sub">
-            一页看八字、流年与紫微。
-          </p>
+          <p class="hero-sub">一页看八字、流年与紫微。</p>
 
           <div class="cta-group">
-            <button @click="startChart" class="btn-primary-base">
-              开始排盘
-            </button>
+            <button @click="startChart" class="btn-primary-base">开始排盘</button>
             <button v-if="savedChartId" @click="continueChart" class="btn-secondary">
               继续上次
             </button>
@@ -136,7 +129,9 @@ function continueChart() {
         <div class="cap-grid">
           <div class="cap-item">
             <h3 class="cap-name">八字排盘</h3>
-            <p class="cap-desc">输入出生年月日时，排出四柱干支、十神藏干与大运流年，命盘结构一页览尽。</p>
+            <p class="cap-desc">
+              输入出生年月日时，排出四柱干支、十神藏干与大运流年，命盘结构一页览尽。
+            </p>
           </div>
           <div class="cap-item">
             <h3 class="cap-name">紫微斗数</h3>
@@ -144,7 +139,9 @@ function continueChart() {
           </div>
           <div class="cap-item">
             <h3 class="cap-name">运势查询</h3>
-            <p class="cap-desc">日、周、月三档运势，结合日主强弱与流年干支逐层推演，吉凶宜忌各有出处。</p>
+            <p class="cap-desc">
+              日、周、月三档运势，结合日主强弱与流年干支逐层推演，吉凶宜忌各有出处。
+            </p>
           </div>
           <div class="cap-item">
             <h3 class="cap-name">卜易问卦</h3>
@@ -213,7 +210,11 @@ function continueChart() {
         <p class="cta-line">生辰既定，格局自见。</p>
         <div class="cta-group cta-group-end">
           <button @click="startChart" class="btn-primary-base">开始排盘</button>
-          <router-link v-if="!authStore.isLoggedIn()" to="/register" class="btn-secondary btn-as-link">
+          <router-link
+            v-if="!authStore.isLoggedIn()"
+            to="/register"
+            class="btn-secondary btn-as-link"
+          >
             注册账号
           </router-link>
           <button v-else-if="savedChartId" @click="continueChart" class="btn-secondary">
@@ -233,7 +234,9 @@ function continueChart() {
   color: var(--text);
   opacity: 0;
   transform: translateY(-2px);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .home-page.visible {
@@ -442,8 +445,13 @@ function continueChart() {
 }
 
 @keyframes hint-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
 }
 
 /* ── 滚动内容区 ── */

@@ -4,28 +4,69 @@ import { useRoute } from 'vue-router'
 import DailyFortune from '../components/DailyFortune.vue'
 import PeriodNav from '../components/fortune/PeriodNav.vue'
 import FortuneStateView from '../components/fortune/FortuneStateView.vue'
+import ScoreOrb from '../components/fortune/ScoreOrb.vue'
 import { vReveal } from '../composables/useReveal'
 import type { FortuneDay } from '../api/fortune'
 import { fetchDaily } from '../api/fortune'
 import { getApiErrorMessage } from '../api/client'
+import { useRecentChartStore } from '../stores/recentChart'
+import {
+  toneBranchOf,
+  toneCopyOf,
+  scoreTierOf,
+  TEN_GOD_GUIDE,
+  TWELVE_STAGE_PLAIN,
+  SEASONAL_STATE_PLAIN,
+} from '../lib/fortuneCopy'
 
 const route = useRoute()
+const recentChartStore = useRecentChartStore()
 const fortune = ref<FortuneDay | null>(null)
 const loading = ref(true)
 const error = ref('')
 const errorKind = ref<'missing-chart' | 'request' | ''>('')
 const chartId = ref<string | number>('')
-const relationCount = computed(
-  () =>
-    (fortune.value?.supporting_evidence?.length ?? 0) +
-    (fortune.value?.counter_evidence?.length ?? 0),
+
+/** 结构指数：后端流水线的 final_score，中性起分 base_score（通常 50） */
+const finalScore = computed(
+  () => fortune.value?.score_breakdown?.final_score ?? fortune.value?.score ?? 0,
+)
+const baseScore = computed(() => fortune.value?.score_breakdown?.base_score ?? 50)
+const supportingCount = computed(() => fortune.value?.supporting_evidence?.length ?? 0)
+const counterCount = computed(() => fortune.value?.counter_evidence?.length ?? 0)
+
+/** 一句话大白话基调：标题 + 白话解释（术语仅以括号对照出现） */
+const tone = computed(() =>
+  toneCopyOf(
+    toneBranchOf(supportingCount.value, counterCount.value),
+    supportingCount.value,
+    counterCount.value,
+  ),
 )
 
-const headline = computed(() => {
-  const n = relationCount.value
-  return n > 0
-    ? `今日干支与本命四柱记录到 ${n} 条结构关系`
-    : '今日干支与本命四柱没有记录到额外结构关系'
+/** 今日状态分的人话刻度：分档标签 + 平常日参照，不让用户自己换算基线 */
+const scoreTier = computed(() => scoreTierOf(finalScore.value, baseScore.value))
+
+/** 十神 → 今日关键词 + 行动建议 */
+const tenGodName = computed(() =>
+  fortune.value?.ten_god?.status === 'observed' ? (fortune.value.ten_god.name ?? '') : '',
+)
+const tenGodGuide = computed(() => (tenGodName.value ? TEN_GOD_GUIDE[tenGodName.value] : undefined))
+
+/** 节奏/大环境 chips：十二长生与月令状态的白话翻译，原词小字括号对照 */
+const rhythmChips = computed(() => {
+  const f = fortune.value
+  if (!f) return [] as Array<{ label: string; plain: string; raw: string }>
+  const chips: Array<{ label: string; plain: string; raw: string }> = []
+  if (f.twelve_stage?.status === 'observed' && f.twelve_stage.name) {
+    const raw = f.twelve_stage.name
+    chips.push({ label: '节奏', plain: TWELVE_STAGE_PLAIN[raw] ?? '自有节奏', raw })
+  }
+  if (f.seasonal_state?.status === 'observed' && f.seasonal_state.state) {
+    const raw = f.seasonal_state.state
+    chips.push({ label: '大环境', plain: SEASONAL_STATE_PLAIN[raw] ?? '平缓', raw })
+  }
+  return chips
 })
 
 function todayString(date = new Date()) {
@@ -37,18 +78,14 @@ async function fetchFortune() {
   error.value = ''
   errorKind.value = ''
   fortune.value = null
-  let cid: string | number | null = route.query.chart_id as string | null
+  const queryChartId = route.query.chart_id
+  const cid =
+    typeof queryChartId === 'string' && queryChartId ? queryChartId : recentChartStore.chartId
   if (!cid) {
-    try {
-      const s = localStorage.getItem('bazi_last_birth')
-      if (s) cid = JSON.parse(s).chartId
-    } catch {}
-    if (!cid) {
-      error.value = '请先创建命盘'
-      errorKind.value = 'missing-chart'
-      loading.value = false
-      return
-    }
+    error.value = '请先创建命盘'
+    errorKind.value = 'missing-chart'
+    loading.value = false
+    return
   }
   chartId.value = cid
   try {
@@ -124,9 +161,34 @@ onMounted(fetchFortune)
             </p>
           </div>
         </div>
-        <p class="hero-headline">{{ headline }}</p>
+        <div class="hero-overview">
+          <ScoreOrb
+            :value="finalScore"
+            :decimals="0"
+            label="今日状态分"
+            unit="/ 100"
+            :caption="scoreTier.caption"
+          />
+          <div class="hero-overview-text">
+            <p class="hero-headline">{{ tone.headline }}</p>
+            <p class="hero-summary">{{ tone.why }}</p>
+            <div v-if="tenGodGuide" class="hero-keyword">
+              <p class="hero-keyword-eyebrow">今日关键词 · 十神「{{ tenGodName }}」</p>
+              <p class="hero-keyword-word">{{ tenGodGuide.keyword }}</p>
+              <p class="hero-keyword-advice">{{ tenGodGuide.advice }}</p>
+            </div>
+            <ul v-if="rhythmChips.length" class="hero-points">
+              <li v-for="chip in rhythmChips" :key="chip.label" class="hero-point">
+                <span class="hero-point-label">{{ chip.label }}</span>
+                <span class="hero-point-value">
+                  {{ chip.plain }}<span class="hero-point-raw">（{{ chip.raw }}）</span>
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
         <p class="hero-tip">
-          条数只表示命中的规则关系数量，不代表吉凶、强弱或事件概率。想查看更多，可在下方切换解读层级。
+          以上内容根据干支结构与传统命理查表生成，只描述状态与节奏倾向，供参考，不代表确定会发生的事。想了解具体依据，可查看下方的结构关系记录。
         </p>
       </header>
 
@@ -277,7 +339,7 @@ onMounted(fetchFortune)
 }
 
 .hero-headline {
-  margin: 1.25rem 0 0;
+  margin: 0;
   font-family: var(--font-serif);
   font-size: var(--fs-xl);
   font-weight: 700;
@@ -286,6 +348,102 @@ onMounted(fetchFortune)
   border-left: 2px solid rgba(var(--jade-accent-rgb), 0.55);
   padding-left: 0.75rem;
 }
+
+/* ── ①a 今日运势概览 ── */
+.hero-overview {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.hero-overview-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.hero-summary {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+/* ── 今日关键词（十神的白话翻译） ── */
+.hero-keyword {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: 10px;
+}
+
+.hero-keyword-eyebrow {
+  margin: 0;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-meta, 0.18em);
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.hero-keyword-word {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(var(--jade-accent-rgb), 1);
+}
+
+.hero-keyword-advice {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.hero-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-point {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line-subtle);
+  border-radius: 8px;
+  font-size: var(--fs-2xs);
+}
+
+.hero-point-label {
+  color: var(--text-soft);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.hero-point-value {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.hero-point-raw {
+  font-weight: 400;
+  font-size: 0.92em;
+  color: var(--text-soft);
+}
+
 .hero-tip {
   margin: 0.6rem 0 0;
   font-size: var(--fs-xs);
@@ -314,6 +472,14 @@ onMounted(fetchFortune)
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+  .hero-overview {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+  .hero-overview .metric {
+    width: 100%;
   }
   .pillar-value {
     font-size: var(--fs-stat-lg);

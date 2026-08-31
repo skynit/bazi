@@ -1,0 +1,76 @@
+name: Run focused frontend contract tests
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/focused-frontend-tests.yml"
+      - "vue/package.json"
+      - "vue/package-lock.json"
+      - "vue/src/api/chart.ts"
+      - "vue/src/api/ziwei.ts"
+      - "vue/src/stores/auth.ts"
+      - "vue/src/stores/recentChart.ts"
+      - "vue/src/stores/recentChart.spec.ts"
+      - "vue/src/App.vue"
+      - "vue/src/components/BirthInputForm.vue"
+      - "vue/src/components/FortuneEvidencePanel.spec.ts"
+      - "vue/src/views/ChartView.vue"
+      - "vue/src/views/FortuneBlessingView.vue"
+      - "vue/src/views/FortuneView.vue"
+      - "vue/src/views/HomeView.vue"
+      - "vue/src/views/MonthlyFortuneView.vue"
+      - "vue/src/views/WeeklyFortuneView.vue"
+      - "vue/src/views/ZiWeiView.vue"
+  push:
+    paths:
+      - ".github/workflows/focused-frontend-tests.yml"
+      - "vue/package.json"
+      - "vue/package-lock.json"
+      - "vue/src/api/chart.ts"
+      - "vue/src/api/ziwei.ts"
+      - "vue/src/stores/auth.ts"
+      - "vue/src/stores/recentChart.ts"
+      - "vue/src/stores/recentChart.spec.ts"
+      - "vue/src/App.vue"
+      - "vue/src/components/BirthInputForm.vue"
+      - "vue/src/components/FortuneEvidencePanel.spec.ts"
+      - "vue/src/views/ChartView.vue"
+      - "vue/src/views/FortuneBlessingView.vue"
+      - "vue/src/views/FortuneView.vue"
+      - "vue/src/views/HomeView.vue"
+      - "vue/src/views/MonthlyFortuneView.vue"
+      - "vue/src/views/WeeklyFortuneView.vue"
+      - "vue/src/views/ZiWeiView.vue"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused-frontend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vue
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: vue/package-lock.json
+      - run: npm ci
+      - name: Test focused frontend contracts
+        run: npm test -- src/stores/recentChart.spec.ts src/components/FortuneEvidencePanel.spec.ts
+      - name: Check TypeScript contracts
+        run: npx vue-tsc --noEmit -p tsconfig.app.json --pretty false
+      - name: Lint recent chart and ZiWei consumers
+        run: >-
+          npm run lint --
+          src/api/chart.ts src/api/ziwei.ts src/stores/auth.ts
+          src/stores/recentChart.ts src/stores/recentChart.spec.ts src/App.vue
+          src/components/BirthInputForm.vue src/components/FortuneEvidencePanel.spec.ts
+          src/views/ChartView.vue
+          src/views/FortuneBlessingView.vue src/views/FortuneView.vue
+          src/views/HomeView.vue src/views/MonthlyFortuneView.vue
+          src/views/WeeklyFortuneView.vue src/views/ZiWeiView.vue

@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import {
+  buildZiweiPlainOverview,
+  buildZiweiPlainPoints,
+  type ZiWeiPlainPoint,
+} from '@/lib/ziweiInterpret'
 
 interface SectionData {
   title: string
@@ -102,6 +107,11 @@ const legacySections = computed(() =>
   ].filter((section) => section?.content),
 )
 
+const plainOverview = computed(() => buildZiweiPlainOverview(props.palaceReading))
+const plainPoints = computed<ZiWeiPlainPoint[]>(() =>
+  buildZiweiPlainPoints(props.palaceReading.evidence || []),
+)
+
 function toggle() {
   expanded.value = !expanded.value
 }
@@ -133,9 +143,29 @@ function readableBasis(value: string): string {
     <transition name="expand">
       <div v-if="expanded" class="panel-body">
         <section class="overview-band">
-          <p class="overview-text">
+          <div class="plain-overview">
+            <span class="plain-kicker">先看结论</span>
+            <p>{{ plainOverview }}</p>
+          </div>
+
+          <p
+            v-if="palaceReading.summary || palaceReading.mainStarAnalysis.content"
+            class="structure-summary"
+          >
+            <strong>盘面摘要：</strong>
             {{ palaceReading.summary || palaceReading.mainStarAnalysis.content }}
           </p>
+
+          <div v-if="plainPoints.length" class="plain-point-list">
+            <div v-for="point in plainPoints" :key="point.key" class="plain-point">
+              <div class="plain-point-head">
+                <strong>{{ point.label }}</strong>
+                <span>{{ point.evidence }}</span>
+              </div>
+              <p>{{ point.text }}</p>
+            </div>
+          </div>
+
           <div v-if="palaceReading.keyPoints?.length" class="key-point-grid">
             <div v-for="point in palaceReading.keyPoints" :key="point" class="key-point">
               {{ point }}
@@ -208,7 +238,9 @@ function readableBasis(value: string): string {
           </div>
         </section>
 
-        <p class="reading-boundary-note">宫位解读用于理解星曜与宫位结构，不直接判断具体事件。</p>
+        <p class="reading-boundary-note">
+          以上只把已排出的星曜、宫位和四化翻成白话，不据此断定健康、婚姻、财富、职业或其他具体事件。
+        </p>
 
         <section
           v-if="!orderedEvidence.length && legacySections.length"
@@ -306,9 +338,61 @@ function readableBasis(value: string): string {
   @apply flex flex-col gap-3;
 }
 
-.overview-text {
-  @apply m-0 text-sm leading-relaxed;
+.plain-overview {
+  padding: 0.85rem 0 0.85rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 5%, transparent);
+}
+
+.plain-kicker {
+  @apply text-xs font-bold;
+  color: var(--accent);
+}
+
+.plain-overview p {
+  @apply m-0 mt-1 text-sm leading-relaxed font-semibold;
   color: var(--text);
+}
+
+.structure-summary {
+  @apply m-0 text-xs leading-relaxed;
+  color: var(--text-soft);
+}
+
+.structure-summary strong {
+  color: var(--text);
+}
+
+.plain-point-list {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.plain-point {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.plain-point-head {
+  @apply flex items-baseline justify-between gap-3;
+}
+
+.plain-point-head strong {
+  @apply text-sm;
+  color: var(--text);
+}
+
+.plain-point-head span {
+  @apply text-xs text-right;
+  max-width: 55%;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.plain-point p {
+  @apply m-0 mt-1 text-sm leading-relaxed;
+  color: var(--text-soft);
 }
 
 .key-point-grid {
@@ -580,6 +664,17 @@ function readableBasis(value: string): string {
 
   .sanfang-layout {
     grid-template-columns: 1fr;
+  }
+
+  .plain-point-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .plain-point-head span {
+    max-width: none;
+    text-align: left;
   }
 }
 </style>

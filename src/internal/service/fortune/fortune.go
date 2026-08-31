@@ -80,6 +80,12 @@ type ElementTrendPoint struct {
 	Earth float64 `json:"earth"`
 }
 
+type dailyFortuneRange struct {
+	fortunes   []DailyFortune
+	trends     []ElementTrendPoint
+	totalScore int
+}
+
 type ShengKeAnalysis = model.ShengKeAnalysis
 
 var stemToElement = map[string]string{
@@ -244,56 +250,48 @@ func observeSeasonElement(dayGan, monthZhi string) model.SeasonElementEvidence {
 	return evidence
 }
 
+func (e *FortuneEngine) calculateDailyRange(userChart *bazipkg.BaziResult, start time.Time, dayCount, birthYear int) dailyFortuneRange {
+	result := dailyFortuneRange{
+		fortunes: make([]DailyFortune, dayCount),
+		trends:   make([]ElementTrendPoint, dayCount),
+	}
+	for offset := 0; offset < dayCount; offset++ {
+		date := start.AddDate(0, 0, offset)
+		daily := e.CalculateDaily(userChart, date, birthYear)
+		result.fortunes[offset] = *daily
+		result.trends[offset] = e.elementTrend(date, daily.Score)
+		result.totalScore += daily.Score
+	}
+	return result
+}
+
 // CalculateWeekly computes fortunes for 7 consecutive days starting from weekStart.
 func (e *FortuneEngine) CalculateWeekly(userChart *bazipkg.BaziResult, weekStart time.Time, birthYear int) *WeeklyFortune {
 	weekStart = toDateStart(weekStart)
-	fortunes := make([]DailyFortune, 7)
-	trends := make([]ElementTrendPoint, 7)
-	totalScore := 0
-
-	for i := 0; i < 7; i++ {
-		day := weekStart.AddDate(0, 0, i)
-		df := e.CalculateDaily(userChart, day, birthYear)
-		fortunes[i] = *df
-		totalScore += df.Score
-		trends[i] = e.elementTrend(day, df.Score)
-	}
-
-	avg := totalScore / 7
+	dailyRange := e.calculateDailyRange(userChart, weekStart, 7, birthYear)
 
 	return &WeeklyFortune{
 		WeekStart:               weekStart.Format("2006-01-02"),
-		DailyFortunes:           fortunes,
-		StructuralRelationIndex: avg,
-		ElementTrend:            trends,
-		Summary:                 computeSummary(fortunes),
+		DailyFortunes:           dailyRange.fortunes,
+		StructuralRelationIndex: dailyRange.totalScore / 7,
+		ElementTrend:            dailyRange.trends,
+		Summary:                 computeSummary(dailyRange.fortunes),
 	}
 }
 
 // CalculateMonthly computes fortunes for every day in the given year/month.
 func (e *FortuneEngine) CalculateMonthly(userChart *bazipkg.BaziResult, year, month, birthYear int) *MonthlyFortune {
 	days := daysInMonth(year, month)
-	fortunes := make([]DailyFortune, 0, days)
-	trends := make([]ElementTrendPoint, 0, days)
-	totalScore := 0
-
-	for d := 1; d <= days; d++ {
-		date := time.Date(year, time.Month(month), d, 12, 0, 0, 0, time.UTC)
-		df := e.CalculateDaily(userChart, date, birthYear)
-		fortunes = append(fortunes, *df)
-		totalScore += df.Score
-		trends = append(trends, e.elementTrend(date, df.Score))
-	}
-
-	avg := totalScore / days
+	monthStart := time.Date(year, time.Month(month), 1, 12, 0, 0, 0, time.UTC)
+	dailyRange := e.calculateDailyRange(userChart, monthStart, days, birthYear)
 
 	return &MonthlyFortune{
 		Year:                    year,
 		Month:                   month,
-		DailyFortunes:           fortunes,
-		StructuralRelationIndex: avg,
-		ElementTrend:            trends,
-		Summary:                 computeSummary(fortunes),
+		DailyFortunes:           dailyRange.fortunes,
+		StructuralRelationIndex: dailyRange.totalScore / days,
+		ElementTrend:            dailyRange.trends,
+		Summary:                 computeSummary(dailyRange.fortunes),
 	}
 }
 
