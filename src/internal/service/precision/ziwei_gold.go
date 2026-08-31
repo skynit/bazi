@@ -290,13 +290,14 @@ func ziweiGoldChecks(chart *ziweipkg.ZiWeiChart, dayun ziweipkg.Dayun, expected 
 	}
 	for _, expectedPalace := range expected.Palaces {
 		actual := actualByName[expectedPalace.Name]
+		actualMainStars, actualAuxStars := ziweiGoldStarGroups(actual)
 		prefix := "palaces." + expectedPalace.Name + "."
 		checks = append(checks,
 			fieldCheck{ruleID: checkZiweiGoldPalaceScalar, field: prefix + "branch", required: true, want: expectedPalace.Branch, got: actual.Branch},
 			fieldCheck{ruleID: checkZiweiGoldPalaceScalar, field: prefix + "heavenly_stem", required: true, want: expectedPalace.HeavenlyStem, got: actual.HeavenlyStem},
 			fieldCheck{ruleID: checkZiweiGoldPalaceScalar, field: prefix + "is_body_palace", required: true, want: fmt.Sprint(expectedPalace.IsBodyPalace), got: fmt.Sprint(actual.IsBodyPalace)},
-			fieldCheck{ruleID: checkZiweiGoldPalaceSet, field: prefix + "main_stars", required: true, wantSet: expectedPalace.MainStars, gotSet: actual.MainStars},
-			fieldCheck{ruleID: checkZiweiGoldPalaceSet, field: prefix + "aux_stars", required: true, wantSet: expectedPalace.AuxStars, gotSet: actual.AuxStars},
+			fieldCheck{ruleID: checkZiweiGoldPalaceSet, field: prefix + "main_stars", required: true, wantSet: expectedPalace.MainStars, gotSet: actualMainStars},
+			fieldCheck{ruleID: checkZiweiGoldPalaceSet, field: prefix + "aux_stars", required: true, wantSet: expectedPalace.AuxStars, gotSet: actualAuxStars},
 			fieldCheck{ruleID: checkZiweiGoldPalaceSet, field: prefix + "four_hua", required: true, wantSet: expectedPalace.FourHua, gotSet: actual.FourHua},
 			fieldCheck{ruleID: checkZiweiGoldPalaceScalar, field: prefix + "changsheng_12", required: true, want: expectedPalace.Changsheng12, got: actual.Changsheng12},
 			fieldCheck{ruleID: checkZiweiGoldPalaceScalar, field: prefix + "boshi_12", required: true, want: expectedPalace.Boshi12, got: actual.Boshi12},
@@ -306,6 +307,17 @@ func ziweiGoldChecks(chart *ziweipkg.ZiWeiChart, dayun ziweipkg.Dayun, expected 
 	}
 	checks = append(checks, fieldCheck{ruleID: checkZiweiGoldDayun, field: "dayun", required: true, want: canonicalDayun(expected.Dayun), got: canonicalDayun(dayun)})
 	return checks
+}
+
+func ziweiGoldStarGroups(palace ziweipkg.PalaceInfo) (mainStars, auxStars []string) {
+	for _, star := range palace.Stars {
+		if star.Type == "major" {
+			mainStars = append(mainStars, star.Name)
+			continue
+		}
+		auxStars = append(auxStars, star.Name)
+	}
+	return mainStars, auxStars
 }
 
 func canonicalDayun(value []ziweipkg.DayunStage) string {

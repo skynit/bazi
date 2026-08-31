@@ -4,11 +4,28 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	ziweipkg "bazi/internal/service/ziwei"
 )
+
+func TestZiweiGoldStarGroupsDerivesLegacyViewsFromStars(t *testing.T) {
+	palace := ziweipkg.PalaceInfo{Stars: []ziweipkg.StarOutput{
+		{Name: "紫微", Type: "major"},
+		{Name: "左辅", Type: "soft"},
+		{Name: "天马", Type: "tianma"},
+	}}
+
+	mainStars, auxStars := ziweiGoldStarGroups(palace)
+	if !reflect.DeepEqual(mainStars, []string{"紫微"}) {
+		t.Fatalf("main stars = %v, want [紫微]", mainStars)
+	}
+	if !reflect.DeepEqual(auxStars, []string{"左辅", "天马"}) {
+		t.Fatalf("aux stars = %v, want [左辅 天马]", auxStars)
+	}
+}
 
 func TestEvaluateZiweiGoldRequiresFrozenCompleteAdjudicatedCases(t *testing.T) {
 	file := ziweiGoldFile{
@@ -119,11 +136,12 @@ func ziweiGoldExpectedFromChart(chart *ziweipkg.ZiWeiChart, dayun ziweipkg.Dayun
 		expected.Dayun[i].LiuYueStars = append([]string{}, expected.Dayun[i].LiuYueStars...)
 	}
 	for _, palace := range chart.Palaces {
+		mainStars, auxStars := ziweiGoldStarGroups(palace)
 		expected.Palaces = append(expected.Palaces, ziweiGoldPalace{
 			Name: palace.Name, Branch: palace.Branch, HeavenlyStem: palace.HeavenlyStem,
 			IsBodyPalace: palace.IsBodyPalace,
-			MainStars:    append([]string{}, palace.MainStars...),
-			AuxStars:     append([]string{}, palace.AuxStars...),
+			MainStars:    append([]string{}, mainStars...),
+			AuxStars:     append([]string{}, auxStars...),
 			FourHua:      append([]string{}, palace.FourHua...),
 			Changsheng12: palace.Changsheng12, Boshi12: palace.Boshi12,
 			JiangQian12: palace.JiangQian12, SuiQian12: palace.SuiQian12,
